@@ -29,7 +29,8 @@ const DEFAULT_EDITORIAL_PROFILE = {
 type SourceVideo = {
   id: string;
   title: string;
-  upload_url: string;
+  upload_url: string | null;
+  storage_path: string;
   duration_seconds: number;
 };
 
@@ -61,6 +62,15 @@ export default function RequestVideoScreen() {
   const [useEditorialProfile, setUseEditorialProfile] = useState(true);
   const [customEditorialProfile, setCustomEditorialProfile] = useState(DEFAULT_EDITORIAL_PROFILE);
 
+  useEffect(() => {
+    fetchInitialData();
+  }, []);
+
+  const onRefresh = useCallback(() => {
+    setRefreshing(true);
+    fetchInitialData();
+  }, []);
+
   const fetchInitialData = async () => {
     try {
       console.log('Fetching initial data...');
@@ -72,7 +82,7 @@ export default function RequestVideoScreen() {
 
       const { data: videos, error: videosError } = await supabase
         .from('videos')
-        .select('id, title, upload_url, duration_seconds')
+        .select('id, title, upload_url, storage_path, duration_seconds')
         .eq('user_id', user.id);
 
       if (videosError) throw videosError;
@@ -116,15 +126,6 @@ export default function RequestVideoScreen() {
       setRefreshing(false);
     }
   };
-
-  useEffect(() => {
-    fetchInitialData();
-  }, []);
-
-  const onRefresh = useCallback(() => {
-    setRefreshing(true);
-    fetchInitialData();
-  }, []);
 
   const toggleVideoSelection = (videoId: string) => {
     setSelectedVideos(prev => 
@@ -173,14 +174,24 @@ export default function RequestVideoScreen() {
       setError(null);
 
       console.log('Preparing request payload...');
+      
+      // Get storage paths for selected videos
+      const selectedVideoData = sourceVideos
+        .filter(video => selectedVideos.includes(video.id))
+        .map(video => ({
+          id: video.id,
+          storage_path: video.storage_path
+        }));
+
       const requestPayload = {
         prompt,
-        selectedVideos,
+        selectedVideos: selectedVideoData,
         editorialProfile: useEditorialProfile 
           ? editorialProfile || DEFAULT_EDITORIAL_PROFILE
           : customEditorialProfile,
         voiceId: voiceClone?.elevenlabs_voice_id || DEFAULT_VOICE_ID,
       };
+
       console.log('Request payload:', JSON.stringify(requestPayload, null, 2));
 
       console.log('Sending request to /api/videos/generate...');
@@ -475,15 +486,15 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: '#333',
   },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#fff',
-  },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#fff',
   },
   content: {
     flex: 1,
