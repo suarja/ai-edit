@@ -179,7 +179,7 @@ export default function SettingsScreen() {
 
         <TouchableOpacity
           style={[styles.debugButton, testingLoading && styles.debugButtonDisabled]}
-          onPress={handleTestGeneration}
+         
           disabled={testingLoading}
         >
           {testingLoading ? (
