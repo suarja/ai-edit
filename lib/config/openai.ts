@@ -7,7 +7,7 @@ const MODELS = {
   "4.1-nano": "gpt-4.1-nano-2025-04-14",
 }
 
-const MODEL = MODELS['o4-mini']
+export const MODEL = MODELS['o4-mini']
 
 
 export function createOpenAIClient() {
