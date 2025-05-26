@@ -5,7 +5,7 @@ export class ScriptReviewer {
   private openai: OpenAI;
  private model: string;
 
-  constructor() {
+  constructor(string: model) {
     this.openai = createOpenAIClient();
   }
 
