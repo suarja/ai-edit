@@ -8,7 +8,7 @@ const MODELS = {
   
 }
 
-const MODEL =
+const MODEL = MODELS['o4-mini']
 
 
 export function createOpenAIClient() {
