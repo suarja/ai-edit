@@ -1,11 +1,13 @@
 import { supabase } from '@/lib/supabase';
-import { marked } from 'marked';
+import { ScriptGenerator } from '@/lib/agents/scriptGenerator';
+import { ScriptReviewer } from '@/lib/agents/scriptReviewer';
+import { CreatomateBuilder } from '@/lib/agents/creatomateBuilder';
 
 export async function POST(request: Request) {
   try {
     console.log('Starting video generation request...');
 
-   // Get auth token from request header
+    // Get auth token from request header
     const authHeader = request.headers.get('Authorization');
     if (!authHeader) {
       return new Response(
@@ -18,9 +20,6 @@ export async function POST(request: Request) {
         }
       );
     }
-    
-    // Log request headers
-    console.log('Request headers:', Object.fromEntries(request.headers.entries()));
 
     // Parse and validate request body
     const body = await request.json();
@@ -70,6 +69,21 @@ export async function POST(request: Request) {
     }
     console.log('User authenticated:', user.id);
 
+    // Initialize agents
+    const scriptGenerator = new ScriptGenerator();
+    const scriptReviewer = new ScriptReviewer();
+    const creatomateBuilder = CreatomateBuilder.getInstance();
+
+    // Generate initial script
+    console.log('Generating script...');
+    const generatedScript = await scriptGenerator.generate(prompt, editorialProfile);
+    console.log('Script generated:', generatedScript);
+
+    // Review and optimize script
+    console.log('Reviewing script...');
+    const reviewedScript = await scriptReviewer.review(generatedScript, editorialProfile);
+    console.log('Script reviewed:', reviewedScript);
+
     // Create initial script record
     console.log('Creating script record...');
     const { data: script, error: scriptError } = await supabase
@@ -77,7 +91,8 @@ export async function POST(request: Request) {
       .insert({
         user_id: user.id,
         raw_prompt: prompt,
-        status: 'draft',
+        generated_script: reviewedScript,
+        status: 'validated',
       })
       .select()
       .single();
@@ -107,76 +122,17 @@ export async function POST(request: Request) {
     }
     console.log('Video request created:', videoRequest.id);
 
-    // Generate script using GPT-4
-    console.log('Generating script with GPT-4...');
-    const completion = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'gpt-4-turbo-preview',
-        messages: [
-          {
-            role: 'system',
-            content: `You are a creative script-writing agent specialized in short-form video content.
-            Generate concise, engaging scripts optimized for TikTok-style videos (30-60 seconds).
-            
-            Editorial Profile:
-            - Persona: ${editorialProfile.persona_description}
-            - Tone: ${editorialProfile.tone_of_voice}
-            - Audience: ${editorialProfile.audience}
-            - Style: ${editorialProfile.style_notes}
-            
-            Format the script in clear, spoken sentences suitable for text-to-speech.
-            Focus on maintaining the creator's unique voice and style.`
-          },
-          {
-            role: 'user',
-            content: prompt
-          }
-        ]
-      })
+    // Generate Creatomate template
+    console.log('Generating video template...');
+    const template = await creatomateBuilder.buildJson({
+      script: reviewedScript,
+      selectedVideos,
+      voiceId,
+      editorialProfile,
     });
+    console.log('Template generated successfully');
 
-    if (!completion.ok) {
-      console.error('GPT-4 API error:', await completion.text());
-      throw new Error('Failed to generate script');
-    }
-
-    const completionData = await completion.json();
-    console.log('Script generated successfully');
-
-    const generatedScript = completionData.choices[0].message.content;
-
-    // Update script with generated content
-    console.log('Updating script with generated content...');
-    const { error: updateError } = await supabase
-      .from('scripts')
-      .update({
-        generated_script: generatedScript,
-        status: 'validated',
-      })
-      .eq('id', script.id);
-
-    if (updateError) {
-      console.error('Script update error:', updateError);
-      throw updateError;
-    }
-
-    // Load Creatomate template
-    console.log('Loading video template...');
-    const docsPath = '/docs/creatomate.md';
-    const docsResponse = await fetch(docsPath);
-    if (!docsResponse.ok) {
-      console.error('Template load error:', await docsResponse.text());
-      throw new Error('Failed to load video template');
-    }
-    const template = await docsResponse.json();
-    console.log('Template loaded successfully');
-
-    // Generate video using Creatomate
+    // Start Creatomate render
     console.log('Starting Creatomate render...');
     const renderResponse = await fetch('https://api.creatomate.com/v1/renders', {
       method: 'POST',
@@ -184,14 +140,7 @@ export async function POST(request: Request) {
         'Authorization': `Bearer ${process.env.CREATOMATE_API_KEY}`,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({
-        template_id: process.env.CREATOMATE_TEMPLATE_ID,
-        modifications: {
-          script: generatedScript,
-          selectedVideos,
-          voiceId,
-        },
-      }),
+      body: JSON.stringify(template),
     });
 
     if (!renderResponse.ok) {
