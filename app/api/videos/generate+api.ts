@@ -160,7 +160,7 @@ export async function POST(request: Request) {
       },
       body: JSON.stringify({
         "template_id": "a5403674-6eaf-4114-a088-4d560d851aef",
-        modifications: template
+        "modifications": template
         
       }),
     });
