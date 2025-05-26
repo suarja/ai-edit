@@ -10,8 +10,9 @@ export class CreatomateBuilder {
   private openai: OpenAI;
   private model: string;
 
-  private constructor() {
+  private constructor(model: string) {
     this.openai = createOpenAIClient();
+    this.model = model
   }
 
   static getInstance(): CreatomateBuilder {
