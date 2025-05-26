@@ -118,17 +118,9 @@ export default function GeneratedVideosScreen() {
     }
   };
 
-  const getStatusText = (status: string) => {
-    switch (status) {
-      case 'done':
-        return 'Terminé';
-      case 'rendering':
-        return 'En cours';
-      case 'error':
-        return 'Erreur';
-      default:
-        return 'En attente';
-    }
+  const truncateText = (text: string, maxLength: number = 50) => {
+    if (!text) return 'Sans titre';
+    return text.length > maxLength ? text.substring(0, maxLength) + '...' : text;
   };
 
   if (loading) {
@@ -170,7 +162,9 @@ export default function GeneratedVideosScreen() {
             <View style={styles.videoInfo}>
               <Film size={24} color="#fff" />
               <View style={styles.textContainer}>
-                <Text style={styles.videoTitle}>{item.script?.raw_prompt || 'Sans titre'}</Text>
+                <Text style={styles.videoTitle} numberOfLines={2}>
+                  {truncateText(item.script?.raw_prompt)}
+                </Text>
                 <Text style={styles.videoDate}>
                   {new Date(item.created_at).toLocaleDateString()}
                 </Text>
@@ -186,7 +180,7 @@ export default function GeneratedVideosScreen() {
                   },
                 ]}
               >
-                {getStatusText(item.render_status)}
+                {item.render_status}
               </Text>
               <TouchableOpacity>
                 <MoreVertical size={20} color="#888" />
@@ -252,14 +246,17 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
+    flex: 1,
   },
   textContainer: {
     gap: 4,
+    flex: 1,
   },
   videoTitle: {
     color: '#fff',
     fontSize: 16,
     fontWeight: '600',
+    flexWrap: 'wrap',
   },
   videoDate: {
     color: '#888',
@@ -269,6 +266,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
+    marginLeft: 12,
   },
   status: {
     paddingHorizontal: 8,
