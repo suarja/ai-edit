@@ -1,6 +1,9 @@
 import OpenAI from 'openai';
 
 const MODEL = process.env.EXPO_PUBLIC_OPENAI_MODEL || 'gpt-4-turbo-preview';
+const MODELS = {
+  "o3": "o3-2025-04-16"
+}
 
 export function createOpenAIClient() {
   if (!process.env.OPENAI_API_KEY) {
