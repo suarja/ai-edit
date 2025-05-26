@@ -251,23 +251,18 @@ Utilise maintenant think_tool pour planifier la structure du JSON avant de lâ€™Ã
 
 
 Documentation:
-${docs}'
+${docs}`
         },
         {
           role: 'user',
-          content: 'Generate a template using this structure:
+          content: `Generate a template using this structure:
 
 Scene Plan:
 ${JSON.stringify(params.scenePlan, null, 2)}
 
 Voice ID: ${params.voiceId}
 Available Videos: ${JSON.stringify(params.selectedVideos)}
-
-The template must:
-1. Follow the scene plan exactly
-2. Use only provided video assets
-3. Configure proper voiceover and subtitles
-4. Ensure smooth transitions`
+`
         }
       ],
       response_format: { type: 'json_object' }
