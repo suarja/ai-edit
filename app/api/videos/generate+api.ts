@@ -179,7 +179,7 @@ export async function POST(request: Request) {
       .from('video_requests')
       .update({ 
         render_status: 'rendering',
-        metadata: { 
+        
           render_id: renderData.id,
           status: 'Render in progress...'
         }
