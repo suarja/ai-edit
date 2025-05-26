@@ -22,7 +22,6 @@ export default function SignIn() {
 
       if (error) throw error;
       
-      // Navigate to the source-videos tab after successful sign in
       router.replace('/(tabs)/source-videos');
     } catch (e) {
       setError(e.message);
@@ -39,8 +38,8 @@ export default function SignIn() {
           style={styles.headerImage}
         />
         <View style={styles.overlay} />
-        <Text style={styles.title}>Welcome Back</Text>
-        <Text style={styles.subtitle}>Sign in to continue creating amazing videos</Text>
+        <Text style={styles.title}>Bon retour</Text>
+        <Text style={styles.subtitle}>Connectez-vous pour continuer à créer des vidéos incroyables</Text>
       </View>
 
       <View style={styles.form}>
@@ -65,7 +64,7 @@ export default function SignIn() {
           <Lock size={20} color="#888" />
           <TextInput
             style={styles.input}
-            placeholder="Password"
+            placeholder="Mot de passe"
             placeholderTextColor="#888"
             value={password}
             onChangeText={setPassword}
@@ -77,15 +76,15 @@ export default function SignIn() {
           style={[styles.button, loading && styles.buttonDisabled]}
           onPress={handleSignIn}
           disabled={loading}>
-          <Text style={styles.buttonText}>Sign In</Text>
+          <Text style={styles.buttonText}>Connexion</Text>
           <ArrowRight size={20} color="#fff" />
         </TouchableOpacity>
 
         <View style={styles.footer}>
-          <Text style={styles.footerText}>Don't have an account?</Text>
+          <Text style={styles.footerText}>Vous n'avez pas de compte ?</Text>
           <Link href="/(auth)/sign-up" asChild>
             <TouchableOpacity>
-              <Text style={styles.link}>Sign Up</Text>
+              <Text style={styles.link}>Inscription</Text>
             </TouchableOpacity>
           </Link>
         </View>

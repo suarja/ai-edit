@@ -15,22 +15,22 @@ export default function LandingScreen() {
           style={styles.headerImage}
         />
         <View style={styles.overlay} />
-        <Text style={styles.title}>Create Amazing Videos</Text>
-        <Text style={styles.subtitle}>Transform your content into engaging videos with AI</Text>
+        <Text style={styles.title}>Créez des Vidéos Incroyables</Text>
+        <Text style={styles.subtitle}>Transformez votre contenu en vidéos captivantes avec l'IA</Text>
       </View>
 
       <View style={styles.content}>
         <View style={styles.featureCard}>
           <Video size={32} color="#007AFF" />
-          <Text style={styles.featureTitle}>Smart Video Generation</Text>
+          <Text style={styles.featureTitle}>Génération Vidéo Intelligente</Text>
           <Text style={styles.featureText}>
-            Turn your ideas into professional videos in minutes using advanced AI
+            Transformez vos idées en vidéos professionnelles en quelques minutes grâce à l'IA avancée
           </Text>
         </View>
 
         <TouchableOpacity style={styles.button} onPress={handleGetStarted}>
           <Play size={24} color="#fff" />
-          <Text style={styles.buttonText}>Get Started</Text>
+          <Text style={styles.buttonText}>Commencer</Text>
         </TouchableOpacity>
       </View>
     </View>

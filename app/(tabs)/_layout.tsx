@@ -30,7 +30,7 @@ export default function TabLayout() {
         <Tabs.Screen
           name="request-video"
           options={{
-            title: 'Create',
+            title: 'Créer',
             tabBarIcon: ({ size, color }) => (
               <Plus size={size} color={color} />
             ),
@@ -39,7 +39,7 @@ export default function TabLayout() {
         <Tabs.Screen
           name="videos"
           options={{
-            title: 'Generated',
+            title: 'Générées',
             tabBarIcon: ({ size, color }) => (
               <Video size={size} color={color} />
             ),
@@ -48,23 +48,22 @@ export default function TabLayout() {
         <Tabs.Screen
           name="settings"
           options={{
-            title: 'Settings',
+            title: 'Paramètres',
             tabBarIcon: ({ size, color }) => (
               <Settings size={size} color={color} />
             ),
           }}
         />
-        {/* Keep these screens in tabs but hide them from tab bar */}
         <Tabs.Screen
           name="editorial"
           options={{
-            href: null, // This hides it from the tab bar
+            href: null,
           }}
         />
         <Tabs.Screen
           name="voice-clone"
           options={{
-            href: null, // This hides it from the tab bar
+            href: null,
           }}
         />
       </Tabs>
