@@ -1,6 +1,5 @@
 import OpenAI from 'openai';
 
-const MODEL = process.env.EXPO_PUBLIC_OPENAI_MODEL || 'gpt-4-turbo-preview';
 const MODELS = {
  "o3": "o3-2025-04-16",
   "o4-mini": "o4-mini-2025-04-16",
@@ -8,6 +7,9 @@ const MODELS = {
   "4.1-nano": "gpt-4.1-nano-2025-04-14",
   
 }
+
+const MODEL =
+
 
 export function createOpenAIClient() {
   if (!process.env.OPENAI_API_KEY) {
