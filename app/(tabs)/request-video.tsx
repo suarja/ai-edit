@@ -17,15 +17,13 @@ import { supabase } from '@/lib/supabase';
 import { Video as VideoIcon, Send, CircleAlert as AlertCircle, CreditCard as Edit3, Mic as Mic2 } from 'lucide-react-native';
 import { ResizeMode, Video } from 'expo-av';
 
-// Default voice ID to use when no voice clone exists
 const DEFAULT_VOICE_ID = 'NFcw9p0jKu3zbmXieNPE';
 
-// Default editorial profile for when none exists
 const DEFAULT_EDITORIAL_PROFILE = {
-  persona_description: 'Professional content creator with a focus on clear, engaging communication',
-  tone_of_voice: 'Conversational and friendly, yet professional',
-  audience: 'Tech-savvy professionals interested in productivity and innovation',
-  style_notes: 'Clear explanations with practical examples, maintaining a balance between informative and engaging content',
+  persona_description: 'Créateur de contenu professionnel axé sur une communication claire et engageante',
+  tone_of_voice: 'Conversationnel et amical, tout en restant professionnel',
+  audience: 'Professionnels passionnés par la productivité et l\'innovation',
+  style_notes: 'Explications claires avec des exemples pratiques, maintenant un équilibre entre informatif et engageant',
 };
 
 type SourceVideo = {
@@ -72,7 +70,6 @@ export default function RequestVideoScreen() {
         return;
       }
 
-      // Fetch source videos
       const { data: videos, error: videosError } = await supabase
         .from('videos')
         .select('id, title, upload_url, duration_seconds')
@@ -82,7 +79,6 @@ export default function RequestVideoScreen() {
       setSourceVideos(videos || []);
       console.log('Fetched videos:', videos?.length || 0);
 
-      // Fetch voice clone
       const { data: voice, error: voiceError } = await supabase
         .from('voice_clones')
         .select('id, elevenlabs_voice_id, status')
@@ -93,7 +89,6 @@ export default function RequestVideoScreen() {
       setVoiceClone(voice);
       console.log('Voice clone status:', voice?.status || 'none');
 
-      // Fetch editorial profile
       const { data: profile, error: profileError } = await supabase
         .from('editorial_profiles')
         .select('id, persona_description, tone_of_voice, audience, style_notes')
@@ -104,7 +99,6 @@ export default function RequestVideoScreen() {
       setEditorialProfile(profile);
       console.log('Editorial profile found:', !!profile);
       
-      // If we have an editorial profile, use it as the base for custom profile
       if (profile) {
         setCustomEditorialProfile({
           persona_description: profile.persona_description || DEFAULT_EDITORIAL_PROFILE.persona_description,
@@ -143,8 +137,8 @@ export default function RequestVideoScreen() {
   const validateRequest = () => {
     if (!prompt) {
       Alert.alert(
-        'Missing Prompt',
-        'Please enter a prompt describing what you want your video to say.',
+        'Description manquante',
+        'Veuillez entrer une description de la vidéo que vous souhaitez créer.',
         [{ text: 'OK' }]
       );
       return false;
@@ -152,8 +146,8 @@ export default function RequestVideoScreen() {
 
     if (selectedVideos.length === 0) {
       Alert.alert(
-        'No Videos Selected',
-        'Please select at least one source video to use in your generated content.',
+        'Aucune vidéo sélectionnée',
+        'Veuillez sélectionner au moins une vidéo source.',
         [{ text: 'OK' }]
       );
       return false;
@@ -161,8 +155,8 @@ export default function RequestVideoScreen() {
 
     if (!useEditorialProfile && !customEditorialProfile.persona_description) {
       Alert.alert(
-        'Missing Editorial Details',
-        'For more authentic and personalized content, please provide some editorial details about your content style.',
+        'Détails éditoriaux manquants',
+        'Pour un contenu plus authentique et personnalisé, veuillez fournir des détails sur votre style de contenu.',
         [{ text: 'OK' }]
       );
       return false;
@@ -219,7 +213,6 @@ export default function RequestVideoScreen() {
       const data = await response.json();
       console.log('Success response:', data);
 
-      // Navigate to videos tab to show progress
       router.push('/(tabs)/videos');
 
     } catch (err) {
@@ -243,7 +236,7 @@ export default function RequestVideoScreen() {
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <View style={styles.header}>
-        <Text style={styles.title}>Request Video</Text>
+        <Text style={styles.title}>Créer une Vidéo</Text>
       </View>
 
       <ScrollView 
@@ -265,12 +258,12 @@ export default function RequestVideoScreen() {
         )}
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Video Prompt</Text>
+          <Text style={styles.sectionTitle}>Description de la Vidéo</Text>
           <TextInput
             style={styles.promptInput}
             multiline
             numberOfLines={4}
-            placeholder="Ex: How I automated my content creation workflow"
+            placeholder="Ex: Comment j'ai automatisé ma création de contenu"
             placeholderTextColor="#666"
             value={prompt}
             onChangeText={setPrompt}
@@ -280,12 +273,12 @@ export default function RequestVideoScreen() {
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>System Instructions</Text>
+          <Text style={styles.sectionTitle}>Instructions Système</Text>
           <TextInput
             style={styles.promptInput}
             multiline
             numberOfLines={4}
-            placeholder="Additional instructions for the AI..."
+            placeholder="Instructions supplémentaires pour l'IA..."
             placeholderTextColor="#666"
             value={systemPrompt}
             onChangeText={setSystemPrompt}
@@ -294,8 +287,8 @@ export default function RequestVideoScreen() {
 
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Source Videos</Text>
-            <Text style={styles.sectionSubtitle}>Select clips to use</Text>
+            <Text style={styles.sectionTitle}>Vidéos Sources</Text>
+            <Text style={styles.sectionSubtitle}>Sélectionnez les clips à utiliser</Text>
           </View>
 
           <ScrollView 
@@ -337,20 +330,20 @@ export default function RequestVideoScreen() {
 
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Voice Clone</Text>
+            <Text style={styles.sectionTitle}>Clone Vocal</Text>
             {voiceClone ? (
               <View style={styles.voiceStatus}>
                 <Mic2 size={16} color="#10b981" />
-                <Text style={styles.voiceStatusText}>Ready</Text>
+                <Text style={styles.voiceStatusText}>Prêt</Text>
               </View>
             ) : (
               <View style={styles.voiceStatus}>
-                <Text style={[styles.voiceStatusText, { color: '#888' }]}>Using default voice</Text>
+                <Text style={[styles.voiceStatusText, { color: '#888' }]}>Voix par défaut</Text>
                 <TouchableOpacity
                   style={styles.createVoiceButton}
                   onPress={() => router.push('/(tabs)/voice-clone')}
                 >
-                  <Text style={styles.createVoiceText}>Create Custom Voice</Text>
+                  <Text style={styles.createVoiceText}>Créer une Voix Personnalisée</Text>
                 </TouchableOpacity>
               </View>
             )}
@@ -359,7 +352,7 @@ export default function RequestVideoScreen() {
 
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Editorial Profile</Text>
+            <Text style={styles.sectionTitle}>Profil Éditorial</Text>
             <Switch
               trackColor={{ false: '#333', true: '#007AFF' }}
               thumbColor="#fff"
@@ -377,7 +370,7 @@ export default function RequestVideoScreen() {
                   onPress={() => router.push('/(tabs)/editorial')}
                 >
                   <Edit3 size={16} color="#007AFF" />
-                  <Text style={styles.editButtonText}>Edit Profile</Text>
+                  <Text style={styles.editButtonText}>Modifier le Profil</Text>
                 </TouchableOpacity>
               </View>
             ) : (
@@ -388,7 +381,7 @@ export default function RequestVideoScreen() {
                   onPress={() => router.push('/(tabs)/editorial')}
                 >
                   <Edit3 size={16} color="#007AFF" />
-                  <Text style={styles.editButtonText}>Customize Profile</Text>
+                  <Text style={styles.editButtonText}>Personnaliser le Profil</Text>
                 </TouchableOpacity>
               </View>
             )
@@ -398,7 +391,7 @@ export default function RequestVideoScreen() {
                 style={styles.customInput}
                 multiline
                 numberOfLines={3}
-                placeholder="Persona description..."
+                placeholder="Description du persona..."
                 placeholderTextColor="#666"
                 value={customEditorialProfile.persona_description}
                 onChangeText={(text) => setCustomEditorialProfile(prev => ({
@@ -410,7 +403,7 @@ export default function RequestVideoScreen() {
                 style={styles.customInput}
                 multiline
                 numberOfLines={2}
-                placeholder="Tone of voice..."
+                placeholder="Ton de voix..."
                 placeholderTextColor="#666"
                 value={customEditorialProfile.tone_of_voice}
                 onChangeText={(text) => setCustomEditorialProfile(prev => ({
@@ -422,7 +415,7 @@ export default function RequestVideoScreen() {
                 style={styles.customInput}
                 multiline
                 numberOfLines={2}
-                placeholder="Target audience..."
+                placeholder="Public cible..."
                 placeholderTextColor="#666"
                 value={customEditorialProfile.audience}
                 onChangeText={(text) => setCustomEditorialProfile(prev => ({
@@ -434,7 +427,7 @@ export default function RequestVideoScreen() {
                 style={styles.customInput}
                 multiline
                 numberOfLines={3}
-                placeholder="Style notes..."
+                placeholder="Notes de style..."
                 placeholderTextColor="#666"
                 value={customEditorialProfile.style_notes}
                 onChangeText={(text) => setCustomEditorialProfile(prev => ({
@@ -461,7 +454,7 @@ export default function RequestVideoScreen() {
           ) : (
             <>
               <Send size={24} color="#fff" />
-              <Text style={styles.submitButtonText}>Generate Video</Text>
+              <Text style={styles.submitButtonText}>Générer la Vidéo</Text>
             </>
           )}
         </TouchableOpacity>

@@ -118,6 +118,19 @@ export default function GeneratedVideosScreen() {
     }
   };
 
+  const getStatusText = (status: string) => {
+    switch (status) {
+      case 'done':
+        return 'Terminé';
+      case 'rendering':
+        return 'En cours';
+      case 'error':
+        return 'Erreur';
+      default:
+        return 'En attente';
+    }
+  };
+
   if (loading) {
     return (
       <SafeAreaView style={styles.container} edges={['top']}>
@@ -131,7 +144,7 @@ export default function GeneratedVideosScreen() {
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <View style={styles.header}>
-        <Text style={styles.title}>Generated Videos</Text>
+        <Text style={styles.title}>Vidéos Générées</Text>
       </View>
 
       {error && (
@@ -157,7 +170,7 @@ export default function GeneratedVideosScreen() {
             <View style={styles.videoInfo}>
               <Film size={24} color="#fff" />
               <View style={styles.textContainer}>
-                <Text style={styles.videoTitle}>{item.script?.raw_prompt || 'Untitled'}</Text>
+                <Text style={styles.videoTitle}>{item.script?.raw_prompt || 'Sans titre'}</Text>
                 <Text style={styles.videoDate}>
                   {new Date(item.created_at).toLocaleDateString()}
                 </Text>
@@ -173,7 +186,7 @@ export default function GeneratedVideosScreen() {
                   },
                 ]}
               >
-                {item.render_status}
+                {getStatusText(item.render_status)}
               </Text>
               <TouchableOpacity>
                 <MoreVertical size={20} color="#888" />
