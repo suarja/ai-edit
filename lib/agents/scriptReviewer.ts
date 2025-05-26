@@ -15,7 +15,7 @@ export class ScriptReviewer {
       console.log('Starting script review...');
 
       const completion = await this.openai.chat.completions.create({
-        model: MODEL,
+        model: this.model,
         messages: [
           {
             role: 'system',
