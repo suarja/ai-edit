@@ -1,12 +1,18 @@
 import { readFile } from 'fs/promises';
 import { join } from 'path';
 import { marked } from 'marked';
+import OpenAI from 'openai';
 
 export class CreatomateBuilder {
   private static instance: CreatomateBuilder;
   private docsCache: string | null = null;
+  private openai: OpenAI;
 
-  private constructor() {}
+  private constructor() {
+    this.openai = new OpenAI({
+      apiKey: process.env.OPENAI_API_KEY,
+    });
+  }
 
   static getInstance(): CreatomateBuilder {
     if (!CreatomateBuilder.instance) {
@@ -30,90 +36,126 @@ export class CreatomateBuilder {
     }
   }
 
-  private extractJsonExamples(markdown: string): any {
-    const tokens = marked.lexer(markdown);
-    const jsonExamples: any = {};
+  private async generateTemplate(params: {
+    script: string;
+    selectedVideos: string[];
+    voiceId: string;
+    editorialProfile: any;
+  }): Promise<any> {
+    const docs = await this.loadDocs();
     
-    tokens.forEach(token => {
-      if (token.type === 'code' && token.lang === 'json') {
-        try {
-          const json = JSON.parse(token.text);
-          // Store example based on its content
-          if (json.type === 'audio') {
-            jsonExamples.voiceover = json;
-          } else if (json.type === 'text') {
-            jsonExamples.subtitle = json;
-          } else if (json.type === 'composition') {
-            jsonExamples.scene = json;
-          }
-        } catch (e) {
-          console.warn('Failed to parse JSON example:', e);
+    const completion = await this.openai.chat.completions.create({
+      model: 'gpt-4-turbo-preview',
+      messages: [
+        {
+          role: 'system',
+          content: `You are a video template generation expert. Using the Creatomate documentation provided, create a JSON template for a social media video.
+
+Documentation:
+${docs}
+
+Key requirements:
+- Format: Vertical video (1080x1920)
+- Include voiceovers with subtitles
+- Support multiple scenes
+- Use dynamic video backgrounds
+- Implement smooth transitions
+- Follow all best practices from the docs
+
+Output a complete, valid Creatomate JSON template.`
+        },
+        {
+          role: 'user',
+          content: `Generate a template for the following video:
+
+Script:
+${params.script}
+
+Available source videos: ${params.selectedVideos.length}
+Voice ID: ${params.voiceId}
+
+Editorial style:
+${JSON.stringify(params.editorialProfile, null, 2)}
+
+The template should:
+1. Split the script into natural scenes
+2. Use source videos as backgrounds
+3. Add voiceovers with the specified voice ID
+4. Include synchronized subtitles
+5. Apply appropriate animations and transitions`
         }
-      }
+      ],
+      response_format: { type: 'json_object' }
     });
 
-    return jsonExamples;
+    return JSON.parse(completion.choices[0].message.content);
   }
 
   async buildJson(params: {
     script: string;
     selectedVideos: string[];
     voiceId: string;
+    editorialProfile?: any;
   }): Promise<any> {
-    const { script, selectedVideos, voiceId } = params;
+    try {
+      console.log('Generating video template...');
+      
+      // Generate base template using AI
+      const template = await this.generateTemplate({
+        ...params,
+        editorialProfile: params.editorialProfile || {
+          persona_description: 'Professional content creator',
+          tone_of_voice: 'Clear and engaging',
+          audience: 'General audience',
+          style_notes: 'Modern and professional style'
+        }
+      });
 
-    // Load and parse documentation
-    const docs = await this.loadDocs();
-    const examples = this.extractJsonExamples(docs);
+      // Validate and enhance template
+      this.validateTemplate(template);
+      
+      console.log('Template generated successfully');
+      return template;
+    } catch (error) {
+      console.error('Error building template:', error);
+      throw new Error(`Failed to build video template: ${error.message}`);
+    }
+  }
 
-    // Split script into scenes
-    const scenes = script.split('\n\n').filter(Boolean);
+  private validateTemplate(template: any) {
+    // Ensure required properties
+    if (!template.output_format || !template.width || !template.height || !template.elements) {
+      throw new Error('Invalid template: Missing required properties');
+    }
 
-    // Build video JSON using documentation templates
-    return {
-      output_format: 'mp4',
-      width: 1080,
-      height: 1920,
-      elements: scenes.map((sceneText, index) => ({
-        type: 'composition',
-        name: `Scene-${index + 1}`,
-        track: 1,
-        elements: [
-          {
-            type: 'video',
-            track: 1,
-            source: selectedVideos[index % selectedVideos.length],
-            fit: 'cover'
-          },
-          {
-            id: `voice-${index}`,
-            type: 'audio',
-            track: 3,
-            source: '',
-            provider: `elevenlabs model_id=eleven_multilingual_v2 voice_id=${voiceId} stability=0.75`,
-            dynamic: true
-          },
-          {
-            type: 'text',
-            track: 2,
-            width: '50%',
-            y_alignment: '85%',
-            transcript_source: `voice-${index}`,
-            transcript_effect: 'highlight',
-            transcript_maximum_length: 35,
-            transcript_color: '#ff0040',
-            font_family: 'Montserrat',
-            font_weight: '700',
-            font_size: '8 vmin',
-            fill_color: '#ffffff',
-            stroke_color: '#333333',
-            background_color: 'rgba(0,0,0,0.7)',
-            background_x_padding: '26%',
-            background_y_padding: '7%',
-            background_border_radius: '28%'
-          }
-        ]
-      }))
-    };
+    // Validate dimensions
+    if (template.width !== 1080 || template.height !== 1920) {
+      throw new Error('Invalid template: Incorrect dimensions for vertical video');
+    }
+
+    // Check elements structure
+    if (!Array.isArray(template.elements) || template.elements.length === 0) {
+      throw new Error('Invalid template: No elements defined');
+    }
+
+    // Validate each scene
+    template.elements.forEach((scene: any, index: number) => {
+      if (!scene.type || scene.type !== 'composition') {
+        throw new Error(`Invalid scene ${index}: Must be a composition`);
+      }
+
+      if (!Array.isArray(scene.elements)) {
+        throw new Error(`Invalid scene ${index}: Missing elements array`);
+      }
+
+      // Check for required elements in each scene
+      const hasVideo = scene.elements.some((el: any) => el.type === 'video');
+      const hasVoiceover = scene.elements.some((el: any) => el.type === 'audio');
+      const hasSubtitles = scene.elements.some((el: any) => el.type === 'text' && el.transcript_source);
+
+      if (!hasVideo || !hasVoiceover || !hasSubtitles) {
+        throw new Error(`Invalid scene ${index}: Missing required elements (video, audio, or subtitles)`);
+      }
+    });
   }
 }
