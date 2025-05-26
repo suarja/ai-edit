@@ -4,7 +4,7 @@ import { createOpenAIClient, MODEL } from '../config/openai';
 export class ScriptGenerator {
   private openai: OpenAI;
     private model: string;
-
+ private model: string;
   private constructor(model: string) {
     this.openai = createOpenAIClient();
     this.model = model
