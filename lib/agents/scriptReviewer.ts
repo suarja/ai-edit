@@ -1,13 +1,13 @@
 import OpenAI from 'openai';
-import { createOpenAIClient } from '../config/openai';
+import { createOpenAIClient, MODEL } from '../config/openai';
 
 export class ScriptReviewer {
   private openai: OpenAI;
-  private model: string;
+ private model: string;
 
-  constructor(model: string) {
+  constructor(string: model) {
     this.openai = createOpenAIClient();
-    this.model = model;
+    this.model = model
   }
 
   async review(script: string, editorialProfile: any): Promise<string> {
