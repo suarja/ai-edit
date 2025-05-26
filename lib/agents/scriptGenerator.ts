@@ -90,7 +90,7 @@ Return only the final script without any additional context or formatting.`
       console.log('Reviewing script...');
 
       const completion = await this.openai.chat.completions.create({
-        model: MODEL,
+        model: this.model,
         messages: [
           {
             role: 'system',
