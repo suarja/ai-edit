@@ -36,11 +36,38 @@ export class CreatomateBuilder {
     }
   }
 
+  private async planVideoStructure(script: string, availableVideos: string[]): Promise<any> {
+    const completion = await this.openai.chat.completions.create({
+      model: 'gpt-4-turbo-preview',
+      messages: [
+        {
+          role: 'system',
+          content: `You are a video planning expert. Analyze the script and available videos to create a scene-by-scene plan.
+          
+          For each scene, determine:
+          1. The natural break points in the script
+          2. Which video asset best matches the content
+          3. Any special requirements or transitions needed
+          
+          Return the plan as a JSON object with an array of scenes.`
+        },
+        {
+          role: 'user',
+          content: `Script: ${script}\n\nAvailable videos: ${JSON.stringify(availableVideos)}`
+        }
+      ],
+      response_format: { type: 'json_object' }
+    });
+
+    return JSON.parse(completion.choices[0].message.content);
+  }
+
   private async generateTemplate(params: {
     script: string;
     selectedVideos: string[];
     voiceId: string;
     editorialProfile: any;
+    scenePlan: any;
   }): Promise<any> {
     const docs = await this.loadDocs();
     
@@ -49,40 +76,51 @@ export class CreatomateBuilder {
       messages: [
         {
           role: 'system',
-          content: `You are a video template generation expert. Using the Creatomate documentation provided, create a JSON template for a social media video.
+          content: `You are a Creatomate JSON expert. Generate a complete video template following these rules:
+
+1. Format:
+- Vertical video (1080x1920)
+- MP4 output
+- No global duration (auto-timed to voiceover)
+
+2. Scene Structure:
+- Each scene must have:
+  * Video background (track 1)
+  * Voiceover audio (track 3)
+  * Synchronized subtitles (track 2)
+- Use "time": "auto" for smooth flow
+
+3. Voiceover Configuration:
+- type: "audio"
+- track: 3
+- Empty source (for AI generation)
+- Use voice_id=NFcw9p0jKu3zbmXieNPE
+- Set dynamic: true
+
+4. Subtitle Requirements:
+- Maximum width: 50%
+- Position: Bottom third (y_alignment: "85%")
+- Use transcript_source to link with voiceover
+- Include background for readability
 
 Documentation:
-${docs}
-
-Key requirements:
-- Format: Vertical video (1080x1920)
-- Include voiceovers with subtitles
-- Support multiple scenes
-- Use dynamic video backgrounds
-- Implement smooth transitions
-- Follow all best practices from the docs
-
-Output a complete, valid Creatomate JSON template.`
+${docs}`
         },
         {
           role: 'user',
-          content: `Generate a template for the following video:
+          content: `Generate a template using this structure:
 
-Script:
-${params.script}
+Scene Plan:
+${JSON.stringify(params.scenePlan, null, 2)}
 
-Available source videos: ${params.selectedVideos.length}
 Voice ID: ${params.voiceId}
+Available Videos: ${JSON.stringify(params.selectedVideos)}
 
-Editorial style:
-${JSON.stringify(params.editorialProfile, null, 2)}
-
-The template should:
-1. Split the script into natural scenes
-2. Use source videos as backgrounds
-3. Add voiceovers with the specified voice ID
-4. Include synchronized subtitles
-5. Apply appropriate animations and transitions`
+The template must:
+1. Follow the scene plan exactly
+2. Use only provided video assets
+3. Configure proper voiceover and subtitles
+4. Ensure smooth transitions`
         }
       ],
       response_format: { type: 'json_object' }
@@ -98,11 +136,13 @@ The template should:
     editorialProfile?: any;
   }): Promise<any> {
     try {
+      console.log('Planning video structure...');
+      const scenePlan = await this.planVideoStructure(params.script, params.selectedVideos);
+
       console.log('Generating video template...');
-      
-      // Generate base template using AI
       const template = await this.generateTemplate({
         ...params,
+        scenePlan,
         editorialProfile: params.editorialProfile || {
           persona_description: 'Professional content creator',
           tone_of_voice: 'Clear and engaging',
@@ -111,7 +151,6 @@ The template should:
         }
       });
 
-      // Validate and enhance template
       this.validateTemplate(template);
       
       console.log('Template generated successfully');
@@ -123,38 +162,59 @@ The template should:
   }
 
   private validateTemplate(template: any) {
-    // Ensure required properties
+    // Basic structure validation
     if (!template.output_format || !template.width || !template.height || !template.elements) {
       throw new Error('Invalid template: Missing required properties');
     }
 
-    // Validate dimensions
+    // Validate dimensions for TikTok format
     if (template.width !== 1080 || template.height !== 1920) {
-      throw new Error('Invalid template: Incorrect dimensions for vertical video');
+      throw new Error('Invalid template: Must be 1080x1920 for vertical video');
     }
 
-    // Check elements structure
-    if (!Array.isArray(template.elements) || template.elements.length === 0) {
-      throw new Error('Invalid template: No elements defined');
+    // Validate scenes
+    if (!Array.isArray(template.elements)) {
+      throw new Error('Invalid template: elements must be an array');
     }
 
-    // Validate each scene
     template.elements.forEach((scene: any, index: number) => {
+      // Validate scene composition
       if (!scene.type || scene.type !== 'composition') {
-        throw new Error(`Invalid scene ${index}: Must be a composition`);
+        throw new Error(`Scene ${index}: Must be a composition`);
       }
 
       if (!Array.isArray(scene.elements)) {
-        throw new Error(`Invalid scene ${index}: Missing elements array`);
+        throw new Error(`Scene ${index}: Missing elements array`);
       }
 
-      // Check for required elements in each scene
-      const hasVideo = scene.elements.some((el: any) => el.type === 'video');
-      const hasVoiceover = scene.elements.some((el: any) => el.type === 'audio');
-      const hasSubtitles = scene.elements.some((el: any) => el.type === 'text' && el.transcript_source);
+      // Check required elements
+      const elements = scene.elements;
+      
+      // Video validation
+      const video = elements.find((el: any) => el.type === 'video');
+      if (!video || !video.source || video.track !== 1) {
+        throw new Error(`Scene ${index}: Invalid or missing video element`);
+      }
 
-      if (!hasVideo || !hasVoiceover || !hasSubtitles) {
-        throw new Error(`Invalid scene ${index}: Missing required elements (video, audio, or subtitles)`);
+      // Audio validation
+      const audio = elements.find((el: any) => el.type === 'audio');
+      if (!audio || audio.track !== 3 || !audio.provider || !audio.dynamic) {
+        throw new Error(`Scene ${index}: Invalid or missing audio element`);
+      }
+
+      // Subtitle validation
+      const subtitle = elements.find((el: any) => el.type === 'text');
+      if (!subtitle || 
+          subtitle.track !== 2 || 
+          !subtitle.transcript_source || 
+          subtitle.width !== '50%' ||
+          subtitle.y_alignment !== '85%') {
+        throw new Error(`Scene ${index}: Invalid or missing subtitle element`);
+      }
+
+      // Verify audio-subtitle link
+      if (!audio.id || subtitle.transcript_source !== audio.id) {
+        throw new Error(`Scene ${index}: Mismatched audio and subtitle IDs`);
       }
     });
   }
