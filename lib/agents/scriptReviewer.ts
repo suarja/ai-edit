@@ -3,6 +3,7 @@ import { createOpenAIClient, MODEL } from '../config/openai';
 
 export class ScriptReviewer {
   private openai: OpenAI;
+ private model: string;
 
   constructor() {
     this.openai = createOpenAIClient();
