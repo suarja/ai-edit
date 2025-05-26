@@ -15,9 +15,9 @@ export class CreatomateBuilder {
     this.model = model
   }
 
-  static getInstance(): CreatomateBuilder {
+  static getInstance(string: model): CreatomateBuilder {
     if (!CreatomateBuilder.instance) {
-      CreatomateBuilder.instance = new CreatomateBuilder();
+      CreatomateBuilder.instance = new CreatomateBuilder(model);
     }
     return CreatomateBuilder.instance;
   }
