@@ -66,7 +66,7 @@ export default function EditorialScreen() {
       }
     } catch (err) {
       console.error('Error fetching profile:', err);
-      setError('Failed to load profile data');
+      setError('Échec du chargement du profil');
     } finally {
       setLoading(false);
     }
@@ -108,7 +108,7 @@ export default function EditorialScreen() {
       setTimeout(() => setSuccess(false), 3000);
     } catch (err) {
       console.error('Error saving profile:', err);
-      setError('Failed to save profile');
+      setError('Échec de la sauvegarde du profil');
     } finally {
       setSaving(false);
     }
@@ -150,7 +150,7 @@ export default function EditorialScreen() {
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <View style={styles.header}>
-        <Text style={styles.title}>Editorial Profile</Text>
+        <Text style={styles.title}>Profil Éditorial</Text>
       </View>
       
       <ScrollView style={styles.form} showsVerticalScrollIndicator={false}>
@@ -163,17 +163,17 @@ export default function EditorialScreen() {
 
         {success && (
           <View style={styles.successContainer}>
-            <Text style={styles.successText}>Profile saved successfully!</Text>
+            <Text style={styles.successText}>Profil mis à jour avec succès !</Text>
           </View>
         )}
 
         <View style={styles.inputGroup}>
-          <Text style={styles.label}>Persona Description</Text>
+          <Text style={styles.label}>Description du Persona</Text>
           <TextInput
             style={styles.textArea}
             multiline
             numberOfLines={4}
-            placeholder="Describe your content creator persona..."
+            placeholder="Décrivez votre persona de créateur de contenu..."
             placeholderTextColor="#666"
             value={profile.persona_description}
             onChangeText={(text) => setProfile(prev => ({ ...prev, persona_description: text }))}
@@ -181,12 +181,12 @@ export default function EditorialScreen() {
         </View>
 
         <View style={styles.inputGroup}>
-          <Text style={styles.label}>Tone of Voice</Text>
+          <Text style={styles.label}>Ton de Voix</Text>
           <TextInput
             style={styles.textArea}
             multiline
             numberOfLines={3}
-            placeholder="Describe your preferred tone of voice..."
+            placeholder="Décrivez votre ton de voix préféré..."
             placeholderTextColor="#666"
             value={profile.tone_of_voice}
             onChangeText={(text) => setProfile(prev => ({ ...prev, tone_of_voice: text }))}
@@ -194,12 +194,12 @@ export default function EditorialScreen() {
         </View>
 
         <View style={styles.inputGroup}>
-          <Text style={styles.label}>Target Audience</Text>
+          <Text style={styles.label}>Public Cible</Text>
           <TextInput
             style={styles.textArea}
             multiline
             numberOfLines={3}
-            placeholder="Describe your target audience..."
+            placeholder="Décrivez votre public cible..."
             placeholderTextColor="#666"
             value={profile.audience}
             onChangeText={(text) => setProfile(prev => ({ ...prev, audience: text }))}
@@ -207,12 +207,12 @@ export default function EditorialScreen() {
         </View>
 
         <View style={styles.inputGroup}>
-          <Text style={styles.label}>Style Notes</Text>
+          <Text style={styles.label}>Notes de Style</Text>
           <TextInput
             style={styles.textArea}
             multiline
             numberOfLines={4}
-            placeholder="Add any specific style preferences or guidelines..."
+            placeholder="Ajoutez des préférences ou directives de style spécifiques..."
             placeholderTextColor="#666"
             value={profile.style_notes}
             onChangeText={(text) => setProfile(prev => ({ ...prev, style_notes: text }))}
@@ -221,12 +221,12 @@ export default function EditorialScreen() {
 
         <View style={styles.inputGroup}>
           <View style={styles.labelContainer}>
-            <Text style={styles.label}>Content Examples</Text>
+            <Text style={styles.label}>Exemples de Contenu</Text>
             <TouchableOpacity
               style={styles.addButton}
               onPress={addContentExample}
             >
-              <Text style={styles.addButtonText}>Add Example</Text>
+              <Text style={styles.addButtonText}>Ajouter un Exemple</Text>
             </TouchableOpacity>
           </View>
           
@@ -236,7 +236,7 @@ export default function EditorialScreen() {
                 style={styles.exampleInput}
                 multiline
                 numberOfLines={3}
-                placeholder={`Example ${index + 1}`}
+                placeholder={`Exemple ${index + 1}`}
                 placeholderTextColor="#666"
                 value={example}
                 onChangeText={(text) => updateContentExample(index, text)}
@@ -246,7 +246,7 @@ export default function EditorialScreen() {
                   style={styles.removeButton}
                   onPress={() => removeContentExample(index)}
                 >
-                  <Text style={styles.removeButtonText}>Remove</Text>
+                  <Text style={styles.removeButtonText}>Supprimer</Text>
                 </TouchableOpacity>
               )}
             </View>
@@ -265,7 +265,7 @@ export default function EditorialScreen() {
           ) : (
             <>
               <Save size={24} color="#fff" />
-              <Text style={styles.saveButtonText}>Save Profile</Text>
+              <Text style={styles.saveButtonText}>Sauvegarder le Profil</Text>
             </>
           )}
         </TouchableOpacity>
