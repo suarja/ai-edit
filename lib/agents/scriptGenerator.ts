@@ -3,9 +3,11 @@ import { createOpenAIClient, MODEL } from '../config/openai';
 
 export class ScriptGenerator {
   private openai: OpenAI;
+    private model: string;
 
-  constructor() {
+  private constructor(model: string) {
     this.openai = createOpenAIClient();
+    this.model = model
   }
 
   async generate(prompt: string, editorialProfile: any): Promise<string> {
