@@ -132,6 +132,23 @@ export async function POST(request: Request) {
     });
     console.log('Template generated successfully');
 
+    // Store training data
+    console.log('Storing training data...');
+    const { error: trainingError } = await supabase
+      .from('rl_training_data')
+      .insert({
+        user_id: user.id,
+        raw_prompt: prompt,
+        generated_script: reviewedScript,
+        creatomate_template: template,
+        video_request_id: videoRequest.id
+      });
+
+    if (trainingError) {
+      console.error('Error storing training data:', trainingError);
+      // Don't throw, just log the error and continue
+    }
+
     // Start Creatomate render
     console.log('Starting Creatomate render...');
     const renderResponse = await fetch('https://api.creatomate.com/v1/renders', {
