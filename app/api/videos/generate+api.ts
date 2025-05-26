@@ -70,6 +70,40 @@ export async function POST(request: Request) {
     }
     console.log('User authenticated:', user.id);
 
+    // Fetch source videos with storage paths
+    const { data: videos, error: videosError } = await supabase
+      .from('videos')
+      .select('id, storage_path')
+      .in('id', selectedVideos);
+
+    if (videosError) {
+      console.error('Error fetching videos:', videosError);
+      throw videosError;
+    }
+
+    // Generate fresh URLs for each video
+    const videoUrls = await Promise.all(
+      videos.map(async (video) => {
+        if (!video.storage_path) {
+          throw new Error(`Missing storage path for video ${video.id}`);
+        }
+
+        const { data: { publicUrl }, error: urlError } = supabase.storage
+          .from('videos')
+          .getPublicUrl(video.storage_path);
+
+        if (urlError) {
+          console.error('Error generating URL:', urlError);
+          throw urlError;
+        }
+
+        return {
+          id: video.id,
+          url: publicUrl
+        };
+      })
+    );
+
     // Initialize agents
     const scriptGenerator = new ScriptGenerator(MODELS["o4-mini"]);
     const scriptReviewer = new ScriptReviewer(MODELS["o4-mini"]);
@@ -127,7 +161,7 @@ export async function POST(request: Request) {
     console.log('Generating video template...');
     const template = await creatomateBuilder.buildJson({
       script: reviewedScript,
-      selectedVideos,
+      selectedVideos: videoUrls.map(v => v.url), // Use fresh URLs
       voiceId,
       editorialProfile,
     });
@@ -161,7 +195,6 @@ export async function POST(request: Request) {
       body: JSON.stringify({
         "template_id": "a5403674-6eaf-4114-a088-4d560d851aef",
         "modifications": template
-        
       }),
     });
 
@@ -179,10 +212,7 @@ export async function POST(request: Request) {
       .from('video_requests')
       .update({ 
         render_status: 'rendering',
-        
-          render_id: renderData.id,
-          status: 'Render in progress...'
-        }
+        render_id: renderData.id,
       })
       .eq('id', videoRequest.id);
 
