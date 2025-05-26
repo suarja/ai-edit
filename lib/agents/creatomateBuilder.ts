@@ -194,27 +194,7 @@ The template must:
       if (!video || !video.source || video.track !== 1) {
         throw new Error(`Scene ${index}: Invalid or missing video element`);
       }
-
-      // Audio validation
-      const audio = elements.find((el: any) => el.type === 'audio');
-      if (!audio || audio.track !== 3 || !audio.provider || !audio.dynamic) {
-        throw new Error(`Scene ${index}: Invalid or missing audio element`);
-      }
-
-      // Subtitle validation
-      const subtitle = elements.find((el: any) => el.type === 'text');
-      if (!subtitle || 
-          subtitle.track !== 2 || 
-          !subtitle.transcript_source || 
-          subtitle.width !== '50%' ||
-          subtitle.y_alignment !== '85%') {
-        throw new Error(`Scene ${index}: Invalid or missing subtitle element`);
-      }
-
-      // Verify audio-subtitle link
-      if (!audio.id || subtitle.transcript_source !== audio.id) {
-        throw new Error(`Scene ${index}: Mismatched audio and subtitle IDs`);
-      }
+      
     });
   }
 }
