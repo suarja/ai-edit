@@ -98,6 +98,99 @@ export default function SourceVideosScreen() {
     }
   };
 
+  const generateStoragePath = (userId: string, originalFileName: string, ext: string): string => {
+    const timestamp = Date.now();
+    const sanitizedFileName = originalFileName
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/(^-|-$)/g, '');
+    
+    return `videos/${userId}/${timestamp}-${sanitizedFileName}.${ext}`;
+  };
+
+  const uploadToStorage = async (uri: string, fileName: string): Promise<string> => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('User not authenticated');
+
+      const ext = getExtensionFromUri(uri);
+      if (!ext || !(ext in SUPPORTED_VIDEO_FORMATS)) {
+        throw new Error('Unsupported video format');
+      }
+
+      const storagePath = generateStoragePath(user.id, fileName, ext);
+      
+      const response = await fetch(uri);
+      const blob = await response.blob();
+      
+      const reader = new FileReader();
+      const promise = new Promise((resolve, reject) => {
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = reject;
+      });
+      reader.readAsDataURL(blob);
+      const base64File = (await promise as string).split(',')[1];
+      
+      const { error: uploadError } = await supabase.storage
+        .from('videos')
+        .upload(storagePath, decode(base64File), {
+          contentType: SUPPORTED_VIDEO_FORMATS[ext as keyof typeof SUPPORTED_VIDEO_FORMATS],
+          cacheControl: '3600',
+          upsert: false,
+        });
+
+      if (uploadError) throw uploadError;
+
+      return storagePath;
+    } catch (error) {
+      console.error('Error uploading to storage:', error);
+      throw new Error('Failed to upload video to storage');
+    }
+  };
+
+  const handleUpload = async () => {
+    if (!uploadForm.video || !uploadForm.title) return;
+
+    try {
+      setUploading(true);
+      setError(null);
+
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        router.replace('/(auth)/sign-in');
+        return;
+      }
+
+      const storagePath = await uploadToStorage(uploadForm.video, uploadForm.title);
+
+      const { error: uploadError } = await supabase
+        .from('videos')
+        .insert({
+          user_id: user.id,
+          title: uploadForm.title,
+          description: uploadForm.description,
+          tags: uploadForm.tags.split(',').map(tag => tag.trim()).filter(tag => tag),
+          storage_path: storagePath,
+          duration_seconds: 0,
+        });
+
+      if (uploadError) throw uploadError;
+
+      setUploadForm({
+        video: null,
+        title: '',
+        description: '',
+        tags: '',
+      });
+      await fetchVideos();
+    } catch (err) {
+      console.error('Error uploading video:', err);
+      setError('Failed to upload video');
+    } finally {
+      setUploading(false);
+    }
+  };
+
   const isVideoFormatSupported = (uri: string): boolean => {
     const ext = getExtensionFromUri(uri);
     return !!ext && ext in SUPPORTED_VIDEO_FORMATS;
@@ -128,93 +221,6 @@ export default function SourceVideosScreen() {
     } catch (err) {
       console.error('Error picking video:', err);
       setError('Échec de la sélection de la vidéo');
-    }
-  };
-
-  const uploadToStorage = async (uri: string): Promise<string> => {
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('Utilisateur non authentifié');
-
-      const ext = getExtensionFromUri(uri);
-      if (!isVideoFormatSupported(uri)) {
-        throw new Error('Format vidéo non supporté');
-      }
-      
-      const fileName = `${user.id}/${Date.now()}_${Math.random().toString(36).substring(7)}.${ext}`;
-      
-      const response = await fetch(uri);
-      const blob = await response.blob();
-      
-      const reader = new FileReader();
-      const promise = new Promise((resolve, reject) => {
-        reader.onload = () => resolve(reader.result);
-        reader.onerror = reject;
-      });
-      reader.readAsDataURL(blob);
-      const base64File = (await promise as string).split(',')[1];
-      
-      const { data, error } = await supabase.storage
-        .from('videos')
-        .upload(fileName, decode(base64File), {
-          contentType: SUPPORTED_VIDEO_FORMATS[ext as keyof typeof SUPPORTED_VIDEO_FORMATS],
-          cacheControl: '3600',
-          upsert: false,
-        });
-
-      if (error) throw error;
-
-      const { data: { publicUrl } } = supabase.storage
-        .from('videos')
-        .getPublicUrl(data.path);
-
-      return publicUrl;
-    } catch (error) {
-      console.error('Error uploading to storage:', error);
-      throw new Error('Échec du téléchargement de la vidéo');
-    }
-  };
-
-  const handleUpload = async () => {
-    if (!uploadForm.video || !uploadForm.title) return;
-
-    try {
-      setUploading(true);
-      setError(null);
-
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        router.replace('/(auth)/sign-in');
-        return;
-      }
-
-      const publicUrl = await uploadToStorage(uploadForm.video);
-
-      const { error: uploadError } = await supabase
-        .from('videos')
-        .insert({
-          user_id: user.id,
-          title: uploadForm.title,
-          description: uploadForm.description,
-          tags: uploadForm.tags.split(',').map(tag => tag.trim()).filter(tag => tag),
-          upload_url: publicUrl,
-          duration_seconds: 0,
-        });
-
-      if (uploadError) throw uploadError;
-
-      setUploadForm({
-        video: null,
-        title: '',
-        description: '',
-        tags: '',
-      });
-      await fetchVideos();
-    } catch (err) {
-      console.error('Error uploading video:', err);
-      setError('Échec du téléchargement de la vidéo');
-    } finally {
-      setUploading(false);
     }
   };
 
