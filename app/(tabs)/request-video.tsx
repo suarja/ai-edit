@@ -11,14 +11,16 @@ import {
   RefreshControl,
   Alert,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { supabase } from '@/lib/supabase';
 import { Video as VideoIcon, Send, CircleAlert as AlertCircle, CreditCard as Edit3, Mic as Mic2 } from 'lucide-react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { ResizeMode, Video } from 'expo-av';
 
+// Default voice ID to use when no voice clone exists
 const DEFAULT_VOICE_ID = 'NFcw9p0jKu3zbmXieNPE';
 
+// Default editorial profile for when none exists
 const DEFAULT_EDITORIAL_PROFILE = {
   persona_description: 'Créateur de contenu professionnel axé sur une communication claire et engageante',
   tone_of_voice: 'Conversationnel et amical, tout en restant professionnel',
@@ -80,6 +82,7 @@ export default function RequestVideoScreen() {
         return;
       }
 
+      // Fetch source videos
       const { data: videos, error: videosError } = await supabase
         .from('videos')
         .select('id, title, upload_url, storage_path, duration_seconds')
@@ -89,6 +92,7 @@ export default function RequestVideoScreen() {
       setSourceVideos(videos || []);
       console.log('Fetched videos:', videos?.length || 0);
 
+      // Fetch voice clone
       const { data: voice, error: voiceError } = await supabase
         .from('voice_clones')
         .select('id, elevenlabs_voice_id, status')
@@ -99,6 +103,7 @@ export default function RequestVideoScreen() {
       setVoiceClone(voice);
       console.log('Voice clone status:', voice?.status || 'none');
 
+      // Fetch editorial profile
       const { data: profile, error: profileError } = await supabase
         .from('editorial_profiles')
         .select('id, persona_description, tone_of_voice, audience, style_notes')
@@ -109,6 +114,7 @@ export default function RequestVideoScreen() {
       setEditorialProfile(profile);
       console.log('Editorial profile found:', !!profile);
       
+      // If we have an editorial profile, use it as the base for custom profile
       if (profile) {
         setCustomEditorialProfile({
           persona_description: profile.persona_description || DEFAULT_EDITORIAL_PROFILE.persona_description,
