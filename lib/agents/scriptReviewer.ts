@@ -20,13 +20,6 @@ export class ScriptReviewer {
           {
             role: 'system',
             content: `You are a script review agent in a creative automation pipeline.
-            Your task is to review, correct, and validate scripts for TikTok-style videos.
-            
-           
-         
-✅ SYSTEM PROMPT — Script Review Agent (Less Editing)
-
-You are a script review agent in a creative automation pipeline.
 Your task is to review, correct, and validate scripts generated for TikTok-style videos.
 These scripts are written by another AI agent and intended to be converted into voiceovers using ElevenLabs TTS.
 You are not generating the script. You are verifying and adjusting it to match:
