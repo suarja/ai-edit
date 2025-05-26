@@ -73,7 +73,7 @@ export async function POST(request: Request) {
     // Initialize agents
     const scriptGenerator = new ScriptGenerator(MODEL);
     const scriptReviewer = new ScriptReviewer(MODEL);
-    const creatomateBuilder = CreatomateBuilder.getInstance(MODELS);
+    const creatomateBuilder = CreatomateBuilder.getInstance(MODELS["4.1"]);
 
     // Generate initial script
     console.log('Generating script...');
