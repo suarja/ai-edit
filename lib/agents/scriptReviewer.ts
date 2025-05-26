@@ -1,5 +1,5 @@
 import OpenAI from 'openai';
-import { createOpenAIClient, MODEL } from '../config/openai';
+import { createOpenAIClient } from '../config/openai';
 
 export class ScriptReviewer {
   private openai: OpenAI;
