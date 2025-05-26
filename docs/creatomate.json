@@ -1,0 +1,18 @@
+{
+  "version": "1.0",
+  "title": "Creatomate JSON Format Documentation",
+  "sections": {
+    "basics": {
+      "title": "Basic Structure",
+      "content": "Every Creatomate JSON document follows a consistent structure with these core components:\n{\n  \"output_format\": \"mp4|png|gif\",\n  \"width\": 1920,\n  \"height\": 1080,\n  \"duration\": \"optional for videos\",\n  \"elements\": []\n}"
+    },
+    "voiceovers": {
+      "title": "Voiceovers and Subtitles",
+      "content": "For each scene, include:\n{\n  \"type\": \"audio\",\n  \"track\": 3,\n  \"id\": \"voice-scene-1\",\n  \"source\": \"\",\n  \"provider\": \"elevenlabs model_id=eleven_multilingual_v2 voice_id=NFcw9p0jKu3zbmXieNPE stability=0.50\",\n  \"dynamic\": true\n}"
+    },
+    "subtitles": {
+      "title": "Subtitle Configuration",
+      "content": "{\n  \"type\": \"text\",\n  \"track\": 2,\n  \"width\": \"50%\",\n  \"y_alignment\": \"85%\",\n  \"transcript_source\": \"voice-scene-1\",\n  \"transcript_effect\": \"highlight\",\n  \"transcript_maximum_length\": 35,\n  \"transcript_color\": \"#ff0040\",\n  \"font_family\": \"Montserrat\",\n  \"font_weight\": \"700\",\n  \"font_size\": \"8 vmin\"\n}"
+    }
+  }
+}
