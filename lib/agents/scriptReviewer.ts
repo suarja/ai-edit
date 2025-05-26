@@ -7,6 +7,7 @@ export class ScriptReviewer {
 
   constructor(string: model) {
     this.openai = createOpenAIClient();
+    this.model = model
   }
 
   async review(script: string, editorialProfile: any): Promise<string> {
