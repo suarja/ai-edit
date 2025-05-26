@@ -158,7 +158,7 @@ export async function POST(request: Request) {
         'Authorization': `Bearer ${process.env.CREATOMATE_API_KEY}`,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify(template),
+      body: JSON.stringify({template}),
     });
 
     if (!renderResponse.ok) {
