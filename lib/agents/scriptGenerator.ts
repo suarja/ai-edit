@@ -163,7 +163,6 @@ Editorial Profile:
 - Tone: ${editorialProfile.tone_of_voice}
 - Audience: ${editorialProfile.audience}
 - Style: ${editorialProfile.style_notes}
-
 `
           },
           {
