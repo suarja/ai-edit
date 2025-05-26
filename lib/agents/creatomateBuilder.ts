@@ -12,10 +12,10 @@ export class CreatomateBuilder {
 
   private constructor(model: string) {
     this.openai = createOpenAIClient();
-    this.model = model;
+    this.model = model
   }
 
-  static getInstance(model: string): CreatomateBuilder {
+  static getInstance(string: model): CreatomateBuilder {
     if (!CreatomateBuilder.instance) {
       CreatomateBuilder.instance = new CreatomateBuilder(model);
     }
@@ -73,7 +73,8 @@ export class CreatomateBuilder {
     const docs = await this.loadDocs();
     
     const completion = await this.openai.chat.completions.create({
-      model: this.model,
+      model: this.model
+      ,
       messages: [
         {
           role: 'system',
