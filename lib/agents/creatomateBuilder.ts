@@ -152,7 +152,7 @@ The template must:
 
       // this.validateTemplate(template);
       
-      console.log('Template generated successfully');
+      console.log('Template generated successfully', {template});
       return template;
     } catch (error) {
       console.error('Error building template:', error);
