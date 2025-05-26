@@ -23,7 +23,7 @@ export async function POST(request: Request) {
     }
 
     // Parse and validate request body
-    const body = await req.json();
+    const body = await request.json();
     console.log('Request body:', JSON.stringify(body, null, 2));
 
     const { prompt, selectedVideos, editorialProfile, voiceId } = body;
