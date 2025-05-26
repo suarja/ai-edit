@@ -2,6 +2,7 @@ import { supabase } from '@/lib/supabase';
 import { ScriptGenerator } from '@/lib/agents/scriptGenerator';
 import { ScriptReviewer } from '@/lib/agents/scriptReviewer';
 import { CreatomateBuilder } from '@/lib/agents/creatomateBuilder';
+import { MODELS, MODEL } from '@/lib/config/openai';
 
 export async function POST(request: Request) {
   try {
@@ -70,9 +71,9 @@ export async function POST(request: Request) {
     console.log('User authenticated:', user.id);
 
     // Initialize agents
-    const scriptGenerator = new ScriptGenerator();
+    const scriptGenerator = new ScriptGenerator(MODELS[""]);
     const scriptReviewer = new ScriptReviewer();
-    const creatomateBuilder = CreatomateBuilder.getInstance();
+    const creatomateBuilder = CreatomateBuilder.getInstance(MODELS);
 
     // Generate initial script
     console.log('Generating script...');
