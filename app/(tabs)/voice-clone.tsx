@@ -78,7 +78,7 @@ export default function VoiceCloneScreen() {
       setExistingVoice(voice);
     } catch (err) {
       console.error('Failed to fetch voice:', err);
-      setError('Failed to load voice data');
+      setError('Échec du chargement des données vocales');
     } finally {
       setIsLoading(false);
     }
@@ -94,7 +94,7 @@ export default function VoiceCloneScreen() {
       setError(null);
     } catch (err) {
       console.error('Failed to start recording', err);
-      setError('Failed to start recording');
+      setError('Échec du démarrage de l\'enregistrement');
     }
   };
 
@@ -104,9 +104,8 @@ export default function VoiceCloneScreen() {
     try {
       await recording.stopAndUnloadAsync();
       const uri = recording.getURI();
-      console.log(recording)
       if (uri) {
-        const recordingName = `Recording ${recordings.length + 1}.m4a`;
+        const recordingName = `Enregistrement ${recordings.length + 1}.m4a`;
         setRecordings(prev => [...prev, { uri, name: recordingName }]);
       }
       setRecording(null);
@@ -114,7 +113,7 @@ export default function VoiceCloneScreen() {
       setError(null);
     } catch (err) {
       console.error('Failed to stop recording', err);
-      setError('Failed to stop recording');
+      setError('Échec de l\'arrêt de l\'enregistrement');
     }
   };
 
@@ -141,7 +140,7 @@ export default function VoiceCloneScreen() {
     } catch (err) {
       console.error('Failed to play sound', err);
       setPlayingIndex(null);
-      setError('Failed to play recording');
+      setError('Échec de la lecture');
     }
   };
 
@@ -155,7 +154,7 @@ export default function VoiceCloneScreen() {
         setError(null);
       } catch (err) {
         console.error('Failed to stop sound', err);
-        setError('Failed to stop playback');
+        setError('Échec de l\'arrêt de la lecture');
       }
     }
   };
@@ -174,7 +173,7 @@ export default function VoiceCloneScreen() {
       setError(null);
     } catch (err) {
       console.error('Failed to pick audio', err);
-      setError('Failed to select audio file');
+      setError('Échec de la sélection du fichier audio');
     }
   };
 
@@ -188,7 +187,7 @@ export default function VoiceCloneScreen() {
       setError(null);
     } catch (err) {
       console.error('Failed to delete recording', err);
-      setError('Failed to delete recording');
+      setError('Échec de la suppression de l\'enregistrement');
     }
   };
 
@@ -224,7 +223,7 @@ export default function VoiceCloneScreen() {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || 'Failed to create voice clone');
+        throw new Error(data.error || 'Échec de la création du clone vocal');
       }
 
       setName('');
@@ -234,7 +233,7 @@ export default function VoiceCloneScreen() {
       await fetchExistingVoice();
     } catch (err) {
       console.error('Failed to submit voice clone:', err);
-      setError(err instanceof Error ? err.message : 'Failed to create voice clone');
+      setError(err instanceof Error ? err.message : 'Échec de la création du clone vocal');
     } finally {
       setIsSubmitting(false);
     }
@@ -254,18 +253,18 @@ export default function VoiceCloneScreen() {
     return (
       <SafeAreaView style={styles.container} edges={['top']}>
         <View style={styles.header}>
-          <Text style={styles.title}>Voice Clone</Text>
+          <Text style={styles.title}>Clone Vocal</Text>
         </View>
         <View style={styles.emptyStateContainer}>
           <View style={styles.emptyState}>
-            <Text style={styles.emptyStateText}>No voice clone found</Text>
-            <Text style={styles.emptyStateSubtext}>Create your first voice clone to get started</Text>
+            <Text style={styles.emptyStateText}>Aucun clone vocal trouvé</Text>
+            <Text style={styles.emptyStateSubtext}>Créez votre premier clone vocal pour commencer</Text>
             <TouchableOpacity 
               style={styles.createButton} 
               onPress={() => setIsCreating(true)}
             >
               <Plus size={24} color="#fff" />
-              <Text style={styles.buttonText}>Create Voice Clone</Text>
+              <Text style={styles.buttonText}>Créer un Clone Vocal</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -277,17 +276,17 @@ export default function VoiceCloneScreen() {
     return (
       <SafeAreaView style={styles.container} edges={['top']}>
         <View style={styles.header}>
-          <Text style={styles.title}>Your Voice Clone</Text>
+          <Text style={styles.title}>Votre Clone Vocal</Text>
         </View>
         <View style={styles.voiceContainer}>
           <View style={styles.voiceHeader}>
             <View style={styles.voiceInfo}>
-              <Text style={styles.voiceId}>Voice ID: {existingVoice.elevenlabs_voice_id}</Text>
-              <Text style={styles.voiceStatus}>Status: {existingVoice.status}</Text>
+              <Text style={styles.voiceId}>ID de voix : {existingVoice.elevenlabs_voice_id}</Text>
+              <Text style={styles.voiceStatus}>Statut : {existingVoice.status}</Text>
             </View>
           </View>
           <View style={styles.sampleFiles}>
-            <Text style={styles.sampleTitle}>Sample Recordings</Text>
+            <Text style={styles.sampleTitle}>Enregistrements</Text>
             {existingVoice.sample_files.map((file, index) => (
               <View key={index} style={styles.recordingItem}>
                 <Text style={styles.recordingName}>{file.name}</Text>
@@ -312,7 +311,7 @@ export default function VoiceCloneScreen() {
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <View style={styles.header}>
-        <Text style={styles.title}>Create Voice Clone</Text>
+        <Text style={styles.title}>Créer un Clone Vocal</Text>
       </View>
       
       <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
@@ -324,18 +323,18 @@ export default function VoiceCloneScreen() {
           )}
 
           <View style={styles.inputContainer}>
-            <Text style={styles.label}>Voice Name</Text>
+            <Text style={styles.label}>Nom de la voix</Text>
             <TextInput
               style={styles.input}
               value={name}
               onChangeText={setName}
-              placeholder="Enter voice name"
+              placeholder="Entrez le nom de la voix"
               placeholderTextColor="#666"
             />
           </View>
 
           <View style={styles.recordingsContainer}>
-            <Text style={styles.label}>Recordings</Text>
+            <Text style={styles.label}>Enregistrements</Text>
             <View style={styles.recordingsList}>
               {recordings.map((rec, index) => (
                 <View key={rec.uri} style={styles.recordingItem}>
@@ -370,13 +369,13 @@ export default function VoiceCloneScreen() {
             >
               <Mic size={24} color="#fff" />
               <Text style={styles.buttonText}>
-                {isRecording ? 'Stop Recording' : 'Record'}
+                {isRecording ? 'Arrêter' : 'Enregistrer'}
               </Text>
             </TouchableOpacity>
 
             <TouchableOpacity onPress={pickAudio} style={styles.button}>
               <Upload size={24} color="#fff" />
-              <Text style={styles.buttonText}>Upload</Text>
+              <Text style={styles.buttonText}>Importer</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -392,7 +391,7 @@ export default function VoiceCloneScreen() {
             setError(null);
           }}
         >
-          <Text style={styles.buttonText}>Cancel</Text>
+          <Text style={styles.buttonText}>Annuler</Text>
         </TouchableOpacity>
 
         <TouchableOpacity 
@@ -408,7 +407,7 @@ export default function VoiceCloneScreen() {
           ) : (
             <>
               <Send size={24} color="#fff" />
-              <Text style={styles.buttonText}>Create Voice Clone</Text>
+              <Text style={styles.buttonText}>Créer le Clone Vocal</Text>
             </>
           )}
         </TouchableOpacity>
