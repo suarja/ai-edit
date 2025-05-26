@@ -278,7 +278,7 @@ export default function SettingsScreen() {
                 disabled={updating}
               >
                 {updating ? (
-                  <ActivityIndicator size="small" color="#fff" />
+                  <ActivityIndicator size="small\" color="#fff" />
                 ) : (
                   <Check size={20} color="#fff" />
                 )}
