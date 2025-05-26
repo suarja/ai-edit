@@ -79,7 +79,7 @@ export default function SettingsScreen() {
       });
     } catch (err) {
       console.error('Error fetching profile:', err);
-      setError('Failed to load profile');
+      setError('Échec du chargement du profil');
     } finally {
       setLoading(false);
     }
@@ -106,7 +106,7 @@ export default function SettingsScreen() {
       setTimeout(() => setSuccess(false), 3000);
     } catch (err) {
       console.error('Error updating profile:', err);
-      setError('Failed to update profile');
+      setError('Échec de la mise à jour du profil');
     } finally {
       setUpdating(false);
     }
@@ -121,106 +121,9 @@ export default function SettingsScreen() {
       router.replace('/(auth)/sign-in');
     } catch (err) {
       console.error('Error signing out:', err);
-      setError('Failed to sign out');
+      setError('Échec de la déconnexion');
     } finally {
       setLoading(false);
-    }
-  };
-
-  const handleTestGeneration = async () => {
-    if (!testingPrompt) {
-      setTestingError('Please enter a prompt');
-      return;
-    }
-
-    try {
-      setTestingLoading(true);
-      setTestingError(null);
-      setTestingStatus('Initializing test...');
-
-      // Get user's editorial profile
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('Not authenticated');
-
-      const { data: profile } = await supabase
-        .from('editorial_profiles')
-        .select('*')
-        .eq('user_id', user.id)
-        .single();
-
-      // Get user's voice clone
-      const { data: voiceClone } = await supabase
-        .from('voice_clones')
-        .select('*')
-        .eq('user_id', user.id)
-        .single();
-
-      // Get a sample video
-      const { data: videos } = await supabase
-        .from('videos')
-        .select('*')
-        .eq('user_id', user.id)
-        .limit(1);
-
-      if (!videos?.length) {
-        throw new Error('No source videos found. Please upload a video first.');
-      }
-
-      setTestingStatus('Starting generation...');
-
-      // Generate video
-      const response = await fetch('/api/videos/generate', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          prompt: testingPrompt,
-          selectedVideos: [videos[0].id],
-          editorialProfile: profile || undefined,
-          voiceId: voiceClone?.elevenlabs_voice_id,
-        }),
-      });
-
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || 'Failed to generate video');
-      }
-
-      const { requestId } = await response.json();
-
-      // Start polling for status
-      pollVideoStatus(requestId);
-
-    } catch (err) {
-      console.error('Error testing video generation:', err);
-      setTestingError(err.message);
-      setTestingStatus(null);
-    } finally {
-      setTestingLoading(false);
-    }
-  };
-
-  const pollVideoStatus = async (requestId: string) => {
-    try {
-      const response = await fetch(`/api/videos/status/${requestId}`);
-      if (!response.ok) throw new Error('Failed to check status');
-
-      const data = await response.json();
-      setTestingStatus(data.metadata?.status || 'Processing...');
-
-      if (data.render_status === 'rendering') {
-        setTimeout(() => pollVideoStatus(requestId), 5000);
-      } else if (data.render_status === 'done') {
-        setTestingStatus('Video generated successfully!');
-        router.push('/(tabs)/videos');
-      } else if (data.render_status === 'error') {
-        throw new Error(data.metadata?.error || 'Generation failed');
-      }
-    } catch (err) {
-      console.error('Error polling status:', err);
-      setTestingError(err.message);
-      setTestingStatus(null);
     }
   };
 
@@ -236,7 +139,7 @@ export default function SettingsScreen() {
 
   const debugSection = (
     <View style={styles.section}>
-      <Text style={styles.sectionTitle}>Debug</Text>
+      <Text style={styles.sectionTitle}>Débogage</Text>
       
       <TouchableOpacity 
         style={styles.settingItem}
@@ -244,16 +147,16 @@ export default function SettingsScreen() {
       >
         <View style={styles.settingInfo}>
           <Bug size={24} color="#fff" />
-          <Text style={styles.settingText}>Test Welcome Flow</Text>
+          <Text style={styles.settingText}>Tester le Flux d'Accueil</Text>
         </View>
       </TouchableOpacity>
 
       <View style={styles.debugContainer}>
-        <Text style={styles.debugTitle}>Test Video Generation</Text>
+        <Text style={styles.debugTitle}>Tester la Génération Vidéo</Text>
         
         <TextInput
           style={styles.debugInput}
-          placeholder="Enter test prompt..."
+          placeholder="Entrez une description test..."
           placeholderTextColor="#666"
           value={testingPrompt}
           onChangeText={setTestingPrompt}
@@ -284,7 +187,7 @@ export default function SettingsScreen() {
           ) : (
             <>
               <Wand2 size={20} color="#fff" />
-              <Text style={styles.debugButtonText}>Generate Test Video</Text>
+              <Text style={styles.debugButtonText}>Générer une Vidéo Test</Text>
             </>
           )}
         </TouchableOpacity>
@@ -295,7 +198,7 @@ export default function SettingsScreen() {
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <View style={styles.header}>
-        <Text style={styles.title}>Settings</Text>
+        <Text style={styles.title}>Paramètres</Text>
       </View>
 
       <ScrollView 
@@ -318,7 +221,7 @@ export default function SettingsScreen() {
 
         {success && (
           <View style={styles.successContainer}>
-            <Text style={styles.successText}>Profile updated successfully!</Text>
+            <Text style={styles.successText}>Profil mis à jour avec succès !</Text>
           </View>
         )}
 
@@ -339,20 +242,20 @@ export default function SettingsScreen() {
                   style={styles.nameInput}
                   value={editedProfile.full_name || ''}
                   onChangeText={(text) => setEditedProfile(prev => ({ ...prev, full_name: text }))}
-                  placeholder="Enter your name"
+                  placeholder="Entrez votre nom"
                   placeholderTextColor="#666"
                 />
                 <TextInput
                   style={styles.nameInput}
                   value={editedProfile.avatar_url || ''}
                   onChangeText={(text) => setEditedProfile(prev => ({ ...prev, avatar_url: text }))}
-                  placeholder="Enter avatar URL"
+                  placeholder="URL de l'avatar"
                   placeholderTextColor="#666"
                 />
               </>
             ) : (
               <>
-                <Text style={styles.profileName}>{profile.full_name || 'No name set'}</Text>
+                <Text style={styles.profileName}>{profile.full_name || 'Nom non défini'}</Text>
                 <Text style={styles.profileEmail}>{profile.email}</Text>
               </>
             )}
@@ -386,13 +289,13 @@ export default function SettingsScreen() {
               style={styles.editProfileButton}
               onPress={() => setIsEditing(true)}
             >
-              <Text style={styles.editProfileText}>Edit</Text>
+              <Text style={styles.editProfileText}>Modifier</Text>
             </TouchableOpacity>
           )}
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Content Creation</Text>
+          <Text style={styles.sectionTitle}>Création de Contenu</Text>
           
           <TouchableOpacity 
             style={styles.settingItem}
@@ -400,7 +303,7 @@ export default function SettingsScreen() {
           >
             <View style={styles.settingInfo}>
               <Mic size={24} color="#fff" />
-              <Text style={styles.settingText}>Voice Clone</Text>
+              <Text style={styles.settingText}>Clone Vocal</Text>
             </View>
           </TouchableOpacity>
 
@@ -410,36 +313,36 @@ export default function SettingsScreen() {
           >
             <View style={styles.settingInfo}>
               <Edit3 size={24} color="#fff" />
-              <Text style={styles.settingText}>Editorial Profile</Text>
+              <Text style={styles.settingText}>Profil Éditorial</Text>
             </View>
           </TouchableOpacity>
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Account</Text>
+          <Text style={styles.sectionTitle}>Compte</Text>
           
           <TouchableOpacity style={styles.settingItem}>
             <View style={styles.settingInfo}>
               <Key size={24} color="#fff" />
-              <Text style={styles.settingText}>API Keys</Text>
+              <Text style={styles.settingText}>Clés API</Text>
             </View>
           </TouchableOpacity>
           
           <TouchableOpacity style={styles.settingItem}>
             <View style={styles.settingInfo}>
               <Shield size={24} color="#fff" />
-              <Text style={styles.settingText}>Privacy</Text>
+              <Text style={styles.settingText}>Confidentialité</Text>
             </View>
           </TouchableOpacity>
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Preferences</Text>
+          <Text style={styles.sectionTitle}>Préférences</Text>
           
           <View style={styles.settingItem}>
             <View style={styles.settingInfo}>
               <Bell size={24} color="#fff" />
-              <Text style={styles.settingText}>Push Notifications</Text>
+              <Text style={styles.settingText}>Notifications Push</Text>
             </View>
             <Switch
               trackColor={{ false: '#333', true: '#007AFF' }}
@@ -452,9 +355,9 @@ export default function SettingsScreen() {
           <View style={styles.settingItem}>
             <View style={styles.settingInfo}>
               <Globe size={24} color="#fff" />
-              <Text style={styles.settingText}>Language</Text>
+              <Text style={styles.settingText}>Langue</Text>
             </View>
-            <Text style={styles.settingValue}>English</Text>
+            <Text style={styles.settingValue}>Français</Text>
           </View>
         </View>
 
@@ -464,7 +367,7 @@ export default function SettingsScreen() {
           <TouchableOpacity style={styles.settingItem}>
             <View style={styles.settingInfo}>
               <HelpCircle size={24} color="#fff" />
-              <Text style={styles.settingText}>Help Center</Text>
+              <Text style={styles.settingText}>Centre d'Aide</Text>
             </View>
           </TouchableOpacity>
         </View>
@@ -481,7 +384,7 @@ export default function SettingsScreen() {
           ) : (
             <>
               <LogOut size={24} color="#fff" />
-              <Text style={styles.logoutButtonText}>Log Out</Text>
+              <Text style={styles.logoutButtonText}>Déconnexion</Text>
             </>
           )}
         </TouchableOpacity>
