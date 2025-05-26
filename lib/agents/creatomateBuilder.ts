@@ -140,7 +140,7 @@ The template must:
     try {
       console.log('Planning video structure...');
       const scenePlan = await this.planVideoStructure(params.script, params.selectedVideos);
-      console.log(' video structure...', {scenePlan});
+      console.log(' video structure...', {scenePlan : JSON.stringify(scenePlan)});
 
       console.log('Generating video template...');
       const template = await this.generateTemplate({
