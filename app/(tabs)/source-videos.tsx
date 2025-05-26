@@ -72,51 +72,41 @@ export default function SourceVideosScreen() {
       setVideos(data || []);
     } catch (err) {
       console.error('Error fetching videos:', err);
-      setError('Failed to load videos');
+      setError('Échec du chargement des vidéos');
     } finally {
       setLoading(false);
     }
   };
 
-const SUPPORTED_VIDEO_FORMATS: Record<string, string> = {
-  mp4: 'video/mp4',
-  webm: 'video/webm',
-  m4v: 'video/mp4',
-  mov: 'video/quicktime',
-  qt: 'video/quicktime',
-};
-
-const getExtensionFromUri = (uri: string): string | null => {
-  try {
-    if (uri.startsWith('data:')) {
-      // Example: data:video/mp4;base64,...
-      const mime = uri.split(';')[0].split(':')[1]; // "video/mp4"
-      const ext = Object.entries(SUPPORTED_VIDEO_FORMATS).find(
-        ([ext, mimeType]) => mimeType === mime
-      )?.[0];
-      return ext || null;
-    } else if (uri.startsWith('file://') || uri.includes('/')) {
-      // Extract file extension from path
-      const path = uri.split('?')[0]; // Strip query params if any
-      const match = path.match(/\.(\w+)$/);
-      return match ? match[1].toLowerCase() : null;
+  const getExtensionFromUri = (uri: string): string | null => {
+    try {
+      if (uri.startsWith('data:')) {
+        const mime = uri.split(';')[0].split(':')[1];
+        const ext = Object.entries(SUPPORTED_VIDEO_FORMATS).find(
+          ([ext, mimeType]) => mimeType === mime
+        )?.[0];
+        return ext || null;
+      } else if (uri.startsWith('file://') || uri.includes('/')) {
+        const path = uri.split('?')[0];
+        const match = path.match(/\.(\w+)$/);
+        return match ? match[1].toLowerCase() : null;
+      }
+      return null;
+    } catch (err) {
+      console.warn('Failed to extract extension:', err);
+      return null;
     }
-    return null;
-  } catch (err) {
-    console.warn('Failed to extract extension:', err);
-    return null;
-  }
-};
+  };
 
-const isVideoFormatSupported = (uri: string): boolean => {
-  const ext = getExtensionFromUri(uri);
-  console.log({ ext });
-  return !!ext && ext in SUPPORTED_VIDEO_FORMATS;
-};
+  const isVideoFormatSupported = (uri: string): boolean => {
+    const ext = getExtensionFromUri(uri);
+    return !!ext && ext in SUPPORTED_VIDEO_FORMATS;
+  };
+
   const pickVideo = async () => {
     try {
       const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ["videos"],
+        mediaTypes: ImagePicker.MediaTypeOptions.Videos,
         allowsEditing: true,
         quality: 0.5,
       });
@@ -124,9 +114,8 @@ const isVideoFormatSupported = (uri: string): boolean => {
       if (!result.canceled) {
         const videoUri = result.assets[0].uri;
 
-        console.log({videoUri})
         if (!isVideoFormatSupported(videoUri)) {
-          setError('Unsupported video format. Please upload MP4, WebM, or M4V files only.');
+          setError('Format vidéo non supporté. Utilisez MP4, WebM ou M4V.');
           return;
         }
 
@@ -138,18 +127,18 @@ const isVideoFormatSupported = (uri: string): boolean => {
       }
     } catch (err) {
       console.error('Error picking video:', err);
-      setError('Failed to select video');
+      setError('Échec de la sélection de la vidéo');
     }
   };
 
   const uploadToStorage = async (uri: string): Promise<string> => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('User not authenticated');
+      if (!user) throw new Error('Utilisateur non authentifié');
 
       const ext = getExtensionFromUri(uri);
       if (!isVideoFormatSupported(uri)) {
-        throw new Error('Unsupported video format');
+        throw new Error('Format vidéo non supporté');
       }
       
       const fileName = `${user.id}/${Date.now()}_${Math.random().toString(36).substring(7)}.${ext}`;
@@ -173,10 +162,7 @@ const isVideoFormatSupported = (uri: string): boolean => {
           upsert: false,
         });
 
-      if (error) {
-        console.error('Detailed upload error:', error);
-        throw error;
-      }
+      if (error) throw error;
 
       const { data: { publicUrl } } = supabase.storage
         .from('videos')
@@ -185,7 +171,7 @@ const isVideoFormatSupported = (uri: string): boolean => {
       return publicUrl;
     } catch (error) {
       console.error('Error uploading to storage:', error);
-      throw new Error('Failed to upload video to storage');
+      throw new Error('Échec du téléchargement de la vidéo');
     }
   };
 
@@ -226,7 +212,7 @@ const isVideoFormatSupported = (uri: string): boolean => {
       await fetchVideos();
     } catch (err) {
       console.error('Error uploading video:', err);
-      setError('Failed to upload video');
+      setError('Échec du téléchargement de la vidéo');
     } finally {
       setUploading(false);
     }
@@ -235,10 +221,10 @@ const isVideoFormatSupported = (uri: string): boolean => {
   const deleteVideo = async (id: string, url: string) => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('User not authenticated');
+      if (!user) throw new Error('Utilisateur non authentifié');
 
       const fileName = url.split('/').pop();
-      if (!fileName) throw new Error('Invalid file URL');
+      if (!fileName) throw new Error('URL de fichier invalide');
 
       const filePath = `${user.id}/${fileName}`;
       
@@ -258,7 +244,7 @@ const isVideoFormatSupported = (uri: string): boolean => {
       await fetchVideos();
     } catch (err) {
       console.error('Error deleting video:', err);
-      setError('Failed to delete video');
+      setError('Échec de la suppression de la vidéo');
     }
   };
 
@@ -275,7 +261,7 @@ const isVideoFormatSupported = (uri: string): boolean => {
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <View style={styles.header}>
-        <Text style={styles.title}>Source Videos</Text>
+        <Text style={styles.title}>Vidéos Sources</Text>
       </View>
       
       <ScrollView 
@@ -310,8 +296,8 @@ const isVideoFormatSupported = (uri: string): boolean => {
             ) : (
               <View style={styles.uploadPlaceholder}>
                 <Upload size={48} color="#fff" />
-                <Text style={styles.uploadText}>Upload Video</Text>
-                <Text style={styles.uploadSubtext}>Tap to select a video (MP4, WebM, or M4V)</Text>
+                <Text style={styles.uploadText}>Télécharger une Vidéo</Text>
+                <Text style={styles.uploadSubtext}>Formats acceptés : MP4, WebM, M4V</Text>
               </View>
             )}
           </TouchableOpacity>
@@ -320,7 +306,7 @@ const isVideoFormatSupported = (uri: string): boolean => {
             <View style={styles.form}>
               <TextInput
                 style={styles.input}
-                placeholder="Video Title"
+                placeholder="Titre de la vidéo"
                 placeholderTextColor="#666"
                 value={uploadForm.title}
                 onChangeText={(text) => setUploadForm(prev => ({ ...prev, title: text }))}
@@ -338,7 +324,7 @@ const isVideoFormatSupported = (uri: string): boolean => {
 
               <TextInput
                 style={styles.input}
-                placeholder="Tags (comma-separated)"
+                placeholder="Tags (séparés par des virgules)"
                 placeholderTextColor="#666"
                 value={uploadForm.tags}
                 onChangeText={(text) => setUploadForm(prev => ({ ...prev, tags: text }))}
@@ -354,7 +340,7 @@ const isVideoFormatSupported = (uri: string): boolean => {
                 ) : (
                   <>
                     <Plus size={24} color="#fff" />
-                    <Text style={styles.buttonText}>Upload Video</Text>
+                    <Text style={styles.buttonText}>Télécharger la Vidéo</Text>
                   </>
                 )}
               </TouchableOpacity>
@@ -363,7 +349,7 @@ const isVideoFormatSupported = (uri: string): boolean => {
         </View>
 
         <View style={styles.videosList}>
-          <Text style={styles.sectionTitle}>Your Videos</Text>
+          <Text style={styles.sectionTitle}>Vos Vidéos</Text>
           {videos.map((video) => (
             <View key={video.id} style={styles.videoItem}>
               <View style={styles.videoPreview}>

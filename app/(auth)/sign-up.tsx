@@ -34,7 +34,7 @@ export default function SignUp() {
 
         if (insertError) {
           console.error('Failed to create user record:', insertError);
-          throw new Error('Failed to complete signup. Please try again.');
+          throw new Error('Échec de l\'inscription. Veuillez réessayer.');
         }
 
         router.replace('/(onboarding)/welcome');
@@ -54,8 +54,8 @@ export default function SignUp() {
           style={styles.headerImage}
         />
         <View style={styles.overlay} />
-        <Text style={styles.title}>Create Account</Text>
-        <Text style={styles.subtitle}>Join us and start creating amazing videos</Text>
+        <Text style={styles.title}>Créer un Compte</Text>
+        <Text style={styles.subtitle}>Rejoignez-nous et commencez à créer des vidéos incroyables</Text>
       </View>
 
       <View style={styles.form}>
@@ -67,7 +67,7 @@ export default function SignUp() {
           <User size={20} color="#888" />
           <TextInput
             style={styles.input}
-            placeholder="Full Name"
+            placeholder="Nom complet"
             placeholderTextColor="#888"
             value={fullName}
             onChangeText={setFullName}
@@ -91,7 +91,7 @@ export default function SignUp() {
           <Lock size={20} color="#888" />
           <TextInput
             style={styles.input}
-            placeholder="Password"
+            placeholder="Mot de passe"
             placeholderTextColor="#888"
             value={password}
             onChangeText={setPassword}
@@ -103,15 +103,15 @@ export default function SignUp() {
           style={[styles.button, loading && styles.buttonDisabled]}
           onPress={handleSignUp}
           disabled={loading}>
-          <Text style={styles.buttonText}>Sign Up</Text>
+          <Text style={styles.buttonText}>S'inscrire</Text>
           <ArrowRight size={20} color="#fff" />
         </TouchableOpacity>
 
         <View style={styles.footer}>
-          <Text style={styles.footerText}>Already have an account?</Text>
+          <Text style={styles.footerText}>Vous avez déjà un compte ?</Text>
           <Link href="/(auth)/sign-in" asChild>
             <TouchableOpacity>
-              <Text style={styles.link}>Sign In</Text>
+              <Text style={styles.link}>Se connecter</Text>
             </TouchableOpacity>
           </Link>
         </View>
