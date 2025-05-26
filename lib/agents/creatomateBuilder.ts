@@ -2,7 +2,7 @@ import { readFile } from 'fs/promises';
 import { join } from 'path';
 import { marked } from 'marked';
 import OpenAI from 'openai';
-import { createOpenAIClient, MODEL } from '../config/openai';
+import { createOpenAIClient } from '../config/openai';
 
 export class CreatomateBuilder {
   private static instance: CreatomateBuilder;
