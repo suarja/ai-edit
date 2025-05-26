@@ -1,13 +1,13 @@
 import OpenAI from 'openai';
-import { createOpenAIClient, MODEL } from '../config/openai';
+import { createOpenAIClient } from '../config/openai';
 
 export class ScriptGenerator {
   private openai: OpenAI;
-    private model: string;
+  private model: string;
   
-  private constructor(model: string) {
+  constructor(model: string) {
     this.openai = createOpenAIClient();
-    this.model = model
+    this.model = model;
   }
 
   async generate(prompt: string, editorialProfile: any): Promise<string> {

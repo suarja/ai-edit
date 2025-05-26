@@ -2,7 +2,7 @@ import { supabase } from '@/lib/supabase';
 import { ScriptGenerator } from '@/lib/agents/scriptGenerator';
 import { ScriptReviewer } from '@/lib/agents/scriptReviewer';
 import { CreatomateBuilder } from '@/lib/agents/creatomateBuilder';
-import { MODELS, MODEL } from '@/lib/config/openai';
+import { MODELS } from '@/lib/config/openai';
 
 export async function POST(request: Request) {
   try {
@@ -70,9 +70,9 @@ export async function POST(request: Request) {
     }
     console.log('User authenticated:', user.id);
 
-    // Initialize agents
-    const scriptGenerator = new ScriptGenerator(MODEL);
-    const scriptReviewer = new ScriptReviewer(MODEL);
+    // Initialize agents with specific models
+    const scriptGenerator = new ScriptGenerator(MODELS["o4-mini"]);
+    const scriptReviewer = new ScriptReviewer(MODELS["o4-mini"]);
     const creatomateBuilder = CreatomateBuilder.getInstance(MODELS["4.1"]);
 
     // Generate initial script
@@ -159,9 +159,8 @@ export async function POST(request: Request) {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        "template_id": "a5403674-6eaf-4114-a088-4d560d851aef",
+        template_id: process.env.CREATOMATE_TEMPLATE_ID,
         modifications: template
-        
       }),
     });
 
