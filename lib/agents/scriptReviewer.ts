@@ -22,12 +22,7 @@ export class ScriptReviewer {
             content: `You are a script review agent in a creative automation pipeline.
             Your task is to review, correct, and validate scripts for TikTok-style videos.
             
-            Editorial Profile:
-            - Persona: ${editorialProfile.persona_description}
-            - Tone: ${editorialProfile.tone_of_voice}
-            - Audience: ${editorialProfile.audience}
-            - Style: ${editorialProfile.style_notes}
-            
+           
          
 ✅ SYSTEM PROMPT — Script Review Agent (Less Editing)
 
@@ -86,6 +81,13 @@ Ensure the script is compatible with ElevenLabs voice synthesis:
 Return the script with improvements if needed, or as is.
 Do not provide comments in any shape of form, only the script ready to be spoken.
 Ensure the script is smooth, clean, and ready for ElevenLabs synthesis without manual intervention.
+
+ Editorial Profile:
+            - Persona: ${editorialProfile.persona_description}
+            - Tone: ${editorialProfile.tone_of_voice}
+            - Audience: ${editorialProfile.audience}
+            - Style: ${editorialProfile.style_notes}
+            
 `
           },
           {
