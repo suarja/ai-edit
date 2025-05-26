@@ -4,7 +4,7 @@ import { createOpenAIClient, MODEL } from '../config/openai';
 export class ScriptGenerator {
   private openai: OpenAI;
     private model: string;
- private model: string;
+  
   private constructor(model: string) {
     this.openai = createOpenAIClient();
     this.model = model
@@ -15,7 +15,7 @@ export class ScriptGenerator {
       console.log('Generating script with profile:', editorialProfile);
 
       const completion = await this.openai.chat.completions.create({
-        model: MODEL,
+        model: this.model,
         messages: [
           {
             role: 'system',
