@@ -1,12 +1,11 @@
 import OpenAI from 'openai';
+import { createOpenAIClient, MODEL } from '../config/openai';
 
 export class ScriptReviewer {
   private openai: OpenAI;
 
   constructor() {
-    this.openai = new OpenAI({
-      apiKey: process.env.OPENAI_API_KEY,
-    });
+    this.openai = createOpenAIClient();
   }
 
   async review(script: string, editorialProfile: any): Promise<string> {
@@ -14,7 +13,7 @@ export class ScriptReviewer {
       console.log('Starting script review...');
 
       const completion = await this.openai.chat.completions.create({
-        model: 'gpt-4-turbo-preview',
+        model: MODEL,
         messages: [
           {
             role: 'system',

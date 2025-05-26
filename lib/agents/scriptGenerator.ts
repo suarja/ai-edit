@@ -1,12 +1,11 @@
 import OpenAI from 'openai';
+import { createOpenAIClient, MODEL } from '../config/openai';
 
 export class ScriptGenerator {
   private openai: OpenAI;
 
   constructor() {
-    this.openai = new OpenAI({
-      apiKey: process.env.OPENAI_API_KEY,
-    });
+    this.openai = createOpenAIClient();
   }
 
   async generate(prompt: string, editorialProfile: any): Promise<string> {
@@ -14,7 +13,7 @@ export class ScriptGenerator {
       console.log('Generating script with profile:', editorialProfile);
 
       const completion = await this.openai.chat.completions.create({
-        model: 'gpt-4-turbo-preview',
+        model: MODEL,
         messages: [
           {
             role: 'system',
@@ -89,7 +88,7 @@ Return only the final script without any additional context or formatting.`
       console.log('Reviewing script...');
 
       const completion = await this.openai.chat.completions.create({
-        model: 'gpt-4-turbo-preview',
+        model: MODEL,
         messages: [
           {
             role: 'system',
