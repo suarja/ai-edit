@@ -71,8 +71,8 @@ export async function POST(request: Request) {
     console.log('User authenticated:', user.id);
 
     // Initialize agents
-    const scriptGenerator = new ScriptGenerator(MODELS[""]);
-    const scriptReviewer = new ScriptReviewer();
+    const scriptGenerator = new ScriptGenerator(MODEL);
+    const scriptReviewer = new ScriptReviewer(MODEL);
     const creatomateBuilder = CreatomateBuilder.getInstance(MODELS);
 
     // Generate initial script
