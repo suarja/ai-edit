@@ -39,7 +39,7 @@ export class CreatomateBuilder {
 
   private async planVideoStructure(script: string, availableVideos: string[]): Promise<any> {
     const completion = await this.openai.chat.completions.create({
-      model: MODEL,
+      model: this.model,
       messages: [
         {
           role: 'system',
@@ -73,7 +73,8 @@ export class CreatomateBuilder {
     const docs = await this.loadDocs();
     
     const completion = await this.openai.chat.completions.create({
-      model: MODEL,
+      model: this.model
+      ,
       messages: [
         {
           role: 'system',
