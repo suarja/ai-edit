@@ -4,18 +4,17 @@ import {
   Text,
   StyleSheet,
   FlatList,
-  TouchableOpacity,
   ActivityIndicator,
   RefreshControl,
+  Alert,
+  Linking,
 } from 'react-native';
 import { router } from 'expo-router';
 import { supabase } from '@/lib/supabase';
-import {
-  Film,
-  MoveVertical as MoreVertical,
-  CircleAlert as AlertCircle,
-} from 'lucide-react-native';
+import { CircleAlert as AlertCircle, Sparkles } from 'lucide-react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import GeneratedVideoCard from '@/components/GeneratedVideoCard';
+import EmptyGeneratedVideos from '@/components/EmptyGeneratedVideos';
 
 type VideoRequest = {
   id: string;
@@ -80,7 +79,7 @@ export default function GeneratedVideosScreen() {
       }
     } catch (err) {
       console.error('Error fetching videos:', err);
-      setError('Failed to load videos');
+      setError('Échec du chargement des vidéos');
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -103,7 +102,7 @@ export default function GeneratedVideosScreen() {
         prev.map((v) => (v.id === videoId ? { ...v, ...data } : v))
       );
 
-      // Continue polling if still rendering (every 10 seconds)
+      // Continue polling if still rendering (every 30 seconds)
       if (data.render_status === 'rendering') {
         setTimeout(() => checkVideoStatus(videoId), 30000);
       }
@@ -118,47 +117,100 @@ export default function GeneratedVideosScreen() {
 
   const onRefresh = useCallback(() => {
     setRefreshing(true);
+    setError(null);
     fetchVideos();
   }, []);
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'done':
-        return '#4ADE80';
-      case 'rendering':
-        return '#F59E0B';
-      case 'error':
-        return '#EF4444';
-      default:
-        return '#888';
-    }
-  };
-
-  const getStatusBgColor = (status: string) => {
-    switch (status) {
-      case 'done':
-        return '#0A2F1E';
-      case 'rendering':
-        return '#2E1F05';
-      case 'error':
-        return '#2D1116';
-      default:
-        return '#1a1a1a';
-    }
-  };
-
-  const truncateText = (
-    text: string | undefined,
-    maxLength: number = 50
-  ): string => {
-    if (!text) return 'Sans titre';
-    return text.length > maxLength
-      ? text.substring(0, maxLength) + '...'
-      : text;
-  };
-
-  const navigateToVideoDetails = (videoId: string) => {
+  const handleVideoPress = (videoId: string) => {
     router.push(`/(tabs)/videos/${videoId}`);
+  };
+
+  const handleDownload = async (video: VideoRequest) => {
+    if (!video.render_url) {
+      Alert.alert('Erreur', 'URL de téléchargement non disponible');
+      return;
+    }
+
+    try {
+      const supported = await Linking.canOpenURL(video.render_url);
+      if (supported) {
+        await Linking.openURL(video.render_url);
+      } else {
+        Alert.alert('Erreur', "Impossible d'ouvrir le lien de téléchargement");
+      }
+    } catch (err) {
+      console.error('Error opening download link:', err);
+      Alert.alert('Erreur', 'Échec du téléchargement');
+    }
+  };
+
+  const handleMoreOptions = (video: VideoRequest) => {
+    const options = ['Voir les détails', 'Télécharger', 'Supprimer'];
+
+    if (video.render_status !== 'done') {
+      options.splice(1, 1); // Remove download option if not done
+    }
+
+    Alert.alert('Options', `Que souhaitez-vous faire avec cette vidéo ?`, [
+      {
+        text: 'Voir les détails',
+        onPress: () => handleVideoPress(video.id),
+      },
+      ...(video.render_status === 'done'
+        ? [
+            {
+              text: 'Télécharger',
+              onPress: () => handleDownload(video),
+            },
+          ]
+        : []),
+      {
+        text: 'Supprimer',
+        style: 'destructive' as const,
+        onPress: () => handleDeleteVideo(video.id),
+      },
+      {
+        text: 'Annuler',
+        style: 'cancel' as const,
+      },
+    ]);
+  };
+
+  const handleDeleteVideo = (videoId: string) => {
+    Alert.alert(
+      'Supprimer la vidéo',
+      'Êtes-vous sûr de vouloir supprimer cette vidéo ? Cette action est irréversible.',
+      [
+        {
+          text: 'Annuler',
+          style: 'cancel',
+        },
+        {
+          text: 'Supprimer',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              const { error } = await supabase
+                .from('video_requests')
+                .delete()
+                .eq('id', videoId);
+
+              if (error) throw error;
+
+              setVideos((prev) => prev.filter((v) => v.id !== videoId));
+              Alert.alert('Succès', 'Vidéo supprimée avec succès');
+            } catch (err) {
+              console.error('Error deleting video:', err);
+              Alert.alert('Erreur', 'Échec de la suppression');
+            }
+          },
+        },
+      ]
+    );
+  };
+
+  const handleCreateVideo = () => {
+    router.push('/(tabs)/request-video');
   };
 
   if (loading) {
@@ -166,6 +218,7 @@ export default function GeneratedVideosScreen() {
       <SafeAreaView style={styles.container} edges={['top']}>
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#007AFF" />
+          <Text style={styles.loadingText}>Chargement des vidéos...</Text>
         </View>
       </SafeAreaView>
     );
@@ -174,7 +227,21 @@ export default function GeneratedVideosScreen() {
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <View style={styles.header}>
-        <Text style={styles.title}>Vidéos Générées</Text>
+        <View style={styles.headerContent}>
+          <View>
+            <Text style={styles.title}>Vidéos Générées</Text>
+            <Text style={styles.subtitle}>
+              {videos.length > 0
+                ? `${videos.length} vidéo${videos.length > 1 ? 's' : ''} créée${
+                    videos.length > 1 ? 's' : ''
+                  }`
+                : 'Aucune vidéo pour le moment'}
+            </Text>
+          </View>
+          <View style={styles.headerIcon}>
+            <Sparkles size={24} color="#007AFF" />
+          </View>
+        </View>
       </View>
 
       {error && (
@@ -185,61 +252,29 @@ export default function GeneratedVideosScreen() {
       )}
 
       {videos.length === 0 ? (
-        <View style={styles.emptyContainer}>
-          <Film size={48} color="#555" />
-          <Text style={styles.emptyText}>Aucune vidéo générée</Text>
-          <TouchableOpacity
-            style={styles.createButton}
-            onPress={() => router.push('/(tabs)/request-video')}
-          >
-            <Text style={styles.createButtonText}>Créer une vidéo</Text>
-          </TouchableOpacity>
-        </View>
+        <EmptyGeneratedVideos onCreateVideo={handleCreateVideo} />
       ) : (
         <FlatList
           data={videos}
           keyExtractor={(item) => item.id}
           contentContainerStyle={styles.list}
+          showsVerticalScrollIndicator={false}
           refreshControl={
             <RefreshControl
               refreshing={refreshing}
               onRefresh={onRefresh}
               tintColor="#007AFF"
+              title="Actualisation..."
+              titleColor="#888"
             />
           }
           renderItem={({ item }) => (
-            <TouchableOpacity
-              style={styles.videoItem}
-              onPress={() => navigateToVideoDetails(item.id)}
-            >
-              <View style={styles.videoInfo}>
-                <Film size={24} color="#fff" />
-                <View style={styles.textContainer}>
-                  <Text style={styles.videoTitle} numberOfLines={2}>
-                    {truncateText(item.script?.raw_prompt)}
-                  </Text>
-                  <Text style={styles.videoDate}>
-                    {new Date(item.created_at).toLocaleDateString()}
-                  </Text>
-                </View>
-              </View>
-              <View style={styles.statusContainer}>
-                <Text
-                  style={[
-                    styles.status,
-                    {
-                      color: getStatusColor(item.render_status),
-                      backgroundColor: getStatusBgColor(item.render_status),
-                    },
-                  ]}
-                >
-                  {item.render_status}
-                </Text>
-                <TouchableOpacity>
-                  <MoreVertical size={20} color="#888" />
-                </TouchableOpacity>
-              </View>
-            </TouchableOpacity>
+            <GeneratedVideoCard
+              video={item}
+              onPress={() => handleVideoPress(item.id)}
+              onDownload={() => handleDownload(item)}
+              onMoreOptions={() => handleMoreOptions(item)}
+            />
           )}
         />
       )}
@@ -255,19 +290,42 @@ const styles = StyleSheet.create({
   header: {
     paddingTop: 16,
     paddingHorizontal: 20,
-    paddingBottom: 16,
+    paddingBottom: 20,
     borderBottomWidth: 1,
     borderBottomColor: '#333',
+  },
+  headerContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  headerIcon: {
+    backgroundColor: 'rgba(0, 122, 255, 0.1)',
+    borderRadius: 12,
+    width: 48,
+    height: 48,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  title: {
+    fontSize: 28,
+    fontWeight: 'bold',
+    color: '#fff',
+  },
+  subtitle: {
+    fontSize: 16,
+    color: '#888',
+    marginTop: 4,
   },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    gap: 16,
   },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#fff',
+  loadingText: {
+    color: '#888',
+    fontSize: 16,
   },
   errorContainer: {
     flexDirection: 'row',
@@ -286,72 +344,5 @@ const styles = StyleSheet.create({
   },
   list: {
     padding: 20,
-    gap: 12,
-  },
-  videoItem: {
-    backgroundColor: '#1a1a1a',
-    borderRadius: 12,
-    padding: 16,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  videoInfo: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    flex: 1,
-  },
-  textContainer: {
-    gap: 4,
-    flex: 1,
-  },
-  videoTitle: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '600',
-    flexWrap: 'wrap',
-  },
-  videoDate: {
-    color: '#888',
-    fontSize: 14,
-  },
-  statusContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    marginLeft: 12,
-  },
-  status: {
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 6,
-    overflow: 'hidden',
-    fontSize: 12,
-    fontWeight: '500',
-    textTransform: 'capitalize',
-  },
-  emptyContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 20,
-  },
-  emptyText: {
-    color: '#888',
-    fontSize: 16,
-    marginTop: 12,
-    marginBottom: 20,
-  },
-  createButton: {
-    backgroundColor: '#007AFF',
-    paddingHorizontal: 20,
-    paddingVertical: 12,
-    borderRadius: 12,
-  },
-  createButtonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: 'bold',
   },
 });
