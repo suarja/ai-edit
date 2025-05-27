@@ -25,6 +25,7 @@ type VideoRequest = {
   render_id?: string;
   created_at: string;
   script?: {
+    id: string;
     raw_prompt: string;
   };
 };
@@ -56,7 +57,10 @@ export default function GeneratedVideosScreen() {
           render_url,
           render_id,
           created_at,
-          script_id
+          script:script_id (
+            id,
+            raw_prompt
+          )
         `
         )
         .eq('user_id', user.id)
@@ -153,6 +157,10 @@ export default function GeneratedVideosScreen() {
       : text;
   };
 
+  const navigateToVideoDetails = (videoId: string) => {
+    router.push(`/(tabs)/videos/${videoId}`);
+  };
+
   if (loading) {
     return (
       <SafeAreaView style={styles.container} edges={['top']}>
@@ -176,49 +184,65 @@ export default function GeneratedVideosScreen() {
         </View>
       )}
 
-      <FlatList
-        data={videos}
-        keyExtractor={(item) => item.id}
-        contentContainerStyle={styles.list}
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={onRefresh}
-            tintColor="#007AFF"
-          />
-        }
-        renderItem={({ item }) => (
-          <TouchableOpacity style={styles.videoItem}>
-            <View style={styles.videoInfo}>
-              <Film size={24} color="#fff" />
-              <View style={styles.textContainer}>
-                <Text style={styles.videoTitle} numberOfLines={2}>
-                  {truncateText(item.script?.raw_prompt)}
-                </Text>
-                <Text style={styles.videoDate}>
-                  {new Date(item.created_at).toLocaleDateString()}
-                </Text>
-              </View>
-            </View>
-            <View style={styles.statusContainer}>
-              <Text
-                style={[
-                  styles.status,
-                  {
-                    color: getStatusColor(item.render_status),
-                    backgroundColor: getStatusBgColor(item.render_status),
-                  },
-                ]}
-              >
-                {item.render_status}
-              </Text>
-              <TouchableOpacity>
-                <MoreVertical size={20} color="#888" />
-              </TouchableOpacity>
-            </View>
+      {videos.length === 0 ? (
+        <View style={styles.emptyContainer}>
+          <Film size={48} color="#555" />
+          <Text style={styles.emptyText}>Aucune vidéo générée</Text>
+          <TouchableOpacity
+            style={styles.createButton}
+            onPress={() => router.push('/(tabs)/request-video')}
+          >
+            <Text style={styles.createButtonText}>Créer une vidéo</Text>
           </TouchableOpacity>
-        )}
-      />
+        </View>
+      ) : (
+        <FlatList
+          data={videos}
+          keyExtractor={(item) => item.id}
+          contentContainerStyle={styles.list}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              tintColor="#007AFF"
+            />
+          }
+          renderItem={({ item }) => (
+            <TouchableOpacity
+              style={styles.videoItem}
+              onPress={() => navigateToVideoDetails(item.id)}
+            >
+              <View style={styles.videoInfo}>
+                <Film size={24} color="#fff" />
+                <View style={styles.textContainer}>
+                  <Text style={styles.videoTitle} numberOfLines={2}>
+                    {truncateText(item.script?.raw_prompt)}
+                  </Text>
+                  <Text style={styles.videoDate}>
+                    {new Date(item.created_at).toLocaleDateString()}
+                  </Text>
+                </View>
+              </View>
+              <View style={styles.statusContainer}>
+                <Text
+                  style={[
+                    styles.status,
+                    {
+                      color: getStatusColor(item.render_status),
+                      backgroundColor: getStatusBgColor(item.render_status),
+                    },
+                  ]}
+                >
+                  {item.render_status}
+                </Text>
+                <TouchableOpacity>
+                  <MoreVertical size={20} color="#888" />
+                </TouchableOpacity>
+              </View>
+            </TouchableOpacity>
+          )}
+        />
+      )}
     </SafeAreaView>
   );
 }
@@ -306,5 +330,28 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '500',
     textTransform: 'capitalize',
+  },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  emptyText: {
+    color: '#888',
+    fontSize: 16,
+    marginTop: 12,
+    marginBottom: 20,
+  },
+  createButton: {
+    backgroundColor: '#007AFF',
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    borderRadius: 12,
+  },
+  createButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: 'bold',
   },
 });

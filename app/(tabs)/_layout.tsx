@@ -17,7 +17,8 @@ export default function TabLayout() {
           },
           tabBarActiveTintColor: '#fff',
           tabBarInactiveTintColor: '#888',
-        }}>
+        }}
+      >
         <Tabs.Screen
           name="source-videos"
           options={{
@@ -31,9 +32,7 @@ export default function TabLayout() {
           name="request-video"
           options={{
             title: 'Créer',
-            tabBarIcon: ({ size, color }) => (
-              <Plus size={size} color={color} />
-            ),
+            tabBarIcon: ({ size, color }) => <Plus size={size} color={color} />,
           }}
         />
         <Tabs.Screen
@@ -62,6 +61,12 @@ export default function TabLayout() {
         />
         <Tabs.Screen
           name="voice-clone"
+          options={{
+            href: null,
+          }}
+        />
+        <Tabs.Screen
+          name="videos/[id]"
           options={{
             href: null,
           }}
