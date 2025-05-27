@@ -127,6 +127,7 @@ Tu dois générer un fichier JSON **valide, complet et sans erreur**, destiné �
    - 1 élément vidéo ('type: "video"') - OBLIGATOIRE
    - 1 voiceover IA ('type: "audio"') - OBLIGATOIRE  
    - 1 sous-titre dynamique ('type: "text"' avec transcript_source) - OBLIGATOIRE
+   - Chaque élément VIDÉO doit avoir un volume de 0% afin de ne pas interférer avec le voiceover
 
 2. **INTERDICTIONS ABSOLUES :**
    - ❌ PAS de text statique (sans transcript_source)
@@ -145,7 +146,8 @@ Tu dois générer un fichier JSON **valide, complet et sans erreur**, destiné �
       "track": 1,
       "fit": "cover",
       "time": "auto",
-      "duration": "auto"
+      "duration": "auto",
+      "volume": 0,
     },
     {
       "id": "voice-scene-X",
@@ -215,6 +217,7 @@ Alors utilise: "source": "https://real-url.com/video.mp4"
 ✅ CHECKLIST FINAL
 - ❌ PAS de text sans transcript_source
 - ✅ Chaque scène = 1 video + 1 audio + 1 caption
+- ✅ Chaque élément VIDÉO doit avoir un volume de 0% afin de ne pas interférer avec le voiceover
 - ✅ URLs vidéo exactement comme dans le scene plan
 - ✅ Voice ID correct
 - ✅ JSON valide sans commentaires
