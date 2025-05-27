@@ -105,7 +105,7 @@ export async function POST(request: Request) {
 
       return {
         id: video.id,
-        url: video.upload_url, // Using UploadThing URLs directly (already public)
+        url: video.upload_url, // Using public URL from storage
         title: video.title,
         description: video.description,
         tags: video.tags,
@@ -182,7 +182,7 @@ export async function POST(request: Request) {
     console.log('Generating video template...');
     const template = await creatomateBuilder.buildJson({
       script: reviewedScript,
-      selectedVideos: videosObj, // Use UploadThing URLs
+      selectedVideos: videosObj, // Use public URLs
       voiceId,
       editorialProfile,
     });
