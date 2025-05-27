@@ -91,7 +91,7 @@ See configuration options in server API reference
 Generate typed hooks
 Unlike the other UploadThing packages, the Expo package does not include any prebuilt components. Instead, we provide some helper hooks to help interact with the native file pickers.
 
-src/utils/uploadthing.ts
+*src/utils/uploadthing.ts
 import { generateReactNativeHelpers } from "@uploadthing/expo";
 import type { UploadRouter } from "~/app/api/uploadthing+api";
 export const { useImageUploader, useDocumentUploader } =
@@ -103,7 +103,7 @@ export const { useImageUploader, useDocumentUploader } =
      */
     url: "https://my-server.com",
   });
-
+*
 Copy
 Copied!
 Use the FileRouter in your app

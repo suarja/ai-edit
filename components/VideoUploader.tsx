@@ -7,11 +7,11 @@ import {
   ActivityIndicator,
   Alert,
 } from 'react-native';
-import { useUploadThing } from '@/lib/uploadthing';
 import * as ImagePicker from 'expo-image-picker';
 import { openSettings } from 'expo-linking';
 import { Video as VideoIcon } from 'lucide-react-native';
 import { MediaTypeOptions } from 'expo-image-picker';
+import { supabase } from '@/lib/supabase';
 
 type VideoUploaderProps = {
   onUploadComplete?: (videoData: { videoId: string; url: string }) => void;
@@ -22,39 +22,13 @@ export default function VideoUploader({
   onUploadComplete,
   onUploadError,
 }: VideoUploaderProps) {
+  const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
-
-  const { startUpload, isUploading } = useUploadThing('videoUploader', {
-    onClientUploadComplete: (res) => {
-      if (res && res.length > 0) {
-        const uploadedFile = res[0];
-        Alert.alert(
-          'Upload Complete',
-          'Your video has been uploaded successfully.'
-        );
-
-        if (onUploadComplete) {
-          onUploadComplete({
-            videoId: uploadedFile.key,
-            url: uploadedFile.ufsUrl,
-          });
-        }
-      }
-    },
-    onUploadError: (error) => {
-      Alert.alert('Upload Error', error.message);
-      if (onUploadError) {
-        console.log('error', error);
-        onUploadError(error);
-      }
-    },
-    onUploadProgress: (progress) => {
-      setUploadProgress(progress);
-    },
-  });
 
   const handleSelectVideo = async () => {
     try {
+      console.log('Starting video selection...');
+
       // Request permissions
       const { status } =
         await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -68,29 +42,81 @@ export default function VideoUploader({
         return;
       }
 
+      console.log('Permissions granted, launching image picker...');
+
       // Pick a video
       const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ['videos', 'images'] as any as MediaTypeOptions,
-        allowsEditing: true,
-        quality: 0.5,
+        mediaTypes: ['videos'] as any as MediaTypeOptions,
+        allowsEditing: false,
+        quality: 1,
+        videoMaxDuration: 300,
       });
 
+      console.log('Image picker result:', result);
       if (!result.canceled && result.assets[0]) {
         const asset = result.assets[0];
-        console.log('asset', asset);
+        console.log('Selected asset:', asset);
 
-        // Create File object from URI
-        const response = await fetch(asset.uri);
-        console.log('got response', response);
-        const blob = await response.blob();
-        const fileName = asset.uri.split('/').pop() || 'video.mp4';
-        const file = new File([blob], fileName, {
-          type: asset.mimeType || 'video/mp4',
-        });
-        console.log('file', file);
+        setIsUploading(true);
+        setUploadProgress(0);
 
-        // Upload the file
-        await startUpload([file]);
+        try {
+          // Create a unique filename
+          const fileName = `${Date.now()}_${asset.fileName || 'video.mp4'}`;
+
+          console.log('Starting Supabase upload...');
+
+          // Convert URI to blob for Supabase
+          const response = await fetch(asset.uri);
+          const blob = await response.blob();
+
+          console.log('Blob created:', { size: blob.size, type: blob.type });
+
+          // Upload to Supabase Storage
+          const { data, error } = await supabase.storage
+            .from('videos')
+            .upload(fileName, blob, {
+              contentType: asset.mimeType || 'video/mp4',
+            });
+
+          if (error) {
+            throw error;
+          }
+
+          console.log('Upload successful:', data);
+
+          // Get public URL
+          const {
+            data: { publicUrl },
+          } = supabase.storage.from('videos').getPublicUrl(data.path);
+
+          console.log('Public URL:', publicUrl);
+
+          Alert.alert(
+            'Upload Complete',
+            'Your video has been uploaded successfully.'
+          );
+
+          if (onUploadComplete) {
+            onUploadComplete({
+              videoId: data.path,
+              url: publicUrl,
+            });
+          }
+        } catch (uploadError) {
+          console.error('Upload error:', uploadError);
+          Alert.alert('Upload Error', uploadError.message || 'Upload failed');
+          if (onUploadError) {
+            onUploadError(
+              uploadError instanceof Error
+                ? uploadError
+                : new Error('Upload failed')
+            );
+          }
+        } finally {
+          setIsUploading(false);
+          setUploadProgress(0);
+        }
       }
     } catch (error) {
       console.error('Error selecting video:', error);
@@ -107,9 +133,7 @@ export default function VideoUploader({
       {isUploading ? (
         <View style={styles.uploadingContainer}>
           <ActivityIndicator size="large" color="#007AFF" />
-          <Text style={styles.progressText}>
-            {Math.round(uploadProgress * 100)}%
-          </Text>
+          <Text style={styles.progressText}>Uploading to Supabase...</Text>
         </View>
       ) : (
         <View style={styles.uploadContainer}>

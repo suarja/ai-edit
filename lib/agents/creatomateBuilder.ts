@@ -39,39 +39,70 @@ export class CreatomateBuilder {
 
   private async planVideoStructure(
     script: string,
-    availableVideos: string[]
+    selectedVideos: any[]
   ): Promise<any> {
+    console.log('Available videos:', JSON.stringify(selectedVideos, null, 2));
     const completion = await this.openai.chat.completions.create({
       model: this.model,
       messages: [
         {
           role: 'system',
-          content: `You are a video planning expert. Analyze the script and available videos to create a scene-by-scene plan.
-          
-          For each scene, determine:
-          1. The natural break points in the script
-          2. Which video asset best matches the content
-          3. Any special requirements or transitions needed
-          
-          Return the plan as a JSON object with an array of scenes.`,
+          content: `You are a video planning expert. Your PRIMARY GOAL is to create a scene-by-scene plan that ALWAYS uses the available video assets.
+
+CRITICAL RULES:
+1. EVERY scene MUST be assigned a video asset from the provided list
+2. NO scenes should be left without a video asset (video_asset: null is FORBIDDEN)
+3. You can reuse video assets across multiple scenes if needed
+4. Match video assets to script content based on keywords, themes, or general relevance
+5. If a video seems unrelated, still assign it - we prioritize video content over perfect matching
+
+For each scene, determine:
+1. Natural break points in the script (aim for 3-7 scenes total)
+2. Which video asset best matches the content (REQUIRED - never null)
+3. Brief reasoning for the video choice
+4. Any timing or transition notes
+
+Available videos format: [{ id: "...", url: "...", title: "...", description: "...", tags: [...] }]
+
+Return a JSON object with an array of scenes. Each scene MUST have a video_asset assigned.
+
+OUTPUT FORMAT:
+{
+  "scenes": [
+    {
+      "scene_number": 1,
+      "script_text": "Text for this scene",
+      "video_asset": {
+        "id": "video_id",
+        "url": "actual_video_url_from_available_videos",
+        "title": "video_title"
+      },
+      "reasoning": "Why this video was chosen"
+    }
+  ]
+}
+
+CRITICAL: The video_asset.url MUST be the exact URL from the available videos list.`,
         },
         {
           role: 'user',
-          content: `Script: ${script}\n\nAvailable videos: ${JSON.stringify(
-            availableVideos
-          )}`,
+          content: `Script: ${script}
+
+Available videos: ${JSON.stringify(selectedVideos, null, 2)}
+
+REMEMBER: Every scene MUST have a video_asset assigned. Never leave video_asset as null.`,
         },
       ],
       response_format: { type: 'json_object' },
     });
 
-    console.log('completion', completion.choices[0].message.content);
+    console.log('Planning completion:', completion.choices[0].message.content);
     return JSON.parse(completion.choices[0].message.content || '{}');
   }
 
   private async generateTemplate(params: {
     script: string;
-    selectedVideos: string[];
+    selectedVideos: any[];
     voiceId: string;
     editorialProfile: any;
     scenePlan: any;
@@ -86,174 +117,107 @@ export class CreatomateBuilder {
           content: `
 Tu es un expert en génération de vidéos avec Creatomate via JSON.
 
-🎯 OBJECTIF
+🎯 OBJECTIF PRINCIPAL
 Tu dois générer un fichier JSON **valide, complet et sans erreur**, destiné à générer une vidéo TikTok à partir de :
+- un script découpé en scènes avec des assets vidéo assignés
+- une liste d'assets vidéo préexistants
 
-- un script découpé en scènes
-- une liste d’assets vidéo préexistants
+🚨 RÈGLES CRITIQUES - VIDEO FIRST APPROACH
+1. **CHAQUE SCÈNE DOIT CONTENIR EXACTEMENT 3 ÉLÉMENTS :**
+   - 1 élément vidéo ('type: "video"') - OBLIGATOIRE
+   - 1 voiceover IA ('type: "audio"') - OBLIGATOIRE  
+   - 1 sous-titre dynamique ('type: "text"' avec transcript_source) - OBLIGATOIRE
 
-Chaque scène doit combiner :
+2. **INTERDICTIONS ABSOLUES :**
+   - ❌ PAS de text statique (sans transcript_source)
+   - ❌ PAS de text décoratif ou d'animation de texte au centre de l'écran
+   - ❌ PAS d'éléments visuels autres que les vidéos fournies
+   - ❌ PAS de scène sans vidéo
 
-- un ou plusieurs éléments vidéo ('type: "video"')
-- un voiceover IA ('type: "audio"')
-- un sous-titre dynamique synchronisé ('type: "text"')
-
----
-
-🛠️ RÈGLES GÉNÉRALES
-
-- **Format JSON sans commentaires !**
-- Le JSON doit être directement utilisable dans Creatomate
-- N’utilise **aucun asset fictif**, uniquement ceux listés dans l’input
-- Si tu ne peux pas associer d’asset, ignore la scène
-- Tu dois utiliser l’outil 'think_tool' pour planifier la structure avant de générer le JSON
-
----
-
-📐 STRUCTURE DE BASE
-
-'''json
+3. **STRUCTURE OBLIGATOIRE PAR SCÈNE :**
 {
-  "output_format": "mp4",
-  "width": 1080,
-  "height": 1920,
-  "elements": [ ... ]
-}
-
-⸻
-
-🎙️ VOICEOVER – OBLIGATOIRE
-
-Pour chaque scène, tu dois inclure :
-
-{
-  "type": "audio",
-  "track": 3,
-  "id": "voice-scene-1",
-  "source": "Text à afficher en guise de sous-titres et qui sera utilisé pour générer le voice-over",
-  "provider": "elevenlabs model_id=eleven_multilingual_v2 voice_id=NFcw9p0jKu3zbmXieNPE stability=0.50",
-  "dynamic": true
-}
-
-	•	Un id unique par scène (voice-scene-1, voice-scene-2, etc.)
-	•	Le source est vide → Creatomate générera automatiquement la voix
-
-⸻
-
-💬 SUBTITRES – OBLIGATOIRES
-
-Chaque voix-off doit être liée à un élément text avec :
-
-{
-  "type": "text",
-  "track": 2,
-  "width": "50%",
-  "y_alignment": "85%",  // sous-titres dans le tiers bas de l’écran
-  "transcript_source": "voice-scene-1",
-  "transcript_effect": "highlight",
-  "transcript_maximum_length": 35,
-  "transcript_color": "#ff0040",
-  "font_family": "Montserrat",
-  "font_weight": "700",
-  "font_size": "8 vmin",
-  "fill_color": "#ffffff",
-  "stroke_color": "#333333",
-  "background_color": "rgba(0,0,0,0.7)",
-  "background_x_padding": "26%",
-  "background_y_padding": "7%",
-  "background_border_radius": "28%"
-}
-
-	•	Ne pas dépasser 50% de largeur
-	•	Les sous-titres doivent être dans le tiers bas de l’écran
-	•	Ne jamais afficher le script en tant que text si un transcript_source est disponible
-
-⸻
-
-🎞️ VIDÉO
-	•	Tu dois utiliser au moins 1 vidéo asset existant par scène
-	•	Utilise l’attribut "source" avec l’URL fournie
-	•	Ex. :
-
-{
-  "type": "video",
-  "source": "https://res.cloudinary.com/dwyozn4df/video/upload/>..._gestures_demonstrative_workout_gear_sunny_bocqj7.mov",
+  "type": "composition",
   "track": 1,
-  "time": "auto",
-  "duration": "auto",
-  "fit": "cover"
-}
-
-	•	Ne jamais générer de source fictif
-	•	Si le nom d’un asset contient intro, outro, bureau, etc., tu peux l’associer intelligemment
-
-⸻
-
-🎨 ANIMATIONS (facultatives mais recommandées)
-
-Tu peux ajouter une animation simple au texte :
-
-{
-  "animations": [
+  "elements": [
     {
-      "time": "start",
-      "duration": "1 s",
-      "easing": "quadratic-out",
-      "type": "text-slide",
-      "direction": "up",
-      "split": "letter",
-      "scope": "split-clip"
+      "type": "video",
+      "source": "[USE_ACTUAL_VIDEO_URL_FROM_SCENE_PLAN]",
+      "track": 1,
+      "fit": "cover",
+      "time": "auto",
+      "duration": "auto"
+    },
+    {
+      "id": "voice-scene-X",
+      "type": "audio",
+      "track": 3,
+      "source": "SCRIPT_TEXT_FOR_THIS_SCENE",
+      "provider": "elevenlabs model_id=eleven_multilingual_v2 voice_id=NFcw9p0jKu3zbmXieNPE stability=0.50",
+      "dynamic": true
+    },
+    {
+      "type": "text",
+      "track": 2,
+      "width": "50%",
+      "x_alignment": "50%",
+      "y_alignment": "85%",
+      "transcript_source": "voice-scene-X",
+      "transcript_effect": "highlight",
+      "transcript_maximum_length": 35,
+      "transcript_color": "#ff0040",
+      "font_family": "Montserrat",
+      "font_weight": "700",
+      "font_size": "8 vmin",
+      "fill_color": "#ffffff",
+      "stroke_color": "#333333",
+      "background_color": "rgba(0,0,0,0.7)",
+      "background_x_padding": "26%",
+      "background_y_padding": "7%",
+      "background_border_radius": "28%"
     }
   ]
 }
 
-⸻
+🎞️ UTILISATION DES VIDÉOS
+- Utilise EXACTEMENT les URLs fournies dans le scene plan
+- Pour chaque scène, utilise scene.video_asset.url comme source vidéo
+- Chaque scène doit avoir son video asset assigné
+- Ne jamais inventer d'URL ou laisser une scène sans vidéo
+- JAMAIS d'URLs d'exemple comme "https://example.com/video.mp4"
+- Utilise UNIQUEMENT les vraies URLs du scene plan
 
-📏 TIMING
-	•	Ne pas définir de duration globale
-	•	Chaque scène adapte sa durée à la voix générée
-	•	Utilise "time": "auto" pour un enchaînement fluide
+EXEMPLE D'EXTRACTION:
+Si scene plan contient: { "video_asset": { "url": "https://real-url.com/video.mp4" } }
+Alors utilise: "source": "https://real-url.com/video.mp4"
 
-⸻
+🎙️ VOICEOVER
+- Un audio par scène avec un ID unique (voice-scene-1, voice-scene-2, etc.)
+- Le "source" contient le texte exact du script pour cette scène
+- Provider fixe : "elevenlabs model_id=eleven_multilingual_v2 voice_id=NFcw9p0jKu3zbmXieNPE stability=0.50"
 
-🔧 STRUCTURE SUGGÉRÉE POUR CHAQUE SCÈNE
+💬 SOUS-TITRES UNIQUEMENT
+- Un seul élément text par scène
+- TOUJOURS avec transcript_source pointant vers l'audio
+- Positionnés EN BAS de l'écran (y_alignment: "85%" - JAMAIS au centre)
+- Centrés horizontalement (x_alignment: "50%")
+- Largeur max 50%
 
-[
-  {
-    "type": "video",
-    "source": "...",
-    "track": 1
-  },
-  {
-    "id": "voice-scene-1",
-    "type": "audio",
-    "track": 3,
-    "provider": "...",
-    "dynamic": true
-  },
-  {
-    "type": "text",
-    "track": 2,
-    "transcript_source": "voice-scene-1",
-    ...
-  }
-]
+📐 FORMAT FINAL
+{
+  "output_format": "mp4",
+  "width": 1080,
+  "height": 1920,
+  "elements": [
+    // Array of compositions (one per scene)
+  ]
+}
 
-⸻
-
-✅ À RETENIR ABSOLUMENT
-	•	❌ PAS de commentaires dans le JSON
-	•	✅ Max 50% width pour les sous-titres
-	•	✅ Sous-titres en bas de l’écran (y_alignment: “85%”)
-	•	✅ Un seul JSON final, bien formaté, sans texte explicatif
-	•	✅ Utilisation obligatoire des assets vidéos listés, sinon ignorer la scène
-    •   ✅ Utilise toujours ce voice Id => voice_id=NFcw9p0jKu3zbmXieNPE
-
-Tu es précis, structuré, et ne fais jamais d’invention.
-
-Utilise maintenant think_tool pour planifier la structure du JSON avant de l’émettre.
-
-
+✅ CHECKLIST FINAL
+- ❌ PAS de text sans transcript_source
+- ✅ Chaque scène = 1 video + 1 audio + 1 caption
+- ✅ URLs vidéo exactement comme dans le scene plan
+- ✅ Voice ID correct
+- ✅ JSON valide sans commentaires
 
 Documentation:
 ${docs}`,
@@ -266,19 +230,25 @@ Scene Plan:
 ${JSON.stringify(params.scenePlan, null, 2)}
 
 Voice ID: ${params.voiceId}
-Available Videos: ${JSON.stringify(params.selectedVideos)}
-`,
+
+IMPORTANT: Use ONLY the video URLs provided in the scene plan. Each scene must have exactly 3 elements: video + audio + caption (no additional text elements).
+
+CRITICAL: Captions MUST be positioned at the bottom of the screen with y_alignment: "85%" and x_alignment: "50%" - NEVER in the middle of the screen.
+
+NEVER use example URLs like "https://example.com/video.mp4" - use ONLY the actual URLs from the scene plan provided above.
+
+FOR EACH SCENE: Extract the video URL from scene.video_asset.url and use it as the "source" property in the video element.`,
         },
       ],
       response_format: { type: 'json_object' },
     });
-    console.log('completion', completion.choices[0].message.content);
+    console.log('Template completion:', completion.choices[0].message.content);
     return JSON.parse(completion.choices[0].message.content || '{}');
   }
 
   async buildJson(params: {
     script: string;
-    selectedVideos: string[];
+    selectedVideos: any[];
     voiceId: string;
     editorialProfile?: any;
   }): Promise<any> {
@@ -288,7 +258,7 @@ Available Videos: ${JSON.stringify(params.selectedVideos)}
         params.script,
         params.selectedVideos
       );
-      console.log(' video structure...', {
+      console.log('Video structure planned:', {
         scenePlan: JSON.stringify(scenePlan),
       });
 
@@ -310,9 +280,11 @@ Available Videos: ${JSON.stringify(params.selectedVideos)}
         template: JSON.stringify(template),
       });
       return template;
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error building template:', error);
-      throw new Error('Failed to build video template: ${error.message}');
+      throw new Error(
+        `Failed to build video template: ${error?.message || 'Unknown error'}`
+      );
     }
   }
 
@@ -369,6 +341,7 @@ Available Videos: ${JSON.stringify(params.selectedVideos)}
         subtitle.track !== 2 ||
         !subtitle.transcript_source ||
         subtitle.width !== '50%' ||
+        subtitle.x_alignment !== '50%' ||
         subtitle.y_alignment !== '85%'
       ) {
         throw new Error('Scene ${index}: Invalid or missing subtitle element');

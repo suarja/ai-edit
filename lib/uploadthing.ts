@@ -1,9 +1,12 @@
-import { generateReactHelpers } from '@uploadthing/react';
-import { generateClientDropzoneAccept } from 'uploadthing/client';
+import { generateReactNativeHelpers } from '@uploadthing/expo';
 import type { UploadRouter } from '../app/api/uploadthing+api';
 
-// Generate type-safe helpers for React Native
-export const { useUploadThing, uploadFiles } =
-  generateReactHelpers<UploadRouter>();
-
-export const { accept } = generateClientDropzoneAccept(['videos', 'images']);
+export const { useImageUploader, useDocumentUploader } =
+  generateReactNativeHelpers<UploadRouter>({
+    /**
+     * Your server url.
+     * @default process.env.EXPO_PUBLIC_SERVER_URL
+     * @remarks In dev we will also try to use Expo.debuggerHost
+     */
+    url: process.env.EXPO_PUBLIC_SERVER_URL || 'http://localhost:8081',
+  });
