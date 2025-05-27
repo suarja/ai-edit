@@ -3,12 +3,47 @@ import { ScriptGenerator } from '@/lib/agents/scriptGenerator';
 import { ScriptReviewer } from '@/lib/agents/scriptReviewer';
 import { CreatomateBuilder } from '@/lib/agents/creatomateBuilder';
 import { MODELS } from '@/lib/config/openai';
+import { VideoType } from '@/types/video';
+
+// A Function to validate the request body and return a response with the missing fields
+type EditorialProfile = {
+  persona_description: string;
+  tone_of_voice: string;
+  audience: string;
+  style_notes: string;
+};
+
+type Payload = {
+  prompt: string;
+  systemPrompt: string;
+  selectedVideos: VideoType[];
+  editorialProfile: EditorialProfile;
+  voiceId: string;
+};
+
+// Using discriminated union for better type safety
+type ValidationResponse =
+  | { success: true; payload: Payload }
+  | { success: false; error: Response };
 
 export async function POST(request: Request) {
   try {
     console.log('Starting video generation request...');
 
-    // Get auth token from request header
+    // Parse request body
+    const requestBody = await request.json();
+
+    // Validate request body
+    const validationResult = validateRequestBody(requestBody);
+    if (!validationResult.success) {
+      return validationResult.error;
+    }
+
+    // Now we can safely destructure since we know the validation succeeded
+    const { prompt, systemPrompt, selectedVideos, editorialProfile, voiceId } =
+      validationResult.payload;
+
+    // Get user from auth token
     const authHeader = request.headers.get('Authorization');
     if (!authHeader) {
       return new Response(
@@ -21,33 +56,10 @@ export async function POST(request: Request) {
         }
       );
     }
-
-    // Parse and validate request body
-    const body = await request.json();
-    console.log('Request body:', JSON.stringify(body, null, 2));
-
-    const { prompt, systemPrompt, selectedVideos, editorialProfile, voiceId } =
-      body;
-
-    // Validate required fields
-    if (!prompt || !selectedVideos?.length) {
-      console.log('Missing required fields:', { prompt, selectedVideos });
-      return new Response(
-        JSON.stringify({ error: 'Missing required fields' }),
-        {
-          status: 400,
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        }
-      );
-    }
-
-    // Get user from auth token
     const {
       data: { user },
       error: authError,
-    } = await supabase.auth.getUser(authHeader.replace('Bearer ', ''));
+    } = await supabase.auth.getUser(authHeader?.replace('Bearer ', ''));
     if (authError) {
       console.error('Auth error:', authError);
       return new Response(
@@ -231,12 +243,14 @@ export async function POST(request: Request) {
     );
 
     if (!renderResponse.ok) {
-      console.error('Creatomate API error:', await renderResponse.text());
+      console.error('Creatomate API error:', await renderResponse.json());
       throw new Error('Failed to start render');
     }
 
     const renderData = await renderResponse.json();
-    console.log('Render started:', renderData.id);
+    const renderId = renderData.id;
+    console.log('Render started:', renderData);
+    console.log('Render started:', renderId);
 
     // Update request with render ID
     console.log('Updating video request with render ID...');
@@ -244,7 +258,7 @@ export async function POST(request: Request) {
       .from('video_requests')
       .update({
         render_status: 'rendering',
-        render_id: renderData.id,
+        render_id: renderId,
       })
       .eq('id', videoRequest.id);
 
@@ -281,4 +295,38 @@ export async function POST(request: Request) {
       }
     );
   }
+}
+
+function validateRequestBody(body: any): ValidationResponse {
+  const { prompt, systemPrompt, selectedVideos, editorialProfile, voiceId } =
+    body;
+
+  if (!prompt || !selectedVideos?.length) {
+    return {
+      success: false,
+      error: new Response(
+        JSON.stringify({
+          error: 'Missing required fields',
+          missing: {
+            prompt: !prompt,
+            selectedVideos: !selectedVideos,
+            systemPrompt: !systemPrompt,
+            editorialProfile: !editorialProfile,
+            voiceId: !voiceId,
+          },
+        }),
+        { status: 400 }
+      ),
+    };
+  }
+  return {
+    success: true,
+    payload: {
+      prompt,
+      systemPrompt,
+      selectedVideos,
+      editorialProfile,
+      voiceId,
+    },
+  };
 }

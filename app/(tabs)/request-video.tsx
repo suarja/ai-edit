@@ -206,8 +206,6 @@ export default function RequestVideoScreen() {
         selectedVideos.includes(video.id)
       );
 
-      const videoIds = selectedVideoData.map((video) => video.storage_path);
-
       // Prepare editorial profile data
       const profileData = useEditorialProfile
         ? editorialProfile || DEFAULT_EDITORIAL_PROFILE
@@ -216,17 +214,22 @@ export default function RequestVideoScreen() {
       const requestPayload = {
         prompt: prompt.trim(),
         systemPrompt: systemPrompt.trim(),
-        videoIds,
+        selectedVideos: selectedVideoData,
         voiceId: voiceClone?.elevenlabs_voice_id || DEFAULT_VOICE_ID,
         editorialProfile: profileData,
       };
 
-      console.log('Submitting video generation request:', requestPayload);
+      // console.log('Submitting video generation request:', requestPayload);
 
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      console.log('Auth token:', session?.access_token);
       const response = await fetch('/api/videos/generate', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          Authorization: `Bearer ${session?.access_token}`,
         },
         body: JSON.stringify(requestPayload),
       });

@@ -1,4 +1,5 @@
-
+import { Database } from '@/types/supabase';
+import { createClient } from '@supabase/supabase-js';
 
 class SupabaseClient {
   private static instance: ReturnType<typeof createClient<Database>>;
