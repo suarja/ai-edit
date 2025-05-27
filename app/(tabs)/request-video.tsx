@@ -19,9 +19,9 @@ import {
   CircleAlert as AlertCircle,
   CreditCard as Edit3,
   Mic as Mic2,
+  FileVideo,
 } from 'lucide-react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { ResizeMode, Video } from 'expo-av';
 
 // Default voice ID to use when no voice clone exists
 const DEFAULT_VOICE_ID = 'NFcw9p0jKu3zbmXieNPE';
@@ -347,21 +347,20 @@ export default function RequestVideoScreen() {
                 onPress={() => toggleVideoSelection(video.id)}
               >
                 <View style={styles.videoPreview}>
-                  {video.upload_url ? (
-                    <Video
-                      source={{ uri: video.upload_url }}
-                      style={styles.videoThumbnail}
-                      resizeMode={ResizeMode.COVER}
-                      shouldPlay={false}
-                      isMuted={true}
-                      useNativeControls={false}
-                    />
-                  ) : (
-                    <VideoIcon size={24} color="#fff" />
+                  <FileVideo
+                    size={32}
+                    color={
+                      selectedVideos.includes(video.id) ? '#10b981' : '#666'
+                    }
+                  />
+                  {selectedVideos.includes(video.id) && (
+                    <View style={styles.selectedBadge}>
+                      <Text style={styles.selectedText}>✓</Text>
+                    </View>
                   )}
                 </View>
                 <Text style={styles.videoTitle} numberOfLines={2}>
-                  {video.title}
+                  {video.title || 'Vidéo sans titre'}
                 </Text>
                 <Text style={styles.videoDuration}>
                   {Math.floor(video.duration_seconds / 60)}:
@@ -624,10 +623,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     overflow: 'hidden',
-  },
-  videoThumbnail: {
-    width: '100%',
-    height: '100%',
+    position: 'relative',
   },
   videoTitle: {
     color: '#fff',
@@ -714,5 +710,21 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 16,
     fontWeight: '600',
+  },
+  selectedBadge: {
+    position: 'absolute',
+    top: 8,
+    right: 8,
+    backgroundColor: '#10b981',
+    borderRadius: 12,
+    width: 24,
+    height: 24,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  selectedText: {
+    color: '#fff',
+    fontSize: 12,
+    fontWeight: 'bold',
   },
 });
