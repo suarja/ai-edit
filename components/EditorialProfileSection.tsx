@@ -1,14 +1,16 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   TouchableOpacity,
-  TextInput,
   Switch,
+  Modal,
 } from 'react-native';
 import { router } from 'expo-router';
-import { CreditCard as Edit3 } from 'lucide-react-native';
+import { Settings } from 'lucide-react-native';
+import EditorialProfileCard from './EditorialProfileCard';
+import EditorialProfileForm from './EditorialProfileForm';
 
 type EditorialProfile = {
   id: string;
@@ -42,148 +44,129 @@ export default function EditorialProfileSection({
   onToggleUseProfile,
   onUpdateCustomProfile,
 }: EditorialProfileSectionProps) {
-  const updateCustomField = (
-    field: keyof CustomEditorialProfile,
-    value: string
-  ) => {
-    onUpdateCustomProfile({
-      ...customEditorialProfile,
-      [field]: value,
-    });
+  const [showCustomForm, setShowCustomForm] = useState(false);
+
+  const handleEditProfile = () => {
+    router.push('/(tabs)/editorial');
+  };
+
+  const handleEditCustomProfile = () => {
+    setShowCustomForm(true);
+  };
+
+  const handleSaveCustomProfile = (profile: CustomEditorialProfile) => {
+    onUpdateCustomProfile(profile);
+    setShowCustomForm(false);
+  };
+
+  const handleCancelCustomProfile = () => {
+    setShowCustomForm(false);
   };
 
   return (
     <View style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.sectionTitle}>Profil Éditorial</Text>
-        <Switch
-          trackColor={{ false: '#333', true: '#007AFF' }}
-          thumbColor="#fff"
-          value={useEditorialProfile}
-          onValueChange={onToggleUseProfile}
-        />
-      </View>
-
-      {useEditorialProfile ? (
-        editorialProfile ? (
-          <View style={styles.editorialProfile}>
-            <Text style={styles.editorialText}>
-              {editorialProfile.persona_description}
-            </Text>
-            <TouchableOpacity
-              style={styles.editButton}
-              onPress={() => router.push('/(tabs)/editorial')}
-            >
-              <Edit3 size={16} color="#007AFF" />
-              <Text style={styles.editButtonText}>Modifier le Profil</Text>
-            </TouchableOpacity>
-          </View>
-        ) : (
-          <View style={styles.editorialProfile}>
-            <Text style={styles.editorialText}>
-              {defaultEditorialProfile.persona_description}
-            </Text>
-            <TouchableOpacity
-              style={styles.editButton}
-              onPress={() => router.push('/(tabs)/editorial')}
-            >
-              <Edit3 size={16} color="#007AFF" />
-              <Text style={styles.editButtonText}>Personnaliser le Profil</Text>
-            </TouchableOpacity>
-          </View>
-        )
-      ) : (
-        <View style={styles.customProfile}>
-          <TextInput
-            style={styles.customInput}
-            multiline
-            numberOfLines={3}
-            placeholder="Description du persona..."
-            placeholderTextColor="#666"
-            value={customEditorialProfile.persona_description}
-            onChangeText={(text) =>
-              updateCustomField('persona_description', text)
-            }
-          />
-          <TextInput
-            style={styles.customInput}
-            multiline
-            numberOfLines={2}
-            placeholder="Ton de voix..."
-            placeholderTextColor="#666"
-            value={customEditorialProfile.tone_of_voice}
-            onChangeText={(text) => updateCustomField('tone_of_voice', text)}
-          />
-          <TextInput
-            style={styles.customInput}
-            multiline
-            numberOfLines={2}
-            placeholder="Public cible..."
-            placeholderTextColor="#666"
-            value={customEditorialProfile.audience}
-            onChangeText={(text) => updateCustomField('audience', text)}
-          />
-          <TextInput
-            style={styles.customInput}
-            multiline
-            numberOfLines={3}
-            placeholder="Notes de style..."
-            placeholderTextColor="#666"
-            value={customEditorialProfile.style_notes}
-            onChangeText={(text) => updateCustomField('style_notes', text)}
+        <View style={styles.headerActions}>
+          <TouchableOpacity
+            style={styles.settingsButton}
+            onPress={() => setShowCustomForm(true)}
+          >
+            <Settings size={16} color="#007AFF" />
+          </TouchableOpacity>
+          <Switch
+            trackColor={{ false: '#333', true: '#007AFF' }}
+            thumbColor="#fff"
+            value={useEditorialProfile}
+            onValueChange={onToggleUseProfile}
           />
         </View>
+      </View>
+
+      <Text style={styles.sectionDescription}>
+        {useEditorialProfile
+          ? 'Utilisez votre profil éditorial sauvegardé'
+          : 'Personnalisez le profil pour cette génération'}
+      </Text>
+
+      {useEditorialProfile ? (
+        <EditorialProfileCard
+          profile={editorialProfile}
+          isSelected={true}
+          onEdit={handleEditProfile}
+          showActions={true}
+          compact={false}
+        />
+      ) : (
+        <EditorialProfileCard
+          profile={{
+            id: 'custom',
+            persona_description: customEditorialProfile.persona_description,
+            tone_of_voice: customEditorialProfile.tone_of_voice,
+            audience: customEditorialProfile.audience,
+            style_notes: customEditorialProfile.style_notes,
+          }}
+          isSelected={true}
+          onEdit={handleEditCustomProfile}
+          showActions={true}
+          compact={false}
+        />
       )}
+
+      <Modal
+        visible={showCustomForm}
+        animationType="slide"
+        presentationStyle="pageSheet"
+      >
+        <EditorialProfileForm
+          profile={{
+            id: 'custom',
+            persona_description: customEditorialProfile.persona_description,
+            tone_of_voice: customEditorialProfile.tone_of_voice,
+            audience: customEditorialProfile.audience,
+            style_notes: customEditorialProfile.style_notes,
+          }}
+          onSave={handleSaveCustomProfile}
+          onCancel={handleCancelCustomProfile}
+          saving={false}
+        />
+      </Modal>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    marginBottom: 24,
+    marginBottom: 32,
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 12,
+    marginBottom: 8,
   },
   sectionTitle: {
-    fontSize: 18,
-    fontWeight: '600',
+    fontSize: 20,
+    fontWeight: '700',
     color: '#fff',
   },
-  editorialProfile: {
-    backgroundColor: '#1a1a1a',
-    borderRadius: 12,
-    padding: 16,
-    gap: 12,
-  },
-  editorialText: {
-    color: '#fff',
-    fontSize: 14,
-    lineHeight: 20,
-  },
-  editButton: {
+  headerActions: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
-    alignSelf: 'flex-start',
-  },
-  editButtonText: {
-    color: '#007AFF',
-    fontSize: 14,
-    fontWeight: '500',
-  },
-  customProfile: {
     gap: 12,
   },
-  customInput: {
-    backgroundColor: '#1a1a1a',
-    borderRadius: 12,
-    padding: 16,
-    color: '#fff',
-    fontSize: 14,
-    textAlignVertical: 'top',
+  settingsButton: {
+    backgroundColor: 'rgba(0, 122, 255, 0.1)',
+    borderRadius: 8,
+    width: 32,
+    height: 32,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  sectionDescription: {
+    fontSize: 15,
+    color: '#888',
+    marginBottom: 16,
+    lineHeight: 22,
   },
 });
