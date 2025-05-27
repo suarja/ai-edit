@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "AI Edit",
-    "slug": "AIE",
+    "slug": "ai-edit",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
@@ -37,6 +37,13 @@
     ],
     "experiments": {
       "typedRoutes": true
-    }
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "d4703822-1789-49d1-8999-976108e28415"
+      }
+    },
+    "owner": "swarecito"
   }
 }

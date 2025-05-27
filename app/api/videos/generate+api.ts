@@ -195,6 +195,15 @@ export async function POST(request: Request) {
 
     // Start Creatomate render
     console.log('Starting Creatomate render...');
+
+    // Get the server's base URL for webhook callbacks
+    // In production, this should be your public-facing URL
+    const baseUrl =
+      process.env.EXPO_PUBLIC_SERVER_URL || 'https://your-production-url.com';
+
+    // Create webhook URL for render status updates
+    const webhookUrl = `${baseUrl}/api/webhooks/creatomate`;
+
     const renderResponse = await fetch(
       'https://api.creatomate.com/v1/renders',
       {
@@ -206,6 +215,17 @@ export async function POST(request: Request) {
         body: JSON.stringify({
           template_id: 'a5403674-6eaf-4114-a088-4d560d851aef',
           modifications: template,
+          webhook_url: webhookUrl, // Add webhook URL for callbacks
+          output_format: 'mp4', // Ensure we get MP4 output
+          frame_rate: 30, // Use a standard frame rate
+          render_scale: 1.0, // Full quality
+          metadata: JSON.stringify({
+            requestId: videoRequest.id,
+            userId: user.id,
+            scriptId: script.id,
+            prompt: prompt.substring(0, 100), // Truncate long prompts
+            timestamp: new Date().toISOString(),
+          }),
         }),
       }
     );

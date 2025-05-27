@@ -1,8 +1,20 @@
 import { useState, useEffect, useCallback } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator, RefreshControl } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  FlatList,
+  TouchableOpacity,
+  ActivityIndicator,
+  RefreshControl,
+} from 'react-native';
 import { router } from 'expo-router';
 import { supabase } from '@/lib/supabase';
-import { Film, MoveVertical as MoreVertical, CircleAlert as AlertCircle } from 'lucide-react-native';
+import {
+  Film,
+  MoveVertical as MoreVertical,
+  CircleAlert as AlertCircle,
+} from 'lucide-react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 type VideoRequest = {
@@ -10,8 +22,9 @@ type VideoRequest = {
   script_id: string;
   render_status: 'queued' | 'rendering' | 'done' | 'error';
   render_url: string | null;
+  render_id?: string;
   created_at: string;
-  script: {
+  script?: {
     raw_prompt: string;
   };
 };
@@ -24,24 +37,28 @@ export default function GeneratedVideosScreen() {
 
   const fetchVideos = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (!user) {
         router.replace('/(auth)/sign-in');
         return;
       }
 
+      console.log('videos page');
       const { data, error } = await supabase
         .from('video_requests')
-        .select(`
+        .select(
+          `
           id,
           script_id,
           render_status,
           render_url,
+          render_id,
           created_at,
-          script:scripts (
-            raw_prompt
-          )
-        `)
+          script_id
+        `
+        )
         .eq('user_id', user.id)
         .order('created_at', { ascending: false });
 
@@ -49,9 +66,13 @@ export default function GeneratedVideosScreen() {
       setVideos(data || []);
 
       // Check status for rendering videos
-      const renderingVideos = data?.filter(v => v.render_status === 'rendering') || [];
+      const renderingVideos =
+        data?.filter((v: VideoRequest) => v.render_status === 'rendering') ||
+        [];
+
       for (const video of renderingVideos) {
-        checkVideoStatus(video.id);
+        console.log('checking video status', video.id);
+        await checkVideoStatus(video.id);
       }
     } catch (err) {
       console.error('Error fetching videos:', err);
@@ -65,18 +86,22 @@ export default function GeneratedVideosScreen() {
   const checkVideoStatus = async (videoId: string) => {
     try {
       const response = await fetch(`/api/videos/status/${videoId}`);
-      if (!response.ok) throw new Error('Failed to check status');
-      
-      const data = await response.json();
-      
-      // Update video in state if status changed
-      setVideos(prev => prev.map(v => 
-        v.id === videoId ? { ...v, ...data } : v
-      ));
 
-      // Continue polling if still rendering
+      if (!response.ok) {
+        console.error('Status check failed:', await response.text());
+        throw new Error('Failed to check status');
+      }
+
+      const data: VideoRequest = await response.json();
+
+      // Update video in state if status changed
+      setVideos((prev) =>
+        prev.map((v) => (v.id === videoId ? { ...v, ...data } : v))
+      );
+
+      // Continue polling if still rendering (every 10 seconds)
       if (data.render_status === 'rendering') {
-        setTimeout(() => checkVideoStatus(videoId), 5000);
+        setTimeout(() => checkVideoStatus(videoId), 30000);
       }
     } catch (err) {
       console.error('Error checking video status:', err);
@@ -118,9 +143,14 @@ export default function GeneratedVideosScreen() {
     }
   };
 
-  const truncateText = (text: string, maxLength: number = 50) => {
+  const truncateText = (
+    text: string | undefined,
+    maxLength: number = 50
+  ): string => {
     if (!text) return 'Sans titre';
-    return text.length > maxLength ? text.substring(0, maxLength) + '...' : text;
+    return text.length > maxLength
+      ? text.substring(0, maxLength) + '...'
+      : text;
   };
 
   if (loading) {
