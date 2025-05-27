@@ -26,7 +26,8 @@ export async function POST(request: Request) {
     const body = await request.json();
     console.log('Request body:', JSON.stringify(body, null, 2));
 
-    const { prompt, selectedVideos, editorialProfile, voiceId } = body;
+    const { prompt, systemPrompt, selectedVideos, editorialProfile, voiceId } =
+      body;
 
     // Validate required fields
     if (!prompt || !selectedVideos?.length) {
@@ -73,8 +74,11 @@ export async function POST(request: Request) {
     // Fetch source videos with URLs
     const { data: videos, error: videosError } = await supabase
       .from('videos')
-      .select('id, upload_url')
-      .in('id', selectedVideos);
+      .select('id, upload_url, title, description, tags')
+      .in(
+        'id',
+        selectedVideos.map((v: any) => v.id)
+      );
 
     if (videosError) {
       console.error('Error fetching videos:', videosError);
@@ -82,7 +86,7 @@ export async function POST(request: Request) {
     }
 
     // Check if all videos have upload_urls
-    const videoUrls = videos.map((video) => {
+    const videosObj = videos.map((video: any) => {
       if (!video.upload_url) {
         throw new Error(`Missing upload URL for video ${video.id}`);
       }
@@ -90,6 +94,9 @@ export async function POST(request: Request) {
       return {
         id: video.id,
         url: video.upload_url, // Using UploadThing URLs directly (already public)
+        title: video.title,
+        description: video.description,
+        tags: video.tags,
       };
     });
 
@@ -102,7 +109,8 @@ export async function POST(request: Request) {
     console.log('Generating script...');
     const generatedScript = await scriptGenerator.generate(
       prompt,
-      editorialProfile
+      editorialProfile,
+      systemPrompt
     );
     console.log('Script generated:', generatedScript);
 
@@ -110,7 +118,13 @@ export async function POST(request: Request) {
     console.log('Reviewing script...');
     const reviewedScript = await scriptReviewer.review(
       generatedScript,
-      editorialProfile
+      editorialProfile,
+      `System Prompt from the user:
+      ${systemPrompt}
+
+      User Prompt:
+      ${prompt}
+      `
     );
     console.log('Script reviewed:', reviewedScript);
 
@@ -140,7 +154,7 @@ export async function POST(request: Request) {
       .insert({
         user_id: user.id,
         script_id: script.id,
-        selected_videos: selectedVideos,
+        selected_videos: selectedVideos.map((v: any) => v.id),
         render_status: 'queued',
       })
       .select()
@@ -156,7 +170,7 @@ export async function POST(request: Request) {
     console.log('Generating video template...');
     const template = await creatomateBuilder.buildJson({
       script: reviewedScript,
-      selectedVideos: videoUrls.map((v: { url: string }) => v.url), // Use UploadThing URLs
+      selectedVideos: videosObj, // Use UploadThing URLs
       voiceId,
       editorialProfile,
     });

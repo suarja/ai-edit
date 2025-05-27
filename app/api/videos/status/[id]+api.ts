@@ -4,27 +4,21 @@ export async function GET(request: Request) {
   try {
     const id = request.url.split('/').pop();
     if (!id) {
-      return new Response(
-        JSON.stringify({ error: 'Missing request ID' }), 
-        { status: 400 }
-      );
+      return new Response(JSON.stringify({ error: 'Missing request ID' }), {
+        status: 400,
+      });
     }
 
     // Get video request status
     const { data: videoRequest, error } = await supabase
       .from('video_requests')
-      .select(`
+      .select(
+        `
         id,
         render_status,
         render_url,
-        metadata,
-        script:scripts (
-          id,
-          raw_prompt,
-          generated_script,
-          status
-        )
-      `)
+      `
+      )
       .eq('id', id)
       .single();
 
@@ -34,7 +28,7 @@ export async function GET(request: Request) {
   } catch (error) {
     console.error('Error checking video status:', error);
     return new Response(
-      JSON.stringify({ error: 'Failed to check video status' }), 
+      JSON.stringify({ error: 'Failed to check video status' }),
       { status: 500 }
     );
   }

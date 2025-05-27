@@ -4,27 +4,20 @@ export async function GET(request: Request) {
   try {
     const id = request.url.split('/').pop();
     if (!id) {
-      return Response.json(
-        { error: 'Missing request ID' },
-        { status: 400 }
-      );
+      return Response.json({ error: 'Missing request ID' }, { status: 400 });
     }
 
     // Get video request status
     const { data: videoRequest, error } = await supabase
       .from('video_requests')
-      .select(`
+      .select(
+        `
         id,
         render_status,
         render_url,
-        metadata,
-        script:scripts (
-          id,
-          raw_prompt,
-          generated_script,
-          status
-        )
-      `)
+        script_id
+      `
+      )
       .eq('id', id)
       .single();
 

@@ -12,7 +12,7 @@ export class CreatomateBuilder {
 
   private constructor(model: string) {
     this.openai = createOpenAIClient();
-    this.model = model
+    this.model = model;
   }
 
   static getInstance(model: string): CreatomateBuilder {
@@ -37,7 +37,10 @@ export class CreatomateBuilder {
     }
   }
 
-  private async planVideoStructure(script: string, availableVideos: string[]): Promise<any> {
+  private async planVideoStructure(
+    script: string,
+    availableVideos: string[]
+  ): Promise<any> {
     const completion = await this.openai.chat.completions.create({
       model: this.model,
       messages: [
@@ -50,17 +53,20 @@ export class CreatomateBuilder {
           2. Which video asset best matches the content
           3. Any special requirements or transitions needed
           
-          Return the plan as a JSON object with an array of scenes.`
+          Return the plan as a JSON object with an array of scenes.`,
         },
         {
           role: 'user',
-          content: 'Script: ${script}\n\nAvailable videos: ${JSON.stringify(availableVideos)}'
-        }
+          content: `Script: ${script}\n\nAvailable videos: ${JSON.stringify(
+            availableVideos
+          )}`,
+        },
       ],
-      response_format: { type: 'json_object' }
+      response_format: { type: 'json_object' },
     });
 
-    return JSON.parse(completion.choices[0].message.content);
+    console.log('completion', completion.choices[0].message.content);
+    return JSON.parse(completion.choices[0].message.content || '{}');
   }
 
   private async generateTemplate(params: {
@@ -71,10 +77,9 @@ export class CreatomateBuilder {
     scenePlan: any;
   }): Promise<any> {
     const docs = await this.loadDocs();
-    
+
     const completion = await this.openai.chat.completions.create({
-      model: this.model
-      ,
+      model: this.model,
       messages: [
         {
           role: 'system',
@@ -251,7 +256,7 @@ Utilise maintenant think_tool pour planifier la structure du JSON avant de lâ€™Ã
 
 
 Documentation:
-${docs}`
+${docs}`,
         },
         {
           role: 'user',
@@ -262,13 +267,13 @@ ${JSON.stringify(params.scenePlan, null, 2)}
 
 Voice ID: ${params.voiceId}
 Available Videos: ${JSON.stringify(params.selectedVideos)}
-`
-        }
+`,
+        },
       ],
-      response_format: { type: 'json_object' }
+      response_format: { type: 'json_object' },
     });
-
-    return JSON.parse(completion.choices[0].message.content);
+    console.log('completion', completion.choices[0].message.content);
+    return JSON.parse(completion.choices[0].message.content || '{}');
   }
 
   async buildJson(params: {
@@ -279,8 +284,13 @@ Available Videos: ${JSON.stringify(params.selectedVideos)}
   }): Promise<any> {
     try {
       console.log('Planning video structure...');
-      const scenePlan = await this.planVideoStructure(params.script, params.selectedVideos);
-      console.log(' video structure...', {scenePlan : JSON.stringify(scenePlan)});
+      const scenePlan = await this.planVideoStructure(
+        params.script,
+        params.selectedVideos
+      );
+      console.log(' video structure...', {
+        scenePlan: JSON.stringify(scenePlan),
+      });
 
       console.log('Generating video template...');
       const template = await this.generateTemplate({
@@ -290,13 +300,15 @@ Available Videos: ${JSON.stringify(params.selectedVideos)}
           persona_description: 'Professional content creator',
           tone_of_voice: 'Clear and engaging',
           audience: 'General audience',
-          style_notes: 'Modern and professional style'
-        }
+          style_notes: 'Modern and professional style',
+        },
       });
 
       // this.validateTemplate(template);
-      
-      console.log('Template generated successfully', {template: JSON.stringify(template)});
+
+      console.log('Template generated successfully', {
+        template: JSON.stringify(template),
+      });
       return template;
     } catch (error) {
       console.error('Error building template:', error);
@@ -306,7 +318,12 @@ Available Videos: ${JSON.stringify(params.selectedVideos)}
 
   private validateTemplate(template: any) {
     // Basic structure validation
-    if (!template.output_format || !template.width || !template.height || !template.elements) {
+    if (
+      !template.output_format ||
+      !template.width ||
+      !template.height ||
+      !template.elements
+    ) {
       throw new Error('Invalid template: Missing required properties');
     }
 
@@ -332,7 +349,7 @@ Available Videos: ${JSON.stringify(params.selectedVideos)}
 
       // Check required elements
       const elements = scene.elements;
-      
+
       // Video validation
       const video = elements.find((el: any) => el.type === 'video');
       if (!video || !video.source || video.track !== 1) {
@@ -347,11 +364,13 @@ Available Videos: ${JSON.stringify(params.selectedVideos)}
 
       // Subtitle validation
       const subtitle = elements.find((el: any) => el.type === 'text');
-      if (!subtitle || 
-          subtitle.track !== 2 || 
-          !subtitle.transcript_source || 
-          subtitle.width !== '50%' ||
-          subtitle.y_alignment !== '85%') {
+      if (
+        !subtitle ||
+        subtitle.track !== 2 ||
+        !subtitle.transcript_source ||
+        subtitle.width !== '50%' ||
+        subtitle.y_alignment !== '85%'
+      ) {
         throw new Error('Scene ${index}: Invalid or missing subtitle element');
       }
 

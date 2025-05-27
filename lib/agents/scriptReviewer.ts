@@ -18,7 +18,11 @@ export class ScriptReviewer {
     return ScriptReviewer.instance;
   }
 
-  async review(script: string, editorialProfile: any): Promise<string> {
+  async review(
+    script: string,
+    editorialProfile: any,
+    userSystemPrompt: string
+  ): Promise<string> {
     try {
       console.log('Starting script review...');
 
@@ -93,7 +97,13 @@ Ensure the script is smooth, clean, and ready for ElevenLabs synthesis without m
           },
           {
             role: 'user',
-            content: script,
+            content: `
+            System Prompt from the user:
+            ${userSystemPrompt}
+
+            Script created from the user prompt by the script generator:
+            ${script}
+            `,
           },
         ],
       });

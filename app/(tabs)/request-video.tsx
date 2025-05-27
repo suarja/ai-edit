@@ -207,6 +207,7 @@ export default function RequestVideoScreen() {
 
       const requestPayload = {
         prompt,
+        systemPrompt,
         selectedVideos: selectedVideoData,
         editorialProfile: useEditorialProfile
           ? editorialProfile || DEFAULT_EDITORIAL_PROFILE

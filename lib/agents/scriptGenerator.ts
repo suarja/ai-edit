@@ -18,7 +18,11 @@ export class ScriptGenerator {
     return ScriptGenerator.instance;
   }
 
-  async generate(prompt: string, editorialProfile: any): Promise<string> {
+  async generate(
+    prompt: string,
+    editorialProfile: any,
+    systemPrompt: string
+  ): Promise<string> {
     try {
       console.log('Generating script with profile:', editorialProfile);
 
@@ -49,6 +53,9 @@ Editorial Profile:
 - Tone: ${editorialProfile.tone_of_voice}
 - Audience: ${editorialProfile.audience}
 - Style: ${editorialProfile.style_notes}
+- Examples : ${editorialProfile.examples}
+
+
 
 REQUIREMENTS:
 - Duration: 30-60 seconds when spoken
@@ -68,7 +75,13 @@ Return only the final script without any additional context or formatting.`,
           },
           {
             role: 'user',
-            content: prompt,
+            content: `
+            System Prompt from the user:
+            ${systemPrompt}
+
+            User Prompt:
+            ${prompt}
+            `,
           },
         ],
       });

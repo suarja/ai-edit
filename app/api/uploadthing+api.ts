@@ -9,7 +9,6 @@ import { supabase } from '@/lib/supabase';
 // Create a new instance of UploadThing
 const f = createUploadthing();
 const token = process.env.UPLOADTHING_TOKEN;
-console.log('token', token);
 
 // FileRouter for your app, can contain multiple FileRoutes
 export const uploadRouter = {
