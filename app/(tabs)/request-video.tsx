@@ -12,7 +12,12 @@ import {
 } from 'react-native';
 import { router } from 'expo-router';
 import { supabase } from '@/lib/supabase';
-import { Send, CircleAlert as AlertCircle } from 'lucide-react-native';
+import {
+  Send,
+  CircleAlert as AlertCircle,
+  Sparkles,
+  Settings,
+} from 'lucide-react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { VideoType } from '@/types/video';
 import VideoSelectionCarousel from '@/components/VideoSelectionCarousel';
@@ -60,6 +65,7 @@ export default function RequestVideoScreen() {
   const [error, setError] = useState<string | null>(null);
   const [prompt, setPrompt] = useState('');
   const [systemPrompt, setSystemPrompt] = useState('');
+  const [showAdvanced, setShowAdvanced] = useState(false);
   const [selectedVideos, setSelectedVideos] = useState<string[]>([]);
   const [sourceVideos, setSourceVideos] = useState<VideoType[]>([]);
   const [voiceClone, setVoiceClone] = useState<VoiceClone | null>(null);
@@ -153,7 +159,7 @@ export default function RequestVideoScreen() {
   };
 
   const validateRequest = () => {
-    if (!prompt) {
+    if (!prompt.trim()) {
       Alert.alert(
         'Description manquante',
         'Veuillez entrer une description de la vidéo que vous souhaitez créer.',
@@ -171,7 +177,10 @@ export default function RequestVideoScreen() {
       return false;
     }
 
-    if (!useEditorialProfile && !customEditorialProfile.persona_description) {
+    if (
+      !useEditorialProfile &&
+      !customEditorialProfile.persona_description.trim()
+    ) {
       Alert.alert(
         'Détails éditoriaux manquants',
         'Pour un contenu plus authentique et personnalisé, veuillez fournir des détails sur votre style de contenu.',
@@ -205,8 +214,8 @@ export default function RequestVideoScreen() {
         : customEditorialProfile;
 
       const requestPayload = {
-        prompt,
-        systemPrompt,
+        prompt: prompt.trim(),
+        systemPrompt: systemPrompt.trim(),
         videoIds,
         voiceId: voiceClone?.elevenlabs_voice_id || DEFAULT_VOICE_ID,
         editorialProfile: profileData,
@@ -236,7 +245,7 @@ export default function RequestVideoScreen() {
         [
           {
             text: 'Voir mes vidéos',
-            onPress: () => router.push('/(tabs)/generated-videos'),
+            onPress: () => router.push('/(tabs)/videos'),
           },
         ]
       );
@@ -245,6 +254,7 @@ export default function RequestVideoScreen() {
       setPrompt('');
       setSystemPrompt('');
       setSelectedVideos([]);
+      setShowAdvanced(false);
     } catch (err) {
       console.error('Error submitting request:', err);
       setError(err instanceof Error ? err.message : 'Failed to submit request');
@@ -258,6 +268,7 @@ export default function RequestVideoScreen() {
       <SafeAreaView style={styles.container} edges={['top']}>
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#007AFF" />
+          <Text style={styles.loadingText}>Chargement...</Text>
         </View>
       </SafeAreaView>
     );
@@ -266,7 +277,17 @@ export default function RequestVideoScreen() {
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <View style={styles.header}>
-        <Text style={styles.title}>Demander une Vidéo</Text>
+        <View style={styles.headerContent}>
+          <View>
+            <Text style={styles.title}>Créer une Vidéo</Text>
+            <Text style={styles.subtitle}>
+              Générez du contenu à partir de vos vidéos
+            </Text>
+          </View>
+          <View style={styles.headerIcon}>
+            <Sparkles size={24} color="#007AFF" />
+          </View>
+        </View>
       </View>
 
       <ScrollView
@@ -289,17 +310,55 @@ export default function RequestVideoScreen() {
 
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Description de la Vidéo</Text>
+          <Text style={styles.sectionDescription}>
+            Décrivez le type de contenu que vous souhaitez créer
+          </Text>
           <TextInput
             style={styles.promptInput}
             multiline
             numberOfLines={6}
-            placeholder="Décrivez la vidéo que vous souhaitez créer..."
+            placeholder="Ex: Créez une vidéo explicative sur les meilleures pratiques de productivité, en utilisant un ton professionnel mais accessible..."
             placeholderTextColor="#666"
             value={prompt}
             onChangeText={setPrompt}
+            maxLength={1000}
           />
-          <Text style={styles.charCount}>{prompt.length}/500</Text>
+          <View style={styles.inputFooter}>
+            <Text style={styles.charCount}>{prompt.length}/1000</Text>
+          </View>
         </View>
+
+        <TouchableOpacity
+          style={styles.advancedToggle}
+          onPress={() => setShowAdvanced(!showAdvanced)}
+        >
+          <Settings size={16} color="#007AFF" />
+          <Text style={styles.advancedToggleText}>
+            {showAdvanced ? 'Masquer' : 'Afficher'} les options avancées
+          </Text>
+        </TouchableOpacity>
+
+        {showAdvanced && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Instructions Système</Text>
+            <Text style={styles.sectionDescription}>
+              Instructions techniques spécifiques pour l'IA (optionnel)
+            </Text>
+            <TextInput
+              style={styles.systemPromptInput}
+              multiline
+              numberOfLines={4}
+              placeholder="Ex: Utilisez un style narratif, incluez des transitions fluides, mettez l'accent sur les points clés..."
+              placeholderTextColor="#666"
+              value={systemPrompt}
+              onChangeText={setSystemPrompt}
+              maxLength={500}
+            />
+            <View style={styles.inputFooter}>
+              <Text style={styles.charCount}>{systemPrompt.length}/500</Text>
+            </View>
+          </View>
+        )}
 
         <VideoSelectionCarousel
           videos={sourceVideos}
@@ -323,17 +382,22 @@ export default function RequestVideoScreen() {
         <TouchableOpacity
           style={[
             styles.submitButton,
-            (submitting || !prompt || selectedVideos.length === 0) &&
+            (submitting || !prompt.trim() || selectedVideos.length === 0) &&
               styles.submitButtonDisabled,
           ]}
           onPress={handleSubmit}
-          disabled={submitting || !prompt || selectedVideos.length === 0}
+          disabled={submitting || !prompt.trim() || selectedVideos.length === 0}
         >
           {submitting ? (
-            <ActivityIndicator color="#fff" />
+            <>
+              <ActivityIndicator color="#fff" size="small" />
+              <Text style={styles.submitButtonText}>
+                Génération en cours...
+              </Text>
+            </>
           ) : (
             <>
-              <Send size={24} color="#fff" />
+              <Send size={20} color="#fff" />
               <Text style={styles.submitButtonText}>Générer la Vidéo</Text>
             </>
           )}
@@ -351,19 +415,42 @@ const styles = StyleSheet.create({
   header: {
     paddingTop: 16,
     paddingHorizontal: 20,
-    paddingBottom: 16,
+    paddingBottom: 20,
     borderBottomWidth: 1,
     borderBottomColor: '#333',
+  },
+  headerContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  headerIcon: {
+    backgroundColor: 'rgba(0, 122, 255, 0.1)',
+    borderRadius: 12,
+    width: 48,
+    height: 48,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    gap: 16,
+  },
+  loadingText: {
+    color: '#888',
+    fontSize: 16,
   },
   title: {
-    fontSize: 24,
+    fontSize: 28,
     fontWeight: 'bold',
     color: '#fff',
+  },
+  subtitle: {
+    fontSize: 16,
+    color: '#888',
+    marginTop: 4,
   },
   content: {
     flex: 1,
@@ -375,7 +462,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#2D1116',
     padding: 16,
     borderRadius: 12,
-    marginBottom: 20,
+    marginBottom: 24,
     gap: 8,
   },
   errorText: {
@@ -384,31 +471,65 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   section: {
-    marginBottom: 24,
+    marginBottom: 32,
   },
   sectionTitle: {
-    fontSize: 18,
-    fontWeight: '600',
+    fontSize: 20,
+    fontWeight: '700',
     color: '#fff',
-    marginBottom: 12,
+    marginBottom: 6,
+  },
+  sectionDescription: {
+    fontSize: 15,
+    color: '#888',
+    marginBottom: 16,
+    lineHeight: 22,
   },
   promptInput: {
     backgroundColor: '#1a1a1a',
-    borderRadius: 12,
-    padding: 16,
+    borderRadius: 16,
+    padding: 20,
     color: '#fff',
     fontSize: 16,
     textAlignVertical: 'top',
-    minHeight: 120,
+    minHeight: 140,
+    borderWidth: 1,
+    borderColor: '#333',
+  },
+  systemPromptInput: {
+    backgroundColor: '#1a1a1a',
+    borderRadius: 16,
+    padding: 20,
+    color: '#fff',
+    fontSize: 16,
+    textAlignVertical: 'top',
+    minHeight: 100,
+    borderWidth: 1,
+    borderColor: '#333',
+  },
+  inputFooter: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    marginTop: 8,
   },
   charCount: {
     color: '#888',
     fontSize: 12,
-    textAlign: 'right',
-    marginTop: 8,
+  },
+  advancedToggle: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 24,
+    paddingVertical: 8,
+  },
+  advancedToggleText: {
+    color: '#007AFF',
+    fontSize: 15,
+    fontWeight: '500',
   },
   footer: {
-    padding: 16,
+    padding: 20,
     backgroundColor: '#1a1a1a',
     borderTopWidth: 1,
     borderTopColor: '#333',
@@ -418,16 +539,25 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    padding: 16,
-    borderRadius: 12,
-    gap: 8,
+    padding: 18,
+    borderRadius: 16,
+    gap: 12,
+    shadowColor: '#007AFF',
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
   },
   submitButtonDisabled: {
     opacity: 0.5,
+    shadowOpacity: 0,
   },
   submitButtonText: {
     color: '#fff',
-    fontSize: 16,
+    fontSize: 17,
     fontWeight: '600',
   },
 });
