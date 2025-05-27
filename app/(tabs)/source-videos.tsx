@@ -371,14 +371,6 @@ export default function SourceVideosScreen() {
                     </Text>
                   )}
                   <View style={styles.videoMeta}>
-                    {video.tags && video.tags.length > 0 && (
-                      <View style={styles.tagContainer}>
-                        <Tag size={14} color="#888" />
-                        <Text style={styles.tagText} numberOfLines={1}>
-                          {video.tags.join(', ')}
-                        </Text>
-                      </View>
-                    )}
                     <View style={styles.dateContainer}>
                       <Clock size={14} color="#888" />
                       <Text style={styles.dateText}>
@@ -386,6 +378,14 @@ export default function SourceVideosScreen() {
                       </Text>
                     </View>
                   </View>
+                  {video.tags && video.tags.length > 0 && (
+                    <View style={styles.tagContainer}>
+                      <Tag size={14} color="#888" />
+                      <Text style={styles.tagText} numberOfLines={2}>
+                        {video.tags.join(', ')}
+                      </Text>
+                    </View>
+                  )}
                 </View>
 
                 <TouchableOpacity
@@ -593,49 +593,59 @@ const styles = StyleSheet.create({
     padding: 16,
     marginBottom: 12,
     gap: 16,
+    alignItems: 'flex-start',
   },
   videoPreview: {
-    width: 120,
-    height: 80,
+    width: 100,
+    height: 70,
     backgroundColor: '#333',
     borderRadius: 8,
     justifyContent: 'center',
     alignItems: 'center',
     overflow: 'hidden',
     position: 'relative',
+    flexShrink: 0,
   },
   videoInfo: {
     flex: 1,
-    gap: 4,
+    gap: 6,
+    minWidth: 0,
   },
   videoTitle: {
     color: '#fff',
     fontSize: 16,
     fontWeight: '600',
+    lineHeight: 20,
   },
   videoDescription: {
     color: '#888',
     fontSize: 14,
+    lineHeight: 18,
   },
   videoMeta: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
-    marginTop: 8,
+    marginTop: 4,
   },
   tagContainer: {
     flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
+    alignItems: 'flex-start',
+    gap: 6,
+    marginTop: 4,
+    flex: 1,
   },
   tagText: {
     color: '#888',
     fontSize: 12,
+    lineHeight: 16,
+    flex: 1,
   },
   dateContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
+    flexShrink: 0,
   },
   dateText: {
     color: '#888',
@@ -643,6 +653,7 @@ const styles = StyleSheet.create({
   },
   deleteButton: {
     padding: 8,
+    alignSelf: 'flex-start',
   },
   durationBadge: {
     position: 'absolute',
@@ -739,13 +750,15 @@ const styles = StyleSheet.create({
   },
   tagsContainer: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
     alignItems: 'center',
-    gap: 4,
+    gap: 8,
   },
   tagChip: {
     backgroundColor: '#333',
-    padding: 8,
-    borderRadius: 4,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 16,
   },
   tagChipText: {
     color: '#fff',

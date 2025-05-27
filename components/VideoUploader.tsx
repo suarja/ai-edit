@@ -22,6 +22,7 @@ export default function VideoUploader({
   onUploadError,
 }: VideoUploaderProps) {
   const [isUploading, setIsUploading] = useState(false);
+  const [uploadStatus, setUploadStatus] = useState<string>('');
   const [uploadProgress, setUploadProgress] = useState(0);
 
   const handleSelectVideo = async () => {
@@ -56,14 +57,23 @@ export default function VideoUploader({
         const asset = result.assets[0];
         console.log('Selected asset:', asset);
 
+        // Show immediate feedback
         setIsUploading(true);
+        setUploadStatus('Préparation du fichier...');
         setUploadProgress(0);
 
         try {
           const fileName = asset.fileName || 'video.mp4';
           const fileType = asset.mimeType || 'video/mp4';
 
+          // Show file size info
+          const fileSizeMB = asset.fileSize
+            ? (asset.fileSize / (1024 * 1024)).toFixed(1)
+            : 'Unknown';
+          setUploadStatus(`Fichier sélectionné: ${fileSizeMB}MB`);
+
           console.log('Getting presigned URL from S3...');
+          setUploadStatus("Génération de l'URL de téléchargement...");
 
           // Get presigned URL from our API
           const presignedResponse = await fetch('/api/s3-upload', {
@@ -96,6 +106,7 @@ export default function VideoUploader({
 
           // Convert asset to blob for upload
           console.log('Converting asset to blob...');
+          setUploadStatus('Conversion du fichier...');
           const response = await fetch(asset.uri);
           const blob = await response.blob();
 
@@ -103,6 +114,7 @@ export default function VideoUploader({
 
           // Upload directly to S3 using presigned URL
           console.log('Uploading to S3...');
+          setUploadStatus('Téléchargement vers S3...');
           const uploadResponse = await fetch(presignedUrl, {
             method: 'PUT',
             body: blob,
@@ -116,6 +128,7 @@ export default function VideoUploader({
           }
 
           console.log('Upload successful! Public URL:', publicUrl);
+          setUploadStatus('Téléchargement terminé!');
 
           Alert.alert(
             'Upload Complete',
@@ -130,6 +143,7 @@ export default function VideoUploader({
           }
         } catch (uploadError) {
           console.error('Upload error:', uploadError);
+          setUploadStatus('Erreur de téléchargement');
           Alert.alert(
             'Upload Error',
             uploadError instanceof Error ? uploadError.message : 'Upload failed'
@@ -143,11 +157,14 @@ export default function VideoUploader({
           }
         } finally {
           setIsUploading(false);
+          setUploadStatus('');
           setUploadProgress(0);
         }
       }
     } catch (error) {
       console.error('Error selecting video:', error);
+      setIsUploading(false);
+      setUploadStatus('');
       if (onUploadError) {
         onUploadError(
           error instanceof Error ? error : new Error('Unknown error occurred')
@@ -161,11 +178,11 @@ export default function VideoUploader({
       {isUploading ? (
         <View style={styles.uploadingContainer}>
           <ActivityIndicator size="large" color="#007AFF" />
-          <Text style={styles.progressText}>Uploading to S3...</Text>
+          <Text style={styles.progressText}>{uploadStatus}</Text>
         </View>
       ) : (
         <View style={styles.uploadContainer}>
-          <VideoIcon size={48} color="#777" />
+          <VideoIcon size={32} color="#777" />
           <Button title="Sélectionner une vidéo" onPress={handleSelectVideo} />
         </View>
       )}
@@ -176,7 +193,7 @@ export default function VideoUploader({
 const styles = StyleSheet.create({
   container: {
     width: '100%',
-    height: 200,
+    height: 120, // Reduced from 200px to 120px
     backgroundColor: '#1a1a1a',
     borderRadius: 12,
     justifyContent: 'center',
@@ -187,15 +204,17 @@ const styles = StyleSheet.create({
   uploadContainer: {
     justifyContent: 'center',
     alignItems: 'center',
-    gap: 16,
+    gap: 12, // Reduced gap
   },
   uploadingContainer: {
     justifyContent: 'center',
     alignItems: 'center',
+    paddingHorizontal: 16,
   },
   progressText: {
     color: '#fff',
-    fontSize: 16,
-    marginTop: 10,
+    fontSize: 14, // Slightly smaller text
+    marginTop: 8,
+    textAlign: 'center',
   },
 });
