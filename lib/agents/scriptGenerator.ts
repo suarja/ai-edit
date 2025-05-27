@@ -3,11 +3,19 @@ import { createOpenAIClient, MODEL } from '../config/openai';
 
 export class ScriptGenerator {
   private openai: OpenAI;
-    private model: string;
-  
+  private model: string;
+  private static instance: ScriptGenerator;
+
   private constructor(model: string) {
     this.openai = createOpenAIClient();
-    this.model = model
+    this.model = model;
+  }
+
+  public static getInstance(model: string): ScriptGenerator {
+    if (!ScriptGenerator.instance) {
+      ScriptGenerator.instance = new ScriptGenerator(model);
+    }
+    return ScriptGenerator.instance;
   }
 
   async generate(prompt: string, editorialProfile: any): Promise<string> {
@@ -56,13 +64,13 @@ AVOID:
 - Complex ideas that exceed 1 minute
 - Nested clauses or parentheticals
 
-Return only the final script without any additional context or formatting.`
+Return only the final script without any additional context or formatting.`,
           },
           {
             role: 'user',
-            content: prompt
-          }
-        ]
+            content: prompt,
+          },
+        ],
       });
 
       const script = completion.choices[0].message.content;
@@ -73,9 +81,13 @@ Return only the final script without any additional context or formatting.`
       // Validate script length
       const wordCount = script.split(/\s+/).length;
       const estimatedDuration = wordCount * 0.4; // Rough estimate: 0.4 seconds per word
-      
+
       if (estimatedDuration < 30 || estimatedDuration > 60) {
-        console.warn(`Script duration warning: Estimated ${estimatedDuration.toFixed(1)} seconds`);
+        console.warn(
+          `Script duration warning: Estimated ${estimatedDuration.toFixed(
+            1
+          )} seconds`
+        );
       }
 
       return script;
@@ -102,7 +114,7 @@ You generate concise, engaging, spoken-style scripts that are read by text-to-sp
 
 Your output is not a post, but a script meant to be spoken aloud by an AI voice, optimized for clarity, rhythm, and storytelling efficiency.
 
-You adapt to the creator’s editorial style, tone, and narrative persona, which are provided in the user prompt.
+You adapt to the creator's editorial style, tone, and narrative persona, which are provided in the user prompt.
 
 ⸻
 
@@ -128,7 +140,7 @@ Each script follows a general pattern:
 ✅ OUTPUT REQUIREMENTS
 	•	Duration: 30–60 seconds of spoken content
 	•	Style: simple, direct, oral
-	•	No technical jargon unless it’s explained plainly
+	•	No technical jargon unless it's explained plainly
 	•	No calls-to-action unless contextually justified
 
 ⸻
@@ -137,7 +149,7 @@ Each script follows a general pattern:
 	•	Formal or corporate tone
 	•	Flat, uninflected sentence structures
 	•	Rambling explanations or passive voice
-	•	Overcomplicated ideas that won’t fit in 1 minute
+	•	Overcomplicated ideas that won't fit in 1 minute
 
 ⸻
 
@@ -145,14 +157,14 @@ Each script follows a general pattern:
 
 The user prompt will include:
 	•	A subject, idea, or angle for the video
-	•	A summary of the creator’s editorial style, tone, and narrative persona
+	•	A summary of the creator's editorial style, tone, and narrative persona
 	•	Possibly a list of video clips or tags that will be used
 
 ⸻
 
 🎯 YOUR GOAL
 
-Return a spoken-style script, adapted to the creator’s tone, suitable for ElevenLabs voice synthesis, and structured to maximize impact, clarity, and engagement in < 60 seconds.
+Return a spoken-style script, adapted to the creator's tone, suitable for ElevenLabs voice synthesis, and structured to maximize impact, clarity, and engagement in < 60 seconds.
 
 If the user submits à ready-made script do not change it!!!
 
@@ -163,13 +175,13 @@ Editorial Profile:
 - Tone: ${editorialProfile.tone_of_voice}
 - Audience: ${editorialProfile.audience}
 - Style: ${editorialProfile.style_notes}
-`
+`,
           },
           {
             role: 'user',
-            content: script
-          }
-        ]
+            content: script,
+          },
+        ],
       });
 
       const reviewedScript = completion.choices[0].message.content;

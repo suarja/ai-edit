@@ -12,12 +12,12 @@ export async function POST(request: Request) {
     const authHeader = request.headers.get('Authorization');
     if (!authHeader) {
       return new Response(
-        JSON.stringify({ error: 'Missing authorization header' }), 
-        { 
+        JSON.stringify({ error: 'Missing authorization header' }),
+        {
           status: 401,
           headers: {
-            'Content-Type': 'application/json'
-          }
+            'Content-Type': 'application/json',
+          },
         }
       );
     }
@@ -32,48 +32,48 @@ export async function POST(request: Request) {
     if (!prompt || !selectedVideos?.length) {
       console.log('Missing required fields:', { prompt, selectedVideos });
       return new Response(
-        JSON.stringify({ error: 'Missing required fields' }), 
-        { 
+        JSON.stringify({ error: 'Missing required fields' }),
+        {
           status: 400,
           headers: {
-            'Content-Type': 'application/json'
-          }
+            'Content-Type': 'application/json',
+          },
         }
       );
     }
 
     // Get user from auth token
-    const { data: { user }, error: authError } = await supabase.auth.getUser(authHeader.replace('Bearer ', ''));
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser(authHeader.replace('Bearer ', ''));
     if (authError) {
       console.error('Auth error:', authError);
       return new Response(
-        JSON.stringify({ error: 'Invalid authentication token' }), 
-        { 
+        JSON.stringify({ error: 'Invalid authentication token' }),
+        {
           status: 401,
           headers: {
-            'Content-Type': 'application/json'
-          }
+            'Content-Type': 'application/json',
+          },
         }
       );
     }
     if (!user) {
       console.log('No user found');
-      return new Response(
-        JSON.stringify({ error: 'Unauthorized' }), 
-        { 
-          status: 401,
-          headers: {
-            'Content-Type': 'application/json'
-          }
-        }
-      );
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+        status: 401,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
     }
     console.log('User authenticated:', user.id);
 
-    // Fetch source videos with storage paths
+    // Fetch source videos with URLs
     const { data: videos, error: videosError } = await supabase
       .from('videos')
-      .select('id, storage_path')
+      .select('id, upload_url')
       .in('id', selectedVideos);
 
     if (videosError) {
@@ -81,42 +81,37 @@ export async function POST(request: Request) {
       throw videosError;
     }
 
-    // Generate fresh URLs for each video
-    const videoUrls = await Promise.all(
-      videos.map(async (video) => {
-        if (!video.storage_path) {
-          throw new Error(`Missing storage path for video ${video.id}`);
-        }
+    // Check if all videos have upload_urls
+    const videoUrls = videos.map((video) => {
+      if (!video.upload_url) {
+        throw new Error(`Missing upload URL for video ${video.id}`);
+      }
 
-        const { data: { publicUrl }, error: urlError } = supabase.storage
-          .from('videos')
-          .getPublicUrl(video.storage_path);
-
-        if (urlError) {
-          console.error('Error generating URL:', urlError);
-          throw urlError;
-        }
-
-        return {
-          id: video.id,
-          url: publicUrl
-        };
-      })
-    );
+      return {
+        id: video.id,
+        url: video.upload_url, // Using UploadThing URLs directly (already public)
+      };
+    });
 
     // Initialize agents
-    const scriptGenerator = new ScriptGenerator(MODELS["o4-mini"]);
-    const scriptReviewer = new ScriptReviewer(MODELS["o4-mini"]);
-    const creatomateBuilder = CreatomateBuilder.getInstance(MODELS["4.1"]);
+    const scriptGenerator = ScriptGenerator.getInstance(MODELS['o4-mini']);
+    const scriptReviewer = ScriptReviewer.getInstance(MODELS['o4-mini']);
+    const creatomateBuilder = CreatomateBuilder.getInstance(MODELS['4.1']);
 
     // Generate initial script
     console.log('Generating script...');
-    const generatedScript = await scriptGenerator.generate(prompt, editorialProfile);
+    const generatedScript = await scriptGenerator.generate(
+      prompt,
+      editorialProfile
+    );
     console.log('Script generated:', generatedScript);
 
     // Review and optimize script
     console.log('Reviewing script...');
-    const reviewedScript = await scriptReviewer.review(generatedScript, editorialProfile);
+    const reviewedScript = await scriptReviewer.review(
+      generatedScript,
+      editorialProfile
+    );
     console.log('Script reviewed:', reviewedScript);
 
     // Create initial script record
@@ -161,7 +156,7 @@ export async function POST(request: Request) {
     console.log('Generating video template...');
     const template = await creatomateBuilder.buildJson({
       script: reviewedScript,
-      selectedVideos: videoUrls.map(v => v.url), // Use fresh URLs
+      selectedVideos: videoUrls.map((v: { url: string }) => v.url), // Use UploadThing URLs
       voiceId,
       editorialProfile,
     });
@@ -176,7 +171,7 @@ export async function POST(request: Request) {
         raw_prompt: prompt,
         generated_script: reviewedScript,
         creatomate_template: template,
-        video_request_id: videoRequest.id
+        video_request_id: videoRequest.id,
       });
 
     if (trainingError) {
@@ -186,17 +181,20 @@ export async function POST(request: Request) {
 
     // Start Creatomate render
     console.log('Starting Creatomate render...');
-    const renderResponse = await fetch('https://api.creatomate.com/v1/renders', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${process.env.CREATOMATE_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        "template_id": "a5403674-6eaf-4114-a088-4d560d851aef",
-        "modifications": template
-      }),
-    });
+    const renderResponse = await fetch(
+      'https://api.creatomate.com/v1/renders',
+      {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${process.env.CREATOMATE_API_KEY}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          template_id: 'a5403674-6eaf-4114-a088-4d560d851aef',
+          modifications: template,
+        }),
+      }
+    );
 
     if (!renderResponse.ok) {
       console.error('Creatomate API error:', await renderResponse.text());
@@ -210,7 +208,7 @@ export async function POST(request: Request) {
     console.log('Updating video request with render ID...');
     const { error: updateRequestError } = await supabase
       .from('video_requests')
-      .update({ 
+      .update({
         render_status: 'rendering',
         render_id: renderData.id,
       })
@@ -223,29 +221,29 @@ export async function POST(request: Request) {
 
     console.log('Video generation process completed successfully');
     return new Response(
-      JSON.stringify({ 
+      JSON.stringify({
         success: true,
         requestId: videoRequest.id,
         scriptId: script.id,
-      }), 
-      { 
+      }),
+      {
         headers: {
-          'Content-Type': 'application/json'
-        }
+          'Content-Type': 'application/json',
+        },
       }
     );
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error in video generation:', error);
     return new Response(
-      JSON.stringify({ 
+      JSON.stringify({
         error: error.message || 'Failed to process video request',
-        stack: error.stack
-      }), 
-      { 
+        stack: error.stack,
+      }),
+      {
         status: 500,
         headers: {
-          'Content-Type': 'application/json'
-        }
+          'Content-Type': 'application/json',
+        },
       }
     );
   }

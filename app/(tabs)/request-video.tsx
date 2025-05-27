@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -13,7 +13,13 @@ import {
 } from 'react-native';
 import { router } from 'expo-router';
 import { supabase } from '@/lib/supabase';
-import { Video as VideoIcon, Send, CircleAlert as AlertCircle, CreditCard as Edit3, Mic as Mic2 } from 'lucide-react-native';
+import {
+  Video as VideoIcon,
+  Send,
+  CircleAlert as AlertCircle,
+  CreditCard as Edit3,
+  Mic as Mic2,
+} from 'lucide-react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ResizeMode, Video } from 'expo-av';
 
@@ -22,10 +28,12 @@ const DEFAULT_VOICE_ID = 'NFcw9p0jKu3zbmXieNPE';
 
 // Default editorial profile for when none exists
 const DEFAULT_EDITORIAL_PROFILE = {
-  persona_description: 'Créateur de contenu professionnel axé sur une communication claire et engageante',
+  persona_description:
+    'Créateur de contenu professionnel axé sur une communication claire et engageante',
   tone_of_voice: 'Conversationnel et amical, tout en restant professionnel',
-  audience: 'Professionnels passionnés par la productivité et l\'innovation',
-  style_notes: 'Explications claires avec des exemples pratiques, maintenant un équilibre entre informatif et engageant',
+  audience: "Professionnels passionnés par la productivité et l'innovation",
+  style_notes:
+    'Explications claires avec des exemples pratiques, maintenant un équilibre entre informatif et engageant',
 };
 
 type SourceVideo = {
@@ -60,9 +68,12 @@ export default function RequestVideoScreen() {
   const [selectedVideos, setSelectedVideos] = useState<string[]>([]);
   const [sourceVideos, setSourceVideos] = useState<SourceVideo[]>([]);
   const [voiceClone, setVoiceClone] = useState<VoiceClone | null>(null);
-  const [editorialProfile, setEditorialProfile] = useState<EditorialProfile | null>(null);
+  const [editorialProfile, setEditorialProfile] =
+    useState<EditorialProfile | null>(null);
   const [useEditorialProfile, setUseEditorialProfile] = useState(true);
-  const [customEditorialProfile, setCustomEditorialProfile] = useState(DEFAULT_EDITORIAL_PROFILE);
+  const [customEditorialProfile, setCustomEditorialProfile] = useState(
+    DEFAULT_EDITORIAL_PROFILE
+  );
 
   useEffect(() => {
     fetchInitialData();
@@ -76,7 +87,9 @@ export default function RequestVideoScreen() {
   const fetchInitialData = async () => {
     try {
       console.log('Fetching initial data...');
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (!user) {
         router.replace('/(auth)/sign-in');
         return;
@@ -113,17 +126,20 @@ export default function RequestVideoScreen() {
       if (profileError && profileError.code !== 'PGRST116') throw profileError;
       setEditorialProfile(profile);
       console.log('Editorial profile found:', !!profile);
-      
+
       // If we have an editorial profile, use it as the base for custom profile
       if (profile) {
         setCustomEditorialProfile({
-          persona_description: profile.persona_description || DEFAULT_EDITORIAL_PROFILE.persona_description,
-          tone_of_voice: profile.tone_of_voice || DEFAULT_EDITORIAL_PROFILE.tone_of_voice,
+          persona_description:
+            profile.persona_description ||
+            DEFAULT_EDITORIAL_PROFILE.persona_description,
+          tone_of_voice:
+            profile.tone_of_voice || DEFAULT_EDITORIAL_PROFILE.tone_of_voice,
           audience: profile.audience || DEFAULT_EDITORIAL_PROFILE.audience,
-          style_notes: profile.style_notes || DEFAULT_EDITORIAL_PROFILE.style_notes,
+          style_notes:
+            profile.style_notes || DEFAULT_EDITORIAL_PROFILE.style_notes,
         });
       }
-
     } catch (err) {
       console.error('Error fetching initial data:', err);
       setError('Failed to load required data');
@@ -134,9 +150,9 @@ export default function RequestVideoScreen() {
   };
 
   const toggleVideoSelection = (videoId: string) => {
-    setSelectedVideos(prev => 
+    setSelectedVideos((prev) =>
       prev.includes(videoId)
-        ? prev.filter(id => id !== videoId)
+        ? prev.filter((id) => id !== videoId)
         : [...prev, videoId]
     );
   };
@@ -180,19 +196,19 @@ export default function RequestVideoScreen() {
       setError(null);
 
       console.log('Preparing request payload...');
-      
+
       // Get storage paths for selected videos
       const selectedVideoData = sourceVideos
-        .filter(video => selectedVideos.includes(video.id))
-        .map(video => ({
+        .filter((video) => selectedVideos.includes(video.id))
+        .map((video) => ({
           id: video.id,
-          storage_path: video.storage_path
+          storage_path: video.storage_path,
         }));
 
       const requestPayload = {
         prompt,
         selectedVideos: selectedVideoData,
-        editorialProfile: useEditorialProfile 
+        editorialProfile: useEditorialProfile
           ? editorialProfile || DEFAULT_EDITORIAL_PROFILE
           : customEditorialProfile,
         voiceId: voiceClone?.elevenlabs_voice_id || DEFAULT_VOICE_ID,
@@ -205,7 +221,11 @@ export default function RequestVideoScreen() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
+          Authorization: `Bearer ${
+            (
+              await supabase.auth.getSession()
+            ).data.session?.access_token
+          }`,
         },
         body: JSON.stringify(requestPayload),
       });
@@ -216,7 +236,7 @@ export default function RequestVideoScreen() {
       if (!response.ok) {
         const responseText = await response.text();
         console.log('Error response text:', responseText);
-        
+
         let errorData;
         try {
           errorData = JSON.parse(responseText);
@@ -231,10 +251,11 @@ export default function RequestVideoScreen() {
       console.log('Success response:', data);
 
       router.push('/(tabs)/videos');
-
     } catch (err) {
       console.error('Error submitting video request:', err);
-      setError(err instanceof Error ? err.message : 'Failed to submit video request');
+      setError(
+        err instanceof Error ? err.message : 'Failed to submit video request'
+      );
     } finally {
       setSubmitting(false);
     }
@@ -256,8 +277,8 @@ export default function RequestVideoScreen() {
         <Text style={styles.title}>Créer une Vidéo</Text>
       </View>
 
-      <ScrollView 
-        style={styles.content} 
+      <ScrollView
+        style={styles.content}
         showsVerticalScrollIndicator={false}
         refreshControl={
           <RefreshControl
@@ -305,11 +326,13 @@ export default function RequestVideoScreen() {
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>Vidéos Sources</Text>
-            <Text style={styles.sectionSubtitle}>Sélectionnez les clips à utiliser</Text>
+            <Text style={styles.sectionSubtitle}>
+              Sélectionnez les clips à utiliser
+            </Text>
           </View>
 
-          <ScrollView 
-            horizontal 
+          <ScrollView
+            horizontal
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={styles.videoList}
           >
@@ -318,7 +341,7 @@ export default function RequestVideoScreen() {
                 key={video.id}
                 style={[
                   styles.videoCard,
-                  selectedVideos.includes(video.id) && styles.videoCardSelected
+                  selectedVideos.includes(video.id) && styles.videoCardSelected,
                 ]}
                 onPress={() => toggleVideoSelection(video.id)}
               >
@@ -336,9 +359,12 @@ export default function RequestVideoScreen() {
                     <VideoIcon size={24} color="#fff" />
                   )}
                 </View>
-                <Text style={styles.videoTitle} numberOfLines={2}>{video.title}</Text>
+                <Text style={styles.videoTitle} numberOfLines={2}>
+                  {video.title}
+                </Text>
                 <Text style={styles.videoDuration}>
-                  {Math.floor(video.duration_seconds / 60)}:{String(video.duration_seconds % 60).padStart(2, '0')}
+                  {Math.floor(video.duration_seconds / 60)}:
+                  {String(video.duration_seconds % 60).padStart(2, '0')}
                 </Text>
               </TouchableOpacity>
             ))}
@@ -355,12 +381,16 @@ export default function RequestVideoScreen() {
               </View>
             ) : (
               <View style={styles.voiceStatus}>
-                <Text style={[styles.voiceStatusText, { color: '#888' }]}>Voix par défaut</Text>
+                <Text style={[styles.voiceStatusText, { color: '#888' }]}>
+                  Voix par défaut
+                </Text>
                 <TouchableOpacity
                   style={styles.createVoiceButton}
                   onPress={() => router.push('/(tabs)/voice-clone')}
                 >
-                  <Text style={styles.createVoiceText}>Créer une Voix Personnalisée</Text>
+                  <Text style={styles.createVoiceText}>
+                    Créer une Voix Personnalisée
+                  </Text>
                 </TouchableOpacity>
               </View>
             )}
@@ -381,7 +411,9 @@ export default function RequestVideoScreen() {
           {useEditorialProfile ? (
             editorialProfile ? (
               <View style={styles.editorialProfile}>
-                <Text style={styles.editorialText}>{editorialProfile.persona_description}</Text>
+                <Text style={styles.editorialText}>
+                  {editorialProfile.persona_description}
+                </Text>
                 <TouchableOpacity
                   style={styles.editButton}
                   onPress={() => router.push('/(tabs)/editorial')}
@@ -392,13 +424,17 @@ export default function RequestVideoScreen() {
               </View>
             ) : (
               <View style={styles.editorialProfile}>
-                <Text style={styles.editorialText}>{DEFAULT_EDITORIAL_PROFILE.persona_description}</Text>
+                <Text style={styles.editorialText}>
+                  {DEFAULT_EDITORIAL_PROFILE.persona_description}
+                </Text>
                 <TouchableOpacity
                   style={styles.editButton}
                   onPress={() => router.push('/(tabs)/editorial')}
                 >
                   <Edit3 size={16} color="#007AFF" />
-                  <Text style={styles.editButtonText}>Personnaliser le Profil</Text>
+                  <Text style={styles.editButtonText}>
+                    Personnaliser le Profil
+                  </Text>
                 </TouchableOpacity>
               </View>
             )
@@ -411,10 +447,12 @@ export default function RequestVideoScreen() {
                 placeholder="Description du persona..."
                 placeholderTextColor="#666"
                 value={customEditorialProfile.persona_description}
-                onChangeText={(text) => setCustomEditorialProfile(prev => ({
-                  ...prev,
-                  persona_description: text
-                }))}
+                onChangeText={(text) =>
+                  setCustomEditorialProfile((prev) => ({
+                    ...prev,
+                    persona_description: text,
+                  }))
+                }
               />
               <TextInput
                 style={styles.customInput}
@@ -423,10 +461,12 @@ export default function RequestVideoScreen() {
                 placeholder="Ton de voix..."
                 placeholderTextColor="#666"
                 value={customEditorialProfile.tone_of_voice}
-                onChangeText={(text) => setCustomEditorialProfile(prev => ({
-                  ...prev,
-                  tone_of_voice: text
-                }))}
+                onChangeText={(text) =>
+                  setCustomEditorialProfile((prev) => ({
+                    ...prev,
+                    tone_of_voice: text,
+                  }))
+                }
               />
               <TextInput
                 style={styles.customInput}
@@ -435,10 +475,12 @@ export default function RequestVideoScreen() {
                 placeholder="Public cible..."
                 placeholderTextColor="#666"
                 value={customEditorialProfile.audience}
-                onChangeText={(text) => setCustomEditorialProfile(prev => ({
-                  ...prev,
-                  audience: text
-                }))}
+                onChangeText={(text) =>
+                  setCustomEditorialProfile((prev) => ({
+                    ...prev,
+                    audience: text,
+                  }))
+                }
               />
               <TextInput
                 style={styles.customInput}
@@ -447,10 +489,12 @@ export default function RequestVideoScreen() {
                 placeholder="Notes de style..."
                 placeholderTextColor="#666"
                 value={customEditorialProfile.style_notes}
-                onChangeText={(text) => setCustomEditorialProfile(prev => ({
-                  ...prev,
-                  style_notes: text
-                }))}
+                onChangeText={(text) =>
+                  setCustomEditorialProfile((prev) => ({
+                    ...prev,
+                    style_notes: text,
+                  }))
+                }
               />
             </View>
           )}
@@ -461,7 +505,8 @@ export default function RequestVideoScreen() {
         <TouchableOpacity
           style={[
             styles.submitButton,
-            (submitting || !prompt || selectedVideos.length === 0) && styles.submitButtonDisabled
+            (submitting || !prompt || selectedVideos.length === 0) &&
+              styles.submitButtonDisabled,
           ]}
           onPress={handleSubmit}
           disabled={submitting || !prompt || selectedVideos.length === 0}

@@ -1,12 +1,26 @@
-import { useState, useEffect, useCallback } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, TextInput, ScrollView, ActivityIndicator, RefreshControl } from 'react-native';
-import * as ImagePicker from 'expo-image-picker';
+import React, { useState, useEffect, useCallback } from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  TextInput,
+  ScrollView,
+  ActivityIndicator,
+  RefreshControl,
+} from 'react-native';
 import { router } from 'expo-router';
 import { supabase } from '@/lib/supabase';
-import { Upload, Plus, Video as VideoIcon, Tag, Clock, Trash2, CircleAlert as AlertCircle } from 'lucide-react-native';
-import { decode } from 'base64-arraybuffer';
+import {
+  Video as VideoIcon,
+  Tag,
+  Clock,
+  Trash2,
+  CircleAlert as AlertCircle,
+} from 'lucide-react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ResizeMode, Video } from 'expo-av';
+import VideoUploader from '@/components/VideoUploader';
 
 type VideoType = {
   id: string;
@@ -16,29 +30,21 @@ type VideoType = {
   upload_url: string;
   duration_seconds: number;
   created_at: string;
-};
-
-const SUPPORTED_VIDEO_FORMATS = {
-  'mp4': 'video/mp4',
-  'webm': 'video/webm',
-  'm4v': 'video/mp4',
-  'mov': 'video/quicktime',
-  'qt': 'video/quicktime'
+  storage_path?: string;
 };
 
 export default function SourceVideosScreen() {
   const [videos, setVideos] = useState<VideoType[]>([]);
   const [loading, setLoading] = useState(true);
-  const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
-  const [uploadForm, setUploadForm] = useState<{
-    video: string | null;
+  const [editingVideo, setEditingVideo] = useState<{
+    id: string | null;
     title: string;
     description: string;
     tags: string;
   }>({
-    video: null,
+    id: null,
     title: '',
     description: '',
     tags: '',
@@ -56,7 +62,9 @@ export default function SourceVideosScreen() {
 
   const fetchVideos = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (!user) {
         router.replace('/(auth)/sign-in');
         return;
@@ -78,175 +86,88 @@ export default function SourceVideosScreen() {
     }
   };
 
-  const getExtensionFromUri = (uri: string): string | null => {
+  const handleUploadComplete = async (data: {
+    videoId: string;
+    url: string;
+  }) => {
     try {
-      if (uri.startsWith('data:')) {
-        const mime = uri.split(';')[0].split(':')[1];
-        const ext = Object.entries(SUPPORTED_VIDEO_FORMATS).find(
-          ([ext, mimeType]) => mimeType === mime
-        )?.[0];
-        return ext || null;
-      } else if (uri.startsWith('file://') || uri.includes('/')) {
-        const path = uri.split('?')[0];
-        const match = path.match(/\.(\w+)$/);
-        return match ? match[1].toLowerCase() : null;
-      }
-      return null;
-    } catch (err) {
-      console.warn('Failed to extract extension:', err);
-      return null;
-    }
-  };
-
-  const generateStoragePath = (userId: string, originalFileName: string, ext: string): string => {
-    const timestamp = Date.now();
-    const sanitizedFileName = originalFileName
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, '-')
-      .replace(/(^-|-$)/g, '');
-    
-    return `videos/${userId}/${timestamp}-${sanitizedFileName}.${ext}`;
-  };
-
-  const uploadToStorage = async (uri: string, fileName: string): Promise<string> => {
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
+      // Get current user
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (!user) throw new Error('User not authenticated');
 
-      const ext = getExtensionFromUri(uri);
-      if (!ext || !(ext in SUPPORTED_VIDEO_FORMATS)) {
-        throw new Error('Unsupported video format');
-      }
-
-      const storagePath = generateStoragePath(user.id, fileName, ext);
-      
-      const response = await fetch(uri);
-      const blob = await response.blob();
-      
-      const reader = new FileReader();
-      const promise = new Promise((resolve, reject) => {
-        reader.onload = () => resolve(reader.result);
-        reader.onerror = reject;
+      // Save the video info to the database
+      const { error } = await supabase.from('videos').insert({
+        user_id: user.id,
+        title: '', // Will be updated in the form
+        description: '',
+        tags: [],
+        upload_url: data.url,
+        storage_path: data.videoId,
+        duration_seconds: 0, // Will be updated later if needed
       });
-      reader.readAsDataURL(blob);
-      const base64File = (await promise as string).split(',')[1];
-      
-      const { error: uploadError } = await supabase.storage
-        .from('videos')
-        .upload(storagePath, decode(base64File), {
-          contentType: SUPPORTED_VIDEO_FORMATS[ext as keyof typeof SUPPORTED_VIDEO_FORMATS],
-          cacheControl: '3600',
-          upsert: false,
-        });
 
-      if (uploadError) throw uploadError;
+      if (error) throw error;
 
-      return storagePath;
+      // Refresh videos and set the current one for editing
+      await fetchVideos();
+      setEditingVideo({
+        id: data.videoId,
+        title: '',
+        description: '',
+        tags: '',
+      });
     } catch (error) {
-      console.error('Error uploading to storage:', error);
-      throw new Error('Failed to upload video to storage');
+      console.error('Error saving video data:', error);
+      setError('Failed to save video information');
     }
   };
 
-  const handleUpload = async () => {
-    if (!uploadForm.video || !uploadForm.title) return;
+  const handleUploadError = (error: Error) => {
+    setError(error.message);
+  };
+
+  const updateVideoMetadata = async () => {
+    if (!editingVideo.id || !editingVideo.title) return;
 
     try {
-      setUploading(true);
-      setError(null);
-
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        router.replace('/(auth)/sign-in');
-        return;
-      }
-
-      const storagePath = await uploadToStorage(uploadForm.video, uploadForm.title);
-
-      const { error: uploadError } = await supabase
+      const { error: updateError } = await supabase
         .from('videos')
-        .insert({
-          user_id: user.id,
-          title: uploadForm.title,
-          description: uploadForm.description,
-          tags: uploadForm.tags.split(',').map(tag => tag.trim()).filter(tag => tag),
-          storage_path: storagePath,
-          duration_seconds: 0,
-        });
+        .update({
+          title: editingVideo.title,
+          description: editingVideo.description,
+          tags: editingVideo.tags
+            .split(',')
+            .map((tag) => tag.trim())
+            .filter((tag) => tag),
+        })
+        .eq('storage_path', editingVideo.id);
 
-      if (uploadError) throw uploadError;
+      if (updateError) throw updateError;
 
-      setUploadForm({
-        video: null,
+      setEditingVideo({
+        id: null,
         title: '',
         description: '',
         tags: '',
       });
       await fetchVideos();
     } catch (err) {
-      console.error('Error uploading video:', err);
-      setError('Failed to upload video');
-    } finally {
-      setUploading(false);
+      console.error('Error updating video:', err);
+      setError('Failed to update video metadata');
     }
   };
 
-  const isVideoFormatSupported = (uri: string): boolean => {
-    const ext = getExtensionFromUri(uri);
-    return !!ext && ext in SUPPORTED_VIDEO_FORMATS;
-  };
-
-  const pickVideo = async () => {
+  const deleteVideo = async (id: string, fileKey: string) => {
     try {
-      const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Videos,
-        allowsEditing: true,
-        quality: 0.5,
-      });
-
-      if (!result.canceled) {
-        const videoUri = result.assets[0].uri;
-
-        if (!isVideoFormatSupported(videoUri)) {
-          setError('Format vidéo non supporté. Utilisez MP4, WebM ou M4V.');
-          return;
-        }
-
-        setUploadForm(prev => ({
-          ...prev,
-          video: videoUri,
-        }));
-        setError(null);
-      }
-    } catch (err) {
-      console.error('Error picking video:', err);
-      setError('Échec de la sélection de la vidéo');
-    }
-  };
-
-  const deleteVideo = async (id: string, url: string) => {
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('Utilisateur non authentifié');
-
-      const fileName = url.split('/').pop();
-      if (!fileName) throw new Error('URL de fichier invalide');
-
-      const filePath = `${user.id}/${fileName}`;
-      
-      const { error: storageError } = await supabase.storage
-        .from('videos')
-        .remove([filePath]);
-      
-      if (storageError) throw storageError;
-
       const { error: dbError } = await supabase
         .from('videos')
         .delete()
-        .eq('id', id);
+        .eq('storage_path', fileKey);
 
       if (dbError) throw dbError;
-      
+
       await fetchVideos();
     } catch (err) {
       console.error('Error deleting video:', err);
@@ -269,9 +190,9 @@ export default function SourceVideosScreen() {
       <View style={styles.header}>
         <Text style={styles.title}>Vidéos Sources</Text>
       </View>
-      
-      <ScrollView 
-        style={styles.content} 
+
+      <ScrollView
+        style={styles.content}
         showsVerticalScrollIndicator={false}
         refreshControl={
           <RefreshControl
@@ -289,33 +210,21 @@ export default function SourceVideosScreen() {
         )}
 
         <View style={styles.uploadSection}>
-          <TouchableOpacity style={styles.uploadArea} onPress={pickVideo}>
-            {uploadForm.video ? (
-              <Video
-                source={{ uri: uploadForm.video }}
-                style={styles.preview}
-                resizeMode={ResizeMode.COVER}
-                shouldPlay={false}
-                isMuted={true}
-                useNativeControls={false}
-              />
-            ) : (
-              <View style={styles.uploadPlaceholder}>
-                <Upload size={48} color="#fff" />
-                <Text style={styles.uploadText}>Télécharger une Vidéo</Text>
-                <Text style={styles.uploadSubtext}>Formats acceptés : MP4, WebM, M4V</Text>
-              </View>
-            )}
-          </TouchableOpacity>
+          <VideoUploader
+            onUploadComplete={handleUploadComplete}
+            onUploadError={handleUploadError}
+          />
 
-          {uploadForm.video && (
+          {editingVideo.id && (
             <View style={styles.form}>
               <TextInput
                 style={styles.input}
                 placeholder="Titre de la vidéo"
                 placeholderTextColor="#666"
-                value={uploadForm.title}
-                onChangeText={(text) => setUploadForm(prev => ({ ...prev, title: text }))}
+                value={editingVideo.title}
+                onChangeText={(text) =>
+                  setEditingVideo((prev) => ({ ...prev, title: text }))
+                }
               />
 
               <TextInput
@@ -324,31 +233,33 @@ export default function SourceVideosScreen() {
                 placeholderTextColor="#666"
                 multiline
                 numberOfLines={3}
-                value={uploadForm.description}
-                onChangeText={(text) => setUploadForm(prev => ({ ...prev, description: text }))}
+                value={editingVideo.description}
+                onChangeText={(text) =>
+                  setEditingVideo((prev) => ({ ...prev, description: text }))
+                }
               />
 
               <TextInput
                 style={styles.input}
                 placeholder="Tags (séparés par des virgules)"
                 placeholderTextColor="#666"
-                value={uploadForm.tags}
-                onChangeText={(text) => setUploadForm(prev => ({ ...prev, tags: text }))}
+                value={editingVideo.tags}
+                onChangeText={(text) =>
+                  setEditingVideo((prev) => ({ ...prev, tags: text }))
+                }
               />
 
               <TouchableOpacity
-                style={[styles.button, (!uploadForm.title || uploading) && styles.buttonDisabled]}
-                onPress={handleUpload}
-                disabled={!uploadForm.title || uploading}
+                style={[
+                  styles.button,
+                  !editingVideo.title && styles.buttonDisabled,
+                ]}
+                onPress={updateVideoMetadata}
+                disabled={!editingVideo.title}
               >
-                {uploading ? (
-                  <ActivityIndicator color="#fff" />
-                ) : (
-                  <>
-                    <Plus size={24} color="#fff" />
-                    <Text style={styles.buttonText}>Télécharger la Vidéo</Text>
-                  </>
-                )}
+                <Text style={styles.buttonText}>
+                  Mettre à jour les métadonnées
+                </Text>
               </TouchableOpacity>
             </View>
           )}
@@ -375,13 +286,17 @@ export default function SourceVideosScreen() {
               <View style={styles.videoInfo}>
                 <Text style={styles.videoTitle}>{video.title}</Text>
                 {video.description && (
-                  <Text style={styles.videoDescription}>{video.description}</Text>
+                  <Text style={styles.videoDescription}>
+                    {video.description}
+                  </Text>
                 )}
                 <View style={styles.videoMeta}>
                   {video.tags && video.tags.length > 0 && (
                     <View style={styles.tagContainer}>
                       <Tag size={14} color="#888" />
-                      <Text style={styles.tagText}>{video.tags.join(', ')}</Text>
+                      <Text style={styles.tagText}>
+                        {video.tags.join(', ')}
+                      </Text>
                     </View>
                   )}
                   <View style={styles.dateContainer}>
@@ -394,7 +309,7 @@ export default function SourceVideosScreen() {
               </View>
               <TouchableOpacity
                 style={styles.deleteButton}
-                onPress={() => deleteVideo(video.id, video.upload_url)}
+                onPress={() => deleteVideo(video.id, video.storage_path || '')}
               >
                 <Trash2 size={20} color="#ef4444" />
               </TouchableOpacity>
@@ -448,31 +363,6 @@ const styles = StyleSheet.create({
   },
   uploadSection: {
     gap: 20,
-  },
-  uploadArea: {
-    height: 200,
-    backgroundColor: '#1a1a1a',
-    borderRadius: 12,
-    overflow: 'hidden',
-  },
-  uploadPlaceholder: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  uploadText: {
-    color: '#fff',
-    fontSize: 18,
-    marginTop: 12,
-  },
-  uploadSubtext: {
-    color: '#888',
-    fontSize: 14,
-    marginTop: 8,
-  },
-  preview: {
-    flex: 1,
-    backgroundColor: '#1a1a1a',
   },
   form: {
     gap: 12,

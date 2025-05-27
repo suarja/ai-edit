@@ -1,5 +1,12 @@
 import { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image } from 'react-native';
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  StyleSheet,
+  Image,
+} from 'react-native';
 import { Link, router } from 'expo-router';
 import { supabase } from '@/lib/supabase';
 import { Mail, Lock, ArrowRight } from 'lucide-react-native';
@@ -14,15 +21,15 @@ export default function SignIn() {
     try {
       setLoading(true);
       setError(null);
-      
+
       const { error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
 
       if (error) throw error;
-      
-      router.replace('/(tabs)/source-videos');
+
+      router.replace('/(tabs)/settings');
     } catch (e) {
       setError(e.message);
     } finally {
@@ -33,19 +40,21 @@ export default function SignIn() {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Image 
-          source={{ uri: 'https://images.pexels.com/photos/3756879/pexels-photo-3756879.jpeg' }}
+        <Image
+          source={{
+            uri: 'https://images.pexels.com/photos/3756879/pexels-photo-3756879.jpeg',
+          }}
           style={styles.headerImage}
         />
         <View style={styles.overlay} />
         <Text style={styles.title}>Bon retour</Text>
-        <Text style={styles.subtitle}>Connectez-vous pour continuer à créer des vidéos incroyables</Text>
+        <Text style={styles.subtitle}>
+          Connectez-vous pour continuer à créer des vidéos incroyables
+        </Text>
       </View>
 
       <View style={styles.form}>
-        {error && (
-          <Text style={styles.error}>{error}</Text>
-        )}
+        {error && <Text style={styles.error}>{error}</Text>}
 
         <View style={styles.inputContainer}>
           <Mail size={20} color="#888" />
@@ -75,7 +84,8 @@ export default function SignIn() {
         <TouchableOpacity
           style={[styles.button, loading && styles.buttonDisabled]}
           onPress={handleSignIn}
-          disabled={loading}>
+          disabled={loading}
+        >
           <Text style={styles.buttonText}>Connexion</Text>
           <ArrowRight size={20} color="#fff" />
         </TouchableOpacity>
