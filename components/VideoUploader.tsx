@@ -11,7 +11,6 @@ import * as ImagePicker from 'expo-image-picker';
 import { openSettings } from 'expo-linking';
 import { Video as VideoIcon } from 'lucide-react-native';
 import { MediaTypeOptions } from 'expo-image-picker';
-import { supabase } from '@/lib/supabase';
 
 type VideoUploaderProps = {
   onUploadComplete?: (videoData: { videoId: string; url: string }) => void;
@@ -61,51 +60,80 @@ export default function VideoUploader({
         setUploadProgress(0);
 
         try {
-          // Create a unique filename
-          const fileName = `${Date.now()}_${asset.fileName || 'video.mp4'}`;
+          const fileName = asset.fileName || 'video.mp4';
+          const fileType = asset.mimeType || 'video/mp4';
 
-          console.log('Starting Supabase upload...');
+          console.log('Getting presigned URL from S3...');
 
-          // Convert URI to blob for Supabase
+          // Get presigned URL from our API
+          const presignedResponse = await fetch('/api/s3-upload', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              fileName,
+              fileType,
+            }),
+          });
+
+          if (!presignedResponse.ok) {
+            throw new Error(
+              `Failed to get upload URL: ${presignedResponse.status}`
+            );
+          }
+
+          const {
+            presignedUrl,
+            publicUrl,
+            fileName: s3FileName,
+          } = await presignedResponse.json();
+          console.log('Got presigned URL:', {
+            presignedUrl,
+            publicUrl,
+            s3FileName,
+          });
+
+          // Convert asset to blob for upload
+          console.log('Converting asset to blob...');
           const response = await fetch(asset.uri);
           const blob = await response.blob();
 
           console.log('Blob created:', { size: blob.size, type: blob.type });
 
-          // Upload to Supabase Storage
-          const { data, error } = await supabase.storage
-            .from('videos')
-            .upload(fileName, blob, {
-              contentType: asset.mimeType || 'video/mp4',
-            });
+          // Upload directly to S3 using presigned URL
+          console.log('Uploading to S3...');
+          const uploadResponse = await fetch(presignedUrl, {
+            method: 'PUT',
+            body: blob,
+            headers: {
+              'Content-Type': fileType,
+            },
+          });
 
-          if (error) {
-            throw error;
+          if (!uploadResponse.ok) {
+            throw new Error(`S3 upload failed: ${uploadResponse.status}`);
           }
 
-          console.log('Upload successful:', data);
-
-          // Get public URL
-          const {
-            data: { publicUrl },
-          } = supabase.storage.from('videos').getPublicUrl(data.path);
-
-          console.log('Public URL:', publicUrl);
+          console.log('Upload successful! Public URL:', publicUrl);
 
           Alert.alert(
             'Upload Complete',
-            'Your video has been uploaded successfully.'
+            'Your video has been uploaded successfully to S3.'
           );
 
           if (onUploadComplete) {
             onUploadComplete({
-              videoId: data.path,
+              videoId: s3FileName,
               url: publicUrl,
             });
           }
         } catch (uploadError) {
           console.error('Upload error:', uploadError);
-          Alert.alert('Upload Error', uploadError.message || 'Upload failed');
+          Alert.alert(
+            'Upload Error',
+            uploadError instanceof Error ? uploadError.message : 'Upload failed'
+          );
           if (onUploadError) {
             onUploadError(
               uploadError instanceof Error
@@ -133,7 +161,7 @@ export default function VideoUploader({
       {isUploading ? (
         <View style={styles.uploadingContainer}>
           <ActivityIndicator size="large" color="#007AFF" />
-          <Text style={styles.progressText}>Uploading to Supabase...</Text>
+          <Text style={styles.progressText}>Uploading to S3...</Text>
         </View>
       ) : (
         <View style={styles.uploadContainer}>

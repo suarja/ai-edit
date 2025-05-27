@@ -9,6 +9,8 @@
     "lint": "expo lint"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.817.0",
+    "@aws-sdk/s3-request-presigner": "^3.817.0",
     "@expo-google-fonts/inter": "^0.2.3",
     "@expo/vector-icons": "^14.1.0",
     "@lucide/lab": "^0.1.2",
