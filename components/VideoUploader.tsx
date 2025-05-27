@@ -27,6 +27,10 @@ export default function VideoUploader({
 
   const handleSelectVideo = async () => {
     try {
+      // Show immediate feedback when user clicks
+      setIsUploading(true);
+      setUploadStatus('Ouverture de la galerie...');
+
       console.log('Starting video selection...');
 
       // Request permissions
@@ -34,6 +38,8 @@ export default function VideoUploader({
         await ImagePicker.requestMediaLibraryPermissionsAsync();
 
       if (status !== 'granted') {
+        setIsUploading(false);
+        setUploadStatus('');
         Alert.alert(
           'Permission Required',
           'Please grant camera roll permissions to upload videos',
@@ -43,11 +49,12 @@ export default function VideoUploader({
       }
 
       console.log('Permissions granted, launching image picker...');
+      setUploadStatus('Sélectionnez votre vidéo...');
 
       // Pick a video
       const result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ['videos'] as any as MediaTypeOptions,
-        allowsEditing: false,
+        allowsEditing: true,
         quality: 1,
         videoMaxDuration: 300,
       });
@@ -57,8 +64,7 @@ export default function VideoUploader({
         const asset = result.assets[0];
         console.log('Selected asset:', asset);
 
-        // Show immediate feedback
-        setIsUploading(true);
+        // Show file selection confirmation
         setUploadStatus('Préparation du fichier...');
         setUploadProgress(0);
 
@@ -160,6 +166,11 @@ export default function VideoUploader({
           setUploadStatus('');
           setUploadProgress(0);
         }
+      } else {
+        // User cancelled selection
+        setIsUploading(false);
+        setUploadStatus('');
+        setUploadProgress(0);
       }
     } catch (error) {
       console.error('Error selecting video:', error);

@@ -8,45 +8,29 @@ import {
   ScrollView,
   ActivityIndicator,
   RefreshControl,
-  Modal,
-  Dimensions,
-  Linking,
   Alert,
 } from 'react-native';
 import { router } from 'expo-router';
 import { supabase } from '@/lib/supabase';
 import {
   Video as VideoIcon,
-  Tag,
-  Clock,
-  Trash2,
   CircleAlert as AlertCircle,
-  Play,
-  X,
-  Download,
-  FileVideo,
-  ExternalLink,
 } from 'lucide-react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import VideoUploader from '@/components/VideoUploader';
-
-type VideoType = {
-  id: string;
-  title: string;
-  description: string;
-  tags: string[];
-  upload_url: string;
-  duration_seconds: number;
-  created_at: string;
-  storage_path?: string;
-};
+import VideoCard from '@/components/VideoCard';
+import { VideoType } from '@/types/video';
 
 export default function SourceVideosScreen() {
   const [videos, setVideos] = useState<VideoType[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
-  const [selectedVideo, setSelectedVideo] = useState<VideoType | null>(null);
+  const [playingVideoId, setPlayingVideoId] = useState<string | null>(null);
+  const [loadingVideoIds, setLoadingVideoIds] = useState<Set<string>>(
+    new Set()
+  );
+  const [errorVideoIds, setErrorVideoIds] = useState<Set<string>>(new Set());
   const [editingVideo, setEditingVideo] = useState<{
     id: string | null;
     title: string;
@@ -100,26 +84,23 @@ export default function SourceVideosScreen() {
     url: string;
   }) => {
     try {
-      // Get current user
       const {
         data: { user },
       } = await supabase.auth.getUser();
       if (!user) throw new Error('User not authenticated');
 
-      // Save the video info to the database
       const { error } = await supabase.from('videos').insert({
         user_id: user.id,
-        title: '', // Will be updated in the form
+        title: '',
         description: '',
         tags: [],
         upload_url: data.url,
         storage_path: data.videoId,
-        duration_seconds: 0, // Will be updated later if needed
+        duration_seconds: 0,
       });
 
       if (error) throw error;
 
-      // Refresh videos and set the current one for editing
       await fetchVideos();
       setEditingVideo({
         id: data.videoId,
@@ -162,81 +143,49 @@ export default function SourceVideosScreen() {
         tags: '',
       });
       await fetchVideos();
+
+      Alert.alert(
+        'Succès',
+        'Les métadonnées de la vidéo ont été mises à jour avec succès.'
+      );
     } catch (err) {
       console.error('Error updating video:', err);
       setError('Failed to update video metadata');
     }
   };
 
-  const deleteVideo = async (id: string, fileKey: string) => {
-    try {
-      const { error: dbError } = await supabase
-        .from('videos')
-        .delete()
-        .eq('storage_path', fileKey);
+  const handleVideoPress = (video: VideoType) => {
+    setPlayingVideoId(null); // Stop any playing video
+    router.push(`/video-details/${video.id}`);
+  };
 
-      if (dbError) throw dbError;
-
-      await fetchVideos();
-    } catch (err) {
-      console.error('Error deleting video:', err);
-      setError('Échec de la suppression de la vidéo');
+  const handlePlayToggle = (videoId: string) => {
+    if (playingVideoId === videoId) {
+      setPlayingVideoId(null);
+    } else {
+      setPlayingVideoId(videoId);
     }
   };
 
-  const formatDuration = (seconds: number) => {
-    if (!seconds) return '0:00';
-    const minutes = Math.floor(seconds / 60);
-    const remainingSeconds = Math.floor(seconds % 60);
-    return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
+  const handleVideoLoadStart = (videoId: string) => {
+    setLoadingVideoIds((prev) => new Set(prev).add(videoId));
   };
 
-  const formatFileSize = (bytes: number) => {
-    if (!bytes) return 'Taille inconnue';
-    const sizes = ['B', 'KB', 'MB', 'GB'];
-    const i = Math.floor(Math.log(bytes) / Math.log(1024));
-    return `${(bytes / Math.pow(1024, i)).toFixed(1)} ${sizes[i]}`;
+  const handleVideoLoad = (videoId: string) => {
+    setLoadingVideoIds((prev) => {
+      const newSet = new Set(prev);
+      newSet.delete(videoId);
+      return newSet;
+    });
   };
 
-  const openVideoDetails = (video: VideoType) => {
-    setSelectedVideo(video);
-  };
-
-  const closeVideoDetails = () => {
-    setSelectedVideo(null);
-  };
-
-  const downloadVideo = async (video: VideoType) => {
-    try {
-      await Linking.openURL(video.upload_url);
-    } catch (error) {
-      Alert.alert(
-        'Erreur de téléchargement',
-        "Impossible d'ouvrir le lien de téléchargement. Veuillez réessayer.",
-        [{ text: 'OK' }]
-      );
-    }
-  };
-
-  const copyVideoUrl = async (video: VideoType) => {
-    try {
-      // For web, we can use the Clipboard API
-      if (typeof navigator !== 'undefined' && navigator.clipboard) {
-        await navigator.clipboard.writeText(video.upload_url);
-        Alert.alert('Succès', 'URL copiée dans le presse-papiers');
-      } else {
-        // Fallback: show the URL in an alert
-        Alert.alert('URL de la vidéo', video.upload_url, [
-          { text: 'Fermer', style: 'cancel' },
-          {
-            text: 'Ouvrir',
-            onPress: () => Linking.openURL(video.upload_url),
-          },
-        ]);
-      }
-    } catch (error) {
-      Alert.alert('Erreur', "Impossible de copier l'URL");
-    }
+  const handleVideoError = (videoId: string) => {
+    setLoadingVideoIds((prev) => {
+      const newSet = new Set(prev);
+      newSet.delete(videoId);
+      return newSet;
+    });
+    setErrorVideoIds((prev) => new Set(prev).add(videoId));
   };
 
   if (loading) {
@@ -281,6 +230,10 @@ export default function SourceVideosScreen() {
 
           {editingVideo.id && (
             <View style={styles.form}>
+              <Text style={styles.formTitle}>
+                Ajouter des métadonnées (optionnel)
+              </Text>
+
               <TextInput
                 style={styles.input}
                 placeholder="Titre de la vidéo"
@@ -313,18 +266,34 @@ export default function SourceVideosScreen() {
                 }
               />
 
-              <TouchableOpacity
-                style={[
-                  styles.button,
-                  !editingVideo.title && styles.buttonDisabled,
-                ]}
-                onPress={updateVideoMetadata}
-                disabled={!editingVideo.title}
-              >
-                <Text style={styles.buttonText}>
-                  Mettre à jour les métadonnées
-                </Text>
-              </TouchableOpacity>
+              <View style={styles.formActions}>
+                <TouchableOpacity
+                  style={styles.skipButton}
+                  onPress={() => {
+                    setEditingVideo({
+                      id: null,
+                      title: '',
+                      description: '',
+                      tags: '',
+                    });
+                  }}
+                >
+                  <Text style={styles.skipButtonText}>
+                    Ignorer pour l'instant
+                  </Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={[
+                    styles.button,
+                    !editingVideo.title && styles.buttonDisabled,
+                  ]}
+                  onPress={updateVideoMetadata}
+                  disabled={!editingVideo.title}
+                >
+                  <Text style={styles.buttonText}>Sauvegarder</Text>
+                </TouchableOpacity>
+              </View>
             </View>
           )}
         </View>
@@ -341,158 +310,22 @@ export default function SourceVideosScreen() {
             </View>
           ) : (
             videos.map((video) => (
-              <View key={video.id} style={styles.videoItem}>
-                <TouchableOpacity
-                  style={styles.videoPreview}
-                  onPress={() => openVideoDetails(video)}
-                >
-                  <View style={styles.fileIcon}>
-                    <FileVideo size={32} color="#007AFF" />
-                  </View>
-                  {video.duration_seconds > 0 && (
-                    <View style={styles.durationBadge}>
-                      <Text style={styles.durationText}>
-                        {formatDuration(video.duration_seconds)}
-                      </Text>
-                    </View>
-                  )}
-                  <View style={styles.downloadIcon}>
-                    <Download size={16} color="#fff" />
-                  </View>
-                </TouchableOpacity>
-
-                <View style={styles.videoInfo}>
-                  <Text style={styles.videoTitle} numberOfLines={2}>
-                    {video.title || 'Vidéo sans titre'}
-                  </Text>
-                  {video.description && (
-                    <Text style={styles.videoDescription} numberOfLines={2}>
-                      {video.description}
-                    </Text>
-                  )}
-                  <View style={styles.videoMeta}>
-                    <View style={styles.dateContainer}>
-                      <Clock size={14} color="#888" />
-                      <Text style={styles.dateText}>
-                        {new Date(video.created_at).toLocaleDateString()}
-                      </Text>
-                    </View>
-                  </View>
-                  {video.tags && video.tags.length > 0 && (
-                    <View style={styles.tagContainer}>
-                      <Tag size={14} color="#888" />
-                      <Text style={styles.tagText} numberOfLines={2}>
-                        {video.tags.join(', ')}
-                      </Text>
-                    </View>
-                  )}
-                </View>
-
-                <TouchableOpacity
-                  style={styles.deleteButton}
-                  onPress={() =>
-                    deleteVideo(video.id, video.storage_path || '')
-                  }
-                >
-                  <Trash2 size={20} color="#ef4444" />
-                </TouchableOpacity>
-              </View>
+              <VideoCard
+                key={video.id}
+                video={video}
+                isPlaying={playingVideoId === video.id}
+                isLoading={loadingVideoIds.has(video.id)}
+                hasError={errorVideoIds.has(video.id)}
+                onPress={() => handleVideoPress(video)}
+                onPlayToggle={() => handlePlayToggle(video.id)}
+                onLoadStart={() => handleVideoLoadStart(video.id)}
+                onLoad={() => handleVideoLoad(video.id)}
+                onError={() => handleVideoError(video.id)}
+              />
             ))
           )}
         </View>
       </ScrollView>
-
-      {/* Video Preview Modal */}
-      <Modal
-        visible={!!selectedVideo}
-        animationType="slide"
-        presentationStyle="pageSheet"
-        onRequestClose={closeVideoDetails}
-      >
-        {selectedVideo && (
-          <SafeAreaView style={styles.modalContainer} edges={['top']}>
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle} numberOfLines={1}>
-                {selectedVideo.title || 'Vidéo sans titre'}
-              </Text>
-              <TouchableOpacity
-                style={styles.closeButton}
-                onPress={closeVideoDetails}
-              >
-                <X size={24} color="#fff" />
-              </TouchableOpacity>
-            </View>
-
-            <View style={styles.modalContent}>
-              <View style={styles.filePreview}>
-                <FileVideo size={64} color="#007AFF" />
-                <Text style={styles.fileTypeText}>Fichier Vidéo</Text>
-                <Text style={styles.fileUrlText} numberOfLines={1}>
-                  {selectedVideo.upload_url}
-                </Text>
-              </View>
-
-              <View style={styles.videoDetailsSection}>
-                <Text style={styles.videoDetailsTitle}>Informations</Text>
-                <View style={styles.infoRow}>
-                  <Text style={styles.infoLabel}>Durée:</Text>
-                  <Text style={styles.infoValue}>
-                    {selectedVideo.duration_seconds > 0
-                      ? formatDuration(selectedVideo.duration_seconds)
-                      : 'Non spécifiée'}
-                  </Text>
-                </View>
-                <View style={styles.infoRow}>
-                  <Text style={styles.infoLabel}>Créé le:</Text>
-                  <Text style={styles.infoValue}>
-                    {new Date(selectedVideo.created_at).toLocaleDateString()}
-                  </Text>
-                </View>
-              </View>
-
-              {selectedVideo.description && (
-                <View style={styles.videoDetailsSection}>
-                  <Text style={styles.videoDetailsTitle}>Description</Text>
-                  <Text style={styles.videoDetailsText}>
-                    {selectedVideo.description}
-                  </Text>
-                </View>
-              )}
-
-              {selectedVideo.tags && selectedVideo.tags.length > 0 && (
-                <View style={styles.videoDetailsSection}>
-                  <Text style={styles.videoDetailsTitle}>Tags</Text>
-                  <View style={styles.tagsContainer}>
-                    {selectedVideo.tags.map((tag, index) => (
-                      <View key={index} style={styles.tagChip}>
-                        <Text style={styles.tagChipText}>{tag}</Text>
-                      </View>
-                    ))}
-                  </View>
-                </View>
-              )}
-
-              <View style={styles.actionButtonsContainer}>
-                <TouchableOpacity
-                  style={styles.primaryButton}
-                  onPress={() => downloadVideo(selectedVideo)}
-                >
-                  <Download size={20} color="#fff" />
-                  <Text style={styles.primaryButtonText}>Télécharger</Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                  style={styles.secondaryButton}
-                  onPress={() => copyVideoUrl(selectedVideo)}
-                >
-                  <ExternalLink size={20} color="#007AFF" />
-                  <Text style={styles.secondaryButtonText}>Copier l'URL</Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-          </SafeAreaView>
-        )}
-      </Modal>
     </SafeAreaView>
   );
 }
@@ -543,6 +376,12 @@ const styles = StyleSheet.create({
   form: {
     gap: 12,
   },
+  formTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#fff',
+    marginBottom: 12,
+  },
   input: {
     backgroundColor: '#1a1a1a',
     borderRadius: 12,
@@ -576,6 +415,20 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
   },
+  formActions: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    alignItems: 'center',
+    gap: 12,
+    marginTop: 8,
+  },
+  skipButton: {
+    padding: 12,
+  },
+  skipButtonText: {
+    color: '#888',
+    fontSize: 14,
+  },
   videosList: {
     marginTop: 32,
     gap: 16,
@@ -585,88 +438,6 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#fff',
     marginBottom: 12,
-  },
-  videoItem: {
-    flexDirection: 'row',
-    backgroundColor: '#1a1a1a',
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 12,
-    gap: 16,
-    alignItems: 'flex-start',
-  },
-  videoPreview: {
-    width: 100,
-    height: 70,
-    backgroundColor: '#333',
-    borderRadius: 8,
-    justifyContent: 'center',
-    alignItems: 'center',
-    overflow: 'hidden',
-    position: 'relative',
-    flexShrink: 0,
-  },
-  videoInfo: {
-    flex: 1,
-    gap: 6,
-    minWidth: 0,
-  },
-  videoTitle: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '600',
-    lineHeight: 20,
-  },
-  videoDescription: {
-    color: '#888',
-    fontSize: 14,
-    lineHeight: 18,
-  },
-  videoMeta: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    marginTop: 4,
-  },
-  tagContainer: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    gap: 6,
-    marginTop: 4,
-    flex: 1,
-  },
-  tagText: {
-    color: '#888',
-    fontSize: 12,
-    lineHeight: 16,
-    flex: 1,
-  },
-  dateContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    flexShrink: 0,
-  },
-  dateText: {
-    color: '#888',
-    fontSize: 12,
-  },
-  deleteButton: {
-    padding: 8,
-    alignSelf: 'flex-start',
-  },
-  durationBadge: {
-    position: 'absolute',
-    top: 8,
-    right: 8,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    padding: 4,
-    borderRadius: 4,
-  },
-  durationText: {
-    color: '#fff',
-    fontSize: 12,
-    fontWeight: '600',
   },
   emptyState: {
     flex: 1,
@@ -683,141 +454,5 @@ const styles = StyleSheet.create({
   emptySubtext: {
     color: '#888',
     fontSize: 14,
-  },
-  modalContainer: {
-    flex: 1,
-    backgroundColor: '#000',
-  },
-  modalHeader: {
-    padding: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#333',
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  modalTitle: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#fff',
-  },
-  closeButton: {
-    padding: 8,
-  },
-  modalContent: {
-    flex: 1,
-    padding: 20,
-  },
-  filePreview: {
-    alignItems: 'center',
-    marginBottom: 20,
-  },
-  fileTypeText: {
-    color: '#fff',
-    fontSize: 18,
-    fontWeight: '600',
-    marginTop: 8,
-  },
-  fileUrlText: {
-    color: '#888',
-    fontSize: 14,
-  },
-  videoDetailsSection: {
-    marginBottom: 20,
-  },
-  videoDetailsTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#fff',
-    marginBottom: 8,
-  },
-  videoDetailsText: {
-    color: '#888',
-    fontSize: 14,
-  },
-  infoRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  infoLabel: {
-    color: '#888',
-    fontSize: 14,
-  },
-  infoValue: {
-    color: '#fff',
-    fontSize: 14,
-  },
-  tagsContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    alignItems: 'center',
-    gap: 8,
-  },
-  tagChip: {
-    backgroundColor: '#333',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 16,
-  },
-  tagChipText: {
-    color: '#fff',
-    fontSize: 12,
-  },
-  actionButtonsContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    gap: 12,
-    marginTop: 20,
-  },
-  primaryButton: {
-    backgroundColor: '#007AFF',
-    padding: 16,
-    borderRadius: 12,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-    flex: 1,
-  },
-  primaryButtonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  secondaryButton: {
-    backgroundColor: 'transparent',
-    borderWidth: 1,
-    borderColor: '#007AFF',
-    padding: 16,
-    borderRadius: 12,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-    flex: 1,
-  },
-  secondaryButtonText: {
-    color: '#007AFF',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  fileIcon: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  downloadIcon: {
-    position: 'absolute',
-    top: 8,
-    right: 8,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    padding: 4,
-    borderRadius: 4,
   },
 });
