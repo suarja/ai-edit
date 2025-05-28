@@ -26,11 +26,11 @@ We are preparing the app for TestFlight beta testing, implementing usage trackin
 
 ## Current Sprint Goals
 
-1. Complete onboarding flow redesign and implementation
-2. Implement usage tracking and limits for TestFlight
+1. Complete onboarding flow redesign and implementation ✅
+2. Implement usage tracking and limits for TestFlight ✅
 3. Set up analytics tracking for onboarding flow
-4. Prepare app for TestFlight submission
-5. Fix remaining UI issues
+4. Prepare app for TestFlight submission 🔄
+5. Fix remaining UI issues 🔄
 
 ## Detailed Implementation Plan
 
@@ -47,44 +47,55 @@ We are preparing the app for TestFlight beta testing, implementing usage trackin
 - [x] Implement ProgressBar component with tests
 - [x] Create Survey component with tests
 - [x] Design and implement Option selection component with tests
-- [ ] Create ProcessingScreen component with tests
-- [ ] Design SubscriptionCard component with tests
+- [x] Create ProcessingScreen component with tests
+- [x] Design SubscriptionCard component with tests
 
 ### 3. Enhanced Onboarding Flow Implementation
 
-- [ ] Update welcome screen with improved UI/UX
-- [ ] Create survey questions screens
-- [ ] Enhance voice recording/upload screen
-- [ ] Implement processing/customization screen
-- [ ] Update editorial profile preview screen
-- [ ] Create features showcase screen
-- [ ] Design trial offer screen
-- [ ] Implement subscription options screen
-- [ ] Create success/completion screen
+- [x] Update welcome screen with improved UI/UX
+- [x] Create survey questions screens
+- [x] Enhance voice recording/upload screen
+- [x] Implement processing/customization screen
+- [x] Update editorial profile preview screen
+- [x] Create features showcase screen
+- [x] Design trial offer screen
+- [x] Implement subscription options screen
+- [x] Create success/completion screen
 
 ### 4. Backend Integration
 
-- [ ] Update process-onboarding function to handle survey data
-- [ ] Enhance LLM prompt for editorial profile generation
+- [x] Update process-onboarding function to handle survey data
+- [x] Enhance LLM prompt for editorial profile generation
 - [x] ~~Implement subscription management with RevenueCat~~ Deferred for initial release
-- [ ] Implement usage tracking system for TestFlight
+- [x] Implement usage tracking system for TestFlight
 - [ ] Set up analytics events for onboarding steps
 
 ### 5. Testing & Validation
 
-- [ ] Complete unit tests for all components
-- [ ] Implement integration tests for flow transitions
-- [ ] Create end-to-end tests for complete onboarding
-- [ ] Verify audio processing and profile generation
-- [ ] Test subscription management
+- [x] Complete unit tests for all components
+- [x] Implement integration tests for flow transitions
+- [x] Create end-to-end tests for complete onboarding
+- [x] Verify audio processing and profile generation
+- [ ] ~~Test subscription management~~ Deferred for initial release
 
 ### 6. Polish & Optimization
 
-- [ ] Add animations and transitions
+- [x] Add animations and transitions
 - [ ] Optimize performance for lower-end devices
 - [ ] Implement proper error handling
-- [ ] Add loading states and fallbacks
+- [x] Add loading states and fallbacks
 - [ ] Ensure accessibility compliance
+
+### 7. TestFlight Preparation
+
+- [ ] Update app.json with correct configuration
+- [ ] Configure eas.json for TestFlight builds
+- [ ] Update app assets (icons, splash screen)
+- [ ] Modify onboarding flow to remove subscription screens
+- [ ] Update features page content for TestFlight
+- [ ] Fix UI issues in Editorial Profile and Voice Clone pages
+- [ ] Create privacy policy document
+- [ ] Prepare TestFlight testing groups and invitation text
 
 ## Implementation Progress
 
@@ -196,23 +207,29 @@ We are preparing the app for TestFlight beta testing, implementing usage trackin
 
 ## Next Steps
 
-1. Fix the navigation issues in the onboarding flow
-2. Fix the automatic progression issue by adding user control for advancing between screens
-3. Implement usage tracking and limits for TestFlight
-4. Translate all content to French for the initial release
-5. Implement proper data tracking mechanisms
-6. Test with both new and existing users
-7. Add analytics to track conversion rates
-8. Prepare app metadata for TestFlight submission
+1. Remove subscription-related screens from the onboarding flow for TestFlight
+2. Fix UI issues in the Editorial Profile form (character constraints)
+3. Improve Voice Clone page UI/UX
+4. Update app.json and eas.json for TestFlight configuration
+5. Create necessary app assets (icons, splash screen)
+6. Prepare app metadata for TestFlight submission
 
 ## Blockers & Dependencies
 
 1. ~~RevenueCat API key setup required~~ No longer needed for initial release
 2. ~~Need to confirm subscription pricing tiers~~ Deferred
 3. ElevenLabs integration requires testing with new flow
-4. Need to establish appropriate usage limits for TestFlight users
+4. ~~Need to establish appropriate usage limits for TestFlight users~~ Completed
 
 ## Recent Progress
+
+### August 25, 2025
+
+- Fixed infinite recursion issue in admin policies:
+  - Created helper function `is_admin()` to avoid policy recursion
+  - Updated RLS policies to use the new function
+  - Fixed auth.users access in AdminUsageSettings component
+  - Created Supabase Edge Function for secure user lookup by email
 
 ### August 24, 2025
 

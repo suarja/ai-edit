@@ -73,19 +73,40 @@ Stores user roles for permission management.
    - Makes the first user an admin
    - Backfills usage records for existing users
 
-2. **Admin Utility**:
+2. **Policy Fix Migration**:
+
+   - `supabase/migrations/20250824185000_fix_recursion_in_policies.sql`
+   - Creates non-recursive admin check function
+   - Fixes infinite recursion in RLS policies
+   - Implements proper role-based security
+
+3. **Admin Utility**:
 
    - `supabase/functions/make-admin-by-email.sql`
    - Function to promote any user to admin by email
 
-3. **Usage Dashboard Component**:
+4. **User Lookup Function**:
+
+   - `supabase/functions/get-user-id-by-email/index.ts`
+   - Secure Edge Function to look up users by email
+   - Properly handles admin authorization
+   - Used by admin interface to securely query users
+
+5. **Usage Dashboard Component**:
 
    - `components/UsageDashboard.tsx`
    - Displays usage statistics to users
    - Shows admin badge for admin users
    - Creates usage records if missing
 
-4. **API Integration**:
+6. **Admin Settings Component**:
+
+   - `components/AdminUsageSettings.tsx`
+   - Allows admins to manage user limits
+   - Provides user search functionality
+   - Supports updating limits and resetting usage
+
+7. **API Integration**:
    - `app/api/videos/generate+api.ts`
    - Checks usage limits before generating videos
    - Increments usage counter after successful generation
@@ -140,6 +161,17 @@ SET videos_generated = 0,
 WHERE user_id = (SELECT id FROM auth.users WHERE email = 'user@example.com');
 ```
 
+### Using the Admin Interface
+
+The admin interface is available at `/admin/usage-settings` and is restricted to users with the admin role. It provides a user-friendly way to:
+
+1. Search for users by email
+2. View current usage statistics
+3. Adjust usage limits
+4. Reset usage counters
+
+This interface uses the secure Edge Function to look up users rather than directly accessing auth tables, which ensures proper security.
+
 ## Future Enhancements
 
 1. **Subscription Integration**:
@@ -190,3 +222,11 @@ WHERE user_id = (SELECT id FROM auth.users WHERE email = 'admin@example.com');
 ```sql
 SELECT make_admin_by_email('admin@example.com');
 ```
+
+### Infinite Recursion in Policies
+
+If you encounter "infinite recursion detected in policy" errors:
+
+1. Ensure you've run the `20250824185000_fix_recursion_in_policies.sql` migration
+2. Verify the `is_admin()` function exists and has proper permissions
+3. Check that all admin-related policies use this function rather than direct table queries

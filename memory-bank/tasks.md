@@ -284,7 +284,7 @@ We will follow a TDD approach with the following test layers:
 - **Description**: Create a system to track and limit video generation usage for TestFlight users without implementing payments
 - **Priority**: High
 - **Estimated Time**: 6 hours
-- **Status**: In Progress
+- **Status**: Completed
 - **Dependencies**: None
 - **Subtasks**:
   - [x] Create `user_usage` table in Supabase with video count and reset date fields
@@ -299,13 +299,66 @@ We will follow a TDD approach with the following test layers:
 - **Description**: Prepare the app for TestFlight submission and testing
 - **Priority**: High
 - **Estimated Time**: 5 hours
-- **Status**: Not Started
+- **Status**: In Progress
 - **Dependencies**: APP-001
 - **Subtasks**:
-  - [ ] Verify app icon and splash screen
+  - [ ] Update app.json with correct configuration
+  - [ ] Configure eas.json for TestFlight builds
+  - [ ] Verify app icon and splash screen assets
   - [ ] Update app metadata and screenshots
+  - [ ] Modify onboarding flow to remove subscription screens
+  - [ ] Update features page to match TestFlight offering
+  - [ ] Fix character constraints in Editorial Profile form
+  - [ ] Improve Voice Clone page UI/UX
   - [ ] Configure TestFlight testing groups
   - [ ] Create privacy policy for App Store
   - [ ] Test on multiple iOS devices
   - [ ] Prepare TestFlight invitation text
   - [ ] Submit for App Store review
+
+### UI-001: Fix Editorial Profile UI
+
+- **Description**: Improve the Editorial Profile UI with proper character constraints and better UX
+- **Priority**: Medium
+- **Estimated Time**: 3 hours
+- **Status**: Not Started
+- **Dependencies**: None
+- **Subtasks**:
+  - [ ] Fix character overflow in profile form
+  - [ ] Add proper validation for field lengths
+  - [ ] Improve visual feedback on character limits
+  - [ ] Ensure consistent styling across all form fields
+  - [ ] Test with different content lengths
+  - [ ] Fix any layout issues on different device sizes
+
+### UI-002: Improve Voice Clone Page
+
+- **Description**: Enhance the Voice Clone page UI and UX
+- **Priority**: Medium
+- **Estimated Time**: 4 hours
+- **Status**: Not Started
+- **Dependencies**: None
+- **Subtasks**:
+  - [ ] Redesign recording interface for better clarity
+  - [ ] Add visual audio waveform during recording
+  - [ ] Improve recording state indicators
+  - [ ] Add playback capability for recorded samples
+  - [ ] Enhance error messaging
+  - [ ] Implement better loading states
+  - [ ] Test recording functionality on various devices
+
+### ONB-004: Remove Subscription Screens for TestFlight
+
+- **Description**: Modify the onboarding flow to remove subscription-related screens for TestFlight beta
+- **Priority**: High
+- **Estimated Time**: 2 hours
+- **Status**: Not Started
+- **Dependencies**: None
+- **Subtasks**:
+  - [ ] Remove Trial Offer screen from the flow
+  - [ ] Remove Subscription Options screen from the flow
+  - [ ] Update ProgressBar component to reflect new step count
+  - [ ] Update navigation in OnboardingProvider
+  - [ ] Add usage information to the Features screen
+  - [ ] Update Success screen messaging for TestFlight
+  - [ ] Test complete onboarding flow without subscription screens
