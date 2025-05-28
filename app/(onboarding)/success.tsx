@@ -1,3 +1,4 @@
+import { useOnboardingSteps } from "@/components/onboarding/OnboardingSteps";
 import React, { useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
 import { router } from 'expo-router';
@@ -7,20 +8,9 @@ import { ProgressBar } from '@/components/onboarding/ProgressBar';
 import * as Haptics from 'expo-haptics';
 import { ArrowRight } from 'lucide-react-native';
 
-const ONBOARDING_STEPS = [
-  'welcome',
-  'survey',
-  'voice-recording',
-  'processing',
-  'editorial-profile',
-  'features',
-  'trial-offer',
-  'subscription',
-  'success',
-];
 
-export default function SuccessScreen() {
-  const { markStepCompleted } = useOnboarding();
+  export default function SuccessScreen() {
+  const onboardingSteps = useOnboardingSteps();  const { markStepCompleted } = useOnboarding();
 
   useEffect(() => {
     // Provide haptic success feedback when the screen appears
@@ -42,7 +32,7 @@ export default function SuccessScreen() {
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <ProgressBar
-        steps={ONBOARDING_STEPS}
+        steps={onboardingSteps}
         currentStep="success"
         completedSteps={[
           'welcome',

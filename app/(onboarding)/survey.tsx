@@ -1,3 +1,4 @@
+import { useOnboardingSteps } from "@/components/onboarding/OnboardingSteps";
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -6,19 +7,9 @@ import { ProgressBar } from '@/components/onboarding/ProgressBar';
 import { Survey as SurveyComponent } from '@/components/onboarding/Survey';
 import { frenchSurveyQuestions } from '@/constants/onboardingQuestions';
 
-const ONBOARDING_STEPS = [
-  'welcome',
-  'survey',
-  'voice-recording',
-  'editorial-profile',
-  'features',
-  'trial-offer',
-  'subscription',
-  'success',
-];
 
-export default function SurveyScreen() {
-  const { nextStep, markStepCompleted, setSurveyAnswer, surveyAnswers } =
+  export default function SurveyScreen() {
+  const onboardingSteps = useOnboardingSteps();  const { nextStep, markStepCompleted, setSurveyAnswer, surveyAnswers } =
     useOnboarding();
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [allQuestionsAnswered, setAllQuestionsAnswered] = useState(false);
@@ -52,7 +43,7 @@ export default function SurveyScreen() {
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <ProgressBar
-        steps={ONBOARDING_STEPS}
+        steps={onboardingSteps}
         currentStep="survey"
         completedSteps={['welcome']}
       />

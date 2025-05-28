@@ -16,13 +16,17 @@ export default function OnboardingVoiceCloneScreen() {
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <View style={styles.header}>
-        <Image 
-          source={{ uri: 'https://images.pexels.com/photos/3756878/pexels-photo-3756878.jpeg' }}
+        <Image
+          source={{
+            uri: 'https://images.pexels.com/photos/3756878/pexels-photo-3756878.jpeg',
+          }}
           style={styles.headerImage}
         />
         <View style={styles.overlay} />
         <Text style={styles.title}>Clone Your Voice</Text>
-        <Text style={styles.subtitle}>Create a unique AI voice that sounds just like you</Text>
+        <Text style={styles.subtitle}>
+          Create a unique AI voice that sounds just like you
+        </Text>
       </View>
 
       <View style={styles.content}>
@@ -32,7 +36,8 @@ export default function OnboardingVoiceCloneScreen() {
             <View style={styles.benefitContent}>
               <Text style={styles.benefitTitle}>Personalized Voice</Text>
               <Text style={styles.benefitDescription}>
-                Your AI-generated videos will use your own voice, making your content more authentic and engaging
+                Your AI-generated videos will use your own voice, making your
+                content more authentic and engaging
               </Text>
             </View>
           </View>
@@ -40,23 +45,18 @@ export default function OnboardingVoiceCloneScreen() {
           <View style={styles.infoBox}>
             <Text style={styles.infoTitle}>Quick and Easy</Text>
             <Text style={styles.infoText}>
-              Just record or upload a few short audio samples, and we'll create a perfect clone of your voice
+              Just record or upload a few short audio samples, and we'll create
+              a perfect clone of your voice
             </Text>
           </View>
         </View>
 
         <View style={styles.footer}>
-          <TouchableOpacity 
-            style={styles.skipButton}
-            onPress={handleSkip}
-          >
+          <TouchableOpacity style={styles.skipButton} onPress={handleSkip}>
             <Text style={styles.skipButtonText}>Skip for now</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity
-            style={styles.button}
-            onPress={handleCreateVoice}
-          >
+          <TouchableOpacity style={styles.button} onPress={handleCreateVoice}>
             <Text style={styles.buttonText}>Create Voice Clone</Text>
             <ArrowRight size={24} color="#fff" />
           </TouchableOpacity>

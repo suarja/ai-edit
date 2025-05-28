@@ -32,7 +32,9 @@ export default function EditorialScreen() {
 
   const fetchProfile = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (!user) {
         router.replace('/(auth)/sign-in');
         return;
@@ -76,7 +78,11 @@ export default function EditorialScreen() {
   };
 
   const handleSave = async () => {
-    if (!profile.persona_description || !profile.tone_of_voice || !profile.audience) {
+    if (
+      !profile.persona_description ||
+      !profile.tone_of_voice ||
+      !profile.audience
+    ) {
       setError('Please fill in all required fields');
       return;
     }
@@ -85,7 +91,9 @@ export default function EditorialScreen() {
       setSaving(true);
       setError(null);
 
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (!user) {
         router.replace('/(auth)/sign-in');
         return;
@@ -146,7 +154,9 @@ export default function EditorialScreen() {
         <View style={styles.form}>
           <View style={styles.inputGroup}>
             <Text style={styles.label}>Content Creator Persona</Text>
-            <Text style={styles.description}>How would you describe yourself as a content creator?</Text>
+            <Text style={styles.description}>
+              How would you describe yourself as a content creator?
+            </Text>
             <TextInput
               style={styles.input}
               multiline
@@ -154,13 +164,17 @@ export default function EditorialScreen() {
               placeholder="E.g., Tech enthusiast sharing productivity tips..."
               placeholderTextColor="#666"
               value={profile.persona_description}
-              onChangeText={(text) => setProfile(prev => ({ ...prev, persona_description: text }))}
+              onChangeText={(text) =>
+                setProfile((prev) => ({ ...prev, persona_description: text }))
+              }
             />
           </View>
 
           <View style={styles.inputGroup}>
             <Text style={styles.label}>Tone of Voice</Text>
-            <Text style={styles.description}>How do you want to sound in your content?</Text>
+            <Text style={styles.description}>
+              How do you want to sound in your content?
+            </Text>
             <TextInput
               style={styles.input}
               multiline
@@ -168,13 +182,17 @@ export default function EditorialScreen() {
               placeholder="E.g., Professional but friendly, using simple language..."
               placeholderTextColor="#666"
               value={profile.tone_of_voice}
-              onChangeText={(text) => setProfile(prev => ({ ...prev, tone_of_voice: text }))}
+              onChangeText={(text) =>
+                setProfile((prev) => ({ ...prev, tone_of_voice: text }))
+              }
             />
           </View>
 
           <View style={styles.inputGroup}>
             <Text style={styles.label}>Target Audience</Text>
-            <Text style={styles.description}>Who are you creating content for?</Text>
+            <Text style={styles.description}>
+              Who are you creating content for?
+            </Text>
             <TextInput
               style={styles.input}
               multiline
@@ -182,13 +200,17 @@ export default function EditorialScreen() {
               placeholder="E.g., Young professionals interested in personal development..."
               placeholderTextColor="#666"
               value={profile.audience}
-              onChangeText={(text) => setProfile(prev => ({ ...prev, audience: text }))}
+              onChangeText={(text) =>
+                setProfile((prev) => ({ ...prev, audience: text }))
+              }
             />
           </View>
 
           <View style={styles.inputGroup}>
             <Text style={styles.label}>Style Notes</Text>
-            <Text style={styles.description}>Any specific preferences or guidelines?</Text>
+            <Text style={styles.description}>
+              Any specific preferences or guidelines?
+            </Text>
             <TextInput
               style={styles.input}
               multiline
@@ -196,7 +218,9 @@ export default function EditorialScreen() {
               placeholder="E.g., Prefer using real-world examples..."
               placeholderTextColor="#666"
               value={profile.style_notes}
-              onChangeText={(text) => setProfile(prev => ({ ...prev, style_notes: text }))}
+              onChangeText={(text) =>
+                setProfile((prev) => ({ ...prev, style_notes: text }))
+              }
             />
           </View>
         </View>
@@ -204,7 +228,7 @@ export default function EditorialScreen() {
 
       <View style={styles.footer}>
         {!hasVoiceClone && (
-          <TouchableOpacity 
+          <TouchableOpacity
             style={styles.voiceButton}
             onPress={() => router.push('/(onboarding)/welcome')}
           >

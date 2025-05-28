@@ -3,19 +3,8 @@ import { View, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useOnboarding } from '@/components/providers/OnboardingProvider';
 import { ProgressBar } from '@/components/onboarding/ProgressBar';
+import { useOnboardingSteps } from '@/components/onboarding/OnboardingSteps';
 import { ProcessingScreen } from '@/components/onboarding/ProcessingScreen';
-
-const ONBOARDING_STEPS = [
-  'welcome',
-  'survey',
-  'voice-recording',
-  'processing',
-  'editorial-profile',
-  'features',
-  'trial-offer',
-  'subscription',
-  'success',
-];
 
 const processingSteps = [
   'Analyse de vos préférences',
@@ -27,6 +16,7 @@ const processingSteps = [
 export default function ProcessingScreenContainer() {
   const { nextStep, markStepCompleted, surveyAnswers, isAutoProgressAllowed } =
     useOnboarding();
+  const onboardingSteps = useOnboardingSteps();
 
   const handleComplete = () => {
     markStepCompleted('processing');
@@ -36,7 +26,7 @@ export default function ProcessingScreenContainer() {
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <ProgressBar
-        steps={ONBOARDING_STEPS}
+        steps={onboardingSteps}
         currentStep="processing"
         completedSteps={['welcome', 'survey', 'voice-recording']}
       />

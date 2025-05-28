@@ -1,3 +1,4 @@
+import { useOnboardingSteps } from "@/components/onboarding/OnboardingSteps";
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ActivityIndicator, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -9,20 +10,9 @@ import { ProgressBar } from '@/components/onboarding/ProgressBar';
 import * as Haptics from 'expo-haptics';
 import EditorialProfileForm from '@/components/EditorialProfileForm';
 
-const ONBOARDING_STEPS = [
-  'welcome',
-  'survey',
-  'voice-recording',
-  'processing',
-  'editorial-profile',
-  'features',
-  'trial-offer',
-  'subscription',
-  'success',
-];
 
-export default function EditorialProfileScreen() {
-  const { nextStep, markStepCompleted, surveyAnswers } = useOnboarding();
+  export default function EditorialProfileScreen() {
+  const onboardingSteps = useOnboardingSteps();  const { nextStep, markStepCompleted, surveyAnswers } = useOnboarding();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -180,7 +170,7 @@ export default function EditorialProfileScreen() {
     return (
       <SafeAreaView style={styles.container} edges={['top']}>
         <ProgressBar
-          steps={ONBOARDING_STEPS}
+          steps={onboardingSteps}
           currentStep="editorial-profile"
           completedSteps={[
             'welcome',
@@ -199,7 +189,7 @@ export default function EditorialProfileScreen() {
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <ProgressBar
-        steps={ONBOARDING_STEPS}
+        steps={onboardingSteps}
         currentStep="editorial-profile"
         completedSteps={['welcome', 'survey', 'voice-recording', 'processing']}
       />

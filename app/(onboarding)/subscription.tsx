@@ -1,3 +1,4 @@
+import { useOnboardingSteps } from "@/components/onboarding/OnboardingSteps";
 import React, { useState, useEffect } from 'react';
 import {
   View,
@@ -14,20 +15,9 @@ import { subscriptionPlans } from '@/constants/subscriptionPlans';
 import * as Haptics from 'expo-haptics';
 import { ArrowRight } from 'lucide-react-native';
 
-const ONBOARDING_STEPS = [
-  'welcome',
-  'survey',
-  'voice-recording',
-  'processing',
-  'editorial-profile',
-  'features',
-  'trial-offer',
-  'subscription',
-  'success',
-];
 
-export default function SubscriptionScreen() {
-  const { nextStep, markStepCompleted, setAutoProgressEnabled } =
+  export default function SubscriptionScreen() {
+  const onboardingSteps = useOnboardingSteps();  const { nextStep, markStepCompleted, setAutoProgressEnabled } =
     useOnboarding();
   const [selectedPlanId, setSelectedPlanId] = useState<string>(
     subscriptionPlans.find((plan) => plan.isRecommended)?.id ||
@@ -101,7 +91,7 @@ export default function SubscriptionScreen() {
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <ProgressBar
-        steps={ONBOARDING_STEPS}
+        steps={onboardingSteps}
         currentStep="subscription"
         completedSteps={[
           'welcome',

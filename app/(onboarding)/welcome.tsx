@@ -1,40 +1,17 @@
-import { useState, useEffect } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  Image,
-  ActivityIndicator,
-} from 'react-native';
-import { router } from 'expo-router';
-import {
-  ArrowRight,
-  Mic,
-  CircleStop as StopCircle,
-  Play,
-} from 'lucide-react-native';
+import React, { useState } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { Play, ArrowRight } from 'lucide-react-native';
 import { Audio } from 'expo-av';
-import { supabase } from '@/lib/supabase';
 import { useOnboarding } from '@/components/providers/OnboardingProvider';
 import { ProgressBar } from '@/components/onboarding/ProgressBar';
+import { useOnboardingSteps } from '@/components/onboarding/OnboardingSteps';
 
 const MAX_RECORDING_DURATION = 120000; // 2 minutes in milliseconds
 
-const ONBOARDING_STEPS = [
-  'welcome',
-  'survey',
-  'voice-recording',
-  'editorial-profile',
-  'features',
-  'trial-offer',
-  'subscription',
-  'success',
-];
-
 export default function WelcomeScreen() {
   const { nextStep, markStepCompleted } = useOnboarding();
+  const onboardingSteps = useOnboardingSteps();
   const [isRecording, setIsRecording] = useState(false);
   const [recording, setRecording] = useState<Audio.Recording | null>(null);
   const [processing, setProcessing] = useState(false);
@@ -55,7 +32,7 @@ export default function WelcomeScreen() {
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <ProgressBar
-        steps={ONBOARDING_STEPS}
+        steps={onboardingSteps}
         currentStep="welcome"
         completedSteps={[]}
       />

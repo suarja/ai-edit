@@ -1,3 +1,4 @@
+import { useOnboardingSteps } from "@/components/onboarding/OnboardingSteps";
 /**
  * Voice Recording Screen for Onboarding
  *
@@ -28,19 +29,9 @@ import { ProgressBar } from '@/components/onboarding/ProgressBar';
 const MAX_RECORDING_DURATION = 120000; // 2 minutes in milliseconds
 const MIN_RECORDING_DURATION = 3000; // 3 seconds in milliseconds
 
-const ONBOARDING_STEPS = [
-  'welcome',
-  'survey',
-  'voice-recording',
-  'editorial-profile',
-  'features',
-  'trial-offer',
-  'subscription',
-  'success',
-];
 
-export default function VoiceRecordingScreen() {
-  const { nextStep, previousStep, markStepCompleted, surveyAnswers } =
+  export default function VoiceRecordingScreen() {
+  const onboardingSteps = useOnboardingSteps();  const { nextStep, previousStep, markStepCompleted, surveyAnswers } =
     useOnboarding();
   const [isRecording, setIsRecording] = useState(false);
   const [recording, setRecording] = useState<Audio.Recording | null>(null);
@@ -381,7 +372,7 @@ export default function VoiceRecordingScreen() {
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <ProgressBar
-        steps={ONBOARDING_STEPS}
+        steps={onboardingSteps}
         currentStep="voice-recording"
         completedSteps={['welcome', 'survey']}
       />
