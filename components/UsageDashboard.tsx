@@ -37,22 +37,55 @@ export default function UsageDashboard() {
           .from('user_usage')
           .select('*')
           .eq('user_id', user.id)
-          .single();
+          .maybeSingle();
 
-        if (error) throw error;
+        // If no usage record exists, create one
+        if (error && error.code === 'PGRST116') {
+          console.log('No usage record found, creating one...');
 
-        setUsage({
-          videosGenerated: data.videos_generated,
-          videosLimit: data.videos_limit,
-          usagePercentage: Math.round(
-            (data.videos_generated / data.videos_limit) * 100
-          ),
-          nextResetDate: new Date(data.next_reset_date).toLocaleDateString(),
-          remainingVideos: Math.max(
-            0,
-            data.videos_limit - data.videos_generated
-          ),
-        });
+          // Create a new usage record
+          const { data: newData, error: insertError } = await supabase
+            .from('user_usage')
+            .insert({
+              user_id: user.id,
+              videos_generated: 0,
+              videos_limit: 5,
+              last_reset_date: new Date().toISOString(),
+              next_reset_date: new Date(
+                Date.now() + 30 * 24 * 60 * 60 * 1000
+              ).toISOString(),
+            })
+            .select()
+            .single();
+
+          if (insertError) throw insertError;
+
+          // Use the newly created record
+          setUsage({
+            videosGenerated: newData.videos_generated,
+            videosLimit: newData.videos_limit,
+            usagePercentage: 0,
+            nextResetDate: new Date(
+              newData.next_reset_date
+            ).toLocaleDateString(),
+            remainingVideos: newData.videos_limit,
+          });
+        } else if (error) {
+          throw error;
+        } else if (data) {
+          setUsage({
+            videosGenerated: data.videos_generated,
+            videosLimit: data.videos_limit,
+            usagePercentage: Math.round(
+              (data.videos_generated / data.videos_limit) * 100
+            ),
+            nextResetDate: new Date(data.next_reset_date).toLocaleDateString(),
+            remainingVideos: Math.max(
+              0,
+              data.videos_limit - data.videos_generated
+            ),
+          });
+        }
       } catch (err: any) {
         console.error('Error fetching usage:', err);
         setError(err.message || 'Failed to load usage data');
