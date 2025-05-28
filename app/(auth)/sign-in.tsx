@@ -6,6 +6,8 @@ import {
   TouchableOpacity,
   StyleSheet,
   Image,
+  Alert,
+  Platform,
 } from 'react-native';
 import { Link, router } from 'expo-router';
 import { supabase } from '@/lib/supabase';
@@ -22,16 +24,69 @@ export default function SignIn() {
       setLoading(true);
       setError(null);
 
-      const { error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
+      console.log('Attempting to sign in with:', email);
+      console.log('Running on platform:', Platform.OS);
 
-      if (error) throw error;
+      // Debug the network connection first
+      try {
+        console.log('Testing network connectivity...');
+        const response = await fetch('https://www.google.com');
+        console.log('Network test to Google:', response.status);
 
-      router.replace('/(tabs)/settings');
-    } catch (e) {
-      setError(e.message);
+        // Test Supabase connectivity with a simple GET request
+        try {
+          console.log('Testing Supabase connectivity...');
+          const healthCheck = await fetch(
+            process.env.EXPO_PUBLIC_SUPABASE_URL + '/rest/v1/',
+            {
+              method: 'GET',
+              headers: {
+                'Content-Type': 'application/json',
+                apikey: process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY || '',
+              },
+            }
+          );
+          console.log('Supabase health check:', healthCheck.status);
+        } catch (supabaseTestError) {
+          console.error(
+            'Supabase connectivity test failed:',
+            supabaseTestError
+          );
+        }
+      } catch (networkError) {
+        console.error('Network test failed:', networkError);
+        Alert.alert(
+          'Network Error',
+          'Unable to connect to the internet. Please check your connection.'
+        );
+        setLoading(false);
+        return;
+      }
+
+      try {
+        console.log('Signing in via Supabase...');
+        const { error: signInError, data } =
+          await supabase.auth.signInWithPassword({
+            email,
+            password,
+          });
+
+        console.log('Sign in response:', signInError ? 'Error' : 'Success');
+
+        if (signInError) {
+          setError(signInError.message);
+          setLoading(false);
+          return;
+        }
+
+        router.replace('/(tabs)/settings');
+      } catch (authError: any) {
+        console.error('Sign in auth error:', authError);
+        setError(authError.message || 'Authentication failed');
+      }
+    } catch (e: any) {
+      console.error('Sign in general error:', e);
+      setError(e.message || 'An unexpected error occurred');
     } finally {
       setLoading(false);
     }
