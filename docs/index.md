@@ -9,6 +9,7 @@ Welcome to the AI Edit documentation. This documentation provides detailed infor
 - **[Guides](./guides/index.md)**: How-to guides for common tasks
 - **[API](./api/index.md)**: API endpoints and usage
 - **[Development](./development/index.md)**: Development workflow and practices
+  - **[TestFlight Preparation](./development/testflight-preparation.md)**: Guide for preparing the app for TestFlight beta testing
 
 ## Relationship with Other Documentation
 
@@ -27,6 +28,11 @@ This documentation is part of a three-tier documentation system:
 ## Key Features
 
 For a complete list of features, see the [README.md](../README.md#key-features). The documentation provides detailed information on how these features are implemented.
+
+## Recent Updates
+
+- **Usage Tracking Implementation** ([Memory Bank](../memory-bank/usage-tracking-implementation.md)): New system for tracking and limiting video generation in TestFlight without payment integration
+- **TestFlight Preparation Guide** ([Documentation](./development/testflight-preparation.md)): Comprehensive guide for submitting the app to TestFlight
 
 ## Contributing to Documentation
 

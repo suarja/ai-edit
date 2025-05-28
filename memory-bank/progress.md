@@ -2,7 +2,7 @@
 
 ## Current Development Focus
 
-We are enhancing the onboarding flow to improve user retention and conversion rates while maintaining the existing voice recording functionality. This update will incorporate best practices from modern app onboarding flows as outlined in the `docs/onboarding/video-transcription.md` template.
+We are preparing the app for TestFlight beta testing, implementing usage tracking to limit video generation without payments, and finalizing the onboarding flow to ensure a smooth user experience. The focus is on creating a robust beta version that allows for thorough testing of core functionality.
 
 ## Task Status
 
@@ -11,23 +11,26 @@ We are enhancing the onboarding flow to improve user retention and conversion ra
 | Task ID | Description                             | Status      | Priority | Owner |
 | ------- | --------------------------------------- | ----------- | -------- | ----- |
 | ONB-001 | Enhanced Onboarding Flow Implementation | In Progress | High     | Team  |
+| APP-001 | Implement Usage Tracking for TestFlight | Not Started | High     | Team  |
+| APP-002 | TestFlight Preparation and Submission   | Not Started | High     | Team  |
 
 ### Recently Completed Tasks
 
-| Task ID   | Description                           | Completion Date |
-| --------- | ------------------------------------- | --------------- |
-| DB-001    | Fix onboarding_survey database schema | 2023-12-05      |
-| AUTH-001  | Authentication Implementation         | 2023-11-15      |
-| VOICE-001 | Basic Voice Recording & Cloning       | 2023-11-20      |
-| UI-001    | Initial App Shell & Navigation        | 2023-11-10      |
+| Task ID   | Description                                       | Completion Date |
+| --------- | ------------------------------------------------- | --------------- |
+| ONB-002   | Fix Automatic Screen Advancing in Onboarding Flow | 2023-12-10      |
+| DB-001    | Fix onboarding_survey database schema             | 2023-12-05      |
+| AUTH-001  | Authentication Implementation                     | 2023-11-15      |
+| VOICE-001 | Basic Voice Recording & Cloning                   | 2023-11-20      |
+| UI-001    | Initial App Shell & Navigation                    | 2023-11-10      |
 
 ## Current Sprint Goals
 
 1. Complete onboarding flow redesign and implementation
-2. Implement test suite for onboarding components
+2. Implement usage tracking and limits for TestFlight
 3. Set up analytics tracking for onboarding flow
-4. Integrate monetization path with subscription options
-5. Implement payment processing with RevenueCat
+4. Prepare app for TestFlight submission
+5. Fix remaining UI issues
 
 ## Detailed Implementation Plan
 
@@ -63,7 +66,8 @@ We are enhancing the onboarding flow to improve user retention and conversion ra
 
 - [ ] Update process-onboarding function to handle survey data
 - [ ] Enhance LLM prompt for editorial profile generation
-- [ ] Implement subscription management with RevenueCat
+- [x] ~~Implement subscription management with RevenueCat~~ Deferred for initial release
+- [ ] Implement usage tracking system for TestFlight
 - [ ] Set up analytics events for onboarding steps
 
 ### 5. Testing & Validation
@@ -194,14 +198,16 @@ We are enhancing the onboarding flow to improve user retention and conversion ra
 
 1. Fix the navigation issues in the onboarding flow
 2. Fix the automatic progression issue by adding user control for advancing between screens
-3. Implement RevenueCat integration for subscription management
+3. Implement usage tracking and limits for TestFlight
 4. Translate all content to French for the initial release
 5. Implement proper data tracking mechanisms
 6. Test with both new and existing users
 7. Add analytics to track conversion rates
+8. Prepare app metadata for TestFlight submission
 
 ## Blockers & Dependencies
 
-1. RevenueCat API key setup required
-2. Need to confirm subscription pricing tiers
+1. ~~RevenueCat API key setup required~~ No longer needed for initial release
+2. ~~Need to confirm subscription pricing tiers~~ Deferred
 3. ElevenLabs integration requires testing with new flow
+4. Need to establish appropriate usage limits for TestFlight users

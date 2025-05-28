@@ -266,9 +266,9 @@ We will follow a TDD approach with the following test layers:
 ### ONB-003: Implement RevenueCat Payment Processing
 
 - **Description**: Integrate RevenueCat for subscription management and payment processing
-- **Priority**: Medium
+- **Priority**: Low
 - **Estimated Time**: 8 hours
-- **Status**: Not Started
+- **Status**: Deferred (Not required for TestFlight release)
 - **Dependencies**: None
 - **Subtasks**:
   - [ ] Sign up for RevenueCat developer account
@@ -278,3 +278,34 @@ We will follow a TDD approach with the following test layers:
   - [ ] Add subscription validation
   - [ ] Test purchase flow on iOS and Android
   - [ ] Implement restore purchases functionality
+
+### APP-001: Implement Usage Tracking for TestFlight
+
+- **Description**: Create a system to track and limit video generation usage for TestFlight users without implementing payments
+- **Priority**: High
+- **Estimated Time**: 6 hours
+- **Status**: Not Started
+- **Dependencies**: None
+- **Subtasks**:
+  - [ ] Create `user_usage` table in Supabase with video count and reset date fields
+  - [ ] Implement usage tracking in video generation API
+  - [ ] Add usage limit checks before video generation
+  - [ ] Create usage dashboard in the app
+  - [ ] Implement monthly usage reset mechanism
+  - [ ] Add admin capability to adjust usage limits
+
+### APP-002: TestFlight Preparation and Submission
+
+- **Description**: Prepare the app for TestFlight submission and testing
+- **Priority**: High
+- **Estimated Time**: 5 hours
+- **Status**: Not Started
+- **Dependencies**: APP-001
+- **Subtasks**:
+  - [ ] Verify app icon and splash screen
+  - [ ] Update app metadata and screenshots
+  - [ ] Configure TestFlight testing groups
+  - [ ] Create privacy policy for App Store
+  - [ ] Test on multiple iOS devices
+  - [ ] Prepare TestFlight invitation text
+  - [ ] Submit for App Store review
