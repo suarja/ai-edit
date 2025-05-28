@@ -49,11 +49,15 @@ AFTER
 INSERT ON auth.users FOR EACH ROW EXECUTE FUNCTION handle_new_user();
 -- Step 5: Add RLS policies for user_roles table
 ALTER TABLE user_roles ENABLE ROW LEVEL SECURITY;
+-- First drop any existing policies to avoid errors
+DROP POLICY IF EXISTS bootstrap_admin_policy ON user_roles;
+DROP POLICY IF EXISTS admin_user_roles_policy ON user_roles;
+DROP POLICY IF EXISTS user_roles_select_policy ON user_roles;
 -- Bootstrap policy for the first admin (no admins exist yet)
-CREATE POLICY IF NOT EXISTS bootstrap_admin_policy ON user_roles FOR
+CREATE POLICY bootstrap_admin_policy ON user_roles FOR
 INSERT USING (true);
 -- Only allow admins to manage roles
-CREATE POLICY IF NOT EXISTS admin_user_roles_policy ON user_roles USING (
+CREATE POLICY admin_user_roles_policy ON user_roles USING (
     EXISTS (
         SELECT 1
         FROM user_roles
@@ -62,18 +66,22 @@ CREATE POLICY IF NOT EXISTS admin_user_roles_policy ON user_roles USING (
     )
 );
 -- Allow users to see their own roles
-CREATE POLICY IF NOT EXISTS user_roles_select_policy ON user_roles FOR
+CREATE POLICY user_roles_select_policy ON user_roles FOR
 SELECT USING (auth.uid() = user_id);
 -- Step 6: Add RLS policies for user_usage table
 ALTER TABLE user_usage ENABLE ROW LEVEL SECURITY;
+-- First drop any existing policies to avoid errors
+DROP POLICY IF EXISTS user_usage_select_policy ON user_usage;
+DROP POLICY IF EXISTS user_usage_update_policy ON user_usage;
+DROP POLICY IF EXISTS admin_user_usage_policy ON user_usage;
 -- Policy to allow users to see only their own usage data
-CREATE POLICY IF NOT EXISTS user_usage_select_policy ON user_usage FOR
+CREATE POLICY user_usage_select_policy ON user_usage FOR
 SELECT USING (auth.uid() = user_id);
 -- Policy to allow users to update only their own usage data
-CREATE POLICY IF NOT EXISTS user_usage_update_policy ON user_usage FOR
+CREATE POLICY user_usage_update_policy ON user_usage FOR
 UPDATE USING (auth.uid() = user_id);
 -- Policy to allow admins to see and modify all usage data
-CREATE POLICY IF NOT EXISTS admin_user_usage_policy ON user_usage USING (
+CREATE POLICY admin_user_usage_policy ON user_usage USING (
     EXISTS (
         SELECT 1
         FROM user_roles
