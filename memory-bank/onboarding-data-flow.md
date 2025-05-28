@@ -80,16 +80,23 @@ The `OnboardingProvider` is the central state management component for the onboa
    - Audio file and survey data sent to `process-onboarding` function
    - Survey data stored in `onboarding_survey` table with user ID
 
+   **OR Skip path:**
+
+   - User chooses "Je préfère écrire à la place" option
+   - Survey data is saved directly to `onboarding_survey` table
+   - A default editorial profile is created based on survey answers
+   - No voice clone is created in this path
+
 4. **Backend processing**
 
-   - Audio transcribed to text
-   - Content analyzed to extract profile information
+   - Audio transcribed to text (if audio provided)
+   - Content analyzed to extract profile information (if audio provided)
    - Editorial profile created/updated in database
-   - Voice sample processed for voice cloning
+   - Voice sample processed for voice cloning (if audio provided)
 
 5. **Editorial profile review**
 
-   - User reviews AI-generated profile
+   - User reviews AI-generated profile (or default profile if audio was skipped)
    - Makes any necessary adjustments
    - Final profile saved to `editorial_profiles` table
 

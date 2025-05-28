@@ -170,6 +170,44 @@ export default function VoiceRecordingScreen() {
     }
   };
 
+  // Function to save survey data without audio processing
+  const saveSurveyData = async (): Promise<boolean> => {
+    try {
+      setProgress('Enregistrement des données du questionnaire...');
+
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) {
+        console.error('User not authenticated');
+        return false;
+      }
+
+      // Save survey data directly to the onboarding_survey table
+      const { error: surveyError } = await supabase
+        .from('onboarding_survey')
+        .upsert({
+          user_id: user.id,
+          content_goals: surveyAnswers.content_goals || null,
+          pain_points: surveyAnswers.pain_points || null,
+          content_style: surveyAnswers.content_style || null,
+          platform_focus: surveyAnswers.platform_focus || null,
+          content_frequency: surveyAnswers.content_frequency || null,
+        });
+
+      if (surveyError) {
+        console.error('Error saving survey data:', surveyError);
+        // Don't block the user, but log the error
+        return false;
+      }
+
+      return true;
+    } catch (err) {
+      console.error('Error saving survey data:', err);
+      return false;
+    }
+  };
+
   const processRecording = async (uri: string) => {
     try {
       setProcessing(true);
@@ -266,9 +304,60 @@ export default function VoiceRecordingScreen() {
     }
   };
 
-  const handleSkip = () => {
-    markStepCompleted('voice-recording');
-    nextStep();
+  const handleSkip = async () => {
+    try {
+      setProcessing(true);
+      setProgress('Préparation de votre profil...');
+
+      // Save survey data even when skipping audio recording
+      await saveSurveyData();
+
+      // Create a default editorial profile based on survey answers
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      if (user) {
+        // Check if the user already has a profile
+        const { data: existingProfile } = await supabase
+          .from('editorial_profiles')
+          .select('id')
+          .eq('user_id', user.id)
+          .single();
+
+        // Only create a default profile if one doesn't exist
+        if (!existingProfile) {
+          const defaultDescription = surveyAnswers.content_style
+            ? `Créateur de contenu axé sur ${surveyAnswers.content_style}`
+            : 'Créateur de contenu digital';
+
+          const defaultAudience = surveyAnswers.platform_focus
+            ? `Audience sur la plateforme ${surveyAnswers.platform_focus}`
+            : 'Audience générale';
+
+          await supabase.from('editorial_profiles').upsert({
+            user_id: user.id,
+            persona_description: defaultDescription,
+            tone_of_voice: 'Professionnel et informatif',
+            audience: defaultAudience,
+            style_notes: 'Préfère un style concis et direct',
+          });
+        }
+      }
+
+      setProgress('Configuration terminée');
+
+      // Brief delay to show progress
+      await new Promise((resolve) => setTimeout(resolve, 800));
+    } catch (err) {
+      console.error('Error during skip handling:', err);
+      // Continue despite errors - we don't want to block the user
+    } finally {
+      setProcessing(false);
+      setProgress('');
+      markStepCompleted('voice-recording');
+      nextStep();
+    }
   };
 
   return (
@@ -347,11 +436,17 @@ export default function VoiceRecordingScreen() {
           </TouchableOpacity>
         )}
 
-        <TouchableOpacity style={styles.skipButton} onPress={handleSkip}>
-          <Text style={styles.skipButtonText}>
+        <TouchableOpacity
+          style={styles.skipButton}
+          onPress={handleSkip}
+          disabled={processing}
+        >
+          <Text
+            style={[styles.skipButtonText, processing && styles.disabledText]}
+          >
             Je préfère écrire à la place
           </Text>
-          <ArrowRight size={20} color="#888" />
+          <ArrowRight size={20} color={processing ? '#555' : '#888'} />
         </TouchableOpacity>
       </View>
     </SafeAreaView>
@@ -468,6 +563,9 @@ const styles = StyleSheet.create({
   skipButtonText: {
     color: '#888',
     fontSize: 16,
+  },
+  disabledText: {
+    color: '#555',
   },
   processingContainer: {
     alignItems: 'center',

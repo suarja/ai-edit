@@ -43,8 +43,6 @@ export default function WelcomeScreen() {
   const [recordingDuration, setRecordingDuration] = useState(0);
   const [videoPlaying, setVideoPlaying] = useState(false);
 
-
-
   const handleContinue = () => {
     markStepCompleted('welcome');
     nextStep();
@@ -53,10 +51,6 @@ export default function WelcomeScreen() {
   const toggleVideo = () => {
     setVideoPlaying(!videoPlaying);
   };
-
-
-
-
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
@@ -74,7 +68,8 @@ export default function WelcomeScreen() {
           style={styles.headerImage}
         />
         <View style={styles.overlay} />
-        <Text style={styles.title}>Bienvenue sur votre Studio IA</Text>
+        <Text style={styles.title}>Bienvenue sur votre</Text>
+        <Text style={styles.title}>Studio IA</Text>
         <Text style={styles.subtitle}>
           Créez des vidéos professionnelles avec l'IA
         </Text>
