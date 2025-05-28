@@ -248,7 +248,7 @@ export async function POST(request: Request) {
     }
 
     const renderData = await renderResponse.json();
-    const renderId = renderData.id;
+    const renderId = renderData[0].id;
     console.log('Render started:', renderData);
     console.log('Render started:', renderId);
 
