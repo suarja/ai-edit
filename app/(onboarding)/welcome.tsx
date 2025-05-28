@@ -43,35 +43,7 @@ export default function WelcomeScreen() {
   const [recordingDuration, setRecordingDuration] = useState(0);
   const [videoPlaying, setVideoPlaying] = useState(false);
 
-  // Cleanup recording on unmount
-  useEffect(() => {
-    return () => {
-      if (recording) {
-        recording.stopAndUnloadAsync();
-      }
-    };
-  }, [recording]);
 
-  // Monitor recording duration
-  useEffect(() => {
-    let interval: NodeJS.Timeout;
-    if (isRecording) {
-      const startTime = Date.now();
-      interval = setInterval(() => {
-        const duration = Date.now() - startTime;
-        setRecordingDuration(duration);
-
-        if (duration >= MAX_RECORDING_DURATION) {
-          stopRecording();
-        }
-      }, 100);
-    }
-    return () => {
-      if (interval) {
-        clearInterval(interval);
-      }
-    };
-  }, [isRecording]);
 
   const handleContinue = () => {
     markStepCompleted('welcome');
@@ -82,132 +54,9 @@ export default function WelcomeScreen() {
     setVideoPlaying(!videoPlaying);
   };
 
-  const startRecording = async () => {
-    try {
-      await Audio.requestPermissionsAsync();
-      await Audio.setAudioModeAsync({
-        allowsRecordingIOS: true,
-        playsInSilentModeIOS: true,
-      });
 
-      const { recording } = await Audio.Recording.createAsync(
-        Audio.RecordingOptionsPresets.HIGH_QUALITY,
-        (status) => console.log('Recording status:', status),
-        100
-      );
 
-      setRecording(recording);
-      setIsRecording(true);
-      setError(null);
-      setRecordingDuration(0);
-    } catch (err) {
-      console.error('Failed to start recording', err);
-      setError('Failed to start recording');
-    }
-  };
 
-  const stopRecording = async () => {
-    if (!recording) return;
-
-    try {
-      // Only process if we have recorded for at least 1 second
-      if (recordingDuration < 1000) {
-        setError(
-          'Recording is too short. Please record for at least 1 second.'
-        );
-        recording.stopAndUnloadAsync();
-        setRecording(null);
-        setIsRecording(false);
-        return;
-      }
-
-      await recording.stopAndUnloadAsync();
-      const uri = recording.getURI();
-
-      if (!uri) {
-        throw new Error('Failed to get recording URI');
-      }
-
-      // Get recording status to verify we have data
-      const status = await recording.getStatusAsync();
-      console.log('Recording status after stop:', status);
-
-      // Verify file exists and has content
-      const response = await fetch(uri);
-      const blob = await response.blob();
-
-      if (blob.size === 0) {
-        throw new Error('Recording is empty');
-      }
-
-      console.log('Recording file size:', blob.size);
-      await processRecording(uri);
-
-      setRecording(null);
-      setIsRecording(false);
-    } catch (err) {
-      console.error('Failed to stop recording', err);
-      setError('Failed to stop recording');
-    }
-  };
-
-  const processRecording = async (uri: string) => {
-    try {
-      setProcessing(true);
-      setError(null);
-      setProgress('Preparing audio...');
-
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (!user) throw new Error('Not authenticated');
-
-      const response = await fetch(uri);
-      const blob = await response.blob();
-
-      if (blob.size > 10 * 1024 * 1024) {
-        throw new Error(
-          'Recording is too large. Please try a shorter message.'
-        );
-      }
-
-      const formData = new FormData();
-      formData.append('file', {
-        uri,
-        type: 'audio/x-m4a',
-        name: 'recording.m4a',
-      } as any);
-      formData.append('userId', user.id);
-
-      setProgress('Transcribing audio...');
-
-      const result = await fetch(
-        `${process.env.EXPO_PUBLIC_SUPABASE_URL}/functions/v1/process-onboarding`,
-        {
-          method: 'POST',
-          headers: {
-            Authorization: `Bearer ${process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY}`,
-          },
-          body: formData,
-        }
-      );
-
-      if (!result.ok) {
-        const error = await result.json();
-        throw new Error(error.error || 'Failed to process recording');
-      }
-
-      setProgress('Setting up your profile...');
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      router.push('/(onboarding)/editorial');
-    } catch (err) {
-      console.error('Error processing recording:', err);
-      setError(err.message || 'Failed to process recording');
-    } finally {
-      setProcessing(false);
-      setProgress('');
-    }
-  };
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
