@@ -57,108 +57,108 @@ We will follow a TDD approach with the following test layers:
 ### Phase 1: Test Infrastructure Setup
 
 - [x] Create task documentation and planning
-- [ ] Set up Jest with React Native Testing Library
-- [ ] Create test utilities and mocks
-- [ ] Configure test coverage reporting
+- [x] Set up Jest with React Native Testing Library
+- [x] Create test utilities and mocks
+- [x] Configure test coverage reporting
 
 ### Phase 2: Core Components Development
 
-- [ ] Create OnboardingProvider component with tests
-  - [ ] State management for steps
-  - [ ] Survey answers storage
-  - [ ] Step navigation
-- [ ] Implement ProgressBar component with tests
+- [x] Create OnboardingProvider component with tests
+  - [x] State management for steps
+  - [x] Survey answers storage
+  - [x] Step navigation
+- [x] Implement ProgressBar component with tests
 
-  - [ ] Step visualization
-  - [ ] Current step indicator
-  - [ ] Completed steps tracking
+  - [x] Step visualization
+  - [x] Current step indicator
+  - [x] Completed steps tracking
 
-- [ ] Create Survey component with tests
+- [x] Create Survey component with tests
 
-  - [ ] Question rendering
-  - [ ] Options display
-  - [ ] Selection handling
-  - [ ] Answer validation
+  - [x] Question rendering
+  - [x] Options display
+  - [x] Selection handling
+  - [x] Answer validation
 
-- [ ] Design OptionCard component with tests
+- [x] Design OptionCard component with tests
 
-  - [ ] Visual feedback on selection
-  - [ ] Accessibility support
+  - [x] Visual feedback on selection
+  - [x] Accessibility support
 
-- [ ] Create ProcessingScreen component with tests
+- [x] Create ProcessingScreen component with tests
 
-  - [ ] Loading indicators
-  - [ ] Progress messaging
-  - [ ] Error handling
+  - [x] Loading indicators
+  - [x] Progress messaging
+  - [x] Error handling
 
-- [ ] Design SubscriptionCard component with tests
-  - [ ] Plan details display
-  - [ ] Featured plan highlighting
-  - [ ] Selection handling
+- [x] Design SubscriptionCard component with tests
+  - [x] Plan details display
+  - [x] Featured plan highlighting
+  - [x] Selection handling
 
 ### Phase 3: Screen Implementation
 
-- [ ] Update Welcome Screen with tests
+- [x] Update Welcome Screen with tests
 
-  - [ ] Add video/animation
-  - [ ] Improve value proposition
-  - [ ] Enhance CTA button
+  - [x] Add video/animation
+  - [x] Improve value proposition
+  - [x] Enhance CTA button
 
-- [ ] Create Survey Screen with tests
+- [x] Create Survey Screen with tests
 
-  - [ ] Integrate Survey component
-  - [ ] Handle navigation between questions
-  - [ ] Store survey answers
+  - [x] Integrate Survey component
+  - [x] Handle navigation between questions
+  - [x] Store survey answers
 
-- [ ] Enhance Voice Recording Screen with tests
+- [x] Enhance Voice Recording Screen with tests
 
-  - [ ] Improve UI for recording
-  - [ ] Add visual audio waveform
-  - [ ] Enhance processing state
+  - [x] Improve UI for recording
+  - [x] Add visual audio waveform
+  - [x] Enhance processing state
 
-- [ ] Update Editorial Profile Preview with tests
+- [x] Update Editorial Profile Preview with tests
 
-  - [ ] Show AI-generated profile
-  - [ ] Allow adjustments
-  - [ ] Confirmation UI
+  - [x] Show AI-generated profile
+  - [x] Allow adjustments
+  - [x] Confirmation UI
 
-- [ ] Create Features Showcase Screen with tests
+- [x] Create Features Showcase Screen with tests
 
-  - [ ] Highlight premium features
-  - [ ] Visual examples
-  - [ ] Pain point messaging
+  - [x] Highlight premium features
+  - [x] Visual examples
+  - [x] Pain point messaging
 
-- [ ] Design Trial Offer Screen with tests
+- [x] Design Trial Offer Screen with tests
 
-  - [ ] Free trial messaging
-  - [ ] Benefits visualization
-  - [ ] Notification opt-in
+  - [x] Free trial messaging
+  - [x] Benefits visualization
+  - [x] Notification opt-in
 
-- [ ] Implement Subscription Options Screen with tests
+- [x] Implement Subscription Options Screen with tests
 
-  - [ ] Plan comparison
-  - [ ] Recommended plan highlight
-  - [ ] Terms and conditions
-  - [ ] Skip option
+  - [x] Plan comparison
+  - [x] Recommended plan highlight
+  - [x] Terms and conditions
+  - [x] Skip option
 
-- [ ] Create Success/Completion Screen with tests
-  - [ ] Confirmation messaging
-  - [ ] Next steps guidance
-  - [ ] Quick tutorial option
+- [x] Create Success/Completion Screen with tests
+  - [x] Confirmation messaging
+  - [x] Next steps guidance
+  - [x] Quick tutorial option
 
 ### Phase 4: Backend Integration
 
-- [ ] Update process-onboarding Supabase function
+- [x] Update process-onboarding Supabase function
 
-  - [ ] Handle survey data
-  - [ ] Enhance LLM prompt for editorial profile
-  - [ ] Store subscription preferences
+  - [x] Handle survey data
+  - [x] Enhance LLM prompt for editorial profile
+  - [x] Store subscription preferences
 
-- [ ] Set up RevenueCat integration
+- [ ] ~~Set up RevenueCat integration~~ Deferred for TestFlight
 
-  - [ ] Configure subscription plans
-  - [ ] Implement purchase flow
-  - [ ] Handle trial management
+  - [ ] ~~Configure subscription plans~~
+  - [ ] ~~Implement purchase flow~~
+  - [ ] ~~Handle trial management~~
 
 - [ ] Implement analytics tracking
   - [ ] Onboarding step completion
@@ -167,24 +167,24 @@ We will follow a TDD approach with the following test layers:
 
 ### Phase 5: Flow Integration & Testing
 
-- [ ] Create integration tests for complete flow
+- [x] Create integration tests for complete flow
 
-  - [ ] Happy path testing
-  - [ ] Error handling paths
-  - [ ] Backward navigation testing
+  - [x] Happy path testing
+  - [x] Error handling paths
+  - [x] Backward navigation testing
 
-- [ ] Implement E2E tests
-  - [ ] Complete onboarding journey
-  - [ ] Voice recording flow
-  - [ ] Subscription flow
+- [x] Implement E2E tests
+  - [x] Complete onboarding journey
+  - [x] Voice recording flow
+  - [ ] ~~Subscription flow~~ Deferred for TestFlight
 
 ### Phase 6: Polish & Optimization
 
-- [ ] Add animations and transitions
+- [x] Add animations and transitions
 
-  - [ ] Screen transitions
-  - [ ] Selection animations
-  - [ ] Progress indicators
+  - [x] Screen transitions
+  - [x] Selection animations
+  - [x] Progress indicators
 
 - [ ] Optimize performance
 
@@ -198,168 +198,161 @@ We will follow a TDD approach with the following test layers:
   - [ ] Recovery paths
   - [ ] Fallback options
 
-- [ ] Implement accessibility improvements
-  - [ ] Screen reader support
-  - [ ] Focus management
-  - [ ] Color contrast
+---
 
-## Current Implementation Status
+# Task: Strategic Asset Creation Plan
 
-### Completed Tasks
+## Task ID: ASSET-001
 
-- [x] Create OnboardingProvider component for state management
-- [x] Implement ProgressBar component with tests
-- [x] Create Survey component with tests
-- [x] Design and implement Option selection component with tests
-- [x] Create ProcessingScreen component with tests
-- [x] Design SubscriptionCard component with tests
-- [x] Update welcome screen with improved UI/UX
-- [x] Create survey questions screens
-- [x] Enhance voice recording screen
-- [x] Implement processing/customization screen
-- [x] Create features showcase screen
-- [x] Design trial offer screen
-- [x] Implement subscription options screen
-- [x] Create success/completion screen
+## Complexity Level: Level 2
 
-### Issues to Fix
+## Priority: Medium
 
-- [ ] Fix redirection to non-existent screens during the onboarding flow
-- [ ] Prevent automatic progression through the last screens to allow user control
-- [ ] Fix UI stacking issue with landing page border showing in main app
-- [ ] Translate all onboarding screens to French for initial release
-- [ ] Implement proper data tracking for form submissions
-- [ ] Fix edge cases for users with existing profiles
+## Description
 
-### Next Steps
+Create a comprehensive strategic plan for asset creation that will enhance the visual appeal and user experience of the app. This plan should identify key areas for improvement, prioritize asset creation, and provide a roadmap for implementation.
 
-1. Implement proper data tracking and storage of survey answers
-2. Fix navigation issues in the onboarding flow
-3. Translate all onboarding content to French
-4. Test the complete flow with both new and existing users
-5. Add analytics tracking for the onboarding steps
+## Requirements
 
-## Current Status: Planning Phase Complete
+1. Identify key areas where visual assets can improve user experience
+2. Create a prioritized list of assets to develop
+3. Ensure assets are reusable across the app
+4. Consider performance implications of asset implementation
+5. Focus on assets that create a "wow" effect for users
 
-## Next Steps
+## Affected Components
 
-1. Begin test infrastructure setup
-2. Start implementing OnboardingProvider component
-3. Create ProgressBar component
+- Global UI components
+- Onboarding screens
+- Content creation screens
+- Dashboard and analytics displays
 
-## Active Tasks
+## Success Criteria
 
-### ONB-002: Fix Automatic Screen Advancing in Onboarding Flow
+- Comprehensive asset plan document created
+- Clear prioritization of asset development
+- Implementation roadmap with timeline estimates
+- Consideration for performance and reusability
 
-- **Description**: Fix the issue where screens in the onboarding flow (particularly features, trial-offer, and subscription screens) advance automatically without user control
-- **Priority**: High
-- **Estimated Time**: 3 hours
-- **Status**: Completed
-- **Dependencies**: None
-- **Solution Implemented**:
-  - Added `MANUAL_ADVANCE_SCREENS` constant to identify screens that should never auto-advance
-  - Updated OnboardingProvider to disable auto-progression by default
-  - Added `isAutoProgressAllowed` function to check if a step should allow auto-progression
-  - Modified features, trial-offer, and subscription screens to explicitly disable auto-progression
-  - Updated ProcessingScreen component to respect auto-progression setting
+## Implementation Plan
 
-### ONB-003: Implement RevenueCat Payment Processing
+### Phase 1: Analysis & Planning
 
-- **Description**: Integrate RevenueCat for subscription management and payment processing
-- **Priority**: Low
-- **Estimated Time**: 8 hours
-- **Status**: Deferred (Not required for TestFlight release)
-- **Dependencies**: None
-- **Subtasks**:
-  - [ ] Sign up for RevenueCat developer account
-  - [ ] Create subscription products in RevenueCat dashboard
-  - [ ] Install and configure RevenueCat SDK
-  - [ ] Implement subscription purchase flow
-  - [ ] Add subscription validation
-  - [ ] Test purchase flow on iOS and Android
-  - [ ] Implement restore purchases functionality
+- [x] Audit current app for visual assets
+- [x] Identify gaps and opportunities for improvement
+- [x] Research best practices for mobile app visual design
+- [x] Create asset categories and organization system
 
-### APP-001: Implement Usage Tracking for TestFlight
+### Phase 2: Strategy Development
 
-- **Description**: Create a system to track and limit video generation usage for TestFlight users without implementing payments
-- **Priority**: High
-- **Estimated Time**: 6 hours
-- **Status**: Completed
-- **Dependencies**: None
-- **Subtasks**:
-  - [x] Create `user_usage` table in Supabase with video count and reset date fields
-  - [x] Implement usage tracking in video generation API
-  - [x] Add usage limit checks before video generation
-  - [x] Create usage dashboard in the app
-  - [x] Implement monthly usage reset mechanism
-  - [x] Add admin capability to adjust usage limits
+- [x] Define core brand identity requirements
+- [x] Create prioritized list of assets by impact
+- [x] Develop implementation roadmap
+- [x] Establish reusability guidelines
 
-### ONB-004: Remove Subscription Screens for TestFlight
+### Phase 3: Documentation
 
-- **Description**: Modify the onboarding flow to remove subscription-related screens for TestFlight beta
-- **Priority**: High
-- **Estimated Time**: 2 hours
-- **Status**: Completed
-- **Dependencies**: None
-- **Subtasks**:
-  - [x] Create feature flag system for conditionally enabling/disabling screens
-  - [x] Update OnboardingProvider to support feature flags
-  - [x] Create useOnboardingSteps hook for consistent step management
-  - [x] Update all onboarding screens to use the new hook
-  - [x] Update ProgressBar component to reflect filtered steps
-  - [x] Add environment variables for TestFlight in eas.json
-  - [x] Test complete onboarding flow without subscription screens
+- [x] Create comprehensive asset plan document
+- [x] Document asset specifications and requirements
+- [x] Create sample mockups for key assets
+- [x] Define success metrics for asset implementation
 
-### APP-002: TestFlight Preparation and Submission
+## Deliverables
 
-- **Description**: Prepare the app for TestFlight submission and testing
-- **Priority**: High
-- **Estimated Time**: 5 hours
-- **Status**: In Progress
-- **Dependencies**: APP-001
-- **Subtasks**:
-  - [x] Configure feature flags for TestFlight builds
-  - [x] Update eas.json with TestFlight environment variables
-  - [x] Modify onboarding flow to hide subscription screens
-  - [ ] Update app.json with correct configuration
-  - [ ] Verify app icon and splash screen assets
-  - [ ] Update app metadata and screenshots
-  - [ ] Update features page to match TestFlight offering
-  - [ ] Fix character constraints in Editorial Profile form
-  - [ ] Improve Voice Clone page UI/UX
-  - [ ] Configure TestFlight testing groups
-  - [ ] Create privacy policy for App Store
-  - [ ] Test on multiple iOS devices
-  - [ ] Prepare TestFlight invitation text
-  - [ ] Submit for App Store review
+- [x] Strategic Asset Creation Plan document
+- [ ] Asset specifications for priority items
+- [ ] Implementation timeline and roadmap
+- [ ] Success metrics and evaluation criteria
 
-### UI-001: Fix Editorial Profile UI
+---
 
-- **Description**: Improve the Editorial Profile UI with proper character constraints and better UX
-- **Priority**: Medium
-- **Estimated Time**: 3 hours
-- **Status**: Not Started
-- **Dependencies**: None
-- **Subtasks**:
-  - [ ] Fix character overflow in profile form
-  - [ ] Add proper validation for field lengths
-  - [ ] Improve visual feedback on character limits
-  - [ ] Ensure consistent styling across all form fields
-  - [ ] Test with different content lengths
-  - [ ] Fix any layout issues on different device sizes
+# Task: Voice Clone & Editorial Profile Pages Redesign
 
-### UI-002: Improve Voice Clone Page
+## Task ID: UI-002
 
-- **Description**: Enhance the Voice Clone page UI and UX
-- **Priority**: Medium
-- **Estimated Time**: 4 hours
-- **Status**: Not Started
-- **Dependencies**: None
-- **Subtasks**:
-  - [ ] Redesign recording interface for better clarity
-  - [ ] Add visual audio waveform during recording
-  - [ ] Improve recording state indicators
-  - [ ] Add playback capability for recorded samples
-  - [ ] Enhance error messaging
-  - [ ] Implement better loading states
-  - [ ] Test recording functionality on various devices
+## Complexity Level: Level 3
+
+## Priority: Medium
+
+## Description
+
+Redesign the Voice Clone and Editorial Profile pages to create a more engaging, visually appealing, and user-friendly experience. The current pages are functional but lack visual appeal and clear guidance for users.
+
+## Requirements
+
+1. Create visually engaging layouts for both pages
+2. Add illustrations and visualizations to explain concepts
+3. Improve user guidance through the voice cloning process
+4. Enhance the editorial profile creation with visual elements
+5. Maintain all current functionality while improving the UX
+6. Implement animations and transitions for a polished feel
+
+## Affected Components
+
+- `app/(onboarding)/voice-clone.tsx`
+- `app/(onboarding)/editorial-profile.tsx`
+- New components to be created for visualizations
+
+## Success Criteria
+
+- Increased completion rate for voice clone creation
+- Higher quality editorial profiles (measured by character count)
+- Positive user feedback on the redesigned pages
+- Improved visual consistency with the rest of the app
+- All tests pass
+
+## Components requiring CREATIVE phase
+
+- Voice technology visualization
+- Editorial style representation
+- Process flow visualizations
+- Custom icons and illustrations
+
+## Implementation Plan
+
+### Phase 1: Research & Planning
+
+- [x] Analyze current screens and identify limitations
+- [x] Research best practices for similar interfaces
+- [x] Create detailed redesign specifications
+- [ ] Gather reference images and inspiration
+
+### Phase 2: Asset Creation
+
+- [ ] Design custom icons for both pages
+- [ ] Create header images for both screens
+- [ ] Design waveform visualization for voice clone page
+- [ ] Create style visualization component for editorial page
+- [ ] Design button states and animations
+
+### Phase 3: Voice Clone Page Implementation
+
+- [ ] Restructure layout based on new design
+- [ ] Implement hero section with new visuals
+- [ ] Add process visualization component
+- [ ] Redesign benefits section with new icons
+- [ ] Enhance CTA buttons with animations
+
+### Phase 4: Editorial Profile Page Implementation
+
+- [ ] Restructure layout with card-based approach
+- [ ] Implement header with new visuals
+- [ ] Create enhanced input fields with examples
+- [ ] Add style visualization component
+- [ ] Implement improved submission section
+
+### Phase 5: Testing & Refinement
+
+- [ ] Conduct usability testing with team members
+- [ ] Gather feedback on visual design and interactions
+- [ ] Make refinements based on feedback
+- [ ] Ensure responsiveness across different device sizes
+- [ ] Optimize animations for performance
+
+## Deliverables
+
+- [ ] Redesigned Voice Clone page
+- [ ] Redesigned Editorial Profile page
+- [ ] Custom visual assets for both pages
+- [ ] Animation and interaction enhancements
+- [ ] Test coverage for new components
