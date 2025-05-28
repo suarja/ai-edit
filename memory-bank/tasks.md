@@ -294,6 +294,22 @@ We will follow a TDD approach with the following test layers:
   - [x] Implement monthly usage reset mechanism
   - [x] Add admin capability to adjust usage limits
 
+### ONB-004: Remove Subscription Screens for TestFlight
+
+- **Description**: Modify the onboarding flow to remove subscription-related screens for TestFlight beta
+- **Priority**: High
+- **Estimated Time**: 2 hours
+- **Status**: Completed
+- **Dependencies**: None
+- **Subtasks**:
+  - [x] Create feature flag system for conditionally enabling/disabling screens
+  - [x] Update OnboardingProvider to support feature flags
+  - [x] Create useOnboardingSteps hook for consistent step management
+  - [x] Update all onboarding screens to use the new hook
+  - [x] Update ProgressBar component to reflect filtered steps
+  - [x] Add environment variables for TestFlight in eas.json
+  - [x] Test complete onboarding flow without subscription screens
+
 ### APP-002: TestFlight Preparation and Submission
 
 - **Description**: Prepare the app for TestFlight submission and testing
@@ -302,11 +318,12 @@ We will follow a TDD approach with the following test layers:
 - **Status**: In Progress
 - **Dependencies**: APP-001
 - **Subtasks**:
+  - [x] Configure feature flags for TestFlight builds
+  - [x] Update eas.json with TestFlight environment variables
+  - [x] Modify onboarding flow to hide subscription screens
   - [ ] Update app.json with correct configuration
-  - [ ] Configure eas.json for TestFlight builds
   - [ ] Verify app icon and splash screen assets
   - [ ] Update app metadata and screenshots
-  - [ ] Modify onboarding flow to remove subscription screens
   - [ ] Update features page to match TestFlight offering
   - [ ] Fix character constraints in Editorial Profile form
   - [ ] Improve Voice Clone page UI/UX
@@ -346,19 +363,3 @@ We will follow a TDD approach with the following test layers:
   - [ ] Enhance error messaging
   - [ ] Implement better loading states
   - [ ] Test recording functionality on various devices
-
-### ONB-004: Remove Subscription Screens for TestFlight
-
-- **Description**: Modify the onboarding flow to remove subscription-related screens for TestFlight beta
-- **Priority**: High
-- **Estimated Time**: 2 hours
-- **Status**: Not Started
-- **Dependencies**: None
-- **Subtasks**:
-  - [ ] Remove Trial Offer screen from the flow
-  - [ ] Remove Subscription Options screen from the flow
-  - [ ] Update ProgressBar component to reflect new step count
-  - [ ] Update navigation in OnboardingProvider
-  - [ ] Add usage information to the Features screen
-  - [ ] Update Success screen messaging for TestFlight
-  - [ ] Test complete onboarding flow without subscription screens

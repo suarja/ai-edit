@@ -15,7 +15,7 @@ _Transform your content creation workflow with AI-powered video generation_
 
 ## ✨ Overview
 
-AI Edit combines cutting-edge AI technology with intuitive design to revolutionize content creation. Our platform allows creators to generate professional-quality videos with personalized voice-overs, scripts, and visual styles - all powered by state-of-the-art AI.
+EditIA combines cutting-edge AI technology with intuitive design to revolutionize content creation. Our platform allows creators to generate professional-quality videos with personalized voice-overs, scripts, and visual styles - all powered by state-of-the-art AI.
 
 <div align="center">
   <img src="docs/assets/demo.gif" alt="AI Edit Demo" width="600px" />

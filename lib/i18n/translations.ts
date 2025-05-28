@@ -54,7 +54,7 @@ export const translations = {
     account: 'Compte',
     preferences: 'Préférences',
     support: 'Support',
-    helpCenter: 'Centre d'aide',
+    helpCenter: "Centre d'aide",
     language: 'Langue',
     notifications: 'Notifications',
     privacy: 'Confidentialité',
@@ -76,7 +76,7 @@ export const translations = {
     delete: 'Supprimer',
     create: 'Créer',
     update: 'Mettre à jour',
-  }
+  },
 };
 
 export type TranslationKey = keyof typeof translations.fr;

@@ -12,25 +12,27 @@ We are preparing the app for TestFlight beta testing, implementing usage trackin
 | ------- | --------------------------------------- | ----------- | -------- | ----- |
 | ONB-001 | Enhanced Onboarding Flow Implementation | Completed   | High     | Team  |
 | APP-001 | Implement Usage Tracking for TestFlight | Completed   | High     | Team  |
-| APP-002 | TestFlight Preparation and Submission   | Not Started | High     | Team  |
+| APP-002 | TestFlight Preparation and Submission   | In Progress | High     | Team  |
 
 ### Recently Completed Tasks
 
-| Task ID   | Description                                       | Completion Date |
-| --------- | ------------------------------------------------- | --------------- |
-| ONB-002   | Fix Automatic Screen Advancing in Onboarding Flow | 2023-12-10      |
-| DB-001    | Fix onboarding_survey database schema             | 2023-12-05      |
-| AUTH-001  | Authentication Implementation                     | 2023-11-15      |
-| VOICE-001 | Basic Voice Recording & Cloning                   | 2023-11-20      |
-| UI-001    | Initial App Shell & Navigation                    | 2023-11-10      |
+| Task ID   | Description                                         | Completion Date |
+| --------- | --------------------------------------------------- | --------------- |
+| ONB-003   | Modify Onboarding Flow for TestFlight (No Payments) | 2023-12-12      |
+| ONB-002   | Fix Automatic Screen Advancing in Onboarding Flow   | 2023-12-10      |
+| DB-001    | Fix onboarding_survey database schema               | 2023-12-05      |
+| AUTH-001  | Authentication Implementation                       | 2023-11-15      |
+| VOICE-001 | Basic Voice Recording & Cloning                     | 2023-11-20      |
+| UI-001    | Initial App Shell & Navigation                      | 2023-11-10      |
 
 ## Current Sprint Goals
 
 1. Complete onboarding flow redesign and implementation ✅
 2. Implement usage tracking and limits for TestFlight ✅
-3. Set up analytics tracking for onboarding flow
-4. Prepare app for TestFlight submission 🔄
-5. Fix remaining UI issues 🔄
+3. Modify onboarding flow for TestFlight (no subscription screens) ✅
+4. Set up analytics tracking for onboarding flow
+5. Prepare app for TestFlight submission 🔄
+6. Fix remaining UI issues 🔄
 
 ## Detailed Implementation Plan
 
@@ -88,10 +90,11 @@ We are preparing the app for TestFlight beta testing, implementing usage trackin
 
 ### 7. TestFlight Preparation
 
+- [x] Configure feature flags for TestFlight builds
+- [x] Update eas.json with TestFlight environment variables
+- [x] Modify onboarding flow to hide subscription screens
 - [ ] Update app.json with correct configuration
-- [ ] Configure eas.json for TestFlight builds
 - [ ] Update app assets (icons, splash screen)
-- [ ] Modify onboarding flow to remove subscription screens
 - [ ] Update features page content for TestFlight
 - [ ] Fix UI issues in Editorial Profile and Voice Clone pages
 - [ ] Create privacy policy document
@@ -109,6 +112,7 @@ We are preparing the app for TestFlight beta testing, implementing usage trackin
    - Step navigation
    - Survey answers storage
    - Step completion tracking
+   - Feature flag support for conditional screens
 
 2. **ProgressBar**
 
@@ -183,6 +187,7 @@ We are preparing the app for TestFlight beta testing, implementing usage trackin
    - Free trial explanation
    - Benefit listing
    - Notification options
+   - Conditionally disabled for TestFlight
 
 7. **Subscription Screen**
 
@@ -190,11 +195,35 @@ We are preparing the app for TestFlight beta testing, implementing usage trackin
    - Selection mechanism
    - Payment information
    - Terms and conditions
+   - Conditionally disabled for TestFlight
 
 8. **Success Screen**
    - Completion confirmation
    - Next steps guidance
    - App redirection
+
+### TestFlight Configuration (APP-002)
+
+#### Completed Items
+
+1. **Feature Flags System**
+
+   - Created feature flags configuration file
+   - Added flag for subscription screens (disabled in TestFlight)
+   - Added flag for usage limits (enabled in TestFlight)
+   - Environment-specific configurations
+
+2. **Onboarding Flow Modifications**
+
+   - Updated OnboardingProvider to filter steps based on feature flags
+   - Created useOnboardingSteps hook for consistent step management
+   - Updated all onboarding screens to use the filtered steps
+   - Ensured progress bar reflects only enabled steps
+
+3. **Environment Configuration**
+   - Updated eas.json with TestFlight-specific environment variables
+   - Added EXPO_PUBLIC_IS_TESTFLIGHT flag
+   - Configured different environments (dev, preview, production)
 
 #### Issues to Address
 
