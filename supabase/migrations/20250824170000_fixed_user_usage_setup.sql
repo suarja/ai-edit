@@ -55,7 +55,7 @@ DROP POLICY IF EXISTS admin_user_roles_policy ON user_roles;
 DROP POLICY IF EXISTS user_roles_select_policy ON user_roles;
 -- Bootstrap policy for the first admin (no admins exist yet)
 CREATE POLICY bootstrap_admin_policy ON user_roles FOR
-INSERT USING (true);
+INSERT WITH CHECK (true);
 -- Only allow admins to manage roles
 CREATE POLICY admin_user_roles_policy ON user_roles USING (
     EXISTS (
