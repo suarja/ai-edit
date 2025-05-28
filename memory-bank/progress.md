@@ -1,186 +1,207 @@
-# Progress: AI Edit
+# Project Progress: AI Edit
 
-## What's Working ✅
+## Current Development Focus
 
-### Core Infrastructure
-- **React Native/Expo Setup**: Complete development environment with TypeScript
-- **Supabase Integration**: Database, authentication, and storage configured
-- **Navigation System**: Expo Router with tab-based navigation implemented
-- **Authentication Flow**: Sign-in/sign-up with Supabase Auth working
-- **File Storage**: Video upload system with RLS policies configured
+We are enhancing the onboarding flow to improve user retention and conversion rates while maintaining the existing voice recording functionality. This update will incorporate best practices from modern app onboarding flows as outlined in the `docs/onboarding/video-transcription.md` template.
 
-### AI Integration
-- **OpenAI GPT-4**: Script generation agent fully implemented
-- **Script Optimization**: Review system for ElevenLabs TTS compatibility
-- **Prompt Engineering**: Specialized prompts for TikTok-style content
-- **Editorial Profiles**: User persona and style configuration system
+## Task Status
 
-### Database Schema
-- **User Management**: Core user table with profile support
-- **Editorial Profiles**: Persona, tone, audience, and style storage
-- **File Tracking**: Video asset management system
-- **Security**: Row Level Security policies implemented
+### Active Tasks
 
-### App Structure
-- **Landing Page**: French-language welcome screen
-- **Onboarding Flow**: Welcome, profile setup, voice clone screens
-- **Main Navigation**: Four-tab structure (Sources, Créer, Générées, Paramètres)
-- **Route Organization**: Proper file-based routing with layouts
+| Task ID | Description                             | Status      | Priority | Owner |
+| ------- | --------------------------------------- | ----------- | -------- | ----- |
+| ONB-001 | Enhanced Onboarding Flow Implementation | In Progress | High     | Team  |
 
-## In Progress 🚧
+### Recently Completed Tasks
 
-### Video Generation Pipeline
-- **API Endpoints**: Basic structure exists, needs completion
-- **Status Tracking**: Framework in place, needs full implementation
-- **Creatomate Integration**: Partially planned, needs development
-- **Error Handling**: Basic structure, needs comprehensive coverage
+| Task ID   | Description                           | Completion Date |
+| --------- | ------------------------------------- | --------------- |
+| DB-001    | Fix onboarding_survey database schema | 2023-12-05      |
+| AUTH-001  | Authentication Implementation         | 2023-11-15      |
+| VOICE-001 | Basic Voice Recording & Cloning       | 2023-11-20      |
+| UI-001    | Initial App Shell & Navigation        | 2023-11-10      |
 
-### User Interface
-- **Screen Layouts**: Basic structure exists, needs full UI implementation
-- **Component Library**: Ad-hoc components, needs standardization
-- **Loading States**: Partial implementation, needs completion
-- **Error States**: Basic structure, needs comprehensive coverage
+## Current Sprint Goals
 
-### AI Agents
-- **CreatomateBuilder**: Planned but not implemented
-- **Template System**: Design phase, needs implementation
-- **Voice Integration**: ElevenLabs setup planned, needs completion
+1. Complete onboarding flow redesign and implementation
+2. Implement test suite for onboarding components
+3. Set up analytics tracking for onboarding flow
+4. Integrate monetization path with subscription options
+5. Implement payment processing with RevenueCat
 
-## Not Started ❌
+## Detailed Implementation Plan
 
-### Core Features
-- **Complete Video Generation**: End-to-end pipeline missing
-- **Video Preview**: Playback and preview functionality
-- **Batch Processing**: Multiple video generation
-- **Template Management**: Video template system
+### 1. Technical Foundation (TDD Setup)
 
-### User Experience
-- **Settings Screen**: User preferences and configuration
-- **Video Library**: Generated content management
-- **Search/Filter**: Content organization features
-- **Sharing**: Export and sharing functionality
+- [x] Create test configuration for React Native components
+- [x] Set up Jest with React Native Testing Library
+- [x] Create base test utilities for components
+- [x] Set up test coverage reporting
 
-### Advanced Features
-- **Analytics**: Usage tracking and insights
-- **Monetization**: Subscription and payment system
-- **Multi-language**: Internationalization beyond French
-- **Offline Support**: Local caching and sync
+### 2. Core Components Development
 
-### Quality Assurance
-- **Testing Framework**: No tests implemented
-- **Performance Monitoring**: No metrics collection
-- **Error Tracking**: No crash reporting
-- **User Feedback**: No feedback collection system
+- [x] Create OnboardingProvider component for state management
+- [x] Implement ProgressBar component with tests
+- [x] Create Survey component with tests
+- [x] Design and implement Option selection component with tests
+- [ ] Create ProcessingScreen component with tests
+- [ ] Design SubscriptionCard component with tests
 
-## Technical Debt 📋
+### 3. Enhanced Onboarding Flow Implementation
 
-### Code Quality
-- **Type Safety**: Incomplete TypeScript coverage
-- **Component Reusability**: Many one-off components
-- **Code Documentation**: Limited inline documentation
-- **Consistent Styling**: Mixed styling approaches
+- [ ] Update welcome screen with improved UI/UX
+- [ ] Create survey questions screens
+- [ ] Enhance voice recording/upload screen
+- [ ] Implement processing/customization screen
+- [ ] Update editorial profile preview screen
+- [ ] Create features showcase screen
+- [ ] Design trial offer screen
+- [ ] Implement subscription options screen
+- [ ] Create success/completion screen
 
-### Architecture
-- **Error Boundaries**: No React error boundaries
-- **State Management**: No global state solution
-- **Caching Strategy**: No systematic caching
-- **Performance Optimization**: No mobile-specific optimizations
+### 4. Backend Integration
 
-### Development Process
-- **CI/CD Pipeline**: No automated deployment
-- **Code Review Process**: No established workflow
-- **Version Control**: Basic Git usage, no branching strategy
-- **Environment Management**: Manual environment setup
+- [ ] Update process-onboarding function to handle survey data
+- [ ] Enhance LLM prompt for editorial profile generation
+- [ ] Implement subscription management with RevenueCat
+- [ ] Set up analytics events for onboarding steps
 
-## Current Status Summary
+### 5. Testing & Validation
 
-### Completion Estimate
-- **Foundation**: ~80% complete
-- **Core Features**: ~30% complete
-- **User Experience**: ~20% complete
-- **Advanced Features**: ~0% complete
-- **Overall Project**: ~35% complete
+- [ ] Complete unit tests for all components
+- [ ] Implement integration tests for flow transitions
+- [ ] Create end-to-end tests for complete onboarding
+- [ ] Verify audio processing and profile generation
+- [ ] Test subscription management
 
-### Working Features
-1. User authentication and onboarding
-2. Editorial profile configuration
-3. AI script generation (GPT-4)
-4. Basic file upload system
-5. Navigation and routing
+### 6. Polish & Optimization
 
-### Critical Missing Pieces
-1. Complete video generation pipeline
-2. Creatomate integration
-3. Full UI implementation
-4. Error handling and user feedback
-5. Testing and quality assurance
+- [ ] Add animations and transitions
+- [ ] Optimize performance for lower-end devices
+- [ ] Implement proper error handling
+- [ ] Add loading states and fallbacks
+- [ ] Ensure accessibility compliance
 
-## Next Milestones 🎯
+## Implementation Progress
 
-### Milestone 1: MVP Video Generation
-**Target**: Complete end-to-end video creation
-- Finish Creatomate integration
-- Complete API endpoints
-- Implement status tracking
-- Basic error handling
+### Enhanced Onboarding Flow Implementation (ONB-001)
 
-### Milestone 2: Core UI Implementation
-**Target**: Fully functional user interface
-- Complete all main screens
-- Standardize component library
-- Implement loading and error states
-- User feedback system
+#### Completed Components
 
-### Milestone 3: Quality & Polish
-**Target**: Production-ready application
-- Comprehensive testing
-- Performance optimization
-- Error tracking and monitoring
-- User onboarding improvements
+1. **OnboardingProvider**
 
-### Milestone 4: Advanced Features
-**Target**: Enhanced user experience
-- Video library management
-- Advanced settings
-- Analytics and insights
-- Sharing and export features
+   - State management for onboarding flow
+   - Step navigation
+   - Survey answers storage
+   - Step completion tracking
 
-## Blockers & Risks ⚠️
+2. **ProgressBar**
 
-### Technical Risks
-- **Creatomate Integration**: Complex video rendering API
-- **Mobile Performance**: Video processing on mobile devices
-- **AI Service Reliability**: Dependency on external AI services
-- **File Storage Costs**: Scaling video storage expenses
+   - Visual step tracking
+   - Completed step indicators
+   - Current step highlighting
+   - Responsive design
 
-### Development Risks
-- **Single Developer**: No team redundancy
-- **No Testing**: High risk of regressions
-- **External Dependencies**: Multiple third-party service dependencies
-- **Mobile Platform Changes**: Expo/React Native updates
+3. **OptionCard**
 
-### Business Risks
-- **AI Service Costs**: Scaling costs with usage
-- **Competition**: Fast-moving AI video generation market
-- **User Adoption**: Complex onboarding process
-- **Platform Policies**: App store approval requirements
+   - Visual styling
+   - Selection handling
+   - Selected state with check icon
+   - Accessibility support
 
-## Success Metrics 📊
+4. **Survey**
 
-### Technical Metrics
-- **Video Generation Success Rate**: Target >95%
-- **App Performance**: <3s load times
-- **Crash Rate**: <1% of sessions
-- **API Response Times**: <2s average
+   - Question rendering
+   - Option selection
+   - Answer validation
+   - Continue button with disabled state
 
-### User Metrics
-- **Onboarding Completion**: Target >80%
-- **Feature Adoption**: Video generation usage
-- **User Retention**: 7-day and 30-day retention
-- **User Satisfaction**: App store ratings
+5. **ProcessingScreen**
+   - Loading indicators
+   - Progress messaging
+   - Step visualization
+   - Auto-completion support
+6. **SubscriptionCard**
+   - Plan details display
+   - Featured plan highlighting
+   - Selection handling
+   - Visual feedback for selection
 
-### Business Metrics
-- **User Acquisition**: Monthly active users
-- **Content Creation**: Videos generated per user
-- **Engagement**: Session duration and frequency
-- **Revenue**: Subscription and usage-based revenue
+#### Completed Screens
+
+1. **Welcome Screen**
+
+   - Introduction to the app
+   - Feature highlights
+   - Video demo placeholder
+   - Get started button
+
+2. **Survey Screen**
+
+   - Multiple question support
+   - Option selection
+   - Progress tracking
+   - Dynamic navigation
+
+3. **Voice Recording Screen**
+
+   - Audio recording functionality
+   - Recording visualization
+   - Skip option
+   - Error handling
+
+4. **Processing Screen**
+
+   - Step visualization
+   - Progress animation
+   - Automated progression
+
+5. **Features Screen**
+
+   - Feature showcasing
+   - Visual iconography
+   - App statistics
+   - User testimonials
+
+6. **Trial Offer Screen**
+
+   - Free trial explanation
+   - Benefit listing
+   - Notification options
+
+7. **Subscription Screen**
+
+   - Plan comparison
+   - Selection mechanism
+   - Payment information
+   - Terms and conditions
+
+8. **Success Screen**
+   - Completion confirmation
+   - Next steps guidance
+   - App redirection
+
+#### Issues to Address
+
+- Navigation routing to non-existent screens
+- Automatic progression without user control (critical issue: screens advancing too quickly without user interaction)
+- UI stacking problems
+- Missing French localization
+- Proper form data tracking and storage
+- Edge cases for users with existing profiles
+
+## Next Steps
+
+1. Fix the navigation issues in the onboarding flow
+2. Fix the automatic progression issue by adding user control for advancing between screens
+3. Implement RevenueCat integration for subscription management
+4. Translate all content to French for the initial release
+5. Implement proper data tracking mechanisms
+6. Test with both new and existing users
+7. Add analytics to track conversion rates
+
+## Blockers & Dependencies
+
+1. RevenueCat API key setup required
+2. Need to confirm subscription pricing tiers
+3. ElevenLabs integration requires testing with new flow

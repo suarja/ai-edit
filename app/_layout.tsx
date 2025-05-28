@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import React from 'react';
 import { Redirect, Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useAuth } from '@/hooks/useAuth';
@@ -18,16 +18,18 @@ export default function RootLayout() {
         screenOptions={{
           headerShown: false,
           animation: 'fade',
-        }}>
+        }}
+      >
         {session ? (
           <>
             <Stack.Screen name="(tabs)" />
             <Stack.Screen name="(onboarding)" />
+            <Stack.Screen name="video-details" />
           </>
         ) : (
           <Stack.Screen name="(auth)" />
         )}
-        <Stack.Screen name="+not-found" />
+        <Stack.Screen name="+not-found" options={{ presentation: 'modal' }} />
       </Stack>
       <StatusBar style="light" />
       {session && <Redirect href="/(tabs)/source-videos" />}
