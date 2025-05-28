@@ -49,45 +49,114 @@ export default function AdminUsageSettings() {
         return;
       }
 
-      // Look up the target user
-      const { data: userData, error: userError } = await supabase
-        .from('auth.users')
-        .select('id, email, created_at')
-        .eq('email', email.trim())
-        .single();
-
-      if (userError || !userData) {
-        setResult({
-          success: false,
-          message: `No user found with email: ${email}`,
+      // Look up the target user using the admin API
+      const { data: adminData, error: adminDataError } =
+        await supabase.auth.admin.listUsers({
+          page: 1,
+          perPage: 1,
+          filter: {
+            email: email.trim(),
+          },
         });
-        return;
-      }
 
-      // Get the user's usage data
-      const { data: usageData, error: usageError } = await supabase
-        .from('user_usage')
-        .select('*')
-        .eq('user_id', userData.id)
-        .single();
+      if (adminDataError || !adminData || adminData.users.length === 0) {
+        // If admin API fails or isn't available in our plan, try the function approach
+        // Get the user ID using Supabase Functions (since direct auth.users access isn't allowed)
+        const getUserResponse = await fetch(
+          `${process.env.EXPO_PUBLIC_SUPABASE_URL}/functions/v1/get-user-id-by-email`,
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY}`,
+            },
+            body: JSON.stringify({ email: email.trim() }),
+          }
+        );
 
-      // If no usage record, return the user info anyway
-      if (usageError && usageError.code !== 'PGRST116') {
+        if (!getUserResponse.ok) {
+          setResult({
+            success: false,
+            message: `No user found with email: ${email}`,
+          });
+          return;
+        }
+
+        const userData = await getUserResponse.json();
+
+        if (!userData || !userData.id) {
+          setResult({
+            success: false,
+            message: `No user found with email: ${email}`,
+          });
+          return;
+        }
+
+        // Continue with the user data we got
+        const userId = userData.id;
+        const userEmail = email.trim();
+        const createdAt = userData.created_at || new Date().toISOString();
+
+        // Get the user's usage data
+        const { data: usageData, error: usageError } = await supabase
+          .from('user_usage')
+          .select('*')
+          .eq('user_id', userId)
+          .single();
+
+        // If no usage record, return the user info anyway
+        if (usageError && usageError.code !== 'PGRST116') {
+          setResult({
+            success: false,
+            message: `Error fetching usage data: ${usageError.message}`,
+          });
+          return;
+        }
+
         setResult({
-          success: false,
-          message: `Error fetching usage data: ${usageError.message}`,
+          success: true,
+          message: 'User found',
+          userData: {
+            id: userId,
+            email: userEmail,
+            created_at: createdAt,
+            usage: usageData || { videos_generated: 0, videos_limit: 0 },
+          },
         });
-        return;
-      }
+      } else {
+        // Use the admin API data
+        const userId = adminData.users[0].id;
+        const userEmail = adminData.users[0].email || email.trim();
+        const createdAt =
+          adminData.users[0].created_at || new Date().toISOString();
 
-      setResult({
-        success: true,
-        message: 'User found',
-        userData: {
-          ...userData,
-          usage: usageData || { videos_generated: 0, videos_limit: 0 },
-        },
-      });
+        // Get the user's usage data
+        const { data: usageData, error: usageError } = await supabase
+          .from('user_usage')
+          .select('*')
+          .eq('user_id', userId)
+          .single();
+
+        // If no usage record, return the user info anyway
+        if (usageError && usageError.code !== 'PGRST116') {
+          setResult({
+            success: false,
+            message: `Error fetching usage data: ${usageError.message}`,
+          });
+          return;
+        }
+
+        setResult({
+          success: true,
+          message: 'User found',
+          userData: {
+            id: userId,
+            email: userEmail,
+            created_at: createdAt,
+            usage: usageData || { videos_generated: 0, videos_limit: 0 },
+          },
+        });
+      }
     } catch (error: any) {
       setResult({
         success: false,
