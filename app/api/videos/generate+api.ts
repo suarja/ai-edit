@@ -8,6 +8,7 @@ import {
   errorResponse,
   HttpStatus,
 } from '@/lib/utils/api/responses';
+import { supabase } from '@/lib/supabase';
 
 /**
  * Video generation API controller
@@ -30,7 +31,36 @@ export async function POST(request: Request) {
 
     console.log('🔐 User authenticated:', user.id);
 
-    // Step 2: Parse and validate request
+    // Step 2: Check usage limits
+    console.log('📊 Checking usage limits for user:', user.id);
+    const { data: usage, error: usageError } = await supabase
+      .from('user_usage')
+      .select('videos_generated, videos_limit, next_reset_date')
+      .eq('user_id', user.id)
+      .single();
+
+    if (usageError) {
+      console.error('❌ Failed to check usage limits:', usageError);
+      return errorResponse(
+        'Failed to check usage limits',
+        HttpStatus.INTERNAL_SERVER_ERROR
+      );
+    }
+
+    // Check if user has reached their limit
+    if (usage.videos_generated >= usage.videos_limit) {
+      console.warn('⚠️ User has reached their usage limit:', user.id);
+      return errorResponse(
+        `Monthly video generation limit reached (${usage.videos_generated}/${
+          usage.videos_limit
+        }). Please wait until ${new Date(
+          usage.next_reset_date
+        ).toLocaleDateString()} for your limit to reset.`,
+        HttpStatus.FORBIDDEN
+      );
+    }
+
+    // Step 3: Parse and validate request
     let requestBody;
     try {
       requestBody = await request.json();
@@ -42,20 +72,35 @@ export async function POST(request: Request) {
       );
     }
 
-    // Step 3: Validate request body
+    // Step 4: Validate request body
     const validationResult =
       VideoValidationService.validateRequest(requestBody);
     if (!validationResult.success) {
       return validationResult.error;
     }
 
-    // Step 4: Generate video
+    // Step 5: Generate video
     const videoGenerator = new VideoGeneratorService(user);
     const result = await videoGenerator.generateVideo(validationResult.payload);
 
     console.log('✅ Video generation process completed successfully');
 
-    // Step 5: Return success response
+    // Step 6: Update usage counter
+    console.log('📝 Updating usage counter for user:', user.id);
+    const { error: updateError } = await supabase
+      .from('user_usage')
+      .update({
+        videos_generated: usage.videos_generated + 1,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('user_id', user.id);
+
+    if (updateError) {
+      console.error('⚠️ Failed to update usage counter:', updateError);
+      // Continue with response even if counter update fails
+    }
+
+    // Step 7: Return success response
     return successResponse(
       {
         requestId: result.requestId,
@@ -117,6 +162,11 @@ function determineErrorStatusCode(error: any): number {
   // External API errors (Creatomate)
   if (error.message && error.message.includes('Creatomate')) {
     return HttpStatus.SERVICE_UNAVAILABLE;
+  }
+
+  // Usage limit errors
+  if (error.message && error.message.includes('limit reached')) {
+    return HttpStatus.FORBIDDEN;
   }
 
   // Default to internal server error

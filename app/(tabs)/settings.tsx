@@ -1,15 +1,52 @@
-import { useState, useEffect, useCallback } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Switch, Image, ActivityIndicator, ScrollView, TextInput, RefreshControl } from 'react-native';
+import React, { useState, useEffect, useCallback } from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  Switch,
+  Image,
+  ActivityIndicator,
+  ScrollView,
+  TextInput,
+  RefreshControl,
+} from 'react-native';
 import { router } from 'expo-router';
 import { supabase } from '@/lib/supabase';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Bell, Key, Shield, CircleHelp as HelpCircle, LogOut, Globe, CircleAlert as AlertCircle, Check, X, Mic, CreditCard as Edit3, Bug, Play, Wand as Wand2 } from 'lucide-react-native';
+import {
+  Bell,
+  Key,
+  Shield,
+  CircleHelp as HelpCircle,
+  LogOut,
+  Globe,
+  CircleAlert as AlertCircle,
+  Check,
+  X,
+  Mic,
+  CreditCard as Edit3,
+  Bug,
+  Play,
+  Wand as Wand2,
+  Search,
+} from 'lucide-react-native';
+import UsageDashboard from '@/components/UsageDashboard';
+import AdminUsageControl from '@/components/AdminUsageControl';
 
 type UserProfile = {
   id: string;
   full_name: string | null;
   avatar_url: string | null;
   email: string;
+  is_admin?: boolean;
+};
+
+type UsageInfo = {
+  id: string;
+  user_id: string;
+  videos_generated: number;
+  videos_limit: number;
 };
 
 export default function SettingsScreen() {
@@ -26,6 +63,7 @@ export default function SettingsScreen() {
     full_name: '',
     avatar_url: null,
     email: '',
+    is_admin: false,
   });
   const [editedProfile, setEditedProfile] = useState<UserProfile>({
     id: '',
@@ -39,6 +77,12 @@ export default function SettingsScreen() {
   const [testingError, setTestingError] = useState<string | null>(null);
   const [testingLoading, setTestingLoading] = useState(false);
 
+  // Admin panel states
+  const [searchUserId, setSearchUserId] = useState('');
+  const [searchLoading, setSearchLoading] = useState(false);
+  const [foundUserUsage, setFoundUserUsage] = useState<UsageInfo | null>(null);
+  const [searchError, setSearchError] = useState<string | null>(null);
+
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
     await fetchProfile();
@@ -51,7 +95,9 @@ export default function SettingsScreen() {
 
   const fetchProfile = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (!user) {
         router.replace('/(auth)/sign-in');
         return;
@@ -65,11 +111,22 @@ export default function SettingsScreen() {
 
       if (profileError) throw profileError;
 
+      // Check if user has admin role
+      const { data: rolesData, error: rolesError } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', user.id)
+        .eq('role', 'admin')
+        .maybeSingle();
+
+      const isAdmin = !rolesError && rolesData?.role === 'admin';
+
       setProfile({
         id: user.id,
         full_name: profile.full_name,
         avatar_url: profile.avatar_url,
         email: user.email!,
+        is_admin: isAdmin,
       });
       setEditedProfile({
         id: user.id,
@@ -127,6 +184,47 @@ export default function SettingsScreen() {
     }
   };
 
+  // Admin: Search for a user by ID to adjust their usage limits
+  const handleSearchUser = async () => {
+    if (!searchUserId.trim()) return;
+    
+    try {
+      setSearchLoading(true);
+      setSearchError(null);
+      setFoundUserUsage(null);
+      
+      // Check if user exists
+      const { data: userData, error: userError } = await supabase
+        .from('users')
+        .select('id')
+        .eq('id', searchUserId.trim())
+        .maybeSingle();
+        
+      if (userError) throw userError;
+      
+      if (!userData) {
+        setSearchError('Utilisateur non trouvé');
+        return;
+      }
+      
+      // Get user usage data
+      const { data: usageData, error: usageError } = await supabase
+        .from('user_usage')
+        .select('*')
+        .eq('user_id', searchUserId.trim())
+        .single();
+        
+      if (usageError) throw usageError;
+      
+      setFoundUserUsage(usageData);
+    } catch (err: any) {
+      console.error('Error searching for user:', err);
+      setSearchError(err.message || 'Erreur lors de la recherche');
+    } finally {
+      setSearchLoading(false);
+    }
+  };
+
   if (loading) {
     return (
       <SafeAreaView style={styles.container} edges={['top']}>
@@ -140,8 +238,8 @@ export default function SettingsScreen() {
   const debugSection = (
     <View style={styles.section}>
       <Text style={styles.sectionTitle}>Débogage</Text>
-      
-      <TouchableOpacity 
+
+      <TouchableOpacity
         style={styles.settingItem}
         onPress={() => router.push('/(onboarding)/welcome')}
       >
@@ -153,7 +251,7 @@ export default function SettingsScreen() {
 
       <View style={styles.debugContainer}>
         <Text style={styles.debugTitle}>Tester la Génération Vidéo</Text>
-        
+
         <TextInput
           style={styles.debugInput}
           placeholder="Entrez une description test..."
@@ -178,8 +276,10 @@ export default function SettingsScreen() {
         )}
 
         <TouchableOpacity
-          style={[styles.debugButton, testingLoading && styles.debugButtonDisabled]}
-         
+          style={[
+            styles.debugButton,
+            testingLoading && styles.debugButtonDisabled,
+          ]}
           disabled={testingLoading}
         >
           {testingLoading ? (
@@ -195,14 +295,61 @@ export default function SettingsScreen() {
     </View>
   );
 
+  // Admin section component that's only shown to admin users
+  const adminSection = profile.is_admin && (
+    <View style={styles.section}>
+      <Text style={styles.sectionTitle}>Administration</Text>
+      
+      <View style={styles.adminContainer}>
+        <Text style={styles.adminTitle}>Contrôle d'Utilisation Utilisateur</Text>
+        
+        <View style={styles.searchContainer}>
+          <TextInput
+            style={styles.searchInput}
+            value={searchUserId}
+            onChangeText={setSearchUserId}
+            placeholder="ID Utilisateur"
+            placeholderTextColor="#666"
+          />
+          <TouchableOpacity
+            style={[styles.searchButton, searchLoading && styles.searchButtonDisabled]}
+            onPress={handleSearchUser}
+            disabled={searchLoading}
+          >
+            {searchLoading ? (
+              <ActivityIndicator size="small" color="#fff" />
+            ) : (
+              <Search size={20} color="#fff" />
+            )}
+          </TouchableOpacity>
+        </View>
+        
+        {searchError && (
+          <View style={styles.searchErrorContainer}>
+            <AlertCircle size={16} color="#ef4444" />
+            <Text style={styles.searchErrorText}>{searchError}</Text>
+          </View>
+        )}
+        
+        {foundUserUsage && (
+          <AdminUsageControl
+            userId={foundUserUsage.user_id}
+            currentLimit={foundUserUsage.videos_limit}
+            onUpdate={handleSearchUser}
+          />
+        )}
+      </View>
+    </View>
+  );
+
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <View style={styles.header}>
         <Text style={styles.title}>Paramètres</Text>
       </View>
 
-      <ScrollView 
-        style={styles.content} 
+      <ScrollView
+        style={styles.content}
         showsVerticalScrollIndicator={false}
         refreshControl={
           <RefreshControl
@@ -221,7 +368,9 @@ export default function SettingsScreen() {
 
         {success && (
           <View style={styles.successContainer}>
-            <Text style={styles.successText}>Profil mis à jour avec succès !</Text>
+            <Text style={styles.successText}>
+              Profil mis à jour avec succès !
+            </Text>
           </View>
         )}
 
@@ -229,7 +378,9 @@ export default function SettingsScreen() {
           <View style={styles.avatarContainer}>
             <Image
               source={{
-                uri: editedProfile.avatar_url || 'https://images.pexels.com/photos/2379005/pexels-photo-2379005.jpeg'
+                uri:
+                  editedProfile.avatar_url ||
+                  'https://images.pexels.com/photos/2379005/pexels-photo-2379005.jpeg',
               }}
               style={styles.profileImage}
             />
@@ -241,21 +392,27 @@ export default function SettingsScreen() {
                 <TextInput
                   style={styles.nameInput}
                   value={editedProfile.full_name || ''}
-                  onChangeText={(text) => setEditedProfile(prev => ({ ...prev, full_name: text }))}
+                  onChangeText={(text) =>
+                    setEditedProfile((prev) => ({ ...prev, full_name: text }))
+                  }
                   placeholder="Entrez votre nom"
                   placeholderTextColor="#666"
                 />
                 <TextInput
                   style={styles.nameInput}
                   value={editedProfile.avatar_url || ''}
-                  onChangeText={(text) => setEditedProfile(prev => ({ ...prev, avatar_url: text }))}
+                  onChangeText={(text) =>
+                    setEditedProfile((prev) => ({ ...prev, avatar_url: text }))
+                  }
                   placeholder="URL de l'avatar"
                   placeholderTextColor="#666"
                 />
               </>
             ) : (
               <>
-                <Text style={styles.profileName}>{profile.full_name || 'Nom non défini'}</Text>
+                <Text style={styles.profileName}>
+                  {profile.full_name || 'Nom non défini'}
+                </Text>
                 <Text style={styles.profileEmail}>{profile.email}</Text>
               </>
             )}
@@ -278,7 +435,7 @@ export default function SettingsScreen() {
                 disabled={updating}
               >
                 {updating ? (
-                  <ActivityIndicator size="small\" color="#fff" />
+                  <ActivityIndicator size="small" color="#fff" />
                 ) : (
                   <Check size={20} color="#fff" />
                 )}
@@ -296,8 +453,10 @@ export default function SettingsScreen() {
 
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Création de Contenu</Text>
-          
-          <TouchableOpacity 
+
+          <UsageDashboard />
+
+          <TouchableOpacity
             style={styles.settingItem}
             onPress={() => router.push('/(tabs)/voice-clone')}
           >
@@ -307,7 +466,7 @@ export default function SettingsScreen() {
             </View>
           </TouchableOpacity>
 
-          <TouchableOpacity 
+          <TouchableOpacity
             style={styles.settingItem}
             onPress={() => router.push('/(tabs)/editorial')}
           >
@@ -320,14 +479,14 @@ export default function SettingsScreen() {
 
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Compte</Text>
-          
+
           <TouchableOpacity style={styles.settingItem}>
             <View style={styles.settingInfo}>
               <Key size={24} color="#fff" />
               <Text style={styles.settingText}>Clés API</Text>
             </View>
           </TouchableOpacity>
-          
+
           <TouchableOpacity style={styles.settingItem}>
             <View style={styles.settingInfo}>
               <Shield size={24} color="#fff" />
@@ -338,7 +497,7 @@ export default function SettingsScreen() {
 
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Préférences</Text>
-          
+
           <View style={styles.settingItem}>
             <View style={styles.settingInfo}>
               <Bell size={24} color="#fff" />
@@ -363,7 +522,7 @@ export default function SettingsScreen() {
 
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Support</Text>
-          
+
           <TouchableOpacity style={styles.settingItem}>
             <View style={styles.settingInfo}>
               <HelpCircle size={24} color="#fff" />
@@ -371,6 +530,8 @@ export default function SettingsScreen() {
             </View>
           </TouchableOpacity>
         </View>
+
+        {profile.is_admin && adminSection}
 
         {__DEV__ && debugSection}
 
@@ -619,5 +780,55 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 14,
     fontWeight: '600',
+  },
+  adminContainer: {
+    backgroundColor: '#1a1a1a',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 8,
+  },
+  adminTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#fff',
+    marginBottom: 16,
+  },
+  searchContainer: {
+    flexDirection: 'row',
+    gap: 8,
+    marginBottom: 12,
+  },
+  searchInput: {
+    flex: 1,
+    backgroundColor: '#333',
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    color: '#fff',
+    height: 44,
+  },
+  searchButton: {
+    backgroundColor: '#007AFF',
+    width: 44,
+    height: 44,
+    borderRadius: 8,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  searchButtonDisabled: {
+    opacity: 0.7,
+  },
+  searchErrorContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#2D1116',
+    padding: 12,
+    borderRadius: 8,
+    marginBottom: 12,
+    gap: 8,
+  },
+  searchErrorText: {
+    color: '#ef4444',
+    fontSize: 14,
+    flex: 1,
   },
 });

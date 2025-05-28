@@ -284,15 +284,15 @@ We will follow a TDD approach with the following test layers:
 - **Description**: Create a system to track and limit video generation usage for TestFlight users without implementing payments
 - **Priority**: High
 - **Estimated Time**: 6 hours
-- **Status**: Not Started
+- **Status**: In Progress
 - **Dependencies**: None
 - **Subtasks**:
-  - [ ] Create `user_usage` table in Supabase with video count and reset date fields
-  - [ ] Implement usage tracking in video generation API
-  - [ ] Add usage limit checks before video generation
-  - [ ] Create usage dashboard in the app
-  - [ ] Implement monthly usage reset mechanism
-  - [ ] Add admin capability to adjust usage limits
+  - [x] Create `user_usage` table in Supabase with video count and reset date fields
+  - [x] Implement usage tracking in video generation API
+  - [x] Add usage limit checks before video generation
+  - [x] Create usage dashboard in the app
+  - [x] Implement monthly usage reset mechanism
+  - [x] Add admin capability to adjust usage limits
 
 ### APP-002: TestFlight Preparation and Submission
 

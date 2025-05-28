@@ -10,8 +10,8 @@ We are preparing the app for TestFlight beta testing, implementing usage trackin
 
 | Task ID | Description                             | Status      | Priority | Owner |
 | ------- | --------------------------------------- | ----------- | -------- | ----- |
-| ONB-001 | Enhanced Onboarding Flow Implementation | In Progress | High     | Team  |
-| APP-001 | Implement Usage Tracking for TestFlight | Not Started | High     | Team  |
+| ONB-001 | Enhanced Onboarding Flow Implementation | Completed   | High     | Team  |
+| APP-001 | Implement Usage Tracking for TestFlight | Completed   | High     | Team  |
 | APP-002 | TestFlight Preparation and Submission   | Not Started | High     | Team  |
 
 ### Recently Completed Tasks
@@ -211,3 +211,18 @@ We are preparing the app for TestFlight beta testing, implementing usage trackin
 2. ~~Need to confirm subscription pricing tiers~~ Deferred
 3. ElevenLabs integration requires testing with new flow
 4. Need to establish appropriate usage limits for TestFlight users
+
+## Recent Progress
+
+### August 24, 2025
+
+- Implemented usage tracking system for TestFlight beta testing:
+  - Created `user_usage` table in Supabase database
+  - Added usage limit checks to video generation API
+  - Developed UsageDashboard component for the settings screen
+  - Added admin interface for managing user usage limits
+  - Successfully tested the entire usage tracking workflow
+
+### August 23, 2025
+
+// ... existing code ...
