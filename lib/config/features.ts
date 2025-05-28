@@ -18,7 +18,7 @@ interface FeatureFlags {
 const devFeatures: FeatureFlags = {
   enableSubscriptionScreens: true,
   enableUsageLimits: false,
-  disableAutoProgress: false,
+  disableAutoProgress: true,
 };
 
 // Configuration for TestFlight beta
