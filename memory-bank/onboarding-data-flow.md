@@ -2,79 +2,156 @@
 
 ## Overview
 
-The onboarding flow collects user data across multiple screens and processes it to personalize the user experience. This document outlines how data flows through the system and where it's stored.
+This document outlines the data flow in the enhanced onboarding process, focusing on how user data is collected, processed, and stored during onboarding. It covers both the frontend components and backend processing.
 
-## Data Collection Points
+## Database Tables
 
-### 1. Survey Screen
+The following database tables are used in the onboarding process:
 
-- **Data Collected**: Content goals, pain points, content style, platform focus, and content frequency
-- **Storage**: Initially stored in the `OnboardingProvider` context as `surveyAnswers` (in-memory)
-- **Collection Method**: User selects options for each question which triggers `setSurveyAnswer(questionId, answerId)`
+1. **`users`** - Core user information (automatically created by Supabase Auth)
+2. **`editorial_profiles`** - Stores user's content creation profile information
+3. **`voice_clones`** - Stores information about user's voice clone status and references
+4. **`onboarding_survey`** - Stores user's responses to onboarding survey questions
 
-### 2. Voice Recording Screen
+## Frontend Components
 
-- **Data Collected**: Audio recording for voice cloning
-- **Storage**: Temporarily stored as a local file, then uploaded to the server
-- **Collection Method**: User records audio which is processed by the `processRecording` function
-- **Processing**:
-  1. Audio is processed locally and converted to a blob
-  2. File is uploaded to Supabase via the `process-onboarding` function
-  3. Survey answers are included in the request (`Object.entries(surveyAnswers).forEach...`)
+### OnboardingProvider
 
-### 3. Editorial Profile Screen
+The `OnboardingProvider` is the central state management component for the onboarding flow:
 
-- **Data Collected**: Persona description, tone of voice, target audience, style notes
-- **Storage**: Stored in the `editorial_profiles` table in Supabase
-- **Collection Method**: User inputs text into form fields
+- Manages the current step in the onboarding process
+- Tracks completed steps
+- Stores survey answers temporarily in memory
+- Handles navigation between steps
 
-## Data Storage and Processing
+### Survey Component
 
-### Client-Side Storage
+- Displays survey questions to the user
+- Captures responses
+- Stores answers in the OnboardingProvider state
 
-- **OnboardingProvider Context**: Temporary in-memory storage during the onboarding session
-  ```typescript
-  const [surveyAnswers, setSurveyAnswers] =
-    useState<SurveyAnswers>(initialSurveyAnswers);
-  ```
-- **Step Completion Tracking**: Also stored in context to track user progress
-  ```typescript
-  const [completedSteps, setCompletedSteps] = useState<OnboardingStep[]>(
-    initialCompletedSteps
-  );
-  ```
+### Voice Recording Screen
 
-### Server-Side Storage
+- Captures audio recording from the user
+- Handles audio validation
+- Uploads audio to the backend for processing
+- Sends survey data along with the audio for context
 
-1. **Supabase Tables**:
+### Editorial Profile Screen
 
-   - `editorial_profiles`: Stores user preferences and content style information
-   - `voice_clones`: Stores information about the user's voice clone
-   - `user`: Core user information
+- Displays AI-generated profile based on audio analysis
+- Allows user to modify and save profile information
+- Stores finalized profile in the database
 
-2. **Backend Functions**:
-   - `process-onboarding`: Handles voice recording processing and initial profile setup
-   - Integrates with third-party services for voice cloning
+## Backend Processing
 
-## Data Utilization
+### Edge Functions
 
-The collected data is used to:
+1. **`process-onboarding`**
 
-1. **Personalize the user experience** by tailoring content templates and suggestions
-2. **Create a voice clone** for generating AI content with the user's voice
-3. **Set up an editorial profile** that guides content creation
-4. **Customize AI model prompts** to match the user's style and preferences
+   - Receives audio file and survey data
+   - Transcribes audio using OpenAI Whisper
+   - Analyzes content using GPT-4
+   - Extracts editorial profile information
+   - Stores the profile in the `editorial_profiles` table
+   - Initiates voice clone creation
+   - Saves survey data to `onboarding_survey` table
+
+2. **`create-voice-clone`**
+   - Receives audio samples
+   - Uploads to ElevenLabs for voice clone creation
+   - Updates voice clone status in database
+
+## Data Flow Sequence
+
+1. **User enters the onboarding flow**
+
+   - Initial state set up in `OnboardingProvider`
+
+2. **Survey completion**
+
+   - User answers questions in the survey screen
+   - Responses stored temporarily in `OnboardingProvider`
+
+3. **Voice recording**
+
+   - User records audio sample
+   - Audio validated on device
+   - Audio file and survey data sent to `process-onboarding` function
+   - Survey data stored in `onboarding_survey` table with user ID
+
+4. **Backend processing**
+
+   - Audio transcribed to text
+   - Content analyzed to extract profile information
+   - Editorial profile created/updated in database
+   - Voice sample processed for voice cloning
+
+5. **Editorial profile review**
+
+   - User reviews AI-generated profile
+   - Makes any necessary adjustments
+   - Final profile saved to `editorial_profiles` table
+
+6. **Subscription and completion**
+   - User selects subscription plan
+   - Onboarding process completed
+   - User redirected to main application
+
+## Survey Data Schema
+
+The `onboarding_survey` table has the following schema:
+
+```sql
+CREATE TABLE onboarding_survey (
+  id SERIAL PRIMARY KEY,
+  user_id UUID REFERENCES auth.users(id) NOT NULL,
+  content_goals TEXT,
+  pain_points TEXT,
+  content_style TEXT,
+  platform_focus TEXT,
+  content_frequency TEXT,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+```
+
+## Voice Processing
+
+1. Audio recording validated client-side:
+
+   - File size check (< 10MB)
+   - Format validation
+   - Minimum duration check
+
+2. Audio file uploaded to Supabase storage:
+
+   - Stored in `audio/voice-samples/{user_id}/{uuid}.m4a`
+   - Public URL generated for processing
+
+3. Transcription and analysis:
+
+   - Audio transcribed using OpenAI Whisper
+   - Transcript analyzed using GPT-4 to extract profile information
+
+4. Voice clone creation:
+   - Audio sample sent to ElevenLabs
+   - Voice clone ID returned and stored
+   - Status tracked in database
+
+## Error Handling
+
+The system includes robust error handling:
+
+- Client-side validation for audio recording
+- Server-side validation for file size and format
+- Clear error messages for users
+- Fallback options if voice recording fails
+- Recovery paths to retry processing
 
 ## Future Enhancements
 
-1. **Analytics tracking**: Implement tracking for each step of the onboarding process
-2. **Progress persistence**: Save partial progress to allow users to continue onboarding later
-3. **Data synchronization**: Ensure data consistency across devices
-4. **Privacy controls**: Add options for users to manage their data
-
-## Issues to Address
-
-1. **Data persistence**: Currently, survey data is lost if the app is closed during onboarding
-2. **Error handling**: Improve error handling for network issues during data submission
-3. **Existing user handling**: Better handling of users with existing profiles
-4. **Data validation**: Add comprehensive validation before server submission
+- Batch processing for voice samples
+- Multi-language support for transcription
+- More detailed analytics on user preferences
+- Enhanced profile generation using multiple inputs

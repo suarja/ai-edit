@@ -1,12 +1,12 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   TouchableOpacity,
   ActivityIndicator,
+  Alert,
 } from 'react-native';
-import { router } from 'expo-router';
 import { Mic, CircleStop as StopCircle, ArrowRight } from 'lucide-react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Audio } from 'expo-av';
@@ -15,6 +15,7 @@ import { useOnboarding } from '@/components/providers/OnboardingProvider';
 import { ProgressBar } from '@/components/onboarding/ProgressBar';
 
 const MAX_RECORDING_DURATION = 120000; // 2 minutes in milliseconds
+const MIN_RECORDING_DURATION = 3000; // 3 seconds in milliseconds
 
 const ONBOARDING_STEPS = [
   'welcome',
@@ -36,6 +37,7 @@ export default function VoiceRecordingScreen() {
   const [error, setError] = useState<string | null>(null);
   const [progress, setProgress] = useState<string>('');
   const [recordingDuration, setRecordingDuration] = useState(0);
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   // Cleanup recording on unmount
   useEffect(() => {
@@ -43,15 +45,17 @@ export default function VoiceRecordingScreen() {
       if (recording) {
         recording.stopAndUnloadAsync();
       }
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+      }
     };
   }, [recording]);
 
   // Monitor recording duration
   useEffect(() => {
-    let interval: NodeJS.Timeout;
     if (isRecording) {
       const startTime = Date.now();
-      interval = setInterval(() => {
+      intervalRef.current = setInterval(() => {
         const duration = Date.now() - startTime;
         setRecordingDuration(duration);
 
@@ -59,10 +63,13 @@ export default function VoiceRecordingScreen() {
           stopRecording();
         }
       }, 100);
+    } else if (intervalRef.current) {
+      clearInterval(intervalRef.current);
     }
+
     return () => {
-      if (interval) {
-        clearInterval(interval);
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
       }
     };
   }, [isRecording]);
@@ -76,7 +83,17 @@ export default function VoiceRecordingScreen() {
 
   const startRecording = async () => {
     try {
-      await Audio.requestPermissionsAsync();
+      setError(null);
+
+      // Request permissions
+      const { granted } = await Audio.requestPermissionsAsync();
+      if (!granted) {
+        setError(
+          "Autorisation d'enregistrement refusée. Veuillez l'activer dans les paramètres."
+        );
+        return;
+      }
+
       await Audio.setAudioModeAsync({
         allowsRecordingIOS: true,
         playsInSilentModeIOS: true,
@@ -90,11 +107,12 @@ export default function VoiceRecordingScreen() {
 
       setRecording(recording);
       setIsRecording(true);
-      setError(null);
       setRecordingDuration(0);
-    } catch (err) {
+    } catch (err: any) {
       console.error('Failed to start recording', err);
-      setError("Échec de la démarrage de l'enregistrement");
+      setError(
+        "Échec de la démarrage de l'enregistrement. " + (err?.message || '')
+      );
     }
   };
 
@@ -102,12 +120,12 @@ export default function VoiceRecordingScreen() {
     if (!recording) return;
 
     try {
-      // Only process if we have recorded for at least 1 second
-      if (recordingDuration < 1000) {
+      // Only process if we have recorded for at least 3 seconds
+      if (recordingDuration < MIN_RECORDING_DURATION) {
         setError(
-          "L'enregistrement est trop court. Veuillez enregistrer pendant au moins 1 seconde."
+          "L'enregistrement est trop court. Veuillez enregistrer pendant au moins 3 secondes."
         );
-        recording.stopAndUnloadAsync();
+        await recording.stopAndUnloadAsync();
         setRecording(null);
         setIsRecording(false);
         return;
@@ -125,21 +143,30 @@ export default function VoiceRecordingScreen() {
       console.log('Recording status after stop:', status);
 
       // Verify file exists and has content
-      const response = await fetch(uri);
-      const blob = await response.blob();
+      try {
+        const response = await fetch(uri);
+        const blob = await response.blob();
 
-      if (blob.size === 0) {
-        throw new Error("L'enregistrement est vide");
+        if (blob.size === 0) {
+          throw new Error("L'enregistrement est vide");
+        }
+
+        console.log('Recording file size:', blob.size);
+        await processRecording(uri);
+      } catch (fetchErr: any) {
+        console.error('Error verifying recording file:', fetchErr);
+        setError(
+          "Impossible de vérifier l'enregistrement. Veuillez réessayer."
+        );
       }
-
-      console.log('Recording file size:', blob.size);
-      await processRecording(uri);
 
       setRecording(null);
       setIsRecording(false);
-    } catch (err) {
+    } catch (err: any) {
       console.error('Failed to stop recording', err);
-      setError("Échec de l'arrêt de l'enregistrement");
+      setError("Échec de l'arrêt de l'enregistrement. " + (err?.message || ''));
+      setIsRecording(false);
+      setRecording(null);
     }
   };
 
@@ -171,10 +198,19 @@ export default function VoiceRecordingScreen() {
       } as any);
       formData.append('userId', user.id);
 
-      // Include survey answers in the request
-      Object.entries(surveyAnswers).forEach(([key, value]) => {
-        formData.append(`survey_${key}`, value);
-      });
+      // Format survey answers for database storage
+      // These will be saved to the onboarding_survey table
+      formData.append(
+        'survey_data',
+        JSON.stringify({
+          user_id: user.id,
+          content_goals: surveyAnswers.content_goals || null,
+          pain_points: surveyAnswers.pain_points || null,
+          content_style: surveyAnswers.content_style || null,
+          platform_focus: surveyAnswers.platform_focus || null,
+          content_frequency: surveyAnswers.content_frequency || null,
+        })
+      );
 
       setProgress("Transcription de l'audio...");
 
@@ -190,9 +226,9 @@ export default function VoiceRecordingScreen() {
       );
 
       if (!result.ok) {
-        const error = await result.json();
+        const errorData = await result.json();
         throw new Error(
-          error.error || "Échec du traitement de l'enregistrement"
+          errorData.error || "Échec du traitement de l'enregistrement"
         );
       }
 
@@ -202,9 +238,28 @@ export default function VoiceRecordingScreen() {
       // Mark step as completed and proceed to next step
       markStepCompleted('voice-recording');
       nextStep();
-    } catch (err) {
+    } catch (err: any) {
       console.error('Error processing recording:', err);
-      setError(err.message || "Échec du traitement de l'enregistrement");
+      setError(err?.message || "Échec du traitement de l'enregistrement");
+
+      // Offer retry option
+      Alert.alert(
+        'Erreur de traitement',
+        `${
+          err?.message ||
+          "Une erreur s'est produite lors du traitement de l'enregistrement"
+        }. Voulez-vous réessayer?`,
+        [
+          {
+            text: 'Annuler',
+            style: 'cancel',
+          },
+          {
+            text: 'Réessayer',
+            onPress: () => startRecording(),
+          },
+        ]
+      );
     } finally {
       setProcessing(false);
       setProgress('');
@@ -252,7 +307,7 @@ export default function VoiceRecordingScreen() {
             Nous l'utiliserons pour créer un clone vocal IA naturel
           </Text>
           <Text style={styles.timeLimit}>
-            Durée d'enregistrement maximum : 2 minutes
+            Durée d'enregistrement: minimum 3 secondes, maximum 2 minutes
           </Text>
         </View>
 

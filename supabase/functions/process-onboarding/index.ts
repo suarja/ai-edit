@@ -6,7 +6,7 @@ const requiredEnvVars = [
   'OPENAI_API_KEY',
   'SUPABASE_URL',
   'SUPABASE_SERVICE_ROLE_KEY',
-  'ELEVENLABS_API_KEY'
+  'ELEVENLABS_API_KEY',
 ];
 
 for (const envVar of requiredEnvVars) {
@@ -26,7 +26,8 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Headers':
+    'authorization, x-client-info, apikey, content-type',
 };
 
 // Supported audio formats
@@ -37,7 +38,7 @@ const SUPPORTED_AUDIO_FORMATS = [
   'audio/wav',
   'audio/x-m4a',
   'audio/m4a',
-  'audio/webm'
+  'audio/webm',
 ];
 
 // Maximum file size (10MB)
@@ -47,7 +48,7 @@ async function validateAudioFile(file: File): Promise<void> {
   console.log('Validating audio file:', {
     type: file.type,
     size: file.size,
-    name: file.name
+    name: file.name,
   });
 
   if (!SUPPORTED_AUDIO_FORMATS.includes(file.type)) {
@@ -62,27 +63,27 @@ async function validateAudioFile(file: File): Promise<void> {
 async function transcribeAudio(audioBlob: Blob): Promise<string> {
   try {
     console.log('Starting audio transcription');
-    
+
     // Ensure we have a valid MIME type
     const mimeType = audioBlob.type || 'audio/x-m4a';
-    
+
     // Create a proper File object from the Blob with explicit type
-    const file = new File([audioBlob], 'recording.m4a', { 
-      type: mimeType
+    const file = new File([audioBlob], 'recording.m4a', {
+      type: mimeType,
     });
 
     // Verify file is not empty
     if (file.size === 0) {
       throw new Error('Audio file is empty');
     }
-    
+
     const transcription = await openai.audio.transcriptions.create({
       file,
-      model: "whisper-1",
-      response_format: "text",
-      language: "en"
+      model: 'whisper-1',
+      response_format: 'text',
+      language: 'en',
     });
-    
+
     console.log('Transcription completed successfully');
     return transcription;
   } catch (error) {
@@ -107,14 +108,14 @@ async function analyzeContent(text: string) {
           - style_notes: Any specific content style preferences mentioned
           
           If any information is missing, provide reasonable defaults based on context.
-          Keep the responses concise but meaningful.`
+          Keep the responses concise but meaningful.`,
         },
         {
           role: 'user',
-          content: text
-        }
+          content: text,
+        },
       ],
-      response_format: { type: 'json_object' }
+      response_format: { type: 'json_object' },
     });
 
     console.log('Content analysis completed successfully');
@@ -140,23 +141,26 @@ async function ensureUserExists(userId: string): Promise<boolean> {
   return !!user;
 }
 
-async function uploadAudioFile(userId: string, audioBlob: Blob): Promise<string> {
+async function uploadAudioFile(
+  userId: string,
+  audioBlob: Blob
+): Promise<string> {
   try {
     console.log('Starting audio file upload');
     const fileName = `voice-samples/${userId}/${crypto.randomUUID()}.m4a`;
-    
+
     const { data, error } = await supabase.storage
       .from('audio')
       .upload(fileName, audioBlob, {
         contentType: 'audio/x-m4a',
-        upsert: true
+        upsert: true,
       });
 
     if (error) throw error;
 
-    const { data: { publicUrl } } = supabase.storage
-      .from('audio')
-      .getPublicUrl(fileName);
+    const {
+      data: { publicUrl },
+    } = supabase.storage.from('audio').getPublicUrl(fileName);
 
     console.log('Audio file uploaded successfully');
     return publicUrl;
@@ -173,7 +177,8 @@ async function getExistingVoiceClone(userId: string) {
     .eq('user_id', userId)
     .single();
 
-  if (error && error.code !== 'PGRST116') { // PGRST116 is "not found" error
+  if (error && error.code !== 'PGRST116') {
+    // PGRST116 is "not found" error
     throw error;
   }
 
@@ -189,6 +194,7 @@ Deno.serve(async (req) => {
     const formData = await req.formData();
     const audioFile = formData.get('file') as File;
     const userId = formData.get('userId') as string;
+    const surveyDataStr = formData.get('survey_data') as string;
 
     if (!audioFile || !userId) {
       throw new Error('Missing required fields: file and userId are required');
@@ -197,8 +203,20 @@ Deno.serve(async (req) => {
     console.log('Received file:', {
       name: audioFile.name,
       type: audioFile.type,
-      size: audioFile.size
+      size: audioFile.size,
     });
+
+    // Parse survey data if available
+    let surveyData = null;
+    if (surveyDataStr) {
+      try {
+        surveyData = JSON.parse(surveyDataStr);
+        console.log('Received survey data:', surveyData);
+      } catch (error: any) {
+        console.error('Error parsing survey data:', error);
+        // Continue execution - we don't want to fail the whole process if only survey data parsing fails
+      }
+    }
 
     // Validate audio file
     await validateAudioFile(audioFile);
@@ -207,8 +225,8 @@ Deno.serve(async (req) => {
     await ensureUserExists(userId);
 
     // Convert File to Blob with explicit type preservation
-    const audioBlob = new Blob([await audioFile.arrayBuffer()], { 
-      type: audioFile.type || 'audio/x-m4a' 
+    const audioBlob = new Blob([await audioFile.arrayBuffer()], {
+      type: audioFile.type || 'audio/x-m4a',
     });
 
     // Upload audio file to storage
@@ -225,7 +243,7 @@ Deno.serve(async (req) => {
       .from('editorial_profiles')
       .upsert({
         user_id: userId,
-        ...profile
+        ...profile,
       });
 
     if (profileError) {
@@ -237,44 +255,63 @@ Deno.serve(async (req) => {
     const existingVoiceClone = await getExistingVoiceClone(userId);
 
     // Update or create voice clone
-    const { error: voiceError } = await supabase
-      .from('voice_clones')
-      .upsert({
-        id: existingVoiceClone?.id, // Will be undefined for new records
-        user_id: userId,
-        status: 'pending',
-        sample_files: [{
+    const { error: voiceError } = await supabase.from('voice_clones').upsert({
+      id: existingVoiceClone?.id, // Will be undefined for new records
+      user_id: userId,
+      status: 'pending',
+      sample_files: [
+        {
           name: 'onboarding_recording.m4a',
-          url: audioUrl
-        }]
-      });
+          url: audioUrl,
+        },
+      ],
+    });
 
     if (voiceError) {
       console.error('Error creating/updating voice clone:', voiceError);
       throw voiceError;
     }
 
+    // Save survey data to onboarding_survey table
+    if (surveyData) {
+      const { error: surveyError } = await supabase
+        .from('onboarding_survey')
+        .upsert({
+          user_id: userId,
+          content_goals: surveyData.content_goals,
+          pain_points: surveyData.pain_points,
+          content_style: surveyData.content_style,
+          platform_focus: surveyData.platform_focus,
+          content_frequency: surveyData.content_frequency,
+        });
+
+      if (surveyError) {
+        console.error('Error saving survey data:', surveyError);
+        // Continue execution - we don't want to fail the whole process if only survey data fails
+      }
+    }
+
     return new Response(
       JSON.stringify({
         success: true,
         profile,
-        message: 'Profile created and voice clone initiated'
+        message: 'Profile created and voice clone initiated',
       }),
-      { 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+      {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       }
     );
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error processing request:', error);
-    
+
     return new Response(
-      JSON.stringify({ 
+      JSON.stringify({
         error: error.message,
-        detail: error.detail || null
+        detail: error.detail || null,
       }),
-      { 
+      {
         status: 400,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       }
     );
   }
