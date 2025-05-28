@@ -1,7 +1,14 @@
-import React, { createContext, useContext, useState, useCallback } from 'react';
+import {
+  createContext,
+  useContext,
+  ReactNode,
+  useState,
+  useEffect,
+} from 'react';
 import { router } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 
+// Step types
 export type OnboardingStep =
   | 'welcome'
   | 'survey'
@@ -13,27 +20,40 @@ export type OnboardingStep =
   | 'subscription'
   | 'success';
 
-type SurveyAnswers = {
+// Survey answer types
+export type SurveyAnswers = {
   [key: string]: string;
 };
 
-interface OnboardingContextValue {
+// Context type
+interface OnboardingContextType {
   currentStep: OnboardingStep;
   completedSteps: OnboardingStep[];
   surveyAnswers: SurveyAnswers;
   nextStep: () => void;
   previousStep: () => void;
-  goToStep: (step: OnboardingStep) => void;
-  setSurveyAnswer: (questionId: string, answer: string) => void;
+  jumpToStep: (step: OnboardingStep) => void;
   markStepCompleted: (step: OnboardingStep) => void;
+  setSurveyAnswer: (questionId: string, answerId: string) => void;
+  autoProgressEnabled: boolean;
+  setAutoProgressEnabled: (enabled: boolean) => void;
 }
 
-const OnboardingContext = createContext<OnboardingContextValue | undefined>(
+// Create context
+const OnboardingContext = createContext<OnboardingContextType | undefined>(
   undefined
 );
 
-// Define the step sequence for navigation
-const STEP_SEQUENCE: OnboardingStep[] = [
+// Context provider props
+interface OnboardingProviderProps {
+  children: ReactNode;
+  initialStep?: OnboardingStep;
+  initialCompletedSteps?: OnboardingStep[];
+  initialSurveyAnswers?: SurveyAnswers;
+}
+
+// Step order
+const STEP_ORDER: OnboardingStep[] = [
   'welcome',
   'survey',
   'voice-recording',
@@ -45,32 +65,38 @@ const STEP_SEQUENCE: OnboardingStep[] = [
   'success',
 ];
 
-export interface OnboardingProviderProps {
-  children: React.ReactNode;
-  initialStep?: OnboardingStep;
-  initialCompletedSteps?: OnboardingStep[];
-  initialSurveyAnswers?: SurveyAnswers;
-}
+// Step to path mapping
+const STEP_PATHS: Record<OnboardingStep, string> = {
+  welcome: '/(onboarding)/welcome',
+  survey: '/(onboarding)/survey',
+  'voice-recording': '/(onboarding)/voice-recording',
+  processing: '/(onboarding)/processing',
+  'editorial-profile': '/(onboarding)/editorial-profile',
+  features: '/(onboarding)/features',
+  'trial-offer': '/(onboarding)/trial-offer',
+  subscription: '/(onboarding)/subscription',
+  success: '/(onboarding)/success',
+};
 
-export const OnboardingProvider: React.FC<OnboardingProviderProps> = ({
+export const OnboardingProvider = ({
   children,
   initialStep = 'welcome',
   initialCompletedSteps = [],
   initialSurveyAnswers = {},
-}) => {
+}: OnboardingProviderProps) => {
   const [currentStep, setCurrentStep] = useState<OnboardingStep>(initialStep);
   const [completedSteps, setCompletedSteps] = useState<OnboardingStep[]>(
     initialCompletedSteps
   );
   const [surveyAnswers, setSurveyAnswers] =
     useState<SurveyAnswers>(initialSurveyAnswers);
+  const [autoProgressEnabled, setAutoProgressEnabled] = useState(true);
 
-  // Step navigation functions
-  const nextStep = useCallback(() => {
-    const currentIndex = STEP_SEQUENCE.indexOf(currentStep);
-    if (currentIndex < STEP_SEQUENCE.length - 1) {
-      const nextStepValue = STEP_SEQUENCE[currentIndex + 1];
-      setCurrentStep(nextStepValue);
+  const nextStep = () => {
+    const currentIndex = STEP_ORDER.indexOf(currentStep);
+
+    if (currentIndex < STEP_ORDER.length - 1) {
+      const nextStepInOrder = STEP_ORDER[currentIndex + 1];
 
       // Provide haptic feedback
       try {
@@ -79,16 +105,16 @@ export const OnboardingProvider: React.FC<OnboardingProviderProps> = ({
         console.log('Haptics not available');
       }
 
-      // Navigate to the next screen using Expo Router
-      router.push(`/(onboarding)/${nextStepValue}`);
+      router.push(STEP_PATHS[nextStepInOrder]);
+      setCurrentStep(nextStepInOrder);
     }
-  }, [currentStep]);
+  };
 
-  const previousStep = useCallback(() => {
-    const currentIndex = STEP_SEQUENCE.indexOf(currentStep);
+  const previousStep = () => {
+    const currentIndex = STEP_ORDER.indexOf(currentStep);
+
     if (currentIndex > 0) {
-      const prevStepValue = STEP_SEQUENCE[currentIndex - 1];
-      setCurrentStep(prevStepValue);
+      const prevStepInOrder = STEP_ORDER[currentIndex - 1];
 
       // Provide haptic feedback
       try {
@@ -97,44 +123,46 @@ export const OnboardingProvider: React.FC<OnboardingProviderProps> = ({
         console.log('Haptics not available');
       }
 
-      // Navigate to the previous screen using Expo Router
-      router.push(`/(onboarding)/${prevStepValue}`);
+      router.push(STEP_PATHS[prevStepInOrder]);
+      setCurrentStep(prevStepInOrder);
     }
-  }, [currentStep]);
+  };
 
-  const goToStep = useCallback((step: OnboardingStep) => {
-    setCurrentStep(step);
+  const jumpToStep = (step: OnboardingStep) => {
+    if (STEP_ORDER.includes(step)) {
+      router.push(STEP_PATHS[step]);
+      setCurrentStep(step);
+    }
+  };
 
-    // Navigate to the specific screen using Expo Router
-    router.push(`/(onboarding)/${step}`);
-  }, []);
+  const markStepCompleted = (step: OnboardingStep) => {
+    if (!completedSteps.includes(step)) {
+      setCompletedSteps([...completedSteps, step]);
+    }
+  };
 
-  // Survey answer management
-  const setSurveyAnswer = useCallback((questionId: string, answer: string) => {
-    setSurveyAnswers((prev) => ({
-      ...prev,
-      [questionId]: answer,
-    }));
-  }, []);
+  const setSurveyAnswer = (questionId: string, answerId: string) => {
+    setSurveyAnswers({
+      ...surveyAnswers,
+      [questionId]: answerId,
+    });
+  };
 
-  // Step completion tracking
-  const markStepCompleted = useCallback((step: OnboardingStep) => {
-    setCompletedSteps((prev) => (prev.includes(step) ? prev : [...prev, step]));
-  }, []);
+  const value = {
+    currentStep,
+    completedSteps,
+    surveyAnswers,
+    nextStep,
+    previousStep,
+    jumpToStep,
+    markStepCompleted,
+    setSurveyAnswer,
+    autoProgressEnabled,
+    setAutoProgressEnabled,
+  };
 
   return (
-    <OnboardingContext.Provider
-      value={{
-        currentStep,
-        completedSteps,
-        surveyAnswers,
-        nextStep,
-        previousStep,
-        goToStep,
-        setSurveyAnswer,
-        markStepCompleted,
-      }}
-    >
+    <OnboardingContext.Provider value={value}>
       {children}
     </OnboardingContext.Provider>
   );
@@ -142,8 +170,10 @@ export const OnboardingProvider: React.FC<OnboardingProviderProps> = ({
 
 export const useOnboarding = () => {
   const context = useContext(OnboardingContext);
+
   if (context === undefined) {
     throw new Error('useOnboarding must be used within an OnboardingProvider');
   }
+
   return context;
 };

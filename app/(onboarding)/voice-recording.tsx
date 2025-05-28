@@ -4,16 +4,10 @@ import {
   Text,
   StyleSheet,
   TouchableOpacity,
-  Image,
   ActivityIndicator,
 } from 'react-native';
 import { router } from 'expo-router';
-import {
-  ArrowRight,
-  Mic,
-  CircleStop as StopCircle,
-  Play,
-} from 'lucide-react-native';
+import { Mic, CircleStop as StopCircle, ArrowRight } from 'lucide-react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Audio } from 'expo-av';
 import { supabase } from '@/lib/supabase';
@@ -33,15 +27,15 @@ const ONBOARDING_STEPS = [
   'success',
 ];
 
-export default function WelcomeScreen() {
-  const { nextStep, markStepCompleted } = useOnboarding();
+export default function VoiceRecordingScreen() {
+  const { nextStep, previousStep, markStepCompleted, surveyAnswers } =
+    useOnboarding();
   const [isRecording, setIsRecording] = useState(false);
   const [recording, setRecording] = useState<Audio.Recording | null>(null);
   const [processing, setProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [progress, setProgress] = useState<string>('');
   const [recordingDuration, setRecordingDuration] = useState(0);
-  const [videoPlaying, setVideoPlaying] = useState(false);
 
   // Cleanup recording on unmount
   useEffect(() => {
@@ -73,13 +67,11 @@ export default function WelcomeScreen() {
     };
   }, [isRecording]);
 
-  const handleContinue = () => {
-    markStepCompleted('welcome');
-    nextStep();
-  };
-
-  const toggleVideo = () => {
-    setVideoPlaying(!videoPlaying);
+  const formatDuration = (ms: number) => {
+    const seconds = Math.floor(ms / 1000);
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = seconds % 60;
+    return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
   };
 
   const startRecording = async () => {
@@ -102,7 +94,7 @@ export default function WelcomeScreen() {
       setRecordingDuration(0);
     } catch (err) {
       console.error('Failed to start recording', err);
-      setError('Failed to start recording');
+      setError("Échec de la démarrage de l'enregistrement");
     }
   };
 
@@ -113,7 +105,7 @@ export default function WelcomeScreen() {
       // Only process if we have recorded for at least 1 second
       if (recordingDuration < 1000) {
         setError(
-          'Recording is too short. Please record for at least 1 second.'
+          "L'enregistrement est trop court. Veuillez enregistrer pendant au moins 1 seconde."
         );
         recording.stopAndUnloadAsync();
         setRecording(null);
@@ -125,7 +117,7 @@ export default function WelcomeScreen() {
       const uri = recording.getURI();
 
       if (!uri) {
-        throw new Error('Failed to get recording URI');
+        throw new Error("Impossible d'obtenir l'URI d'enregistrement");
       }
 
       // Get recording status to verify we have data
@@ -137,7 +129,7 @@ export default function WelcomeScreen() {
       const blob = await response.blob();
 
       if (blob.size === 0) {
-        throw new Error('Recording is empty');
+        throw new Error("L'enregistrement est vide");
       }
 
       console.log('Recording file size:', blob.size);
@@ -147,7 +139,7 @@ export default function WelcomeScreen() {
       setIsRecording(false);
     } catch (err) {
       console.error('Failed to stop recording', err);
-      setError('Failed to stop recording');
+      setError("Échec de l'arrêt de l'enregistrement");
     }
   };
 
@@ -155,19 +147,19 @@ export default function WelcomeScreen() {
     try {
       setProcessing(true);
       setError(null);
-      setProgress('Preparing audio...');
+      setProgress("Préparation de l'audio...");
 
       const {
         data: { user },
       } = await supabase.auth.getUser();
-      if (!user) throw new Error('Not authenticated');
+      if (!user) throw new Error('Non authentifié');
 
       const response = await fetch(uri);
       const blob = await response.blob();
 
       if (blob.size > 10 * 1024 * 1024) {
         throw new Error(
-          'Recording is too large. Please try a shorter message.'
+          "L'enregistrement est trop volumineux. Veuillez essayer un message plus court."
         );
       }
 
@@ -179,7 +171,12 @@ export default function WelcomeScreen() {
       } as any);
       formData.append('userId', user.id);
 
-      setProgress('Transcribing audio...');
+      // Include survey answers in the request
+      Object.entries(surveyAnswers).forEach(([key, value]) => {
+        formData.append(`survey_${key}`, value);
+      });
+
+      setProgress("Transcription de l'audio...");
 
       const result = await fetch(
         `${process.env.EXPO_PUBLIC_SUPABASE_URL}/functions/v1/process-onboarding`,
@@ -194,89 +191,112 @@ export default function WelcomeScreen() {
 
       if (!result.ok) {
         const error = await result.json();
-        throw new Error(error.error || 'Failed to process recording');
+        throw new Error(
+          error.error || "Échec du traitement de l'enregistrement"
+        );
       }
 
-      setProgress('Setting up your profile...');
+      setProgress('Configuration de votre profil...');
       await new Promise((resolve) => setTimeout(resolve, 1000));
-      router.push('/(onboarding)/editorial');
+
+      // Mark step as completed and proceed to next step
+      markStepCompleted('voice-recording');
+      nextStep();
     } catch (err) {
       console.error('Error processing recording:', err);
-      setError(err.message || 'Failed to process recording');
+      setError(err.message || "Échec du traitement de l'enregistrement");
     } finally {
       setProcessing(false);
       setProgress('');
     }
   };
 
+  const handleSkip = () => {
+    markStepCompleted('voice-recording');
+    nextStep();
+  };
+
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <ProgressBar
         steps={ONBOARDING_STEPS}
-        currentStep="welcome"
-        completedSteps={[]}
+        currentStep="voice-recording"
+        completedSteps={['welcome', 'survey']}
       />
 
       <View style={styles.header}>
-        <Image
-          source={{
-            uri: 'https://images.pexels.com/photos/3756879/pexels-photo-3756879.jpeg',
-          }}
-          style={styles.headerImage}
-        />
-        <View style={styles.overlay} />
-        <Text style={styles.title}>Bienvenue sur votre Studio IA</Text>
-        <Text style={styles.subtitle}>
-          Créez des vidéos professionnelles avec l'IA
-        </Text>
+        <Text style={styles.title}>Configuration vocale</Text>
+        <Text style={styles.subtitle}>Créez votre clone vocal IA</Text>
       </View>
 
       <View style={styles.content}>
-        <View style={styles.videoContainer}>
-          {videoPlaying ? (
-            <View style={styles.videoPlaceholder}>
-              <Text style={styles.videoText}>Démo vidéo en cours...</Text>
-            </View>
-          ) : (
-            <View style={styles.videoPlaceholder}>
-              <TouchableOpacity style={styles.playButton} onPress={toggleVideo}>
-                <Play size={40} color="#fff" />
-              </TouchableOpacity>
-              <Text style={styles.videoText}>Découvrez comment ça marche</Text>
-            </View>
-          )}
-        </View>
-
-        <View style={styles.features}>
-          <Text style={styles.featuresTitle}>
-            Transformez votre création de contenu
-          </Text>
-          <View style={styles.featureList}>
-            <View style={styles.featureItem}>
-              <Text style={styles.featureText}>
-                • Génération rapide de scripts IA
-              </Text>
-            </View>
-            <View style={styles.featureItem}>
-              <Text style={styles.featureText}>• Clonage vocal naturel</Text>
-            </View>
-            <View style={styles.featureItem}>
-              <Text style={styles.featureText}>
-                • Montage vidéo professionnel
-              </Text>
-            </View>
-            <View style={styles.featureItem}>
-              <Text style={styles.featureText}>• Modèles personnalisables</Text>
-            </View>
+        {error && (
+          <View style={styles.errorContainer}>
+            <Text style={styles.errorText}>{error}</Text>
           </View>
+        )}
+
+        <View style={styles.instructions}>
+          <Text style={styles.instructionTitle}>Configuration rapide</Text>
+          <Text style={styles.instructionText}>
+            Enregistrez une brève présentation à propos de :
+          </Text>
+          <View style={styles.bulletPoints}>
+            <Text style={styles.bulletPoint}>
+              • Votre style de contenu et sujets
+            </Text>
+            <Text style={styles.bulletPoint}>• Votre audience cible</Text>
+            <Text style={styles.bulletPoint}>• Votre ton de voix préféré</Text>
+          </View>
+          <Text style={styles.note}>
+            Nous l'utiliserons pour créer un clone vocal IA naturel
+          </Text>
+          <Text style={styles.timeLimit}>
+            Durée d'enregistrement maximum : 2 minutes
+          </Text>
         </View>
 
-        <TouchableOpacity
-          style={styles.continueButton}
-          onPress={handleContinue}
-        >
-          <Text style={styles.continueText}>Commencer</Text>
-          <ArrowRight size={20} color="#fff" />
+        {isRecording && (
+          <View style={styles.durationContainer}>
+            <Text style={styles.durationText}>
+              Enregistrement : {formatDuration(recordingDuration)}
+            </Text>
+          </View>
+        )}
+
+        {processing ? (
+          <View style={styles.processingContainer}>
+            <ActivityIndicator size="large" color="#007AFF" />
+            <Text style={styles.processingText}>{progress}</Text>
+          </View>
+        ) : (
+          <TouchableOpacity
+            style={[styles.recordButton, isRecording && styles.recordingButton]}
+            onPress={isRecording ? stopRecording : startRecording}
+          >
+            {isRecording ? (
+              <>
+                <StopCircle size={32} color="#ef4444" />
+                <Text style={[styles.recordButtonText, styles.recordingText]}>
+                  Arrêter l'enregistrement
+                </Text>
+              </>
+            ) : (
+              <>
+                <Mic size={32} color="#fff" />
+                <Text style={styles.recordButtonText}>
+                  Démarrer l'enregistrement
+                </Text>
+              </>
+            )}
+          </TouchableOpacity>
+        )}
+
+        <TouchableOpacity style={styles.skipButton} onPress={handleSkip}>
+          <Text style={styles.skipButtonText}>
+            Je préfère écrire à la place
+          </Text>
+          <ArrowRight size={20} color="#888" />
         </TouchableOpacity>
       </View>
     </SafeAreaView>
@@ -289,94 +309,26 @@ const styles = StyleSheet.create({
     backgroundColor: '#000',
   },
   header: {
-    height: 220,
-    justifyContent: 'flex-end',
-    padding: 20,
-  },
-  headerImage: {
-    ...StyleSheet.absoluteFillObject,
-    width: '100%',
-    height: 220,
-  },
-  overlay: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0,0,0,0.6)',
+    paddingTop: 16,
+    paddingHorizontal: 20,
+    paddingBottom: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#333',
   },
   title: {
-    fontSize: 28,
+    fontSize: 24,
     fontWeight: 'bold',
     color: '#fff',
-    marginBottom: 8,
+    marginBottom: 4,
   },
   subtitle: {
     fontSize: 16,
-    color: '#ddd',
-    marginBottom: 8,
+    color: '#888',
   },
   content: {
     flex: 1,
     padding: 20,
     justifyContent: 'space-between',
-  },
-  videoContainer: {
-    height: 200,
-    backgroundColor: '#111',
-    borderRadius: 12,
-    marginBottom: 24,
-    overflow: 'hidden',
-  },
-  videoPlaceholder: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  playButton: {
-    width: 70,
-    height: 70,
-    borderRadius: 35,
-    backgroundColor: 'rgba(0, 122, 255, 0.7)',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 12,
-  },
-  videoText: {
-    color: '#ddd',
-    fontSize: 16,
-  },
-  features: {
-    marginBottom: 24,
-  },
-  featuresTitle: {
-    fontSize: 20,
-    fontWeight: '600',
-    color: '#fff',
-    marginBottom: 16,
-  },
-  featureList: {
-    gap: 12,
-  },
-  featureItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  featureText: {
-    fontSize: 16,
-    color: '#ddd',
-  },
-  continueButton: {
-    backgroundColor: '#007AFF',
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: 16,
-    borderRadius: 12,
-    marginTop: 'auto',
-  },
-  continueText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '600',
-    marginRight: 8,
   },
   errorContainer: {
     backgroundColor: 'rgba(239, 68, 68, 0.1)',
@@ -388,6 +340,80 @@ const styles = StyleSheet.create({
     color: '#ef4444',
     fontSize: 14,
   },
+  instructions: {
+    backgroundColor: '#1a1a1a',
+    borderRadius: 16,
+    padding: 20,
+    gap: 12,
+  },
+  instructionTitle: {
+    fontSize: 20,
+    fontWeight: '600',
+    color: '#fff',
+    marginBottom: 8,
+  },
+  instructionText: {
+    fontSize: 16,
+    color: '#fff',
+  },
+  bulletPoints: {
+    gap: 8,
+  },
+  bulletPoint: {
+    fontSize: 16,
+    color: '#888',
+  },
+  note: {
+    fontSize: 14,
+    color: '#666',
+    fontStyle: 'italic',
+    marginTop: 8,
+  },
+  timeLimit: {
+    fontSize: 14,
+    color: '#ef4444',
+    marginTop: 8,
+  },
+  durationContainer: {
+    alignItems: 'center',
+    marginVertical: 16,
+  },
+  durationText: {
+    fontSize: 16,
+    color: '#ef4444',
+    fontWeight: '600',
+  },
+  recordButton: {
+    backgroundColor: '#007AFF',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 20,
+    borderRadius: 16,
+    gap: 12,
+  },
+  recordingButton: {
+    backgroundColor: '#2D1116',
+  },
+  recordButtonText: {
+    color: '#fff',
+    fontSize: 18,
+    fontWeight: '600',
+  },
+  recordingText: {
+    color: '#ef4444',
+  },
+  skipButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    padding: 16,
+  },
+  skipButtonText: {
+    color: '#888',
+    fontSize: 16,
+  },
   processingContainer: {
     alignItems: 'center',
     justifyContent: 'center',
@@ -395,7 +421,7 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   processingText: {
-    color: '#ddd',
+    color: '#fff',
     fontSize: 16,
   },
 });

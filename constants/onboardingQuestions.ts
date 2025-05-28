@@ -12,57 +12,106 @@ export interface SurveyQuestion {
 export const surveyQuestions: SurveyQuestion[] = [
   {
     id: 'content_goals',
-    question: "What's your primary goal with video content?",
+    question: "What's your main goal?",
     options: [
-      { id: 'brand', text: 'Build brand awareness' },
-      { id: 'sales', text: 'Drive sales and conversions' },
-      { id: 'educate', text: 'Educate my audience' },
-      { id: 'entertain', text: 'Entertain and engage followers' },
-      { id: 'expertise', text: 'Share my expertise' },
+      { id: 'grow_audience', text: 'Grow my audience' },
+      { id: 'monetize', text: 'Monetize my content' },
+      { id: 'save_time', text: 'Save time creating content' },
+      { id: 'improve_quality', text: 'Improve content quality' },
     ],
   },
   {
     id: 'pain_points',
-    question: "What's your biggest challenge with creating videos?",
+    question: "What's your biggest challenge?",
     options: [
-      { id: 'ideas', text: 'Coming up with good ideas' },
-      { id: 'scripts', text: 'Writing compelling scripts' },
-      { id: 'voiceovers', text: 'Recording professional voiceovers' },
-      { id: 'time', text: 'Finding time to create content' },
-      { id: 'consistency', text: 'Getting consistent results' },
+      { id: 'time', text: 'Time constraints' },
+      { id: 'editing', text: 'Lack of editing skills' },
+      { id: 'ideas', text: 'Coming up with ideas' },
+      { id: 'presence', text: 'Voice/on-camera presence' },
     ],
   },
   {
     id: 'content_style',
-    question: 'What style of content resonates most with your audience?',
+    question: 'What style of content do you create?',
     options: [
-      { id: 'educational', text: 'Educational and informative' },
-      { id: 'entertaining', text: 'Entertaining and humorous' },
-      { id: 'inspirational', text: 'Inspirational and motivational' },
-      { id: 'practical', text: 'Practical tips and how-tos' },
-      { id: 'professional', text: 'Professional and authoritative' },
+      { id: 'educational', text: 'Educational' },
+      { id: 'entertainment', text: 'Entertainment' },
+      { id: 'informational', text: 'Informational' },
+      { id: 'promotional', text: 'Promotional' },
     ],
   },
   {
     id: 'platform_focus',
-    question: 'Which platforms do you primarily create content for?',
+    question: 'Which platform do you focus on?',
     options: [
-      { id: 'tiktok', text: 'TikTok' },
-      { id: 'instagram', text: 'Instagram Reels' },
-      { id: 'youtube', text: 'YouTube Shorts' },
-      { id: 'facebook', text: 'Facebook/Meta' },
+      { id: 'youtube', text: 'YouTube' },
+      { id: 'instagram_tiktok', text: 'Instagram/TikTok' },
       { id: 'linkedin', text: 'LinkedIn' },
+      { id: 'website', text: 'Website/Blog' },
     ],
   },
   {
     id: 'content_frequency',
-    question: 'How often do you aim to publish video content?',
+    question: 'How often do you create content?',
     options: [
       { id: 'daily', text: 'Daily' },
-      { id: 'several_weekly', text: 'Several times a week' },
       { id: 'weekly', text: 'Weekly' },
-      { id: 'few_monthly', text: 'A few times a month' },
-      { id: 'monthly', text: 'Monthly or less' },
+      { id: 'monthly', text: 'Monthly' },
+      { id: 'occasionally', text: 'Occasionally' },
+    ],
+  },
+];
+
+// French localized questions
+export const frenchSurveyQuestions: SurveyQuestion[] = [
+  {
+    id: 'content_goals',
+    question: 'Quel est votre objectif principal ?',
+    options: [
+      { id: 'grow_audience', text: 'Développer mon audience' },
+      { id: 'monetize', text: 'Monétiser mon contenu' },
+      { id: 'save_time', text: 'Gagner du temps lors de la création' },
+      { id: 'improve_quality', text: 'Améliorer la qualité du contenu' },
+    ],
+  },
+  {
+    id: 'pain_points',
+    question: 'Quel est votre plus grand défi ?',
+    options: [
+      { id: 'time', text: 'Contraintes de temps' },
+      { id: 'editing', text: 'Manque de compétences en montage' },
+      { id: 'ideas', text: 'Trouver des idées' },
+      { id: 'presence', text: "Présence vocale/à l'écran" },
+    ],
+  },
+  {
+    id: 'content_style',
+    question: 'Quel style de contenu créez-vous ?',
+    options: [
+      { id: 'educational', text: 'Éducatif' },
+      { id: 'entertainment', text: 'Divertissement' },
+      { id: 'informational', text: 'Informatif' },
+      { id: 'promotional', text: 'Promotionnel' },
+    ],
+  },
+  {
+    id: 'platform_focus',
+    question: 'Sur quelle plateforme vous concentrez-vous ?',
+    options: [
+      { id: 'youtube', text: 'YouTube' },
+      { id: 'instagram_tiktok', text: 'Instagram/TikTok' },
+      { id: 'linkedin', text: 'LinkedIn' },
+      { id: 'website', text: 'Site web/Blog' },
+    ],
+  },
+  {
+    id: 'content_frequency',
+    question: 'À quelle fréquence créez-vous du contenu ?',
+    options: [
+      { id: 'daily', text: 'Quotidiennement' },
+      { id: 'weekly', text: 'Hebdomadairement' },
+      { id: 'monthly', text: 'Mensuellement' },
+      { id: 'occasionally', text: 'Occasionnellement' },
     ],
   },
 ];
