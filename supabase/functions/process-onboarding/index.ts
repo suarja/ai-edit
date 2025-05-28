@@ -275,12 +275,10 @@ Deno.serve(async (req) => {
     // Save survey data to onboarding_survey table
     if (surveyData) {
       try {
-        // Handle the UUID/bigint type mismatch
         const { error: surveyError } = await supabase
           .from('onboarding_survey')
           .upsert({
-            // Convert UUID to string to avoid type issues
-            user_id: userId.toString(),
+            user_id: userId, // Now this works directly as UUID
             content_goals: surveyData.content_goals,
             pain_points: surveyData.pain_points,
             content_style: surveyData.content_style,
@@ -290,29 +288,6 @@ Deno.serve(async (req) => {
 
         if (surveyError) {
           console.error('Error saving survey data:', surveyError);
-          // Try alternative approach
-          console.log('Attempting direct SQL query as fallback...');
-          try {
-            const { error: sqlError } = await supabase.rpc(
-              'save_onboarding_survey',
-              {
-                p_user_id: userId,
-                p_content_goals: surveyData.content_goals,
-                p_pain_points: surveyData.pain_points,
-                p_content_style: surveyData.content_style,
-                p_platform_focus: surveyData.platform_focus,
-                p_content_frequency: surveyData.content_frequency,
-              }
-            );
-
-            if (sqlError) {
-              console.error('SQL fallback also failed:', sqlError);
-            } else {
-              console.log('Survey data saved via SQL fallback');
-            }
-          } catch (rpcError) {
-            console.error('RPC call failed:', rpcError);
-          }
         } else {
           console.log('Survey data saved successfully');
         }

@@ -129,3 +129,24 @@ CREATE TABLE onboarding_survey (
 3. Enhance analytics tracking for onboarding steps
 4. Add A/B testing for different onboarding flows
 5. Improve accessibility features
+
+## Recent Updates to Onboarding Flow
+
+### Database Schema Fix
+
+- Fixed the onboarding_survey table schema to use UUID for user_id instead of bigint
+- Updated code to use direct Supabase client calls for survey data saving
+- Removed temporary workarounds and fallback mechanisms
+- Documented the fix in memory-bank/onboarding-survey-db-fix.md
+
+### Current Issues
+
+- **Auto-Advancing Screens**: The last pages of the survey flow advance automatically without user control, which creates an awkward user experience
+- This needs to be fixed to ensure users have full control over when they advance to the next screen
+- Affects primarily the features, trial-offer, and subscription screens
+
+### Next Steps
+
+- Fix the auto-advancing screens issue to improve user control
+- Implement RevenueCat for subscription and payment processing
+- Complete remaining UI refinements and animations

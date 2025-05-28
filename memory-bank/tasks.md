@@ -246,3 +246,29 @@ We will follow a TDD approach with the following test layers:
 1. Begin test infrastructure setup
 2. Start implementing OnboardingProvider component
 3. Create ProgressBar component
+
+## Active Tasks
+
+### ONB-002: Fix Automatic Screen Advancing in Onboarding Flow
+
+- **Description**: Fix the issue where screens in the onboarding flow (particularly features, trial-offer, and subscription screens) advance automatically without user control
+- **Priority**: High
+- **Estimated Time**: 3 hours
+- **Status**: Not Started
+- **Dependencies**: None
+
+### ONB-003: Implement RevenueCat Payment Processing
+
+- **Description**: Integrate RevenueCat for subscription management and payment processing
+- **Priority**: Medium
+- **Estimated Time**: 8 hours
+- **Status**: Not Started
+- **Dependencies**: None
+- **Subtasks**:
+  - [ ] Sign up for RevenueCat developer account
+  - [ ] Create subscription products in RevenueCat dashboard
+  - [ ] Install and configure RevenueCat SDK
+  - [ ] Implement subscription purchase flow
+  - [ ] Add subscription validation
+  - [ ] Test purchase flow on iOS and Android
+  - [ ] Implement restore purchases functionality
