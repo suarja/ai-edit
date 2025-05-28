@@ -23,6 +23,9 @@ export default function ProcessingScreenContainer() {
     nextStep();
   };
 
+  // Check if auto-progress is allowed for this step
+  const shouldAutoProgress = isAutoProgressAllowed('processing');
+
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <ProgressBar
@@ -36,7 +39,7 @@ export default function ProcessingScreenContainer() {
         message="Veuillez patienter pendant que nous personnalisons votre expérience selon vos préférences"
         steps={processingSteps}
         onComplete={handleComplete}
-        autoComplete={isAutoProgressAllowed('processing')}
+        autoComplete={shouldAutoProgress}
       />
     </SafeAreaView>
   );

@@ -1,6 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ActivityIndicator } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  ActivityIndicator,
+  TouchableOpacity,
+} from 'react-native';
 import * as Haptics from 'expo-haptics';
+import { ArrowRight } from 'lucide-react-native';
 
 interface ProcessingScreenProps {
   title: string;
@@ -61,6 +68,12 @@ export const ProcessingScreen: React.FC<ProcessingScreenProps> = ({
     completionDelay,
   ]);
 
+  const handleContinue = () => {
+    if (completed && onComplete) {
+      onComplete();
+    }
+  };
+
   return (
     <View style={styles.container} testID="processing-screen">
       <Text style={styles.title}>{title}</Text>
@@ -98,6 +111,17 @@ export const ProcessingScreen: React.FC<ProcessingScreenProps> = ({
           </View>
         ))}
       </View>
+
+      {/* Show continue button when processing is complete but not auto-completing */}
+      {completed && !autoComplete && onComplete && (
+        <TouchableOpacity
+          style={styles.continueButton}
+          onPress={handleContinue}
+        >
+          <Text style={styles.continueButtonText}>Continuer</Text>
+          <ArrowRight size={20} color="#fff" />
+        </TouchableOpacity>
+      )}
     </View>
   );
 };
@@ -125,6 +149,7 @@ const styles = StyleSheet.create({
   stepsContainer: {
     width: '100%',
     gap: 16,
+    marginBottom: 40,
   },
   step: {
     flexDirection: 'row',
@@ -167,5 +192,22 @@ const styles = StyleSheet.create({
   },
   completedStepText: {
     fontWeight: '500',
+  },
+  continueButton: {
+    backgroundColor: '#007AFF',
+    paddingHorizontal: 24,
+    paddingVertical: 16,
+    borderRadius: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 10,
+    width: '100%',
+    marginTop: 24,
+  },
+  continueButtonText: {
+    color: '#fff',
+    fontSize: 18,
+    fontWeight: '600',
   },
 });

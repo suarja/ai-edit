@@ -7,6 +7,7 @@ import {
 } from 'react';
 import { router } from 'expo-router';
 import * as Haptics from 'expo-haptics';
+import { features } from '../../lib/config/features';
 
 // Step types
 export type OnboardingStep =
@@ -38,6 +39,7 @@ interface OnboardingContextType {
   autoProgressEnabled: boolean;
   setAutoProgressEnabled: (enabled: boolean) => void;
   isAutoProgressAllowed: (step: OnboardingStep) => boolean;
+  visibleSteps: OnboardingStep[];
 }
 
 // Create context
@@ -60,8 +62,8 @@ const MANUAL_ADVANCE_SCREENS: OnboardingStep[] = [
   'subscription',
 ];
 
-// Step order
-const STEP_ORDER: OnboardingStep[] = [
+// Full step order
+const FULL_STEP_ORDER: OnboardingStep[] = [
   'welcome',
   'survey',
   'voice-recording',
@@ -86,13 +88,33 @@ const STEP_PATHS: Record<OnboardingStep, string> = {
   success: '/(onboarding)/success',
 };
 
+// Subscription-related steps
+const SUBSCRIPTION_STEPS: OnboardingStep[] = ['trial-offer', 'subscription'];
+
 export const OnboardingProvider = ({
   children,
   initialStep = 'welcome',
   initialCompletedSteps = [],
   initialSurveyAnswers = {},
 }: OnboardingProviderProps) => {
-  const [currentStep, setCurrentStep] = useState<OnboardingStep>(initialStep);
+  // Filter steps based on feature flags
+  const visibleSteps = FULL_STEP_ORDER.filter((step) => {
+    if (
+      SUBSCRIPTION_STEPS.includes(step) &&
+      !features.enableSubscriptionScreens
+    ) {
+      return false;
+    }
+    return true;
+  });
+
+  // Ensure initial step is valid
+  const safeInitialStep = visibleSteps.includes(initialStep)
+    ? initialStep
+    : visibleSteps[0];
+
+  const [currentStep, setCurrentStep] =
+    useState<OnboardingStep>(safeInitialStep);
   const [completedSteps, setCompletedSteps] = useState<OnboardingStep[]>(
     initialCompletedSteps
   );
@@ -102,14 +124,19 @@ export const OnboardingProvider = ({
 
   // Check if current screen should allow auto-progress
   const isAutoProgressAllowed = (step: OnboardingStep): boolean => {
+    // If auto-progress is globally disabled via feature flag, return false
+    if (features.disableAutoProgress) {
+      return false;
+    }
+    // Otherwise check if the step is in the manual advance list
     return !MANUAL_ADVANCE_SCREENS.includes(step);
   };
 
   const nextStep = () => {
-    const currentIndex = STEP_ORDER.indexOf(currentStep);
+    const currentIndex = visibleSteps.indexOf(currentStep);
 
-    if (currentIndex < STEP_ORDER.length - 1) {
-      const nextStepInOrder = STEP_ORDER[currentIndex + 1];
+    if (currentIndex < visibleSteps.length - 1) {
+      const nextStepInOrder = visibleSteps[currentIndex + 1];
 
       // Provide haptic feedback
       try {
@@ -118,16 +145,17 @@ export const OnboardingProvider = ({
         console.log('Haptics not available');
       }
 
-      router.push(STEP_PATHS[nextStepInOrder]);
+      // Navigate to the next screen
+      router.push(STEP_PATHS[nextStepInOrder] as any);
       setCurrentStep(nextStepInOrder);
     }
   };
 
   const previousStep = () => {
-    const currentIndex = STEP_ORDER.indexOf(currentStep);
+    const currentIndex = visibleSteps.indexOf(currentStep);
 
     if (currentIndex > 0) {
-      const prevStepInOrder = STEP_ORDER[currentIndex - 1];
+      const prevStepInOrder = visibleSteps[currentIndex - 1];
 
       // Provide haptic feedback
       try {
@@ -136,15 +164,18 @@ export const OnboardingProvider = ({
         console.log('Haptics not available');
       }
 
-      router.push(STEP_PATHS[prevStepInOrder]);
+      // Navigate to the previous screen
+      router.push(STEP_PATHS[prevStepInOrder] as any);
       setCurrentStep(prevStepInOrder);
     }
   };
 
   const jumpToStep = (step: OnboardingStep) => {
-    if (STEP_ORDER.includes(step)) {
-      router.push(STEP_PATHS[step]);
+    if (visibleSteps.includes(step)) {
+      router.push(STEP_PATHS[step] as any);
       setCurrentStep(step);
+    } else {
+      console.warn(`Attempted to jump to disabled step: ${step}`);
     }
   };
 
@@ -173,6 +204,7 @@ export const OnboardingProvider = ({
     autoProgressEnabled,
     setAutoProgressEnabled,
     isAutoProgressAllowed,
+    visibleSteps,
   };
 
   return (
