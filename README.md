@@ -9,6 +9,31 @@ A powerful platform that combines AI-driven content generation with professional
 - 📝 AI-powered script generation and optimization
 - 🎨 Editorial profile management
 - 📊 Video request tracking and status monitoring
+- 🚀 Enhanced onboarding experience with personalization
+
+## Recent Updates
+
+### Enhanced Onboarding Flow
+
+- Multi-step onboarding process with guided experience
+- Voice recording for AI voice cloning
+- Survey questions to understand user needs
+- Editorial profile generation based on voice analysis
+- Fixed auto-advancing screens for better user control
+- Proper database integration for survey data
+- French localization for all onboarding screens
+
+### Database Improvements
+
+- Fixed survey data schema to properly handle UUID user references
+- Improved error handling for database operations
+- Added stored procedures for robust data handling
+
+### Coming Soon
+
+- RevenueCat integration for subscription management
+- Additional payment processing capabilities
+- More UI refinements and animations
 
 ## Tech Stack
 
@@ -49,6 +74,9 @@ CREATOMATE_DOCS_URL=/docs/creatomate.json
 │   ├── (tabs)/            # Main app tabs
 │   └── api/               # API routes
 ├── components/            # Reusable components
+│   ├── onboarding/       # Onboarding-specific components
+│   └── providers/        # Context providers
+├── memory-bank/          # Project documentation
 ├── docs/                  # Documentation files
 ├── lib/                   # Core libraries
 │   ├── agents/           # AI agent implementations
@@ -61,26 +89,42 @@ CREATOMATE_DOCS_URL=/docs/creatomate.json
 ## Development
 
 1. Install dependencies:
+
 ```bash
 npm install
 ```
 
 2. Start the development server:
+
 ```bash
 npm run dev
 ```
 
 ## Architecture
 
+### Onboarding Flow
+
+1. Welcome screen with app introduction
+2. Survey questions to understand user needs
+3. Voice recording for AI voice clone creation
+4. Processing screen for profile generation
+5. Editorial profile preview and customization
+6. Features showcase highlighting app capabilities
+7. Trial offer with free trial information
+8. Subscription options with plan selection
+9. Success screen with next steps
+
 ### Video Generation Flow
 
 1. User submits video request with:
+
    - Text prompt
    - Selected source videos
    - Editorial profile preferences
    - Voice clone settings
 
 2. Backend process:
+
    - Script generation with GPT-4
    - Script review and optimization
    - Creatomate JSON template generation
@@ -96,13 +140,16 @@ npm run dev
 - **ScriptGenerator**: Creates initial script from user prompt
 - **ScriptReviewer**: Optimizes script for TTS and style
 - **CreatomateBuilder**: Generates video template JSON
+- **ProfileGenerator**: Creates editorial profile from voice recording
 
 ## Database Schema
 
 Key tables:
+
 - `users`: Core user data
 - `editorial_profiles`: Content style preferences
 - `voice_clones`: ElevenLabs voice settings
+- `onboarding_survey`: User preferences from onboarding
 - `videos`: Source video assets
 - `scripts`: Generated and reviewed scripts
 - `video_requests`: Render job tracking
