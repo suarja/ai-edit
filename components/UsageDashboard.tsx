@@ -1,112 +1,123 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ActivityIndicator } from 'react-native';
-import { AlertCircle, AlertTriangle, CheckCircle } from 'lucide-react-native';
+import { View, Text, StyleSheet, ActivityIndicator, Alert } from 'react-native';
 import { supabase } from '@/lib/supabase';
+import { User } from '@supabase/supabase-js';
 
 type UsageData = {
-  videosGenerated: number;
-  videosLimit: number;
-  usagePercentage: number;
-  nextResetDate: string;
-  remainingVideos: number;
+  videos_generated: number;
+  videos_limit: number;
+  next_reset_date: string;
 };
 
 export default function UsageDashboard() {
+  const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [usage, setUsage] = useState<UsageData | null>(null);
+  const [usageData, setUsageData] = useState<UsageData | null>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
-    async function fetchUsage() {
+    // Get the current user
+    const fetchUser = async () => {
+      try {
+        const { data, error } = await supabase.auth.getUser();
+        if (error) throw error;
+        setUser(data.user);
+      } catch (err: any) {
+        console.error('Error fetching user:', err);
+        setError('Failed to fetch user data');
+      }
+    };
+
+    fetchUser();
+  }, []);
+
+  useEffect(() => {
+    if (!user) return;
+
+    const fetchUsageData = async () => {
       try {
         setLoading(true);
-        setError(null);
 
-        // Get current user
-        const {
-          data: { user },
-          error: userError,
-        } = await supabase.auth.getUser();
+        // First check if user is an admin
+        const { data: roleData, error: roleError } = await supabase
+          .from('user_roles')
+          .select('role')
+          .eq('user_id', user.id)
+          .eq('role', 'admin')
+          .single();
 
-        if (userError || !user) {
-          throw new Error('User not authenticated');
+        if (!roleError && roleData) {
+          setIsAdmin(true);
         }
 
         // Fetch usage data
         const { data, error } = await supabase
           .from('user_usage')
-          .select('*')
+          .select('videos_generated, videos_limit, next_reset_date')
           .eq('user_id', user.id)
-          .maybeSingle();
+          .single();
 
-        // If no usage record exists, create one
-        if (error && error.code === 'PGRST116') {
-          console.log('No usage record found, creating one...');
-
-          // Create a new usage record
-          const { data: newData, error: insertError } = await supabase
-            .from('user_usage')
-            .insert({
-              user_id: user.id,
-              videos_generated: 0,
-              videos_limit: 5,
-              last_reset_date: new Date().toISOString(),
-              next_reset_date: new Date(
-                Date.now() + 30 * 24 * 60 * 60 * 1000
-              ).toISOString(),
-            })
-            .select()
-            .single();
-
-          if (insertError) throw insertError;
-
-          // Use the newly created record
-          setUsage({
-            videosGenerated: newData.videos_generated,
-            videosLimit: newData.videos_limit,
-            usagePercentage: 0,
-            nextResetDate: new Date(
-              newData.next_reset_date
-            ).toLocaleDateString(),
-            remainingVideos: newData.videos_limit,
-          });
-        } else if (error) {
+        if (error) {
+          // If no row found, create a new usage record
+          if (error.code === 'PGRST116') {
+            await createUsageRecord(user.id);
+            return;
+          }
           throw error;
-        } else if (data) {
-          setUsage({
-            videosGenerated: data.videos_generated,
-            videosLimit: data.videos_limit,
-            usagePercentage: Math.round(
-              (data.videos_generated / data.videos_limit) * 100
-            ),
-            nextResetDate: new Date(data.next_reset_date).toLocaleDateString(),
-            remainingVideos: Math.max(
-              0,
-              data.videos_limit - data.videos_generated
-            ),
-          });
         }
+
+        setUsageData(data);
       } catch (err: any) {
-        console.error('Error fetching usage:', err);
-        setError(err.message || 'Failed to load usage data');
+        console.error('Error fetching usage data:', err);
+        setError('Failed to fetch usage information');
       } finally {
         setLoading(false);
       }
+    };
+
+    fetchUsageData();
+  }, [user]);
+
+  const createUsageRecord = async (userId: string) => {
+    try {
+      // Create a new usage record for this user
+      const { data, error } = await supabase
+        .from('user_usage')
+        .insert([
+          {
+            user_id: userId,
+            videos_generated: 0,
+            videos_limit: 5,
+          },
+        ])
+        .select('videos_generated, videos_limit, next_reset_date')
+        .single();
+
+      if (error) throw error;
+
+      setUsageData(data);
+    } catch (err: any) {
+      console.error('Error creating usage record:', err);
+      setError('Failed to initialize usage information');
+    } finally {
+      setLoading(false);
     }
+  };
 
-    fetchUsage();
-
-    // Set up a refresh interval every 5 minutes
-    const intervalId = setInterval(() => fetchUsage(), 5 * 60 * 1000);
-
-    return () => clearInterval(intervalId);
-  }, []);
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString(undefined, {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+    });
+  };
 
   if (loading) {
     return (
       <View style={styles.container}>
         <ActivityIndicator size="large" color="#007AFF" />
-        <Text style={styles.loadingText}>Loading usage data...</Text>
+        <Text style={styles.loadingText}>Loading usage information...</Text>
       </View>
     );
   }
@@ -114,86 +125,81 @@ export default function UsageDashboard() {
   if (error) {
     return (
       <View style={styles.container}>
-        <View style={styles.errorContainer}>
-          <AlertCircle size={24} color="#FF3B30" />
-          <Text style={styles.errorText}>{error}</Text>
-        </View>
+        <Text style={styles.errorText}>{error}</Text>
       </View>
     );
   }
 
-  if (!usage) {
+  if (!usageData) {
     return (
       <View style={styles.container}>
-        <Text style={styles.errorText}>No usage data available</Text>
+        <Text style={styles.errorText}>No usage information available</Text>
       </View>
     );
   }
 
-  // Determine status icon and color based on usage percentage
-  const getStatusInfo = () => {
-    const percentage = usage.usagePercentage;
+  const usagePercentage = Math.min(
+    100,
+    Math.round((usageData.videos_generated / usageData.videos_limit) * 100)
+  );
 
-    if (percentage >= 90) {
-      return {
-        icon: <AlertTriangle size={20} color="#FF3B30" />,
-        color: '#FF3B30',
-        text: 'Almost at limit',
-      };
-    } else if (percentage >= 70) {
-      return {
-        icon: <AlertTriangle size={20} color="#FF9500" />,
-        color: '#FF9500',
-        text: 'Approaching limit',
-      };
-    } else {
-      return {
-        icon: <CheckCircle size={20} color="#34C759" />,
-        color: '#34C759',
-        text: 'Good standing',
-      };
-    }
+  const daysUntilReset = () => {
+    const now = new Date();
+    const resetDate = new Date(usageData.next_reset_date);
+    const diffTime = Math.abs(resetDate.getTime() - now.getTime());
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    return diffDays;
   };
-
-  const statusInfo = getStatusInfo();
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Video Generation Usage</Text>
-
-      <View style={styles.statusContainer}>
-        {statusInfo.icon}
-        <Text style={[styles.statusText, { color: statusInfo.color }]}>
-          {statusInfo.text}
-        </Text>
-      </View>
-
-      <View style={styles.statsContainer}>
-        <Text style={styles.statsText}>
-          {usage.videosGenerated} / {usage.videosLimit} videos used
-        </Text>
-
-        <View style={styles.progressBarContainer}>
-          <View
-            style={[
-              styles.progressBar,
-              {
-                width: `${usage.usagePercentage}%`,
-                backgroundColor: statusInfo.color,
-              },
-            ]}
-          />
+      <View style={styles.card}>
+        <View style={styles.header}>
+          <Text style={styles.title}>Video Generation Usage</Text>
+          {isAdmin && (
+            <View style={styles.adminBadge}>
+              <Text style={styles.adminBadgeText}>Admin</Text>
+            </View>
+          )}
         </View>
 
-        <View style={styles.infoRow}>
-          <Text style={styles.infoLabel}>Remaining:</Text>
-          <Text style={styles.infoValue}>{usage.remainingVideos} videos</Text>
+        <View style={styles.usageContainer}>
+          <View style={styles.usageTextContainer}>
+            <Text style={styles.usageCount}>
+              {usageData.videos_generated} / {usageData.videos_limit}
+            </Text>
+            <Text style={styles.usageLabel}>Videos Generated This Month</Text>
+          </View>
+
+          <View style={styles.progressContainer}>
+            <View style={styles.progressBar}>
+              <View
+                style={[
+                  styles.progressFill,
+                  { width: `${usagePercentage}%` },
+                  usagePercentage >= 90 && styles.progressWarning,
+                  usagePercentage >= 100 && styles.progressDanger,
+                ]}
+              />
+            </View>
+            <Text style={styles.progressText}>{usagePercentage}% used</Text>
+          </View>
         </View>
 
-        <View style={styles.infoRow}>
-          <Text style={styles.infoLabel}>Next reset:</Text>
-          <Text style={styles.infoValue}>{usage.nextResetDate}</Text>
+        <View style={styles.resetContainer}>
+          <Text style={styles.resetText}>
+            Resets in {daysUntilReset()} days on{' '}
+            {formatDate(usageData.next_reset_date)}
+          </Text>
         </View>
+
+        {isAdmin && (
+          <View style={styles.infoContainer}>
+            <Text style={styles.infoText}>
+              As an admin, you can adjust usage limits in the admin panel.
+            </Text>
+          </View>
+        )}
       </View>
     </View>
   );
@@ -202,71 +208,113 @@ export default function UsageDashboard() {
 const styles = StyleSheet.create({
   container: {
     padding: 16,
-    backgroundColor: '#1A1A1A',
+  },
+  card: {
+    backgroundColor: '#1a1a1a',
     borderRadius: 12,
-    marginVertical: 8,
+    padding: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
   },
   title: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#FFFFFF',
-    marginBottom: 12,
+    color: '#fff',
   },
-  statusContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 12,
-    gap: 8,
+  adminBadge: {
+    backgroundColor: '#007AFF',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
   },
-  statusText: {
-    fontSize: 14,
-    fontWeight: '600',
+  adminBadgeText: {
+    color: '#fff',
+    fontSize: 12,
+    fontWeight: 'bold',
   },
-  statsContainer: {
-    marginTop: 8,
-  },
-  statsText: {
-    fontSize: 16,
-    color: '#FFFFFF',
-    marginBottom: 8,
-  },
-  progressBarContainer: {
-    height: 8,
-    backgroundColor: '#333333',
-    borderRadius: 4,
-    overflow: 'hidden',
+  usageContainer: {
     marginBottom: 16,
   },
-  progressBar: {
-    height: '100%',
-    borderRadius: 4,
-  },
-  infoRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+  usageTextContainer: {
     marginBottom: 8,
   },
-  infoLabel: {
+  usageCount: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#fff',
+  },
+  usageLabel: {
     fontSize: 14,
-    color: '#999999',
+    color: '#888',
+    marginTop: 4,
   },
-  infoValue: {
+  progressContainer: {
+    marginTop: 8,
+  },
+  progressBar: {
+    height: 8,
+    backgroundColor: '#333',
+    borderRadius: 4,
+    overflow: 'hidden',
+  },
+  progressFill: {
+    height: '100%',
+    backgroundColor: '#10b981', // Green
+    borderRadius: 4,
+  },
+  progressWarning: {
+    backgroundColor: '#f59e0b', // Amber
+  },
+  progressDanger: {
+    backgroundColor: '#ef4444', // Red
+  },
+  progressText: {
+    fontSize: 12,
+    color: '#888',
+    marginTop: 4,
+    textAlign: 'right',
+  },
+  resetContainer: {
+    marginTop: 8,
+    padding: 12,
+    backgroundColor: '#222',
+    borderRadius: 8,
+  },
+  resetText: {
     fontSize: 14,
-    color: '#FFFFFF',
-    fontWeight: '500',
+    color: '#fff',
+    textAlign: 'center',
   },
-  errorContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
+  infoContainer: {
+    marginTop: 16,
+    padding: 12,
+    backgroundColor: 'rgba(0, 122, 255, 0.1)',
+    borderRadius: 8,
+    borderLeftWidth: 3,
+    borderLeftColor: '#007AFF',
   },
-  errorText: {
-    color: '#FF3B30',
-    fontSize: 16,
+  infoText: {
+    fontSize: 14,
+    color: '#fff',
   },
   loadingText: {
     marginTop: 8,
-    color: '#FFFFFF',
     fontSize: 14,
+    color: '#888',
+    textAlign: 'center',
+  },
+  errorText: {
+    fontSize: 14,
+    color: '#ef4444',
+    textAlign: 'center',
   },
 });
