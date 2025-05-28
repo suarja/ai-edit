@@ -37,6 +37,7 @@ interface OnboardingContextType {
   setSurveyAnswer: (questionId: string, answerId: string) => void;
   autoProgressEnabled: boolean;
   setAutoProgressEnabled: (enabled: boolean) => void;
+  isAutoProgressAllowed: (step: OnboardingStep) => boolean;
 }
 
 // Create context
@@ -51,6 +52,13 @@ interface OnboardingProviderProps {
   initialCompletedSteps?: OnboardingStep[];
   initialSurveyAnswers?: SurveyAnswers;
 }
+
+// Screens that should not auto-advance
+const MANUAL_ADVANCE_SCREENS: OnboardingStep[] = [
+  'features',
+  'trial-offer',
+  'subscription',
+];
 
 // Step order
 const STEP_ORDER: OnboardingStep[] = [
@@ -90,7 +98,12 @@ export const OnboardingProvider = ({
   );
   const [surveyAnswers, setSurveyAnswers] =
     useState<SurveyAnswers>(initialSurveyAnswers);
-  const [autoProgressEnabled, setAutoProgressEnabled] = useState(true);
+  const [autoProgressEnabled, setAutoProgressEnabled] = useState(false);
+
+  // Check if current screen should allow auto-progress
+  const isAutoProgressAllowed = (step: OnboardingStep): boolean => {
+    return !MANUAL_ADVANCE_SCREENS.includes(step);
+  };
 
   const nextStep = () => {
     const currentIndex = STEP_ORDER.indexOf(currentStep);
@@ -159,6 +172,7 @@ export const OnboardingProvider = ({
     setSurveyAnswer,
     autoProgressEnabled,
     setAutoProgressEnabled,
+    isAutoProgressAllowed,
   };
 
   return (

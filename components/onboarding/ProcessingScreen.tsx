@@ -45,7 +45,7 @@ export const ProcessingScreen: React.FC<ProcessingScreenProps> = ({
           console.log('Haptics not available');
         }
 
-        // Auto complete after delay if specified
+        // Auto complete after delay if specified and allowed
         if (autoComplete && onComplete) {
           setTimeout(onComplete, completionDelay);
         }

@@ -25,7 +25,8 @@ const processingSteps = [
 ];
 
 export default function ProcessingScreenContainer() {
-  const { nextStep, markStepCompleted, surveyAnswers } = useOnboarding();
+  const { nextStep, markStepCompleted, surveyAnswers, isAutoProgressAllowed } =
+    useOnboarding();
 
   const handleComplete = () => {
     markStepCompleted('processing');
@@ -45,7 +46,7 @@ export default function ProcessingScreenContainer() {
         message="Veuillez patienter pendant que nous personnalisons votre expérience selon vos préférences"
         steps={processingSteps}
         onComplete={handleComplete}
-        autoComplete={true}
+        autoComplete={isAutoProgressAllowed('processing')}
       />
     </SafeAreaView>
   );

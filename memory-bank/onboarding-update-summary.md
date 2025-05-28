@@ -141,12 +141,22 @@ CREATE TABLE onboarding_survey (
 
 ### Current Issues
 
-- **Auto-Advancing Screens**: The last pages of the survey flow advance automatically without user control, which creates an awkward user experience
-- This needs to be fixed to ensure users have full control over when they advance to the next screen
-- Affects primarily the features, trial-offer, and subscription screens
+- **Auto-Advancing Screens**: The last pages of the survey flow advance automatically without user control, which creates an awkward user experience **FIXED**
+- This needs to be fixed to ensure users have full control over when they advance to the next screen **FIXED**
+- Affects primarily the features, trial-offer, and subscription screens **FIXED**
+
+### Latest Updates
+
+#### Fixed Auto-Advancing Screens Issue
+
+- Added logic to prevent screens from auto-advancing without user action
+- Created `MANUAL_ADVANCE_SCREENS` constant to identify screens that should never auto-advance
+- Updated `OnboardingProvider` to disable auto-progression by default
+- Added `isAutoProgressAllowed` function to check if a step should allow auto-progression
+- Modified features, trial-offer, and subscription screens to explicitly disable auto-progression
+- Now users must click the "Continue" button to advance through critical screens
 
 ### Next Steps
 
-- Fix the auto-advancing screens issue to improve user control
-- Implement RevenueCat for subscription and payment processing
+- Implement RevenueCat for subscription and payment processing (ONB-003)
 - Complete remaining UI refinements and animations

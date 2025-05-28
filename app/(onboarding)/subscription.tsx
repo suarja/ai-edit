@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -27,11 +27,17 @@ const ONBOARDING_STEPS = [
 ];
 
 export default function SubscriptionScreen() {
-  const { nextStep, markStepCompleted } = useOnboarding();
+  const { nextStep, markStepCompleted, setAutoProgressEnabled } =
+    useOnboarding();
   const [selectedPlanId, setSelectedPlanId] = useState<string>(
     subscriptionPlans.find((plan) => plan.isRecommended)?.id ||
       subscriptionPlans[0].id
   );
+
+  // Disable auto-progress when this screen loads
+  useEffect(() => {
+    setAutoProgressEnabled(false);
+  }, []);
 
   const handleSelectPlan = (planId: string) => {
     setSelectedPlanId(planId);

@@ -254,8 +254,14 @@ We will follow a TDD approach with the following test layers:
 - **Description**: Fix the issue where screens in the onboarding flow (particularly features, trial-offer, and subscription screens) advance automatically without user control
 - **Priority**: High
 - **Estimated Time**: 3 hours
-- **Status**: Not Started
+- **Status**: Completed
 - **Dependencies**: None
+- **Solution Implemented**:
+  - Added `MANUAL_ADVANCE_SCREENS` constant to identify screens that should never auto-advance
+  - Updated OnboardingProvider to disable auto-progression by default
+  - Added `isAutoProgressAllowed` function to check if a step should allow auto-progression
+  - Modified features, trial-offer, and subscription screens to explicitly disable auto-progression
+  - Updated ProcessingScreen component to respect auto-progression setting
 
 ### ONB-003: Implement RevenueCat Payment Processing
 

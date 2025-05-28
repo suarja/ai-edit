@@ -19,7 +19,13 @@ const ONBOARDING_STEPS = [
 ];
 
 export default function TrialOfferScreen() {
-  const { nextStep, markStepCompleted } = useOnboarding();
+  const { nextStep, markStepCompleted, setAutoProgressEnabled } =
+    useOnboarding();
+
+  // Disable auto-progress when this screen loads
+  React.useEffect(() => {
+    setAutoProgressEnabled(false);
+  }, []);
 
   const handleContinue = () => {
     markStepCompleted('trial-offer');
