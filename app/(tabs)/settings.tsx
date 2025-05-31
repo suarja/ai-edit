@@ -95,13 +95,26 @@ export default function SettingsScreen() {
 
   const fetchProfile = async () => {
     try {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
+      setLoading(true);
+      console.log('Fetching profile...');
+      
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      
+      if (userError) {
+        console.error('Error getting user:', userError);
+        throw userError;
+      }
+      
       if (!user) {
-        router.replace('/(auth)/sign-in');
+        console.log('No user found, redirecting to sign-in');
+        // Add a small delay to prevent navigation loops
+        setTimeout(() => {
+          router.replace('/(auth)/sign-in');
+        }, 100);
         return;
       }
+
+      console.log('User found:', user.id);
 
       const { data: profile, error: profileError } = await supabase
         .from('users')
@@ -109,7 +122,10 @@ export default function SettingsScreen() {
         .eq('id', user.id)
         .single();
 
-      if (profileError) throw profileError;
+      if (profileError) {
+        console.error('Profile error:', profileError);
+        throw profileError;
+      }
 
       // Check if user has admin role
       const { data: rolesData, error: rolesError } = await supabase
@@ -134,9 +150,12 @@ export default function SettingsScreen() {
         avatar_url: profile.avatar_url,
         email: user.email!,
       });
+      
+      console.log('Profile loaded successfully');
     } catch (err) {
       console.error('Error fetching profile:', err);
       setError('Échec du chargement du profil');
+      // Don't redirect on error, just show the error
     } finally {
       setLoading(false);
     }

@@ -13,7 +13,6 @@
         "buildConfiguration": "Debug"
       },
       "env": {
-        "EXPO_PUBLIC_API_URL": "https://api.example.com",
         "EXPO_PUBLIC_IS_TESTFLIGHT": "false",
         "EXPO_PUBLIC_ENVIRONMENT": "development"
       }
@@ -24,7 +23,6 @@
         "resourceClass": "m-medium"
       },
       "env": {
-        "EXPO_PUBLIC_API_URL": "https://api.example.com",
         "EXPO_PUBLIC_IS_TESTFLIGHT": "true",
         "EXPO_PUBLIC_ENVIRONMENT": "preview"
       }
@@ -35,7 +33,7 @@
         "resourceClass": "m-medium"
       },
       "env": {
-        "EXPO_PUBLIC_IS_TESTFLIGHT": "false",
+        "EXPO_PUBLIC_IS_TESTFLIGHT": "true",
         "EXPO_PUBLIC_ENVIRONMENT": "production"
       }
     }
