@@ -42,7 +42,7 @@ class ErrorReportingService {
       return;
     }
 
-    // Set up global error handlers
+    // Set up global error handlers (simplified version)
     this.setupGlobalErrorHandlers();
     this.isInitialized = true;
 
@@ -193,40 +193,37 @@ class ErrorReportingService {
   }
 
   /**
-   * Set up global error handlers
+   * Set up global error handlers (simplified version that doesn't use React Native internals)
    */
   private setupGlobalErrorHandlers(): void {
-    // Handle global JavaScript errors in React Native
-    if (typeof ErrorUtils !== 'undefined') {
-      const originalHandler = ErrorUtils.getGlobalHandler();
-
-      ErrorUtils.setGlobalHandler((error, isFatal) => {
-        this.reportError(error, { action: 'global_error' }, isFatal);
-
-        // Call original handler
-        if (originalHandler) {
-          originalHandler(error, isFatal);
-        }
-      });
+    // Handle unhandled promise rejections
+    if (typeof Promise !== 'undefined' && Promise.prototype) {
+      const originalThen = Promise.prototype.then;
+      Promise.prototype.then = function (onFulfilled, onRejected) {
+        return originalThen.call(
+          this,
+          onFulfilled,
+          onRejected ||
+            ((reason: any) => {
+              // Only report if there's no other handler
+              setTimeout(() => {
+                if (reason instanceof Error) {
+                  ErrorReportingService.getInstance().reportError(
+                    reason,
+                    { action: 'unhandled_promise_rejection' },
+                    false
+                  );
+                }
+              }, 0);
+              throw reason;
+            })
+        );
+      };
     }
 
-    // Handle unhandled promise rejections (React Native specific)
-    const originalPromiseRejectionHandler =
-      require('react-native/Libraries/Core/ExceptionsManager').default
-        .handleUncaughtException;
-
-    if (originalPromiseRejectionHandler) {
-      require('react-native/Libraries/Core/ExceptionsManager').default.handleUncaughtException =
-        (error: Error, isFatal: boolean) => {
-          this.reportError(
-            error,
-            { action: 'unhandled_promise_rejection' },
-            isFatal
-          );
-
-          // Call original handler
-          originalPromiseRejectionHandler(error, isFatal);
-        };
+    // Simple error boundary for React Native
+    if (__DEV__) {
+      console.log('Error reporting: Basic error handlers initialized');
     }
   }
 }
