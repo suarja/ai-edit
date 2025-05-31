@@ -1,17 +1,14 @@
 import { createClient } from '@supabase/supabase-js';
 import { Database } from '@/types/supabase';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { env, logEnvironmentStatus } from '@/lib/config/env';
 
-const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL!;
-const supabaseAnonKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY!;
-
-// For debugging purposes
-console.log('Supabase URL:', supabaseUrl ? 'Set' : 'Missing');
-console.log('Supabase Anon Key:', supabaseAnonKey ? 'Set' : 'Missing');
+// Log environment status only in development
+logEnvironmentStatus();
 
 export const supabaseBrowserClient = createClient<Database>(
-  supabaseUrl,
-  supabaseAnonKey,
+  env.SUPABASE_URL,
+  env.SUPABASE_ANON_KEY,
   {
     auth: {
       storage: AsyncStorage,

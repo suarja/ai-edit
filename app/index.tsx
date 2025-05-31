@@ -1,22 +1,82 @@
-import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  Image,
+  ActivityIndicator,
+} from 'react-native';
 import { Video, Play } from 'lucide-react-native';
 import { router } from 'expo-router';
+import { useEffect, useState } from 'react';
+import { supabase } from '@/lib/supabase';
+import { withErrorBoundary } from './ErrorBoundary';
+import { reportAuthError } from '@/lib/services/errorReporting';
 
-export default function LandingScreen() {
+function LandingScreen() {
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    checkAuthState();
+  }, []);
+
+  const checkAuthState = async () => {
+    try {
+      const {
+        data: { session },
+        error,
+      } = await supabase.auth.getSession();
+
+      if (error) {
+        reportAuthError(error, {
+          screen: 'LandingScreen',
+          action: 'check_auth_state',
+        });
+        console.error('Auth state check error:', error);
+      }
+
+      if (session) {
+        // User is already logged in, redirect to main app
+        router.replace('/(tabs)/source-videos');
+      }
+    } catch (error) {
+      reportAuthError(error as Error, {
+        screen: 'LandingScreen',
+        action: 'auth_check_exception',
+      });
+      console.error('Exception during auth check:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleGetStarted = () => {
     router.push('/(auth)/sign-in');
   };
 
+  if (loading) {
+    return (
+      <View style={[styles.container, styles.loadingContainer]}>
+        <ActivityIndicator size="large" color="#007AFF" />
+        <Text style={styles.loadingText}>Loading...</Text>
+      </View>
+    );
+  }
+
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Image 
-          source={{ uri: 'https://images.pexels.com/photos/2873486/pexels-photo-2873486.jpeg' }}
+        <Image
+          source={{
+            uri: 'https://images.pexels.com/photos/2873486/pexels-photo-2873486.jpeg',
+          }}
           style={styles.headerImage}
         />
         <View style={styles.overlay} />
         <Text style={styles.title}>Créez des Vidéos Incroyables</Text>
-        <Text style={styles.subtitle}>Transformez votre contenu en vidéos captivantes avec l'IA</Text>
+        <Text style={styles.subtitle}>
+          Transformez votre contenu en vidéos captivantes avec l'IA
+        </Text>
       </View>
 
       <View style={styles.content}>
@@ -24,7 +84,8 @@ export default function LandingScreen() {
           <Video size={32} color="#007AFF" />
           <Text style={styles.featureTitle}>Génération Vidéo Intelligente</Text>
           <Text style={styles.featureText}>
-            Transformez vos idées en vidéos professionnelles en quelques minutes grâce à l'IA avancée
+            Transformez vos idées en vidéos professionnelles en quelques minutes
+            grâce à l'IA avancée
           </Text>
         </View>
 
@@ -41,6 +102,15 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#000',
+  },
+  loadingContainer: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 16,
+  },
+  loadingText: {
+    color: '#888',
+    fontSize: 16,
   },
   header: {
     height: 400,
@@ -103,3 +173,6 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
 });
+
+// Export with error boundary
+export default withErrorBoundary(LandingScreen);

@@ -1,38 +1,49 @@
-import React from 'react';
-import { Redirect, Stack } from 'expo-router';
-import { StatusBar } from 'expo-status-bar';
-import { useAuth } from '@/hooks/useAuth';
-import { useFrameworkReady } from '@/hooks/useFrameworkReady';
+import {
+  DarkTheme,
+  DefaultTheme,
+  ThemeProvider,
+} from '@react-navigation/native';
+import { useFonts } from 'expo-font';
+import { Stack } from 'expo-router';
+import * as SplashScreen from 'expo-splash-screen';
+import { useEffect } from 'react';
+import { useColorScheme as useSystemColorScheme } from 'react-native';
+import { ErrorBoundary } from './ErrorBoundary';
+import { initializeErrorReporting } from '@/lib/services/errorReporting';
+
+// Prevent the splash screen from auto-hiding before asset loading is complete.
+SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
-  useFrameworkReady();
-  const { session, loading } = useAuth();
+  const colorScheme = useSystemColorScheme();
+  const [loaded] = useFonts({
+    SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
+  });
 
-  if (loading) {
+  useEffect(() => {
+    // Initialize error reporting on app startup
+    initializeErrorReporting();
+
+    if (loaded) {
+      SplashScreen.hideAsync();
+    }
+  }, [loaded]);
+
+  if (!loaded) {
     return null;
   }
 
   return (
-    <>
-      <Stack
-        screenOptions={{
-          headerShown: false,
-          animation: 'fade',
-        }}
-      >
-        {session ? (
-          <>
-            <Stack.Screen name="(tabs)" />
-            <Stack.Screen name="(onboarding)" />
-            <Stack.Screen name="video-details" />
-          </>
-        ) : (
-          <Stack.Screen name="(auth)" />
-        )}
-        <Stack.Screen name="+not-found" options={{ presentation: 'modal' }} />
-      </Stack>
-      <StatusBar style="light" />
-      {session && <Redirect href="/(tabs)/source-videos" />}
-    </>
+    <ErrorBoundary>
+      <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+        <Stack>
+          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+          <Stack.Screen name="(auth)" options={{ headerShown: false }} />
+          <Stack.Screen name="(onboarding)" options={{ headerShown: false }} />
+          <Stack.Screen name="video-details" options={{ headerShown: false }} />
+          <Stack.Screen name="+not-found" />
+        </Stack>
+      </ThemeProvider>
+    </ErrorBoundary>
   );
 }

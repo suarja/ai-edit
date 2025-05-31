@@ -1,79 +1,102 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
+  StyleSheet,
   TextInput,
   TouchableOpacity,
-  StyleSheet,
-  Image,
   Alert,
+  ActivityIndicator,
   Platform,
+  Image,
 } from 'react-native';
 import { Link, router } from 'expo-router';
 import { supabase } from '@/lib/supabase';
 import { Mail, Lock, ArrowRight } from 'lucide-react-native';
+import {
+  reportAuthError,
+  reportNetworkError,
+} from '@/lib/services/errorReporting';
+import { withErrorBoundary } from '../ErrorBoundary';
 
-export default function SignIn() {
+function SignIn() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   async function handleSignIn() {
+    if (!email.trim() || !password.trim()) {
+      setError('Please enter both email and password');
+      return;
+    }
+
     try {
       setLoading(true);
       setError(null);
 
-      console.log('Attempting to sign in with:', email);
-      console.log('Running on platform:', Platform.OS);
+      if (__DEV__) {
+        console.log('Attempting to sign in with:', email);
+        console.log('Running on platform:', Platform.OS);
+      }
 
-      // Debug the network connection first
+      // Test network connectivity first
       try {
-        console.log('Testing network connectivity...');
-        const response = await fetch('https://www.google.com');
-        console.log('Network test to Google:', response.status);
+        if (__DEV__) {
+          console.log('Testing network connectivity...');
+        }
+        const response = await fetch('https://www.google.com', {
+          method: 'HEAD',
+        });
+        if (__DEV__) {
+          console.log('Network test to Google:', response.status);
+        }
 
-        // Test Supabase connectivity with a simple GET request
-        try {
+        // Test Supabase connectivity
+        if (__DEV__) {
           console.log('Testing Supabase connectivity...');
-          const healthCheck = await fetch(
-            process.env.EXPO_PUBLIC_SUPABASE_URL + '/rest/v1/',
-            {
-              method: 'GET',
-              headers: {
-                'Content-Type': 'application/json',
-                apikey: process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY || '',
-              },
-            }
-          );
+        }
+        const healthCheck = await fetch(
+          process.env.EXPO_PUBLIC_SUPABASE_URL + '/rest/v1/',
+          {
+            method: 'HEAD',
+            headers: {
+              apikey: process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY || '',
+            },
+          }
+        );
+        if (__DEV__) {
           console.log('Supabase health check:', healthCheck.status);
-        } catch (supabaseTestError) {
+        }
+      } catch (supabaseTestError) {
+        if (__DEV__) {
           console.error(
             'Supabase connectivity test failed:',
             supabaseTestError
           );
         }
-      } catch (networkError) {
-        console.error('Network test failed:', networkError);
-        Alert.alert(
-          'Network Error',
-          'Unable to connect to the internet. Please check your connection.'
-        );
-        setLoading(false);
-        return;
       }
 
       try {
-        console.log('Signing in via Supabase...');
+        if (__DEV__) {
+          console.log('Signing in via Supabase...');
+        }
         const { error: signInError, data } =
           await supabase.auth.signInWithPassword({
             email,
             password,
           });
 
-        console.log('Sign in response:', signInError ? 'Error' : 'Success');
+        if (__DEV__) {
+          console.log('Sign in response:', signInError ? 'Error' : 'Success');
+        }
 
         if (signInError) {
+          reportAuthError(signInError, {
+            screen: 'SignIn',
+            action: 'sign_in_with_password',
+            userId: email,
+          });
           setError(signInError.message);
           setLoading(false);
           return;
@@ -81,12 +104,35 @@ export default function SignIn() {
 
         router.replace('/(tabs)/settings');
       } catch (authError: any) {
+        reportAuthError(authError, {
+          screen: 'SignIn',
+          action: 'sign_in_exception',
+          userId: email,
+        });
         console.error('Sign in auth error:', authError);
         setError(authError.message || 'Authentication failed');
       }
     } catch (e: any) {
-      console.error('Sign in general error:', e);
-      setError(e.message || 'An unexpected error occurred');
+      // Handle network errors and other general errors
+      if (e.message?.includes('fetch')) {
+        reportNetworkError(e as Error, 'https://www.google.com', 'HEAD', {
+          screen: 'SignIn',
+          action: 'network_test',
+        });
+        console.error('Network test failed:', e);
+        Alert.alert(
+          'Network Error',
+          'Unable to connect to the internet. Please check your connection.'
+        );
+      } else {
+        reportAuthError(e, {
+          screen: 'SignIn',
+          action: 'general_error',
+          userId: email,
+        });
+        console.error('Sign in general error:', e);
+        setError(e.message || 'An unexpected error occurred');
+      }
     } finally {
       setLoading(false);
     }
@@ -141,8 +187,14 @@ export default function SignIn() {
           onPress={handleSignIn}
           disabled={loading}
         >
-          <Text style={styles.buttonText}>Connexion</Text>
-          <ArrowRight size={20} color="#fff" />
+          {loading ? (
+            <ActivityIndicator color="#fff" />
+          ) : (
+            <>
+              <Text style={styles.buttonText}>Connexion</Text>
+              <ArrowRight size={20} color="#fff" />
+            </>
+          )}
         </TouchableOpacity>
 
         <View style={styles.footer}>
@@ -247,3 +299,6 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
 });
+
+// Export with error boundary
+export default withErrorBoundary(SignIn);
