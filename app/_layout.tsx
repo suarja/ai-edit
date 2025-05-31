@@ -3,12 +3,11 @@ import {
   DefaultTheme,
   ThemeProvider,
 } from '@react-navigation/native';
-import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useColorScheme as useSystemColorScheme } from 'react-native';
-import { ErrorBoundary } from './ErrorBoundary';
+import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { initializeErrorReporting } from '@/lib/services/errorReporting';
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
@@ -16,20 +15,28 @@ SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
   const colorScheme = useSystemColorScheme();
-  const [loaded] = useFonts({
-    SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
-  });
+  const [isReady, setIsReady] = useState(false);
 
   useEffect(() => {
-    // Initialize error reporting on app startup
-    initializeErrorReporting();
+    const prepareApp = async () => {
+      try {
+        // Initialize error reporting on app startup
+        initializeErrorReporting();
 
-    if (loaded) {
-      SplashScreen.hideAsync();
-    }
-  }, [loaded]);
+        // Add a small delay to ensure everything is initialized
+        await new Promise((resolve) => setTimeout(resolve, 100));
+      } catch (error) {
+        console.error('Error during app initialization:', error);
+      } finally {
+        setIsReady(true);
+        SplashScreen.hideAsync();
+      }
+    };
 
-  if (!loaded) {
+    prepareApp();
+  }, []);
+
+  if (!isReady) {
     return null;
   }
 
@@ -40,7 +47,10 @@ export default function RootLayout() {
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
           <Stack.Screen name="(auth)" options={{ headerShown: false }} />
           <Stack.Screen name="(onboarding)" options={{ headerShown: false }} />
-          <Stack.Screen name="video-details" options={{ headerShown: false }} />
+          <Stack.Screen
+            name="video-details/[id]"
+            options={{ headerShown: false }}
+          />
           <Stack.Screen name="+not-found" />
         </Stack>
       </ThemeProvider>

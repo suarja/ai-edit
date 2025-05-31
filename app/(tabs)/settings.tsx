@@ -97,14 +97,17 @@ export default function SettingsScreen() {
     try {
       setLoading(true);
       console.log('Fetching profile...');
-      
-      const { data: { user }, error: userError } = await supabase.auth.getUser();
-      
+
+      const {
+        data: { user },
+        error: userError,
+      } = await supabase.auth.getUser();
+
       if (userError) {
         console.error('Error getting user:', userError);
         throw userError;
       }
-      
+
       if (!user) {
         console.log('No user found, redirecting to sign-in');
         // Add a small delay to prevent navigation loops
@@ -150,7 +153,7 @@ export default function SettingsScreen() {
         avatar_url: profile.avatar_url,
         email: user.email!,
       });
-      
+
       console.log('Profile loaded successfully');
     } catch (err) {
       console.error('Error fetching profile:', err);
@@ -192,8 +195,32 @@ export default function SettingsScreen() {
     try {
       setLoading(true);
       setError(null);
+
+      // Clear all local state before signing out
+      setProfile({
+        id: '',
+        full_name: '',
+        avatar_url: null,
+        email: '',
+        is_admin: false,
+      });
+      setEditedProfile({
+        id: '',
+        full_name: '',
+        avatar_url: null,
+        email: '',
+      });
+      setSuccess(false);
+      setIsEditing(false);
+
+      // Sign out from Supabase
       const { error } = await supabase.auth.signOut();
-      if (error) throw error;
+      if (error) {
+        console.error('Logout error:', error);
+        throw error;
+      }
+
+      // Navigate to sign-in screen
       router.replace('/(auth)/sign-in');
     } catch (err) {
       console.error('Error signing out:', err);
@@ -206,35 +233,35 @@ export default function SettingsScreen() {
   // Admin: Search for a user by ID to adjust their usage limits
   const handleSearchUser = async () => {
     if (!searchUserId.trim()) return;
-    
+
     try {
       setSearchLoading(true);
       setSearchError(null);
       setFoundUserUsage(null);
-      
+
       // Check if user exists
       const { data: userData, error: userError } = await supabase
         .from('users')
         .select('id')
         .eq('id', searchUserId.trim())
         .maybeSingle();
-        
+
       if (userError) throw userError;
-      
+
       if (!userData) {
         setSearchError('Utilisateur non trouvé');
         return;
       }
-      
+
       // Get user usage data
       const { data: usageData, error: usageError } = await supabase
         .from('user_usage')
         .select('*')
         .eq('user_id', searchUserId.trim())
         .single();
-        
+
       if (usageError) throw usageError;
-      
+
       setFoundUserUsage(usageData);
     } catch (err: any) {
       console.error('Error searching for user:', err);
@@ -318,10 +345,12 @@ export default function SettingsScreen() {
   const adminSection = profile.is_admin && (
     <View style={styles.section}>
       <Text style={styles.sectionTitle}>Administration</Text>
-      
+
       <View style={styles.adminContainer}>
-        <Text style={styles.adminTitle}>Contrôle d'Utilisation Utilisateur</Text>
-        
+        <Text style={styles.adminTitle}>
+          Contrôle d'Utilisation Utilisateur
+        </Text>
+
         <View style={styles.searchContainer}>
           <TextInput
             style={styles.searchInput}
@@ -331,7 +360,10 @@ export default function SettingsScreen() {
             placeholderTextColor="#666"
           />
           <TouchableOpacity
-            style={[styles.searchButton, searchLoading && styles.searchButtonDisabled]}
+            style={[
+              styles.searchButton,
+              searchLoading && styles.searchButtonDisabled,
+            ]}
             onPress={handleSearchUser}
             disabled={searchLoading}
           >
@@ -342,14 +374,14 @@ export default function SettingsScreen() {
             )}
           </TouchableOpacity>
         </View>
-        
+
         {searchError && (
           <View style={styles.searchErrorContainer}>
             <AlertCircle size={16} color="#ef4444" />
             <Text style={styles.searchErrorText}>{searchError}</Text>
           </View>
         )}
-        
+
         {foundUserUsage && (
           <AdminUsageControl
             userId={foundUserUsage.user_id}

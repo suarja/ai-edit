@@ -17,7 +17,7 @@ import {
   reportAuthError,
   reportNetworkError,
 } from '@/lib/services/errorReporting';
-import { withErrorBoundary } from '../ErrorBoundary';
+import { withErrorBoundary } from '@/components/ErrorBoundary';
 
 function SignIn() {
   const [email, setEmail] = useState('');

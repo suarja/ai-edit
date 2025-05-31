@@ -10,7 +10,7 @@ import { Video, Play } from 'lucide-react-native';
 import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
-import { withErrorBoundary } from './ErrorBoundary';
+import { withErrorBoundary } from '@/components/ErrorBoundary';
 import { reportAuthError } from '@/lib/services/errorReporting';
 
 function LandingScreen() {

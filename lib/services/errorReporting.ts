@@ -196,18 +196,7 @@ class ErrorReportingService {
    * Set up global error handlers
    */
   private setupGlobalErrorHandlers(): void {
-    // Handle unhandled promise rejections
-    if (typeof window !== 'undefined') {
-      window.addEventListener('unhandledrejection', (event) => {
-        this.reportError(
-          new Error(`Unhandled Promise Rejection: ${event.reason}`),
-          { action: 'unhandled_promise_rejection' },
-          true
-        );
-      });
-    }
-
-    // Handle global JavaScript errors
+    // Handle global JavaScript errors in React Native
     if (typeof ErrorUtils !== 'undefined') {
       const originalHandler = ErrorUtils.getGlobalHandler();
 
@@ -219,6 +208,25 @@ class ErrorReportingService {
           originalHandler(error, isFatal);
         }
       });
+    }
+
+    // Handle unhandled promise rejections (React Native specific)
+    const originalPromiseRejectionHandler =
+      require('react-native/Libraries/Core/ExceptionsManager').default
+        .handleUncaughtException;
+
+    if (originalPromiseRejectionHandler) {
+      require('react-native/Libraries/Core/ExceptionsManager').default.handleUncaughtException =
+        (error: Error, isFatal: boolean) => {
+          this.reportError(
+            error,
+            { action: 'unhandled_promise_rejection' },
+            isFatal
+          );
+
+          // Call original handler
+          originalPromiseRejectionHandler(error, isFatal);
+        };
     }
   }
 }

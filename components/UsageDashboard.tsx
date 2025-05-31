@@ -16,12 +16,56 @@ export default function UsageDashboard() {
   const [loading, setLoading] = useState(true);
   const [usage, setUsage] = useState<UsageData | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
 
   useEffect(() => {
-    fetchUsageData();
+    checkAuthAndFetchData();
+
+    // Listen for auth changes
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'SIGNED_OUT') {
+        setIsAuthenticated(false);
+        setUsage(null);
+        setError(null);
+        setLoading(false);
+      } else if (event === 'SIGNED_IN' && session) {
+        setIsAuthenticated(true);
+        fetchUsageData();
+      }
+    });
+
+    return () => subscription.unsubscribe();
   }, []);
 
+  const checkAuthAndFetchData = async () => {
+    try {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+
+      if (session) {
+        setIsAuthenticated(true);
+        await fetchUsageData();
+      } else {
+        setIsAuthenticated(false);
+        setLoading(false);
+      }
+    } catch (error) {
+      console.error('Error checking auth state:', error);
+      setIsAuthenticated(false);
+      setLoading(false);
+    }
+  };
+
   const fetchUsageData = async () => {
+    // Don't fetch if not authenticated
+    if (!isAuthenticated) {
+      setLoading(false);
+      return;
+    }
+
     try {
       setLoading(true);
       setError(null);
@@ -29,6 +73,16 @@ export default function UsageDashboard() {
       // Get current user
       const { data, error } = await supabase.auth.getUser();
       if (error) {
+        // If it's an auth session missing error, handle it gracefully
+        if (
+          error.message?.includes('session missing') ||
+          error.message?.includes('Auth session missing')
+        ) {
+          setIsAuthenticated(false);
+          setLoading(false);
+          return;
+        }
+
         reportAuthError(error, {
           screen: 'UsageDashboard',
           action: 'get_user',
@@ -37,12 +91,9 @@ export default function UsageDashboard() {
       }
 
       if (!data.user) {
-        const authError = new Error('No user found');
-        reportAuthError(authError, {
-          screen: 'UsageDashboard',
-          action: 'no_user',
-        });
-        throw authError;
+        setIsAuthenticated(false);
+        setLoading(false);
+        return;
       }
 
       // Get usage data
@@ -74,7 +125,17 @@ export default function UsageDashboard() {
       setUsage(usageData);
     } catch (err: any) {
       console.error('Error fetching usage data:', err);
-      setError('Failed to load usage data');
+
+      // Handle auth errors gracefully
+      if (
+        err.message?.includes('session missing') ||
+        err.message?.includes('Auth session missing')
+      ) {
+        setIsAuthenticated(false);
+        setError('Please sign in to view usage data');
+      } else {
+        setError('Failed to load usage data');
+      }
     } finally {
       setLoading(false);
     }
@@ -113,6 +174,11 @@ export default function UsageDashboard() {
       setError('Failed to initialize usage tracking');
     }
   };
+
+  // Don't render anything if not authenticated
+  if (!isAuthenticated) {
+    return null;
+  }
 
   if (loading) {
     return (
