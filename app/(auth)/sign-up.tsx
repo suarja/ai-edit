@@ -23,6 +23,9 @@ export default function SignUp() {
     code?: string;
     message?: string;
     details?: string;
+    name?: string;
+    status?: number;
+    debug?: any;
   } | null>(null);
   const [showDebugInfo, setShowDebugInfo] = useState(false);
 
@@ -39,18 +42,45 @@ export default function SignUp() {
         console.log('Signing up with email:', email);
       }
 
-      const { error: signUpError, data } = await supabase.auth.signUp({
-        email,
-        password,
-      });
+      // Use try/catch specifically for the auth.signUp call
+      try {
+        const { error: signUpError, data } = await supabase.auth.signUp({
+          email,
+          password,
+        });
 
-      if (signUpError) throw signUpError;
+        // Capture all available error details from auth signup
+        if (signUpError) {
+          console.error('Sign up error:', signUpError);
+          console.log('Sign up data:', JSON.stringify(data));
 
-      if (__DEV__) {
-        console.log('Auth signup successful, user:', data.user?.id);
-      }
+          // Store detailed error information
+          setDetailedError({
+            name: signUpError.name,
+            code: signUpError.code || 'unknown',
+            message: signUpError.message,
+            status: signUpError.status,
+            debug: {
+              url: env.SUPABASE_URL,
+              environment: env.ENVIRONMENT,
+              testflight: env.IS_TESTFLIGHT,
+              hasUser: data?.user ? 'yes' : 'no',
+              hasSession: data?.session ? 'yes' : 'no',
+            },
+          });
 
-      if (data.user) {
+          throw signUpError;
+        }
+
+        if (__DEV__) {
+          console.log('Auth signup successful, user:', data.user?.id);
+        }
+
+        if (!data.user) {
+          throw new Error('No user returned from signup');
+        }
+
+        // Proceed with user record creation
         try {
           if (__DEV__) {
             console.log(
@@ -93,10 +123,13 @@ export default function SignUp() {
           console.error('Database operation error:', dbError);
           throw dbError;
         }
+      } catch (authError: any) {
+        console.error('Auth signup error:', authError.message);
+        throw authError;
       }
     } catch (e: any) {
       console.error('Signup error:', e.message);
-      setError(e.message);
+      setError(e.message || 'An unknown error occurred');
     } finally {
       setLoading(false);
     }
@@ -139,6 +172,11 @@ export default function SignUp() {
             {showDebugInfo && detailedError && (
               <View style={styles.debugInfo}>
                 <Text style={styles.debugTitle}>Informations de débogage:</Text>
+                {detailedError.name && (
+                  <Text style={styles.debugText}>
+                    Type: {detailedError.name}
+                  </Text>
+                )}
                 {detailedError.code && (
                   <Text style={styles.debugText}>
                     Code: {detailedError.code}
@@ -147,6 +185,11 @@ export default function SignUp() {
                 {detailedError.message && (
                   <Text style={styles.debugText}>
                     Message: {detailedError.message}
+                  </Text>
+                )}
+                {detailedError.status && (
+                  <Text style={styles.debugText}>
+                    Status: {detailedError.status}
                   </Text>
                 )}
                 {detailedError.details && (
@@ -161,6 +204,13 @@ export default function SignUp() {
                 <Text style={styles.debugText}>
                   TestFlight: {env.IS_TESTFLIGHT ? 'Oui' : 'Non'}
                 </Text>
+
+                {detailedError.debug &&
+                  Object.entries(detailedError.debug).map(([key, value]) => (
+                    <Text key={key} style={styles.debugText}>
+                      {key}: {String(value)}
+                    </Text>
+                  ))}
               </View>
             )}
           </View>
