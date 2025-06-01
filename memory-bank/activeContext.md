@@ -84,6 +84,7 @@ The AI Edit platform is in active development with core infrastructure and basic
 3. **Error Handling**: Comprehensive error states and user feedback
 4. **Performance Optimization**: Mobile-specific optimizations
 5. **Onboarding Optimization**: Implement effective onboarding flow with monetization path
+6. **TestFlight Environment Variables**: Environment variables not properly loaded in TestFlight builds (FIXED)
 
 ### Technical Debt
 

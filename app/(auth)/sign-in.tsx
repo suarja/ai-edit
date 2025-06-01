@@ -18,6 +18,7 @@ import {
   reportNetworkError,
 } from '@/lib/services/errorReporting';
 import { withErrorBoundary } from '@/components/ErrorBoundary';
+import { env } from '@/lib/config/env';
 
 function SignIn() {
   const [email, setEmail] = useState('');
@@ -34,48 +35,6 @@ function SignIn() {
     try {
       setLoading(true);
       setError(null);
-
-      if (__DEV__) {
-        console.log('Attempting to sign in with:', email);
-        console.log('Running on platform:', Platform.OS);
-      }
-
-      // Test network connectivity first
-      try {
-        if (__DEV__) {
-          console.log('Testing network connectivity...');
-        }
-        const response = await fetch('https://www.google.com', {
-          method: 'HEAD',
-        });
-        if (__DEV__) {
-          console.log('Network test to Google:', response.status);
-        }
-
-        // Test Supabase connectivity
-        if (__DEV__) {
-          console.log('Testing Supabase connectivity...');
-        }
-        const healthCheck = await fetch(
-          process.env.EXPO_PUBLIC_SUPABASE_URL + '/rest/v1/',
-          {
-            method: 'HEAD',
-            headers: {
-              apikey: process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY || '',
-            },
-          }
-        );
-        if (__DEV__) {
-          console.log('Supabase health check:', healthCheck.status);
-        }
-      } catch (supabaseTestError) {
-        if (__DEV__) {
-          console.error(
-            'Supabase connectivity test failed:',
-            supabaseTestError
-          );
-        }
-      }
 
       try {
         if (__DEV__) {

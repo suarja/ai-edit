@@ -65,6 +65,12 @@
         "projectId": "d4703822-1789-49d1-8999-976108e28415"
       }
     },
-    "owner": "swarecito"
+    "owner": "swarecito",
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/d4703822-1789-49d1-8999-976108e28415"
+    }
   }
 }
