@@ -266,15 +266,26 @@ We are preparing the app for TestFlight beta testing, implementing usage trackin
 
 ## Recent Progress
 
+### May 31, 2025
+
+- Fixed environment variable loading in TestFlight:
+  - Updated env.ts to handle missing variables gracefully with proper fallbacks
+  - Enhanced browser-client.ts with robust error handling and fallback client
+  - Added Supabase environment variables to all build profiles in eas.json
+  - Added channel configuration to each build profile for update distribution
+  - Updated app/\_layout.tsx to validate environment variables on startup
+  - Added proper TypeScript definitions for environment variables
+  - Created documentation on environment variable management
+  - Added logging to diagnose sign-up database issues
+
 ### August 25, 2025
 
 - Fixed infinite recursion issue in admin policies:
+
   - Created helper function `is_admin()` to avoid policy recursion
   - Updated RLS policies to use the new function
   - Fixed auth.users access in AdminUsageSettings component
   - Created Supabase Edge Function for secure user lookup by email
-
-### August 24, 2025
 
 - Implemented usage tracking system for TestFlight beta testing:
   - Created `user_usage` table in Supabase database

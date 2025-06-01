@@ -28,6 +28,18 @@ interface EnvConfig {
   AWS_SECRET_ACCESS_KEY?: string;
 }
 
+// Default values for critical configuration
+// These are used as fallbacks when environment variables are missing in production
+// NOTE: In a real production app, consider using EAS environment variables or a more secure approach
+const DEFAULT_CONFIG = {
+  SUPABASE_URL: 'https://dmljncjaomvhdichnuxm.supabase.co',
+  SUPABASE_ANON_KEY:
+    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRtbGpuY2phb212aGRpY2hudXhtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDgxODcyOTgsImV4cCI6MjA2Mzc2MzI5OH0.cnyouJA--VhckmQBbyQQv-PaRoiCeNM-_QJQ2aTwSNo',
+  ENVIRONMENT: 'production' as const,
+  SERVER_URL: 'https://ai-edit--h9rle8xrz5.expo.app',
+  IS_TESTFLIGHT: true,
+};
+
 /**
  * Get environment variable with optional fallback
  */
@@ -55,19 +67,26 @@ export const getEnvVar = (key: string, fallback?: string): string => {
 export const getRequiredEnvVar = (key: string): string => {
   const value = process.env[key];
 
-  if (!value) {
-    const error = `Required environment variable missing: ${key}`;
-
+  if (value === undefined) {
+    const errorMessage = `Required environment variable missing: ${key}`;
     if (__DEV__) {
-      console.error(error);
-      throw new Error(error);
+      console.error(errorMessage);
+      throw new Error(errorMessage);
     } else {
       // In production, log error but don't crash
-      console.error(error);
-      return '';
+      console.error(errorMessage);
+
+      // Use fallback values for critical configuration
+      if (key === 'EXPO_PUBLIC_SUPABASE_URL') {
+        return DEFAULT_CONFIG.SUPABASE_URL;
+      } else if (key === 'EXPO_PUBLIC_SUPABASE_ANON_KEY') {
+        return DEFAULT_CONFIG.SUPABASE_ANON_KEY;
+      }
+
+      // For other variables, use a generic placeholder
+      return `missing_${key.toLowerCase().replace(/[^a-z0-9]/g, '_')}`;
     }
   }
-
   return value;
 };
 
@@ -101,7 +120,12 @@ export const validateEnvironment = (): {
   ];
 
   for (const varName of requiredVars) {
-    if (!process.env[varName]) {
+    // Don't report errors for variables we have fallbacks for
+    if (
+      !process.env[varName] &&
+      varName !== 'EXPO_PUBLIC_SUPABASE_URL' &&
+      varName !== 'EXPO_PUBLIC_SUPABASE_ANON_KEY'
+    ) {
       errors.push(`Missing required environment variable: ${varName}`);
     }
   }
@@ -145,25 +169,41 @@ export const env: EnvConfig = {
  * Log environment status (only in development)
  */
 export const logEnvironmentStatus = (): void => {
-  if (!__DEV__) {
-    return;
-  }
+  // Allow logging in production for debugging TestFlight issues
+  const shouldLog = __DEV__ || env.IS_TESTFLIGHT;
 
-  console.log('🌍 Environment Status:');
-  console.log(`- Environment: ${env.ENVIRONMENT}`);
-  console.log(`- TestFlight: ${env.IS_TESTFLIGHT}`);
-  console.log(`- Supabase URL: ${env.SUPABASE_URL ? '✅ Set' : '❌ Missing'}`);
-  console.log(
-    `- Supabase Anon Key: ${env.SUPABASE_ANON_KEY ? '✅ Set' : '❌ Missing'}`
-  );
-  console.log(`- Server URL: ${env.SERVER_URL}`);
+  if (shouldLog) {
+    console.log('🌍 Environment Status:');
+    console.log(`- Environment: ${env.ENVIRONMENT}`);
+    console.log(`- TestFlight: ${env.IS_TESTFLIGHT}`);
+    console.log(
+      `- Supabase URL: ${env.SUPABASE_URL ? '✅ Set' : '❌ Missing'}`
+    );
+    console.log(
+      `- Supabase Anon Key: ${env.SUPABASE_ANON_KEY ? '✅ Set' : '❌ Missing'}`
+    );
+    console.log(`- Server URL: ${env.SERVER_URL}`);
 
-  // Validate environment
-  const validation = validateEnvironment();
-  if (!validation.isValid) {
-    console.error('❌ Environment validation failed:');
-    validation.errors.forEach((error) => console.error(`  - ${error}`));
-  } else {
-    console.log('✅ Environment validation passed');
+    // Show where values are coming from
+    if (process.env.EXPO_PUBLIC_SUPABASE_URL) {
+      console.log('  Using Supabase URL from environment variables');
+    } else {
+      console.log('  Using DEFAULT Supabase URL fallback');
+    }
+
+    if (process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY) {
+      console.log('  Using Supabase Anon Key from environment variables');
+    } else {
+      console.log('  Using DEFAULT Supabase Anon Key fallback');
+    }
+
+    // Validate environment
+    const validation = validateEnvironment();
+    if (!validation.isValid) {
+      console.error('❌ Environment validation failed:');
+      validation.errors.forEach((error) => console.error(`  - ${error}`));
+    } else {
+      console.log('✅ Environment validation passed');
+    }
   }
 };

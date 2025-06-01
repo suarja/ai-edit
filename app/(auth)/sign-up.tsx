@@ -1,8 +1,17 @@
 import { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image } from 'react-native';
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  StyleSheet,
+  Image,
+  ScrollView,
+} from 'react-native';
 import { Link, router } from 'expo-router';
 import { supabase } from '@/lib/supabase';
 import { Mail, Lock, User, ArrowRight } from 'lucide-react-native';
+import { env } from '@/lib/config/env';
 
 export default function SignUp() {
   const [email, setEmail] = useState('');
@@ -10,11 +19,25 @@ export default function SignUp() {
   const [fullName, setFullName] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [detailedError, setDetailedError] = useState<{
+    code?: string;
+    message?: string;
+    details?: string;
+  } | null>(null);
+  const [showDebugInfo, setShowDebugInfo] = useState(false);
 
   async function handleSignUp() {
     try {
       setLoading(true);
       setError(null);
+      setDetailedError(null);
+
+      // Log environment status
+      if (__DEV__) {
+        console.log('Supabase URL:', env.SUPABASE_URL);
+        console.log('Environment:', env.ENVIRONMENT);
+        console.log('Signing up with email:', email);
+      }
 
       const { error: signUpError, data } = await supabase.auth.signUp({
         email,
@@ -23,23 +46,56 @@ export default function SignUp() {
 
       if (signUpError) throw signUpError;
 
-      if (data.user) {
-        const { error: insertError } = await supabase
-          .from('users')
-          .insert({
-            id: data.user.id,
-            full_name: fullName,
-            role: 'user',
-          });
-
-        if (insertError) {
-          console.error('Failed to create user record:', insertError);
-          throw new Error('Échec de l\'inscription. Veuillez réessayer.');
-        }
-
-        router.replace('/(onboarding)/welcome');
+      if (__DEV__) {
+        console.log('Auth signup successful, user:', data.user?.id);
       }
-    } catch (e) {
+
+      if (data.user) {
+        try {
+          if (__DEV__) {
+            console.log(
+              'Attempting to insert user record with ID:',
+              data.user.id
+            );
+          }
+
+          const { error: insertError, data: insertData } = await supabase
+            .from('users')
+            .insert({
+              id: data.user.id,
+              full_name: fullName,
+              role: 'user',
+            });
+
+          if (insertError) {
+            console.error('Failed to create user record:', insertError);
+            // Show more detailed error information
+            console.error('Error code:', insertError.code);
+            console.error('Error message:', insertError.message);
+            console.error('Error details:', insertError.details);
+
+            // Store detailed error for UI display
+            setDetailedError({
+              code: insertError.code,
+              message: insertError.message,
+              details: insertError.details,
+            });
+
+            throw new Error(`Échec de l'inscription: ${insertError.message}`);
+          }
+
+          if (__DEV__) {
+            console.log('User record created successfully:', insertData);
+          }
+
+          router.replace('/(onboarding)/welcome');
+        } catch (dbError) {
+          console.error('Database operation error:', dbError);
+          throw dbError;
+        }
+      }
+    } catch (e: any) {
+      console.error('Signup error:', e.message);
       setError(e.message);
     } finally {
       setLoading(false);
@@ -47,20 +103,67 @@ export default function SignUp() {
   }
 
   return (
-    <View style={styles.container}>
+    <ScrollView style={styles.container}>
       <View style={styles.header}>
-        <Image 
-          source={{ uri: 'https://images.pexels.com/photos/2882566/pexels-photo-2882566.jpeg' }}
+        <Image
+          source={{
+            uri: 'https://images.pexels.com/photos/2882566/pexels-photo-2882566.jpeg',
+          }}
           style={styles.headerImage}
         />
         <View style={styles.overlay} />
         <Text style={styles.title}>Créer un Compte</Text>
-        <Text style={styles.subtitle}>Rejoignez-nous et commencez à créer des vidéos incroyables</Text>
+        <Text style={styles.subtitle}>
+          Rejoignez-nous et commencez à créer des vidéos incroyables
+        </Text>
       </View>
 
       <View style={styles.form}>
         {error && (
-          <Text style={styles.error}>{error}</Text>
+          <View style={styles.errorContainer}>
+            <Text style={styles.error}>{error}</Text>
+
+            {detailedError && (
+              <TouchableOpacity
+                style={styles.debugButton}
+                onPress={() => setShowDebugInfo(!showDebugInfo)}
+              >
+                <Text style={styles.debugButtonText}>
+                  {showDebugInfo
+                    ? 'Masquer les détails'
+                    : 'Afficher les détails'}
+                </Text>
+              </TouchableOpacity>
+            )}
+
+            {showDebugInfo && detailedError && (
+              <View style={styles.debugInfo}>
+                <Text style={styles.debugTitle}>Informations de débogage:</Text>
+                {detailedError.code && (
+                  <Text style={styles.debugText}>
+                    Code: {detailedError.code}
+                  </Text>
+                )}
+                {detailedError.message && (
+                  <Text style={styles.debugText}>
+                    Message: {detailedError.message}
+                  </Text>
+                )}
+                {detailedError.details && (
+                  <Text style={styles.debugText}>
+                    Détails: {detailedError.details}
+                  </Text>
+                )}
+                <Text style={styles.debugText}>URL: {env.SUPABASE_URL}</Text>
+                <Text style={styles.debugText}>
+                  Environnement: {env.ENVIRONMENT}
+                </Text>
+                <Text style={styles.debugText}>
+                  TestFlight: {env.IS_TESTFLIGHT ? 'Oui' : 'Non'}
+                </Text>
+              </View>
+            )}
+          </View>
         )}
 
         <View style={styles.inputContainer}>
@@ -102,7 +205,8 @@ export default function SignUp() {
         <TouchableOpacity
           style={[styles.button, loading && styles.buttonDisabled]}
           onPress={handleSignUp}
-          disabled={loading}>
+          disabled={loading}
+        >
           <Text style={styles.buttonText}>S'inscrire</Text>
           <ArrowRight size={20} color="#fff" />
         </TouchableOpacity>
@@ -116,7 +220,7 @@ export default function SignUp() {
           </Link>
         </View>
       </View>
-    </View>
+    </ScrollView>
   );
 }
 
@@ -205,5 +309,40 @@ const styles = StyleSheet.create({
     color: '#ef4444',
     fontSize: 14,
     textAlign: 'center',
+    marginBottom: 8,
+  },
+  errorContainer: {
+    backgroundColor: 'rgba(239, 68, 68, 0.1)',
+    padding: 12,
+    borderRadius: 8,
+    marginBottom: 8,
+  },
+  debugButton: {
+    alignSelf: 'center',
+    marginTop: 8,
+    padding: 6,
+  },
+  debugButtonText: {
+    color: '#888',
+    fontSize: 12,
+    textDecorationLine: 'underline',
+  },
+  debugInfo: {
+    marginTop: 12,
+    padding: 12,
+    backgroundColor: '#1a1a1a',
+    borderRadius: 8,
+  },
+  debugTitle: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: 'bold',
+    marginBottom: 8,
+  },
+  debugText: {
+    color: '#aaa',
+    fontSize: 12,
+    marginBottom: 4,
+    fontFamily: 'monospace',
   },
 });
