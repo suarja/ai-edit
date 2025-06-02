@@ -795,3 +795,46 @@ Redesign the Voice Clone and Editorial Profile pages to create a more engaging, 
 - [ ] Custom visual assets for both pages
 - [ ] Animation and interaction enhancements
 - [ ] Test coverage for new components
+
+---
+
+# Supabase Authentication Bug Investigation
+
+## Bug Details
+
+**Description**: Users are experiencing authentication failures when attempting to sign up in the TestFlight build. The error reported is "Database error saving new user" with code "unexpected_failure" and status code 500.
+
+## Investigation Summary
+
+1. **Environment Variable Issue** - Fixed
+
+   - Environment variables were not properly loaded in TestFlight builds
+   - Added robust error handling and fallback mechanisms
+   - Implemented proper configuration in eas.json for all build profiles
+   - Enhanced the sign-up screen with detailed error debugging
+
+2. **Database Error Issue** - In Progress
+
+   - The sign-up error persists after fixing environment variables
+   - Error occurs during auth.users table operations
+   - Potential issues identified:
+     - Trigger on auth.users table (handle_new_user) might be failing
+     - Constraints on auth.users table might not be met
+     - Potential permission issues with custom migrations
+
+3. **Next Steps**
+   - Review Supabase project auth logs for specific error details
+   - Examine database triggers and constraints in detail
+   - Consider temporarily disabling the handle_new_user trigger to test
+   - If needed, restore auth schema to default configuration
+
+## Impact
+
+The issue is blocking new user signups in the TestFlight build, preventing testing of the onboarding flow. The app launches successfully after the environment variable fix, but users cannot create accounts.
+
+## Lessons Learned
+
+1. Implement comprehensive error handling for all authentication flows
+2. Be cautious with database triggers on auth schema tables
+3. Test authentication flows thoroughly before TestFlight submission
+4. Maintain detailed documentation of all database migrations affecting auth schema

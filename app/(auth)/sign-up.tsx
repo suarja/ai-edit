@@ -69,6 +69,8 @@ export default function SignUp() {
             },
           });
 
+          console.log('Detailed error:', detailedError);
+
           throw signUpError;
         }
 

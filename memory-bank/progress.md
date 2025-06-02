@@ -18,14 +18,15 @@ We are preparing the app for TestFlight beta testing, implementing usage trackin
 
 ### Recently Completed Tasks
 
-| Task ID   | Description                                         | Completion Date |
-| --------- | --------------------------------------------------- | --------------- |
-| ONB-003   | Modify Onboarding Flow for TestFlight (No Payments) | 2023-12-12      |
-| ONB-002   | Fix Automatic Screen Advancing in Onboarding Flow   | 2023-12-10      |
-| DB-001    | Fix onboarding_survey database schema               | 2023-12-05      |
-| AUTH-001  | Authentication Implementation                       | 2023-11-15      |
-| VOICE-001 | Basic Voice Recording & Cloning                     | 2023-11-20      |
-| UI-001    | Initial App Shell & Navigation                      | 2023-11-10      |
+| Task ID       | Description                                         | Completion Date |
+| ------------- | --------------------------------------------------- | --------------- |
+| STABILITY-002 | Supabase Authentication Bug Investigation           | 2025-06-01      |
+| ONB-003       | Modify Onboarding Flow for TestFlight (No Payments) | 2023-12-12      |
+| ONB-002       | Fix Automatic Screen Advancing in Onboarding Flow   | 2023-12-10      |
+| DB-001        | Fix onboarding_survey database schema               | 2023-12-05      |
+| AUTH-001      | Authentication Implementation                       | 2023-11-15      |
+| VOICE-001     | Basic Voice Recording & Cloning                     | 2023-11-20      |
+| UI-001        | Initial App Shell & Navigation                      | 2023-11-10      |
 
 ## Current Sprint Goals
 

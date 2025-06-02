@@ -85,6 +85,7 @@ The AI Edit platform is in active development with core infrastructure and basic
 4. **Performance Optimization**: Mobile-specific optimizations
 5. **Onboarding Optimization**: Implement effective onboarding flow with monetization path
 6. **TestFlight Environment Variables**: Environment variables not properly loaded in TestFlight builds (FIXED)
+7. **Authentication Bug**: Database error during user signup in TestFlight builds. Investigation points to an issue with the `handle_new_user` trigger on the auth.users table. (IN PROGRESS)
 
 ### Technical Debt
 
