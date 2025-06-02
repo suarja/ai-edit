@@ -12,6 +12,7 @@ import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { withErrorBoundary } from '@/components/ErrorBoundary';
 import { reportAuthError } from '@/lib/services/errorReporting';
+import { IMAGES } from '@/lib/constants/images';
 
 function LandingScreen() {
   const [loading, setLoading] = useState(true);
@@ -68,7 +69,7 @@ function LandingScreen() {
       <View style={styles.header}>
         <Image
           source={{
-            uri: 'https://images.pexels.com/photos/2873486/pexels-photo-2873486.jpeg',
+            uri: IMAGES.landing.header,
           }}
           style={styles.headerImage}
         />
@@ -118,8 +119,10 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   headerImage: {
-    ...StyleSheet.absoluteFillObject,
-    width: '100%',
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
     height: 400,
   },
   overlay: {

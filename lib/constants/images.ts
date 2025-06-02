@@ -1,4 +1,8 @@
 export const IMAGES = {
+  landing: {
+    header:
+      'https://images.pexels.com/photos/2873486/pexels-photo-2873486.jpeg',
+  },
   welcome: {
     header:
       'https://images.pexels.com/photos/3756879/pexels-photo-3756879.jpeg',
