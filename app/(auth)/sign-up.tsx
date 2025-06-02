@@ -7,6 +7,8 @@ import {
   StyleSheet,
   Image,
   ScrollView,
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
 import { Link, router } from 'expo-router';
 import { supabase } from '@/lib/supabase';
@@ -163,153 +165,168 @@ export default function SignUp() {
   };
 
   return (
-    <ScrollView style={styles.container}>
-      <View style={styles.header}>
-        <Image
-          source={{
-            uri: IMAGES.signUp.header_plane,
-          }}
-          style={styles.headerImage}
-        />
-        <View style={styles.overlay} />
-        <Text style={styles.title}>Créer un Compte</Text>
-        <Text style={styles.subtitle}>
-          Rejoignez-nous et commencez à créer des vidéos incroyables
-        </Text>
-      </View>
+    <KeyboardAvoidingView
+      style={styles.container}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+    >
+      <ScrollView contentContainerStyle={styles.scrollContainer}>
+        <View style={styles.header}>
+          <Image
+            source={{
+              uri: IMAGES.signUp.header_plane,
+            }}
+            style={styles.headerImage}
+          />
+          <View style={styles.overlay} />
+          <Text style={styles.title}>Créer un Compte</Text>
+          <Text style={styles.subtitle}>
+            Rejoignez-nous et commencez à créer des vidéos incroyables
+          </Text>
+        </View>
 
-      <View style={styles.form}>
-        {error && (
-          <View style={styles.errorContainer}>
-            <Text style={styles.error}>{error}</Text>
+        <View style={styles.contentContainer}>
+          <View style={styles.formContainer}>
+            {error && (
+              <View style={styles.errorContainer}>
+                <Text style={styles.error}>{error}</Text>
 
-            {detailedError && (
-              <TouchableOpacity
-                style={styles.debugButton}
-                onPress={() => setShowDebugInfo(!showDebugInfo)}
-              >
-                <Text style={styles.debugButtonText}>
-                  {showDebugInfo
-                    ? 'Masquer les détails'
-                    : 'Afficher les détails'}
-                </Text>
-              </TouchableOpacity>
-            )}
-
-            {showDebugInfo && detailedError && (
-              <View style={styles.debugInfo}>
-                <Text style={styles.debugTitle}>Informations de débogage:</Text>
-                {detailedError.name && (
-                  <Text style={styles.debugText}>
-                    Type: {detailedError.name}
-                  </Text>
-                )}
-                {detailedError.code && (
-                  <Text style={styles.debugText}>
-                    Code: {detailedError.code}
-                  </Text>
-                )}
-                {detailedError.message && (
-                  <Text style={styles.debugText}>
-                    Message: {detailedError.message}
-                  </Text>
-                )}
-                {detailedError.status && (
-                  <Text style={styles.debugText}>
-                    Status: {detailedError.status}
-                  </Text>
-                )}
-                {detailedError.details && (
-                  <Text style={styles.debugText}>
-                    Détails: {detailedError.details}
-                  </Text>
-                )}
-                <Text style={styles.debugText}>URL: {env.SUPABASE_URL}</Text>
-                <Text style={styles.debugText}>
-                  Environnement: {env.ENVIRONMENT}
-                </Text>
-                <Text style={styles.debugText}>
-                  TestFlight: {env.IS_TESTFLIGHT ? 'Oui' : 'Non'}
-                </Text>
-
-                {detailedError.debug &&
-                  Object.entries(detailedError.debug).map(([key, value]) => (
-                    <Text key={key} style={styles.debugText}>
-                      {key}: {String(value)}
+                {detailedError && (
+                  <TouchableOpacity
+                    style={styles.debugButton}
+                    onPress={() => setShowDebugInfo(!showDebugInfo)}
+                  >
+                    <Text style={styles.debugButtonText}>
+                      {showDebugInfo
+                        ? 'Masquer les détails'
+                        : 'Afficher les détails'}
                     </Text>
-                  ))}
+                  </TouchableOpacity>
+                )}
+
+                {showDebugInfo && detailedError && (
+                  <View style={styles.debugInfo}>
+                    <Text style={styles.debugTitle}>
+                      Informations de débogage:
+                    </Text>
+                    {detailedError.name && (
+                      <Text style={styles.debugText}>
+                        Type: {detailedError.name}
+                      </Text>
+                    )}
+                    {detailedError.code && (
+                      <Text style={styles.debugText}>
+                        Code: {detailedError.code}
+                      </Text>
+                    )}
+                    {detailedError.message && (
+                      <Text style={styles.debugText}>
+                        Message: {detailedError.message}
+                      </Text>
+                    )}
+                    {detailedError.status && (
+                      <Text style={styles.debugText}>
+                        Status: {detailedError.status}
+                      </Text>
+                    )}
+                    {detailedError.details && (
+                      <Text style={styles.debugText}>
+                        Détails: {detailedError.details}
+                      </Text>
+                    )}
+                    <Text style={styles.debugText}>
+                      URL: {env.SUPABASE_URL}
+                    </Text>
+                    <Text style={styles.debugText}>
+                      Environnement: {env.ENVIRONMENT}
+                    </Text>
+                    <Text style={styles.debugText}>
+                      TestFlight: {env.IS_TESTFLIGHT ? 'Oui' : 'Non'}
+                    </Text>
+
+                    {detailedError.debug &&
+                      Object.entries(detailedError.debug).map(
+                        ([key, value]) => (
+                          <Text key={key} style={styles.debugText}>
+                            {key}: {String(value)}
+                          </Text>
+                        )
+                      )}
+                  </View>
+                )}
               </View>
             )}
+
+            <View style={styles.inputContainer}>
+              <User size={20} color="#888" />
+              <TextInput
+                style={styles.input}
+                placeholder="Nom complet"
+                placeholderTextColor="#888"
+                value={fullName}
+                onChangeText={setFullName}
+              />
+            </View>
+
+            <View style={styles.inputContainer}>
+              <Mail size={20} color="#888" />
+              <TextInput
+                style={styles.input}
+                placeholder="Email"
+                placeholderTextColor="#888"
+                value={email}
+                onChangeText={setEmail}
+                autoCapitalize="none"
+                keyboardType="email-address"
+              />
+            </View>
+
+            <View style={styles.inputContainer}>
+              <Lock size={20} color="#888" />
+              <TextInput
+                style={styles.input}
+                placeholder="Mot de passe"
+                placeholderTextColor="#888"
+                value={password}
+                onChangeText={setPassword}
+                secureTextEntry
+              />
+            </View>
           </View>
-        )}
 
-        <View style={styles.inputContainer}>
-          <User size={20} color="#888" />
-          <TextInput
-            style={styles.input}
-            placeholder="Nom complet"
-            placeholderTextColor="#888"
-            value={fullName}
-            onChangeText={setFullName}
-          />
-        </View>
-
-        <View style={styles.inputContainer}>
-          <Mail size={20} color="#888" />
-          <TextInput
-            style={styles.input}
-            placeholder="Email"
-            placeholderTextColor="#888"
-            value={email}
-            onChangeText={setEmail}
-            autoCapitalize="none"
-            keyboardType="email-address"
-          />
-        </View>
-
-        <View style={styles.inputContainer}>
-          <Lock size={20} color="#888" />
-          <TextInput
-            style={styles.input}
-            placeholder="Mot de passe"
-            placeholderTextColor="#888"
-            value={password}
-            onChangeText={setPassword}
-            secureTextEntry
-          />
-        </View>
-
-        <TouchableOpacity
-          style={[styles.button, loading && styles.buttonDisabled]}
-          onPress={handleSignUp}
-          disabled={loading}
-        >
-          <Text style={styles.buttonText}>S'inscrire</Text>
-          <ArrowRight size={20} color="#fff" />
-        </TouchableOpacity>
-
-        <View style={styles.footer}>
-          <Text style={styles.footerText}>Vous avez déjà un compte ?</Text>
-          <Link
-            href="/(auth)/sign-in"
-            asChild
-            onPress={handleNavigateToSignIn}
-            disabled={isNavigatingToSignIn}
-          >
-            <TouchableOpacity disabled={isNavigatingToSignIn}>
-              <Text
-                style={[
-                  styles.link,
-                  isNavigatingToSignIn && styles.disabledLink,
-                ]}
-              >
-                Se connecter
-              </Text>
+          <View style={styles.buttonContainer}>
+            <TouchableOpacity
+              style={[styles.button, loading && styles.buttonDisabled]}
+              onPress={handleSignUp}
+              disabled={loading}
+            >
+              <Text style={styles.buttonText}>S'inscrire</Text>
+              <ArrowRight size={20} color="#fff" />
             </TouchableOpacity>
-          </Link>
+          </View>
+
+          <View style={styles.footer}>
+            <Text style={styles.footerText}>Vous avez déjà un compte ?</Text>
+            <Link
+              href="/(auth)/sign-in"
+              asChild
+              onPress={handleNavigateToSignIn}
+              disabled={isNavigatingToSignIn}
+            >
+              <TouchableOpacity disabled={isNavigatingToSignIn}>
+                <Text
+                  style={[
+                    styles.link,
+                    isNavigatingToSignIn && styles.disabledLink,
+                  ]}
+                >
+                  Se connecter
+                </Text>
+              </TouchableOpacity>
+            </Link>
+          </View>
         </View>
-      </View>
-    </ScrollView>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
 
@@ -317,6 +334,9 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#000',
+  },
+  scrollContainer: {
+    flexGrow: 1,
   },
   header: {
     height: 300,
@@ -345,9 +365,13 @@ const styles = StyleSheet.create({
     color: '#888',
     marginBottom: 20,
   },
-  form: {
+  contentContainer: {
     flex: 1,
     padding: 20,
+    justifyContent: 'space-between',
+    minHeight: 400, // Ensure minimum height for content
+  },
+  formContainer: {
     gap: 16,
   },
   inputContainer: {
@@ -362,6 +386,10 @@ const styles = StyleSheet.create({
     flex: 1,
     color: '#fff',
     fontSize: 16,
+  },
+  buttonContainer: {
+    marginTop: 24,
+    marginBottom: 24,
   },
   button: {
     backgroundColor: '#007AFF',
@@ -386,6 +414,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 8,
     marginTop: 'auto',
+    paddingVertical: 16,
   },
   footerText: {
     color: '#888',

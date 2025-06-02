@@ -1,16 +1,25 @@
-import { useOnboardingSteps } from "@/components/onboarding/OnboardingSteps";
-import React, { useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
+import { useOnboardingSteps } from '@/components/onboarding/OnboardingSteps';
+import React, { useEffect, useState, useRef } from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  Image,
+  Alert,
+} from 'react-native';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useOnboarding } from '@/components/providers/OnboardingProvider';
 import { ProgressBar } from '@/components/onboarding/ProgressBar';
 import * as Haptics from 'expo-haptics';
 import { ArrowRight } from 'lucide-react-native';
+import { safeNavigate } from '@/app/_layout';
 
-
-  export default function SuccessScreen() {
-  const onboardingSteps = useOnboardingSteps();  const { markStepCompleted } = useOnboarding();
+export default function SuccessScreen() {
+  const onboardingSteps = useOnboardingSteps();
+  const { markStepCompleted } = useOnboarding();
+  const [isNavigating, setIsNavigating] = useState(false);
 
   useEffect(() => {
     // Provide haptic success feedback when the screen appears
@@ -24,9 +33,35 @@ import { ArrowRight } from 'lucide-react-native';
     markStepCompleted('success');
   }, []);
 
-  const handleGetStarted = () => {
-    // Navigate to the main app
-    router.replace('/(tabs)');
+  const handleGetStarted = async () => {
+    // Prevent multiple navigation attempts
+    if (isNavigating) {
+      return;
+    }
+
+    try {
+      setIsNavigating(true);
+
+      // Use the safe navigation function to navigate to settings
+      const success = await safeNavigate(
+        router,
+        '/(tabs)/settings',
+        'replace',
+        500
+      );
+
+      if (!success) {
+        // If navigation failed, show error and reset state
+        Alert.alert(
+          'Erreur de Navigation',
+          "Impossible de naviguer vers l'écran principal. Veuillez réessayer."
+        );
+        setIsNavigating(false);
+      }
+    } catch (e) {
+      console.error('Error in handleGetStarted:', e);
+      setIsNavigating(false);
+    }
   };
 
   return (
@@ -94,11 +129,17 @@ import { ArrowRight } from 'lucide-react-native';
 
       <View style={styles.footer}>
         <TouchableOpacity
-          style={styles.getStartedButton}
+          style={[
+            styles.getStartedButton,
+            isNavigating && styles.buttonDisabled,
+          ]}
           onPress={handleGetStarted}
+          disabled={isNavigating}
         >
-          <Text style={styles.getStartedText}>Commencer</Text>
-          <ArrowRight size={20} color="#fff" />
+          <Text style={styles.getStartedText}>
+            {isNavigating ? 'Chargement...' : 'Commencer'}
+          </Text>
+          {!isNavigating && <ArrowRight size={20} color="#fff" />}
         </TouchableOpacity>
       </View>
     </SafeAreaView>
@@ -185,5 +226,9 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 16,
     fontWeight: '600',
+  },
+  buttonDisabled: {
+    opacity: 0.7,
+    backgroundColor: '#0055BB',
   },
 });

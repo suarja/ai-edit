@@ -9,6 +9,8 @@ import {
   ActivityIndicator,
   Platform,
   Image,
+  KeyboardAvoidingView,
+  ScrollView,
 } from 'react-native';
 import { Link, router } from 'expo-router';
 import { supabase } from '@/lib/supabase';
@@ -110,86 +112,95 @@ function SignIn() {
   };
 
   return (
-    <View style={styles.container}>
-      <View style={styles.header}>
-        <Image
-          source={{
-            uri: IMAGES.signIn.header,
-          }}
-          style={styles.headerImage}
-        />
-        <View style={styles.overlay} />
-        <Text style={styles.title}>Bon retour</Text>
-        <Text style={styles.subtitle}>
-          Connectez-vous pour continuer à créer des vidéos incroyables
-        </Text>
-      </View>
-
-      <View style={styles.form}>
-        {error && <Text style={styles.error}>{error}</Text>}
-
-        <View style={styles.inputContainer}>
-          <Mail size={20} color="#888" />
-          <TextInput
-            style={styles.input}
-            placeholder="Email"
-            placeholderTextColor="#888"
-            value={email}
-            onChangeText={setEmail}
-            autoCapitalize="none"
-            keyboardType="email-address"
+    <KeyboardAvoidingView
+      style={styles.container}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+    >
+      <ScrollView contentContainerStyle={styles.scrollContainer}>
+        <View style={styles.header}>
+          <Image
+            source={{
+              uri: IMAGES.signIn.header,
+            }}
+            style={styles.headerImage}
           />
+          <View style={styles.overlay} />
+          <Text style={styles.title}>Bon retour</Text>
+          <Text style={styles.subtitle}>
+            Connectez-vous pour continuer à créer des vidéos incroyables
+          </Text>
         </View>
 
-        <View style={styles.inputContainer}>
-          <Lock size={20} color="#888" />
-          <TextInput
-            style={styles.input}
-            placeholder="Mot de passe"
-            placeholderTextColor="#888"
-            value={password}
-            onChangeText={setPassword}
-            secureTextEntry
-          />
-        </View>
+        <View style={styles.contentContainer}>
+          <View style={styles.formContainer}>
+            {error && <Text style={styles.error}>{error}</Text>}
 
-        <TouchableOpacity
-          style={[styles.button, loading && styles.buttonDisabled]}
-          onPress={handleSignIn}
-          disabled={loading}
-        >
-          {loading ? (
-            <ActivityIndicator color="#fff" />
-          ) : (
-            <>
-              <Text style={styles.buttonText}>Connexion</Text>
-              <ArrowRight size={20} color="#fff" />
-            </>
-          )}
-        </TouchableOpacity>
+            <View style={styles.inputContainer}>
+              <Mail size={20} color="#888" />
+              <TextInput
+                style={styles.input}
+                placeholder="Email"
+                placeholderTextColor="#888"
+                value={email}
+                onChangeText={setEmail}
+                autoCapitalize="none"
+                keyboardType="email-address"
+              />
+            </View>
 
-        <View style={styles.footer}>
-          <Text style={styles.footerText}>Vous n'avez pas de compte ?</Text>
-          <Link
-            href="/(auth)/sign-up"
-            asChild
-            onPress={handleNavigateToSignUp}
-            disabled={isNavigatingToSignUp}
-          >
-            <TouchableOpacity disabled={isNavigatingToSignUp}>
-              <Text
-                style={[
-                  styles.link,
-                  isNavigatingToSignUp && styles.disabledLink,
-                ]}
-              >
-                Inscription
-              </Text>
+            <View style={styles.inputContainer}>
+              <Lock size={20} color="#888" />
+              <TextInput
+                style={styles.input}
+                placeholder="Mot de passe"
+                placeholderTextColor="#888"
+                value={password}
+                onChangeText={setPassword}
+                secureTextEntry
+              />
+            </View>
+          </View>
+
+          <View style={styles.buttonContainer}>
+            <TouchableOpacity
+              style={[styles.button, loading && styles.buttonDisabled]}
+              onPress={handleSignIn}
+              disabled={loading}
+            >
+              {loading ? (
+                <ActivityIndicator color="#fff" />
+              ) : (
+                <>
+                  <Text style={styles.buttonText}>Connexion</Text>
+                  <ArrowRight size={20} color="#fff" />
+                </>
+              )}
             </TouchableOpacity>
-          </Link>
+          </View>
+
+          <View style={styles.footer}>
+            <Text style={styles.footerText}>Vous n'avez pas de compte ?</Text>
+            <Link
+              href="/(auth)/sign-up"
+              asChild
+              onPress={handleNavigateToSignUp}
+              disabled={isNavigatingToSignUp}
+            >
+              <TouchableOpacity disabled={isNavigatingToSignUp}>
+                <Text
+                  style={[
+                    styles.link,
+                    isNavigatingToSignUp && styles.disabledLink,
+                  ]}
+                >
+                  Inscription
+                </Text>
+              </TouchableOpacity>
+            </Link>
+          </View>
         </View>
-      </View>
-    </View>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
 
@@ -197,6 +208,9 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#000',
+  },
+  scrollContainer: {
+    flexGrow: 1,
   },
   header: {
     height: 300,
@@ -225,9 +239,13 @@ const styles = StyleSheet.create({
     color: '#888',
     marginBottom: 20,
   },
-  form: {
+  contentContainer: {
     flex: 1,
     padding: 20,
+    justifyContent: 'space-between',
+    minHeight: 350, // Ensure minimum height for content
+  },
+  formContainer: {
     gap: 16,
   },
   inputContainer: {
@@ -242,6 +260,10 @@ const styles = StyleSheet.create({
     flex: 1,
     color: '#fff',
     fontSize: 16,
+  },
+  buttonContainer: {
+    marginTop: 24,
+    marginBottom: 24,
   },
   button: {
     backgroundColor: '#007AFF',
@@ -266,6 +288,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 8,
     marginTop: 'auto',
+    paddingVertical: 16,
   },
   footerText: {
     color: '#888',
@@ -280,6 +303,7 @@ const styles = StyleSheet.create({
     color: '#ef4444',
     fontSize: 14,
     textAlign: 'center',
+    marginBottom: 16,
   },
   disabledLink: {
     opacity: 0.5,

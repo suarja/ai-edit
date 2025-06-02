@@ -4,7 +4,7 @@
     "slug": "ai-edit",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
+    "icon": "./assets/icons/icon-dark.png",
     "scheme": "ai-edit",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
@@ -42,7 +42,7 @@
     "web": {
       "bundler": "metro",
       "output": "server",
-      "favicon": "./assets/images/favicon.png"
+      "favicon": "./assets/icons/icon-dark.png"
     },
     "plugins": [
       "expo-router",
