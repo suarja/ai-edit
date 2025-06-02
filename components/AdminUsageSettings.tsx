@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import { supabase } from '@/lib/supabase';
 import { Shield, CheckCircle, XCircle, User } from 'lucide-react-native';
+import { env } from '@/lib/config/env';
 
 export default function AdminUsageSettings() {
   const [email, setEmail] = useState('');
@@ -54,21 +55,21 @@ export default function AdminUsageSettings() {
         await supabase.auth.admin.listUsers({
           page: 1,
           perPage: 1,
-          filter: {
-            email: email.trim(),
-          },
+          // filter: {
+          //   email: email.trim(),
+          // },
         });
 
       if (adminDataError || !adminData || adminData.users.length === 0) {
         // If admin API fails or isn't available in our plan, try the function approach
         // Get the user ID using Supabase Functions (since direct auth.users access isn't allowed)
         const getUserResponse = await fetch(
-          `${process.env.EXPO_PUBLIC_SUPABASE_URL}/functions/v1/get-user-id-by-email`,
+          `${env.SUPABASE_URL}/functions/v1/get-user-id-by-email`,
           {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
-              Authorization: `Bearer ${process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY}`,
+              Authorization: `Bearer ${env.SUPABASE_ANON_KEY}`,
             },
             body: JSON.stringify({ email: email.trim() }),
           }

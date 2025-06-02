@@ -1,4 +1,4 @@
-import { useOnboardingSteps } from "@/components/onboarding/OnboardingSteps";
+import { useOnboardingSteps } from '@/components/onboarding/OnboardingSteps';
 /**
  * Voice Recording Screen for Onboarding
  *
@@ -25,13 +25,14 @@ import { Audio } from 'expo-av';
 import { supabase } from '@/lib/supabase';
 import { useOnboarding } from '@/components/providers/OnboardingProvider';
 import { ProgressBar } from '@/components/onboarding/ProgressBar';
+import { env } from '@/lib/config/env';
 
 const MAX_RECORDING_DURATION = 120000; // 2 minutes in milliseconds
 const MIN_RECORDING_DURATION = 3000; // 3 seconds in milliseconds
 
-
-  export default function VoiceRecordingScreen() {
-  const onboardingSteps = useOnboardingSteps();  const { nextStep, previousStep, markStepCompleted, surveyAnswers } =
+export default function VoiceRecordingScreen() {
+  const onboardingSteps = useOnboardingSteps();
+  const { nextStep, previousStep, markStepCompleted, surveyAnswers } =
     useOnboarding();
   const [isRecording, setIsRecording] = useState(false);
   const [recording, setRecording] = useState<Audio.Recording | null>(null);
@@ -262,11 +263,11 @@ const MIN_RECORDING_DURATION = 3000; // 3 seconds in milliseconds
       setProgress("Transcription de l'audio...");
 
       const result = await fetch(
-        `${process.env.EXPO_PUBLIC_SUPABASE_URL}/functions/v1/process-onboarding`,
+        `${env.SUPABASE_URL}/functions/v1/process-onboarding`,
         {
           method: 'POST',
           headers: {
-            Authorization: `Bearer ${process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY}`,
+            Authorization: `Bearer ${env.SUPABASE_ANON_KEY}`,
           },
           body: formData,
         }

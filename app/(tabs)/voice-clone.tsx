@@ -9,11 +9,20 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { Audio } from 'expo-av';
-import { Mic, Upload, Play, Square, Trash, Send, Plus } from 'lucide-react-native';
+import {
+  Mic,
+  Upload,
+  Play,
+  Square,
+  Trash,
+  Send,
+  Plus,
+} from 'lucide-react-native';
 import * as DocumentPicker from 'expo-document-picker';
 import { supabase } from '@/lib/supabase';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { env } from '@/lib/config/env';
 
 type VoiceClone = {
   id: string;
@@ -28,7 +37,9 @@ export default function VoiceCloneScreen() {
   const [isCreating, setIsCreating] = useState(false);
   const [existingVoice, setExistingVoice] = useState<VoiceClone | null>(null);
   const [name, setName] = useState('');
-  const [recordings, setRecordings] = useState<{ uri: string; name: string }[]>([]);
+  const [recordings, setRecordings] = useState<{ uri: string; name: string }[]>(
+    []
+  );
   const [recording, setRecording] = useState<Audio.Recording | null>(null);
   const [isRecording, setIsRecording] = useState(false);
   const [sound, setSound] = useState<Audio.Sound | null>(null);
@@ -59,7 +70,9 @@ export default function VoiceCloneScreen() {
 
   const fetchExistingVoice = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (!user) {
         router.replace('/(auth)/sign-in');
         return;
@@ -94,7 +107,7 @@ export default function VoiceCloneScreen() {
       setError(null);
     } catch (err) {
       console.error('Failed to start recording', err);
-      setError('Échec du démarrage de l\'enregistrement');
+      setError("Échec du démarrage de l'enregistrement");
     }
   };
 
@@ -106,14 +119,14 @@ export default function VoiceCloneScreen() {
       const uri = recording.getURI();
       if (uri) {
         const recordingName = `Enregistrement ${recordings.length + 1}.m4a`;
-        setRecordings(prev => [...prev, { uri, name: recordingName }]);
+        setRecordings((prev) => [...prev, { uri, name: recordingName }]);
       }
       setRecording(null);
       setIsRecording(false);
       setError(null);
     } catch (err) {
       console.error('Failed to stop recording', err);
-      setError('Échec de l\'arrêt de l\'enregistrement');
+      setError("Échec de l'arrêt de l'enregistrement");
     }
   };
 
@@ -122,7 +135,7 @@ export default function VoiceCloneScreen() {
       if (sound) {
         await sound.unloadAsync();
       }
-      
+
       const { sound: newSound } = await Audio.Sound.createAsync(
         { uri },
         { shouldPlay: true },
@@ -133,7 +146,7 @@ export default function VoiceCloneScreen() {
           }
         }
       );
-      
+
       setSound(newSound);
       setPlayingIndex(index);
       setError(null);
@@ -154,7 +167,7 @@ export default function VoiceCloneScreen() {
         setError(null);
       } catch (err) {
         console.error('Failed to stop sound', err);
-        setError('Échec de l\'arrêt de la lecture');
+        setError("Échec de l'arrêt de la lecture");
       }
     }
   };
@@ -168,7 +181,10 @@ export default function VoiceCloneScreen() {
 
       if (result.assets && result.assets.length > 0) {
         const asset = result.assets[0];
-        setRecordings(prev => [...prev, { uri: asset.uri, name: asset.name }]);
+        setRecordings((prev) => [
+          ...prev,
+          { uri: asset.uri, name: asset.name },
+        ]);
       }
       setError(null);
     } catch (err) {
@@ -183,42 +199,47 @@ export default function VoiceCloneScreen() {
         await sound.unloadAsync();
         setPlayingIndex(null);
       }
-      setRecordings(prev => prev.filter((_, i) => i !== index));
+      setRecordings((prev) => prev.filter((_, i) => i !== index));
       setError(null);
     } catch (err) {
       console.error('Failed to delete recording', err);
-      setError('Échec de la suppression de l\'enregistrement');
+      setError("Échec de la suppression de l'enregistrement");
     }
   };
 
   const handleSubmit = async () => {
     if (!name || recordings.length === 0 || isSubmitting) return;
-    
+
     try {
       setIsSubmitting(true);
       setError(null);
 
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (!user) {
         router.replace('/(auth)/sign-in');
         return;
       }
 
-      const response = await fetch(`${process.env.EXPO_PUBLIC_SUPABASE_URL}/functions/v1/create-voice-clone`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          name,
-          recordings: recordings.map(r => ({
-            uri: r.uri,
-            name: r.name,
-          })),
-          userId: user.id,
-        }),
-      });
+      const response = await fetch(
+        `${env.SUPABASE_URL}/functions/v1/create-voice-clone`,
+        {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${env.SUPABASE_ANON_KEY}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            name,
+            recordings: recordings.map((r) => ({
+              uri: r.uri,
+              name: r.name,
+            })),
+            userId: user.id,
+          }),
+        }
+      );
 
       const data = await response.json();
 
@@ -233,7 +254,11 @@ export default function VoiceCloneScreen() {
       await fetchExistingVoice();
     } catch (err) {
       console.error('Failed to submit voice clone:', err);
-      setError(err instanceof Error ? err.message : 'Échec de la création du clone vocal');
+      setError(
+        err instanceof Error
+          ? err.message
+          : 'Échec de la création du clone vocal'
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -258,9 +283,11 @@ export default function VoiceCloneScreen() {
         <View style={styles.emptyStateContainer}>
           <View style={styles.emptyState}>
             <Text style={styles.emptyStateText}>Aucun clone vocal trouvé</Text>
-            <Text style={styles.emptyStateSubtext}>Créez votre premier clone vocal pour commencer</Text>
-            <TouchableOpacity 
-              style={styles.createButton} 
+            <Text style={styles.emptyStateSubtext}>
+              Créez votre premier clone vocal pour commencer
+            </Text>
+            <TouchableOpacity
+              style={styles.createButton}
               onPress={() => setIsCreating(true)}
             >
               <Plus size={24} color="#fff" />
@@ -281,8 +308,12 @@ export default function VoiceCloneScreen() {
         <View style={styles.voiceContainer}>
           <View style={styles.voiceHeader}>
             <View style={styles.voiceInfo}>
-              <Text style={styles.voiceId}>ID de voix : {existingVoice.elevenlabs_voice_id}</Text>
-              <Text style={styles.voiceStatus}>Statut : {existingVoice.status}</Text>
+              <Text style={styles.voiceId}>
+                ID de voix : {existingVoice.elevenlabs_voice_id}
+              </Text>
+              <Text style={styles.voiceStatus}>
+                Statut : {existingVoice.status}
+              </Text>
             </View>
           </View>
           <View style={styles.sampleFiles}>
@@ -291,7 +322,11 @@ export default function VoiceCloneScreen() {
               <View key={index} style={styles.recordingItem}>
                 <Text style={styles.recordingName}>{file.name}</Text>
                 <TouchableOpacity
-                  onPress={() => playingIndex === index ? stopSound() : playSound(file.uri, index)}
+                  onPress={() =>
+                    playingIndex === index
+                      ? stopSound()
+                      : playSound(file.uri, index)
+                  }
                   style={styles.controlButton}
                 >
                   {playingIndex === index ? (
@@ -313,8 +348,11 @@ export default function VoiceCloneScreen() {
       <View style={styles.header}>
         <Text style={styles.title}>Créer un Clone Vocal</Text>
       </View>
-      
-      <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
+
+      <ScrollView
+        style={styles.scrollView}
+        contentContainerStyle={styles.scrollContent}
+      >
         <View style={styles.form}>
           {error && (
             <View style={styles.errorContainer}>
@@ -341,7 +379,11 @@ export default function VoiceCloneScreen() {
                   <Text style={styles.recordingName}>{rec.name}</Text>
                   <View style={styles.recordingControls}>
                     <TouchableOpacity
-                      onPress={() => playingIndex === index ? stopSound() : playSound(rec.uri, index)}
+                      onPress={() =>
+                        playingIndex === index
+                          ? stopSound()
+                          : playSound(rec.uri, index)
+                      }
                       style={styles.controlButton}
                     >
                       {playingIndex === index ? (
@@ -382,7 +424,7 @@ export default function VoiceCloneScreen() {
       </ScrollView>
 
       <View style={styles.footer}>
-        <TouchableOpacity 
+        <TouchableOpacity
           style={styles.cancelButton}
           onPress={() => {
             setIsCreating(false);
@@ -394,10 +436,11 @@ export default function VoiceCloneScreen() {
           <Text style={styles.buttonText}>Annuler</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity 
+        <TouchableOpacity
           style={[
             styles.submitButton,
-            (isSubmitting || !name || recordings.length === 0) && styles.submitButtonDisabled
+            (isSubmitting || !name || recordings.length === 0) &&
+              styles.submitButtonDisabled,
           ]}
           onPress={handleSubmit}
           disabled={isSubmitting || !name || recordings.length === 0}
