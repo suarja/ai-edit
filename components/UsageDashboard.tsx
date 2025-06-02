@@ -12,34 +12,65 @@ type UsageData = {
   videos_limit: number;
 };
 
-export default function UsageDashboard() {
-  const [loading, setLoading] = useState(true);
-  const [usage, setUsage] = useState<UsageData | null>(null);
+type UsageDashboardProps = {
+  usageData?: UsageData | null;
+  forceRefresh?: boolean;
+};
+
+export default function UsageDashboard({
+  usageData,
+  forceRefresh = false,
+}: UsageDashboardProps) {
+  const [loading, setLoading] = useState(usageData ? false : true);
+  const [usage, setUsage] = useState<UsageData | null>(usageData || null);
   const [error, setError] = useState<string | null>(null);
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(!!usageData);
 
   useEffect(() => {
-    checkAuthAndFetchData();
+    // If usageData is provided from props, use it and skip fetching
+    if (usageData) {
+      setUsage(usageData);
+      setLoading(false);
+      setError(null);
+      setIsAuthenticated(true);
+    } else {
+      // Otherwise check auth and fetch data
+      checkAuthAndFetchData();
+    }
 
-    // Listen for auth changes
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === 'SIGNED_OUT') {
-        setIsAuthenticated(false);
-        setUsage(null);
-        setError(null);
-        setLoading(false);
-      } else if (event === 'SIGNED_IN' && session) {
-        setIsAuthenticated(true);
-        fetchUsageData();
-      }
-    });
+    // Listen for auth changes if we're managing our own data
+    if (!usageData) {
+      const {
+        data: { subscription },
+      } = supabase.auth.onAuthStateChange((event, session) => {
+        if (event === 'SIGNED_OUT') {
+          setIsAuthenticated(false);
+          setUsage(null);
+          setError(null);
+          setLoading(false);
+        } else if (event === 'SIGNED_IN' && session) {
+          setIsAuthenticated(true);
+          fetchUsageData();
+        }
+      });
 
-    return () => subscription.unsubscribe();
-  }, []);
+      return () => subscription.unsubscribe();
+    }
+  }, [usageData, forceRefresh]);
+
+  // Update usage state when props change
+  useEffect(() => {
+    if (usageData) {
+      setUsage(usageData);
+      setLoading(false);
+      setIsAuthenticated(true);
+    }
+  }, [usageData]);
 
   const checkAuthAndFetchData = async () => {
+    // Skip if we're using prop data
+    if (usageData) return;
+
     try {
       const {
         data: { session },
@@ -60,6 +91,9 @@ export default function UsageDashboard() {
   };
 
   const fetchUsageData = async () => {
+    // Skip if we're using prop data
+    if (usageData) return;
+
     // Don't fetch if not authenticated
     if (!isAuthenticated) {
       setLoading(false);
@@ -219,8 +253,10 @@ export default function UsageDashboard() {
     }
   };
 
-  // Don't render anything if not authenticated
-  if (!isAuthenticated) {
+  // Force rendering when we have prop data, even if not authenticated internally
+  const shouldRender = isAuthenticated || !!usageData;
+
+  if (!shouldRender) {
     return null;
   }
 

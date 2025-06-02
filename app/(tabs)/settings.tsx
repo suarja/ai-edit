@@ -70,6 +70,9 @@ export default function SettingsScreen() {
     avatar_url: null,
     email: '',
   });
+  const [userUsage, setUserUsage] = useState<UsageInfo | null>(null);
+  const [usageLoading, setUsageLoading] = useState(true);
+  const [usageError, setUsageError] = useState<string | null>(null);
 
   const [testingPrompt, setTestingPrompt] = useState('');
   const [testingStatus, setTestingStatus] = useState<string | null>(null);
@@ -84,12 +87,13 @@ export default function SettingsScreen() {
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
-    await fetchProfile();
+    await Promise.all([fetchProfile(), fetchUserUsage()]);
     setRefreshing(false);
   }, []);
 
   useEffect(() => {
     fetchProfile();
+    fetchUserUsage();
   }, []);
 
   const fetchProfile = async () => {
@@ -111,7 +115,6 @@ export default function SettingsScreen() {
         return;
       }
 
-
       console.log('User found:', user.id);
 
       const { data: profile, error: profileError } = await supabase
@@ -132,7 +135,7 @@ export default function SettingsScreen() {
         full_name: profile.full_name,
         avatar_url: profile.avatar_url,
         email: user.email!,
-        role: isAdmin ? 'admin' : 'user',
+        role: profile.role,
       });
       setEditedProfile({
         id: user.id,
@@ -153,6 +156,88 @@ export default function SettingsScreen() {
       // Don't redirect on error, just show the error
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchUserUsage = async () => {
+    try {
+      setUsageLoading(true);
+      setUsageError(null);
+
+      // Get current user
+      const {
+        data: { user },
+        error: userError,
+      } = await supabase.auth.getUser();
+
+      if (userError) {
+        console.error('Error getting user for usage data:', userError);
+        setUsageError('Failed to authenticate user');
+        return;
+      }
+
+      if (!user) {
+        console.log('No user found for usage data');
+        return;
+      }
+
+      console.log('Fetching usage data for user:', user.id);
+
+      // Get usage data
+      const { data: usageData, error: usageError } = await supabase
+        .from('user_usage')
+        .select('*')
+        .eq('user_id', user.id)
+        .single();
+
+      if (usageError) {
+        console.error('Usage data error:', usageError);
+
+        if (usageError.code === 'PGRST116') {
+          // No usage record found, create one
+          console.log('No usage record found, creating one...');
+          await createUsageRecord(user.id);
+          return;
+        }
+
+        setUsageError('Failed to load usage data');
+        return;
+      }
+
+      console.log('Usage data retrieved:', usageData);
+      setUserUsage(usageData);
+    } catch (err) {
+      console.error('Error fetching usage data:', err);
+      setUsageError('An unexpected error occurred');
+    } finally {
+      setUsageLoading(false);
+    }
+  };
+
+  const createUsageRecord = async (userId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('user_usage')
+        .insert([
+          {
+            user_id: userId,
+            videos_generated: 0,
+            videos_limit: 5, // Default limit for new users
+          },
+        ])
+        .select('*')
+        .single();
+
+      if (error) {
+        console.error('Error creating usage record:', error);
+        setUsageError('Failed to initialize usage tracking');
+        return;
+      }
+
+      setUserUsage(data);
+    } catch (err) {
+      console.error('Error creating usage record:', err);
+      setUsageError('Failed to initialize usage tracking');
     }
   };
 
@@ -536,7 +621,17 @@ export default function SettingsScreen() {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Création de Contenu</Text>
 
-          <UsageDashboard />
+          <UsageDashboard
+            usageData={
+              userUsage
+                ? {
+                    videos_generated: userUsage.videos_generated,
+                    videos_limit: userUsage.videos_limit,
+                  }
+                : null
+            }
+            forceRefresh={refreshing}
+          />
 
           <TouchableOpacity
             style={styles.settingItem}
