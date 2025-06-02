@@ -8,6 +8,7 @@ import VideoPlayer from '@/components/VideoPlayer';
 import VideoDetailHeader from '@/components/VideoDetailHeader';
 import VideoDetails from '@/components/VideoDetails';
 import VideoActionButtons from '@/components/VideoActionButtons';
+import { env } from '@/lib/config/env';
 
 export default function GeneratedVideoDetailScreen() {
   const { id } = useLocalSearchParams();
@@ -71,7 +72,7 @@ export default function GeneratedVideoDetailScreen() {
     if (!video) return;
 
     try {
-      const response = await fetch(`/api/videos/status/${id}`);
+      const response = await fetch(`${env.SERVER_URL}/api/videos/status/${id}`);
 
       if (!response.ok) {
         console.error('Status check failed:', await response.text());

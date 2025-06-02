@@ -36,7 +36,7 @@ const DEFAULT_CONFIG = {
   SUPABASE_ANON_KEY:
     'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRtbGpuY2phb212aGRpY2hudXhtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDgxODcyOTgsImV4cCI6MjA2Mzc2MzI5OH0.cnyouJA--VhckmQBbyQQv-PaRoiCeNM-_QJQ2aTwSNo',
   ENVIRONMENT: 'production' as const,
-  SERVER_URL: 'https://ai-edit--h9rle8xrz5.expo.app',
+  SERVER_URL: 'https://ai-edit.expo.app',
   IS_TESTFLIGHT: true,
 };
 

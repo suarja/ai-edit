@@ -15,6 +15,7 @@ import { CircleAlert as AlertCircle, Sparkles } from 'lucide-react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import GeneratedVideoCard from '@/components/GeneratedVideoCard';
 import EmptyGeneratedVideos from '@/components/EmptyGeneratedVideos';
+import { env } from '@/lib/config/env';
 
 type VideoRequest = {
   id: string;
@@ -88,7 +89,9 @@ export default function GeneratedVideosScreen() {
 
   const checkVideoStatus = async (videoId: string) => {
     try {
-      const response = await fetch(`/api/videos/status/${videoId}`);
+      const response = await fetch(
+        `${env.SERVER_URL}/api/videos/status/${videoId}`
+      );
 
       if (!response.ok) {
         console.error('Status check failed:', await response.text());

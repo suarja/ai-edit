@@ -5,6 +5,7 @@ import { ScriptReviewer } from '@/lib/agents/scriptReviewer';
 import { CreatomateBuilder } from '@/lib/agents/creatomateBuilder';
 import { MODELS } from '@/lib/config/openai';
 import { EditorialProfile, VideoGenerationPayload } from './validation';
+import { env } from '@/lib/config/env';
 
 /**
  * Result of video generation process
@@ -276,8 +277,7 @@ export class VideoGeneratorService {
     console.log('Starting Creatomate render...');
 
     // Get the server's base URL for webhook callbacks
-    const baseUrl =
-      process.env.EXPO_PUBLIC_SERVER_URL || 'https://your-production-url.com';
+    const baseUrl = env.SERVER_URL;
 
     // Create webhook URL for render status updates
     const webhookUrl = `${baseUrl}/api/webhooks/creatomate`;

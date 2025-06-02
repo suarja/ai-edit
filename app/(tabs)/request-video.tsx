@@ -23,6 +23,7 @@ import { VideoType } from '@/types/video';
 import VideoSelectionCarousel from '@/components/VideoSelectionCarousel';
 import VoiceCloneSection from '@/components/VoiceCloneSection';
 import EditorialProfileSection from '@/components/EditorialProfileSection';
+import { env } from '@/lib/config/env';
 
 // Default voice ID to use when no voice clone exists
 const DEFAULT_VOICE_ID = 'NFcw9p0jKu3zbmXieNPE';
@@ -225,7 +226,7 @@ export default function RequestVideoScreen() {
         data: { session },
       } = await supabase.auth.getSession();
       console.log('Auth token:', session?.access_token);
-      const response = await fetch('/api/videos/generate', {
+      const response = await fetch(`${env.SERVER_URL}/api/videos/generate`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

@@ -10,7 +10,8 @@ import {
 import * as ImagePicker from 'expo-image-picker';
 import { openSettings } from 'expo-linking';
 import { Video as VideoIcon } from 'lucide-react-native';
-import { MediaTypeOptions } from 'expo-image-picker';
+import { MediaTypeOptions, MediaType } from 'expo-image-picker';
+import { env, getEnvVar } from '@/lib/config/env';
 
 type VideoUploaderProps = {
   onUploadComplete?: (videoData: { videoId: string; url: string }) => void;
@@ -53,7 +54,7 @@ export default function VideoUploader({
 
       // Pick a video
       const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ['videos'] as any as MediaTypeOptions,
+        mediaTypes: ['videos'] as any as MediaType,
         allowsEditing: true,
         quality: 1,
         videoMaxDuration: 300,
@@ -82,16 +83,19 @@ export default function VideoUploader({
           setUploadStatus("Génération de l'URL de téléchargement...");
 
           // Get presigned URL from our API
-          const presignedResponse = await fetch('/api/s3-upload', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              fileName,
-              fileType,
-            }),
-          });
+          const presignedResponse = await fetch(
+            `${env.SERVER_URL}/api/s3-upload`,
+            {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                fileName,
+                fileType,
+              }),
+            }
+          );
 
           if (!presignedResponse.ok) {
             throw new Error(
