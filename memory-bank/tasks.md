@@ -902,6 +902,7 @@ Fix critical issues in the onboarding flow, specifically related to navigation e
 - [ ] Implement retry mechanisms for failed operations
 - [ ] Add better loading states during processing
 - [ ] Fix editorial profile display after generation
+- [x] Fix environment variable access pattern for Expo compatibility
 
 ### Phase 4: Testing & Validation
 

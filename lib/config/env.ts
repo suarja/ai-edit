@@ -42,9 +42,53 @@ const DEFAULT_CONFIG = {
 
 /**
  * Get environment variable with optional fallback
+ *
+ * NOTE: This approach requires callers to use specific environment variable keys directly
+ * in the code where this function is used, to ensure Expo's static analysis can properly
+ * inline the values.
  */
 export const getEnvVar = (key: string, fallback?: string): string => {
-  const value = process.env[key];
+  let value: string | undefined = undefined;
+
+  // Handle each possible environment variable explicitly
+  // This ensures we use dot notation as required by Expo
+  switch (key) {
+    case 'EXPO_PUBLIC_SUPABASE_URL':
+      value = process.env.EXPO_PUBLIC_SUPABASE_URL;
+      break;
+    case 'EXPO_PUBLIC_SUPABASE_ANON_KEY':
+      value = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY;
+      break;
+    case 'EXPO_PUBLIC_IS_TESTFLIGHT':
+      value = process.env.EXPO_PUBLIC_IS_TESTFLIGHT;
+      break;
+    case 'EXPO_PUBLIC_ENVIRONMENT':
+      value = process.env.EXPO_PUBLIC_ENVIRONMENT;
+      break;
+    case 'EXPO_PUBLIC_SERVER_URL':
+      value = process.env.EXPO_PUBLIC_SERVER_URL;
+      break;
+    case 'OPENAI_API_KEY':
+      value = process.env.OPENAI_API_KEY;
+      break;
+    case 'EXPO_PUBLIC_ELEVENLABS_API_KEY':
+      value = process.env.EXPO_PUBLIC_ELEVENLABS_API_KEY;
+      break;
+    case 'CREATOMATE_API_KEY':
+      value = process.env.CREATOMATE_API_KEY;
+      break;
+    case 'AWS_REGION':
+      value = process.env.AWS_REGION;
+      break;
+    case 'AWS_ACCESS_KEY_ID':
+      value = process.env.AWS_ACCESS_KEY_ID;
+      break;
+    case 'AWS_SECRET_ACCESS_KEY':
+      value = process.env.AWS_SECRET_ACCESS_KEY;
+      break;
+    default:
+      console.warn(`Unhandled environment variable key: ${key}`);
+  }
 
   if (!value) {
     if (fallback !== undefined) {
@@ -65,7 +109,46 @@ export const getEnvVar = (key: string, fallback?: string): string => {
  * Get required environment variable - throws error if missing
  */
 export const getRequiredEnvVar = (key: string): string => {
-  const value = process.env[key];
+  let value: string | undefined = undefined;
+
+  // Handle each possible environment variable explicitly
+  switch (key) {
+    case 'EXPO_PUBLIC_SUPABASE_URL':
+      value = process.env.EXPO_PUBLIC_SUPABASE_URL;
+      break;
+    case 'EXPO_PUBLIC_SUPABASE_ANON_KEY':
+      value = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY;
+      break;
+    case 'EXPO_PUBLIC_IS_TESTFLIGHT':
+      value = process.env.EXPO_PUBLIC_IS_TESTFLIGHT;
+      break;
+    case 'EXPO_PUBLIC_ENVIRONMENT':
+      value = process.env.EXPO_PUBLIC_ENVIRONMENT;
+      break;
+    case 'EXPO_PUBLIC_SERVER_URL':
+      value = process.env.EXPO_PUBLIC_SERVER_URL;
+      break;
+    case 'OPENAI_API_KEY':
+      value = process.env.OPENAI_API_KEY;
+      break;
+    case 'EXPO_PUBLIC_ELEVENLABS_API_KEY':
+      value = process.env.EXPO_PUBLIC_ELEVENLABS_API_KEY;
+      break;
+    case 'CREATOMATE_API_KEY':
+      value = process.env.CREATOMATE_API_KEY;
+      break;
+    case 'AWS_REGION':
+      value = process.env.AWS_REGION;
+      break;
+    case 'AWS_ACCESS_KEY_ID':
+      value = process.env.AWS_ACCESS_KEY_ID;
+      break;
+    case 'AWS_SECRET_ACCESS_KEY':
+      value = process.env.AWS_SECRET_ACCESS_KEY;
+      break;
+    default:
+      console.warn(`Unhandled environment variable key: ${key}`);
+  }
 
   if (value === undefined) {
     const errorMessage = `Required environment variable missing: ${key}`;
@@ -97,7 +180,17 @@ export const getBooleanEnvVar = (
   key: string,
   defaultValue: boolean = false
 ): boolean => {
-  const value = process.env[key];
+  let value: string | undefined = undefined;
+
+  // Handle each possible environment variable explicitly
+  switch (key) {
+    case 'EXPO_PUBLIC_IS_TESTFLIGHT':
+      value = process.env.EXPO_PUBLIC_IS_TESTFLIGHT;
+      break;
+    // Add other boolean environment variables as needed
+    default:
+      console.warn(`Unhandled boolean environment variable key: ${key}`);
+  }
 
   if (!value) {
     return defaultValue;
@@ -120,9 +213,18 @@ export const validateEnvironment = (): {
   ];
 
   for (const varName of requiredVars) {
+    // For each variable, we need to check it using dot notation
+    let isSet = false;
+
+    if (varName === 'EXPO_PUBLIC_SUPABASE_URL') {
+      isSet = !!process.env.EXPO_PUBLIC_SUPABASE_URL;
+    } else if (varName === 'EXPO_PUBLIC_SUPABASE_ANON_KEY') {
+      isSet = !!process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY;
+    }
+
     // Don't report errors for variables we have fallbacks for
     if (
-      !process.env[varName] &&
+      !isSet &&
       varName !== 'EXPO_PUBLIC_SUPABASE_URL' &&
       varName !== 'EXPO_PUBLIC_SUPABASE_ANON_KEY'
     ) {
@@ -149,10 +251,7 @@ export const env: EnvConfig = {
   ENVIRONMENT: getEnvVar('EXPO_PUBLIC_ENVIRONMENT', 'development') as any,
 
   // Server URL with fallback
-  SERVER_URL: getEnvVar(
-    'EXPO_PUBLIC_SERVER_URL',
-    'https://your-production-url.com'
-  ),
+  SERVER_URL: getEnvVar('EXPO_PUBLIC_SERVER_URL', 'https://ai-edit.expo.app'),
 
   // Optional API keys
   OPENAI_API_KEY: getEnvVar('OPENAI_API_KEY'),

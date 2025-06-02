@@ -189,7 +189,22 @@ eas build --platform ios --profile preview
 ```typescript
 // Add to lib/config/env.ts
 export const getEnvVar = (key: string, fallback?: string): string => {
-  const value = process.env[key];
+  // Retrieve environment variable using dot notation for static analysis
+  let value: string | undefined;
+
+  // Must use explicit variable names with dot notation for Expo to properly inline
+  switch (key) {
+    case 'EXPO_PUBLIC_SUPABASE_URL':
+      value = process.env.EXPO_PUBLIC_SUPABASE_URL;
+      break;
+    case 'EXPO_PUBLIC_SUPABASE_ANON_KEY':
+      value = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY;
+      break;
+    // Add other variables as needed
+    default:
+      console.warn(`Unhandled environment variable key: ${key}`);
+  }
+
   if (!value && !fallback) {
     if (__DEV__) {
       console.warn(`Missing environment variable: ${key}`);

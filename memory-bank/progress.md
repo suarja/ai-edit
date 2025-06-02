@@ -348,3 +348,15 @@ We are preparing the app for TestFlight beta testing, implementing usage trackin
 2. Implement user-friendly error messages throughout the onboarding flow
 3. Add retry mechanisms for failed operations during voice sample processing
 4. Test the complete onboarding flow from sign-up through voice recording to editorial profile generation
+
+## June 2, 2023
+
+### Environment Variable Access Pattern Fixed
+
+- Updated environment variable access pattern in `lib/config/env.ts` to use dot notation instead of bracket notation
+- This change was necessary to comply with Expo's static analysis requirements for environment variables
+- Before: `const value = process.env[key]` (not compatible with Expo's static analysis)
+- After: Using explicit dot notation like `process.env.EXPO_PUBLIC_SUPABASE_URL`
+- This change ensures that Expo can properly inline the environment variables during build time
+- Also updated the audit findings document to reflect the proper approach
+- The change will help prevent environment variable-related issues in production builds
