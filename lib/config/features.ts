@@ -32,7 +32,7 @@ const testFlightFeatures: FeatureFlags = {
 const productionFeatures: FeatureFlags = {
   enableSubscriptionScreens: true,
   enableUsageLimits: true,
-  disableAutoProgress: false,
+  disableAutoProgress: true,
 };
 
 // Determine which environment we're in
@@ -40,6 +40,11 @@ const isTestFlight = process.env.EXPO_PUBLIC_IS_TESTFLIGHT === 'true';
 const isProduction = process.env.EXPO_PUBLIC_ENVIRONMENT === 'production';
 
 // Select the appropriate feature set
+// export const features: FeatureFlags = isProduction
+//   ? productionFeatures
+//   : isTestFlight
+//   ? testFlightFeatures
+//   : devFeatures;
 export const features: FeatureFlags = isProduction
   ? productionFeatures
   : isTestFlight
