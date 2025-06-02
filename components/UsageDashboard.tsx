@@ -69,6 +69,7 @@ export default function UsageDashboard() {
     try {
       setLoading(true);
       setError(null);
+      console.log('Fetching usage data...');
 
       // Get current user
       const { data, error } = await supabase.auth.getUser();
@@ -96,6 +97,35 @@ export default function UsageDashboard() {
         return;
       }
 
+      console.log('User found, checking usage data for:', data.user.id);
+
+      // Get user info to check admin status
+      const { data: userData, error: userError } = await supabase
+        .from('users')
+        .select('role')
+        .eq('id', data.user.id)
+        .single();
+
+      if (userError) {
+        console.error('Error checking user role:', userError);
+      } else {
+        console.log('User role:', userData.role);
+      }
+
+      // Check admin status in user_roles table (RLS uses this)
+      const { data: roleData, error: roleError } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', data.user.id)
+        .eq('role', 'admin')
+        .maybeSingle();
+
+      if (roleError) {
+        console.error('Error checking user_roles entry:', roleError);
+      } else {
+        console.log('Admin entry in user_roles:', roleData ? 'Yes' : 'No');
+      }
+
       // Get usage data
       const { data: usageData, error: usageError } = await supabase
         .from('user_usage')
@@ -104,9 +134,22 @@ export default function UsageDashboard() {
         .single();
 
       if (usageError) {
+        console.error('Usage data error:', usageError);
+
         if (usageError.code === 'PGRST116') {
           // No usage record found, create one
+          console.log('No usage record found, creating one...');
           await createUsageRecord(data.user.id);
+          return;
+        }
+
+        // Check if it's a permission error
+        if (usageError.code === 'PGRST109') {
+          console.error(
+            'Permission error accessing user_usage table - RLS policy might be misconfigured'
+          );
+          setError('Permission error: Contact administrator');
+          setLoading(false);
           return;
         }
 
@@ -121,6 +164,7 @@ export default function UsageDashboard() {
         );
         throw usageError;
       }
+      console.log('Usage data retrieved:', usageData);
 
       setUsage(usageData);
     } catch (err: any) {
@@ -134,7 +178,7 @@ export default function UsageDashboard() {
         setIsAuthenticated(false);
         setError('Please sign in to view usage data');
       } else {
-        setError('Failed to load usage data');
+        setError('Failed to load usage data: ' + err.message);
       }
     } finally {
       setLoading(false);

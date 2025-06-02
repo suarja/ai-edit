@@ -38,12 +38,47 @@ export default function AdminUsageControl({
         return;
       }
 
+      console.log(`Updating limit for user ${userId} to ${limitValue}`);
+
+      // First, check if current user has admin privileges in user_roles
+      const { data: authData } = await supabase.auth.getUser();
+
+      if (!authData.user) {
+        throw new Error('Not authenticated');
+      }
+
+      const { data: adminRole, error: roleError } = await supabase
+        .from('user_roles')
+        .select('id')
+        .eq('user_id', authData.user.id)
+        .eq('role', 'admin')
+        .maybeSingle();
+
+      if (roleError) {
+        console.error('Error checking admin privileges:', roleError);
+      }
+
+      console.log('Admin privileges check:', adminRole ? 'Yes' : 'No');
+
+      // Proceed with update
       const { error } = await supabase
         .from('user_usage')
         .update({ videos_limit: limitValue })
         .eq('user_id', userId);
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error updating limit:', error);
+
+        if (error.code === 'PGRST109') {
+          Alert.alert(
+            'Erreur de permissions',
+            "Vous n'avez pas les droits administrateur nécessaires. Vérifiez que votre compte est configuré correctement."
+          );
+          return;
+        }
+
+        throw error;
+      }
 
       Alert.alert(
         'Succès',

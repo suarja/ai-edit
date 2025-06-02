@@ -27,7 +27,6 @@ import {
   Mic,
   CreditCard as Edit3,
   Bug,
-  Play,
   Wand as Wand2,
   Search,
 } from 'lucide-react-native';
@@ -39,7 +38,7 @@ type UserProfile = {
   full_name: string | null;
   avatar_url: string | null;
   email: string;
-  is_admin?: boolean;
+  role?: string;
 };
 
 type UsageInfo = {
@@ -63,7 +62,7 @@ export default function SettingsScreen() {
     full_name: '',
     avatar_url: null,
     email: '',
-    is_admin: false,
+    role: 'admin',
   });
   const [editedProfile, setEditedProfile] = useState<UserProfile>({
     id: '',
@@ -130,22 +129,14 @@ export default function SettingsScreen() {
         throw profileError;
       }
 
-      // Check if user has admin role
-      const { data: rolesData, error: rolesError } = await supabase
-        .from('user_roles')
-        .select('role')
-        .eq('user_id', user.id)
-        .eq('role', 'admin')
-        .maybeSingle();
-
-      const isAdmin = !rolesError && rolesData?.role === 'admin';
-
+      const isAdmin = profile.role === 'admin';
+      console.log('isAdmin', isAdmin);
       setProfile({
         id: user.id,
         full_name: profile.full_name,
         avatar_url: profile.avatar_url,
         email: user.email!,
-        is_admin: isAdmin,
+        role: isAdmin ? 'admin' : 'user',
       });
       setEditedProfile({
         id: user.id,
@@ -154,6 +145,11 @@ export default function SettingsScreen() {
         email: user.email!,
       });
 
+      // If the user is an admin, ensure they have a user_roles entry
+      if (isAdmin) {
+        await ensureAdminRoleEntry(user.id);
+      }
+
       console.log('Profile loaded successfully');
     } catch (err) {
       console.error('Error fetching profile:', err);
@@ -161,6 +157,45 @@ export default function SettingsScreen() {
       // Don't redirect on error, just show the error
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Function to ensure admin users have an entry in user_roles table
+  const ensureAdminRoleEntry = async (userId: string) => {
+    try {
+      // First check if an entry already exists
+      const { data: existingRole, error: checkError } = await supabase
+        .from('user_roles')
+        .select('id')
+        .eq('user_id', userId)
+        .eq('role', 'admin')
+        .maybeSingle();
+
+      if (checkError) {
+        console.error('Error checking admin role entry:', checkError);
+        return;
+      }
+
+      // If no entry exists, create one
+      if (!existingRole) {
+        console.log('No admin role entry found, creating one...');
+        const { error: insertError } = await supabase
+          .from('user_roles')
+          .insert({
+            user_id: userId,
+            role: 'admin',
+          });
+
+        if (insertError) {
+          console.error('Error creating admin role entry:', insertError);
+        } else {
+          console.log('Admin role entry created successfully');
+        }
+      } else {
+        console.log('Admin role entry already exists');
+      }
+    } catch (err) {
+      console.error('Error ensuring admin role entry:', err);
     }
   };
 
@@ -202,7 +237,7 @@ export default function SettingsScreen() {
         full_name: '',
         avatar_url: null,
         email: '',
-        is_admin: false,
+        role: '',
       });
       setEditedProfile({
         id: '',
@@ -342,7 +377,7 @@ export default function SettingsScreen() {
   );
 
   // Admin section component that's only shown to admin users
-  const adminSection = profile.is_admin && (
+  const adminSection = profile.role === 'admin' && (
     <View style={styles.section}>
       <Text style={styles.sectionTitle}>Administration</Text>
 
@@ -582,7 +617,7 @@ export default function SettingsScreen() {
           </TouchableOpacity>
         </View>
 
-        {profile.is_admin && adminSection}
+        {profile.role === 'admin' && adminSection}
 
         {__DEV__ && debugSection}
 
