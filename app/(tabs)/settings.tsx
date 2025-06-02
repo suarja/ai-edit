@@ -102,12 +102,7 @@ export default function SettingsScreen() {
         error: userError,
       } = await supabase.auth.getUser();
 
-      if (userError) {
-        console.error('Error getting user:', userError);
-        throw userError;
-      }
-
-      if (!user) {
+      if (userError || !user) {
         console.log('No user found, redirecting to sign-in');
         // Add a small delay to prevent navigation loops
         setTimeout(() => {
@@ -115,6 +110,7 @@ export default function SettingsScreen() {
         }, 100);
         return;
       }
+
 
       console.log('User found:', user.id);
 

@@ -1,4 +1,4 @@
-import { Stack, useRouter, useRootNavigationState } from 'expo-router';
+import { Stack, useRouter } from 'expo-router';
 import { useEffect, useState, useRef } from 'react';
 import { View, ActivityIndicator, Text, StyleSheet } from 'react-native';
 import { OnboardingProvider } from '@/components/providers/OnboardingProvider';
@@ -10,7 +10,6 @@ export default function OnboardingLayout() {
   const [error, setError] = useState<string | null>(null);
   const [isRedirecting, setIsRedirecting] = useState(false);
   const router = useRouter();
-  const navigationState = useRootNavigationState();
   const redirectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Clear timeout on unmount
@@ -24,10 +23,6 @@ export default function OnboardingLayout() {
 
   useEffect(() => {
     const checkAuthState = async () => {
-      if (!navigationState?.key) {
-        return;
-      }
-
       try {
         setLoading(true);
 
@@ -60,7 +55,7 @@ export default function OnboardingLayout() {
     };
 
     checkAuthState();
-  }, [navigationState?.key, router, isRedirecting]);
+  }, [router, isRedirecting]);
 
   // Handle redirect with state tracking
   const handleRedirect = (path: string, reason: string) => {
@@ -73,16 +68,6 @@ export default function OnboardingLayout() {
     if (redirectTimeoutRef.current) {
       clearTimeout(redirectTimeoutRef.current);
     }
-
-    // Set timeout for redirect
-    redirectTimeoutRef.current = setTimeout(() => {
-      router.replace(path);
-
-      // Reset redirecting state after navigation
-      setTimeout(() => {
-        setIsRedirecting(false);
-      }, 500);
-    }, 1500);
   };
 
   if (loading) {
