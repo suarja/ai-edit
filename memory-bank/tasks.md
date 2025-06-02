@@ -838,3 +838,74 @@ The issue is blocking new user signups in the TestFlight build, preventing testi
 2. Be cautious with database triggers on auth schema tables
 3. Test authentication flows thoroughly before TestFlight submission
 4. Maintain detailed documentation of all database migrations affecting auth schema
+
+---
+
+# Task: Fix Onboarding Flow & Voice Cloning Issues
+
+## Task ID: ONB-002
+
+## Complexity Level: Level 3
+
+## Priority: High
+
+## Description
+
+Fix critical issues in the onboarding flow, specifically related to navigation errors, UI freezing, and voice cloning integration. This task focuses on improving error handling, implementing proper authentication checks during onboarding, and enhancing the voice cloning integration with ElevenLabs.
+
+## Requirements
+
+1. Fix redirection error after onboarding completion
+2. Resolve signup screen freezing issue
+3. Fix voice cloning integration with ElevenLabs
+4. Enhance editorial profile generation with improved AI prompts
+5. Implement proper error handling throughout onboarding flow
+6. Verify authentication status during onboarding process
+
+## Affected Components
+
+- `app/(onboarding)/_layout.tsx` - Navigation and auth handling
+- `app/(auth)/sign-up.tsx` - Freezing UI fix
+- `app/(onboarding)/voice-recording.tsx` - Voice sample processing
+- `supabase/functions/process-onboarding/index.ts` - Editorial profile generation and voice cloning
+- `app/(onboarding)/editorial.tsx` - Editorial profile display and editing
+
+## Success Criteria
+
+- Users can complete signup without freezing UI
+- Onboarding flow navigates properly to completion
+- Editorial profiles are generated with improved detail
+- Voice cloning requests are properly tracked
+- Errors are handled gracefully throughout the flow
+
+## Implementation Plan
+
+### Phase 1: Authentication & Navigation Fixes
+
+- [x] Implement authentication checks in onboarding layout
+- [x] Fix signup screen freezing with improved validation
+- [x] Add navigation delay to prevent UI freezing
+- [x] Implement proper error handling during auth transitions
+- [x] Fix navigation between sign-in and sign-up screens
+- [x] Add timeout management for auth navigation state
+
+### Phase 2: Voice Cloning Integration
+
+- [x] Update editorial profile generation with improved prompts
+- [x] Implement robust ElevenLabs integration tracking
+- [x] Add detailed error logging for voice cloning
+- [ ] Fix voice clone status updates in database
+
+### Phase 3: Error Handling & UI Improvements
+
+- [ ] Add user-friendly error messages
+- [ ] Implement retry mechanisms for failed operations
+- [ ] Add better loading states during processing
+- [ ] Fix editorial profile display after generation
+
+### Phase 4: Testing & Validation
+
+- [ ] Test complete onboarding flow
+- [ ] Verify voice cloning integration
+- [ ] Test error recovery scenarios
+- [ ] Performance testing for navigation transitions

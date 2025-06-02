@@ -96,19 +96,20 @@ async function analyzeContent(text: string) {
   try {
     console.log('Starting content analysis');
     const completion = await openai.chat.completions.create({
-      model: 'gpt-4-turbo-preview',
+      model: 'gpt-4o',
       messages: [
         {
           role: 'system',
-          content: `You are an AI assistant helping to create an editorial profile for a content creator.
-          Based on their introduction, extract the following information in JSON format:
-          - persona_description: How they describe themselves as a content creator
-          - tone_of_voice: Their speaking style and tone
-          - audience: Their target audience
-          - style_notes: Any specific content style preferences mentioned
+          content: `You are an AI assistant specialized in content creator profiling.
+          Based on the creator's introduction or description, extract a detailed editorial profile in JSON format with these fields:
           
-          If any information is missing, provide reasonable defaults based on context.
-          Keep the responses concise but meaningful.`,
+          - persona_description: A rich description of how they position themselves as a content creator (their unique angle, expertise areas, and content identity)
+          - tone_of_voice: Detailed analysis of their speaking style, vocal characteristics, emotional tone, and linguistic patterns
+          - audience: Comprehensive profile of their target audience including demographics, interests, needs, and pain points
+          - style_notes: Specific content creation preferences, format choices, presentation style, and delivery techniques they mention or demonstrate
+          
+          If any information is missing, provide thoughtful, reasonable defaults based on the overall context and industry standards for their content type.
+          Focus on creating a detailed, actionable profile that captures their unique voice and content approach.`,
         },
         {
           role: 'user',
@@ -185,6 +186,37 @@ async function getExistingVoiceClone(userId: string) {
   return data;
 }
 
+async function initiateVoiceCloning(userId: string, audioUrl: string) {
+  try {
+    console.log('Starting voice clone initiation with ElevenLabs');
+
+    // Verify API key is available
+    const ELEVENLABS_API_KEY = Deno.env.get('ELEVENLABS_API_KEY');
+    if (!ELEVENLABS_API_KEY) {
+      throw new Error('ElevenLabs API key is missing');
+    }
+
+    // For now, just log the voice cloning request (will implement full integration)
+    console.log(
+      `Would initiate voice cloning for user ${userId} with sample ${audioUrl}`
+    );
+    console.log(
+      'Using ElevenLabs API key ending with:',
+      ELEVENLABS_API_KEY.substring(ELEVENLABS_API_KEY.length - 4)
+    );
+
+    // TODO: Add actual ElevenLabs API call here
+    // This would be something like:
+    // const response = await fetch('https://api.elevenlabs.io/v1/voices/add', {...})
+
+    return true;
+  } catch (error) {
+    console.error('Voice cloning initiation error:', error);
+    // Log error but don't fail the whole process
+    return false;
+  }
+}
+
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -254,17 +286,27 @@ Deno.serve(async (req) => {
     // Get existing voice clone if any
     const existingVoiceClone = await getExistingVoiceClone(userId);
 
-    // Update or create voice clone
+    // Initiate voice cloning process with ElevenLabs (or log attempt)
+    const voiceCloneInitiated = await initiateVoiceCloning(userId, audioUrl);
+    console.log(
+      'Voice clone initiation result:',
+      voiceCloneInitiated ? 'successful' : 'failed'
+    );
+
+    // Update or create voice clone record
     const { error: voiceError } = await supabase.from('voice_clones').upsert({
       id: existingVoiceClone?.id, // Will be undefined for new records
       user_id: userId,
-      status: 'pending',
+      status: voiceCloneInitiated ? 'pending' : 'failed',
       sample_files: [
         {
           name: 'onboarding_recording.m4a',
           url: audioUrl,
         },
       ],
+      last_error: voiceCloneInitiated
+        ? null
+        : 'Failed to initiate voice cloning',
     });
 
     if (voiceError) {

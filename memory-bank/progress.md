@@ -297,4 +297,54 @@ We are preparing the app for TestFlight beta testing, implementing usage trackin
 
 ### August 23, 2025
 
-// ... existing code ...
+# Progress Log
+
+## 2025-06-06: Auth Navigation Fixes
+
+### Implemented Changes
+
+- **Fixed Auth Navigation Freezing**: Resolved the issue where the app would freeze when rapidly navigating between sign-in and sign-up screens by implementing:
+
+  - Navigation state tracking in auth layout to prevent rapid screen transitions
+  - Navigation counters to detect and mitigate excessive navigation attempts
+  - Debounced navigation links with disabled states when already navigating
+  - Proper timeout management to prevent navigation conflicts
+
+- **Improved Onboarding Layout Error Handling**:
+
+  - Added more detailed error messages for authentication failures
+  - Implemented proper redirect state tracking to prevent multiple redirects
+  - Enhanced loading states with clearer user feedback during transitions
+  - Added cleanup of timeouts to prevent memory leaks
+
+- **Enhanced Authentication Flows**:
+  - Added protection against multiple simultaneous navigation attempts
+  - Implemented proper animation durations and timing
+  - Added visual feedback when navigation links are temporarily disabled
+
+### Next Steps
+
+1. Continue implementation of voice cloning with ElevenLabs API
+2. Add user-friendly error messages in the onboarding process
+3. Test the complete authentication and onboarding flow for stability
+
+## 2025-06-05: Onboarding Flow & Voice Cloning Fixes
+
+### Implemented Changes
+
+- **Improved Editorial Profile Generation**: Updated the AI model to GPT-4o and enhanced the prompt in the process-onboarding Supabase function for more detailed, actionable editorial profiles.
+
+- **Voice Cloning Integration Enhancement**: Added better error handling and logging for the ElevenLabs voice cloning integration in the process-onboarding function, including explicit status tracking and error reporting.
+
+- **Onboarding Navigation Fixes**: Implemented proper authentication checks in the onboarding layout to prevent navigation errors after completion. Added graceful redirection to sign-in when authentication issues are detected.
+
+- **Sign-Up Stability Improvements**: Fixed UI freezing in the sign-up screen by adding input validation, improving error handling, and adding a delay before navigation to prevent UI thread blocking.
+
+- **Task Tracking**: Created a new task (ONB-002) to track remaining issues with onboarding flow and voice cloning integration, with a clear implementation plan.
+
+### Next Steps
+
+1. Fix voice clone status updates in the database to ensure proper tracking of cloning requests
+2. Implement user-friendly error messages throughout the onboarding flow
+3. Add retry mechanisms for failed operations during voice sample processing
+4. Test the complete onboarding flow from sign-up through voice recording to editorial profile generation

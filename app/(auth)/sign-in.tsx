@@ -26,6 +26,7 @@ function SignIn() {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isNavigatingToSignUp, setIsNavigatingToSignUp] = useState(false);
 
   async function handleSignIn() {
     if (!email.trim() || !password.trim()) {
@@ -98,6 +99,16 @@ function SignIn() {
     }
   }
 
+  const handleNavigateToSignUp = () => {
+    if (isNavigatingToSignUp) return; // Prevent multiple clicks
+
+    setIsNavigatingToSignUp(true);
+    // Reset after a delay
+    setTimeout(() => {
+      setIsNavigatingToSignUp(false);
+    }, 1000);
+  };
+
   return (
     <View style={styles.container}>
       <View style={styles.header}>
@@ -159,9 +170,21 @@ function SignIn() {
 
         <View style={styles.footer}>
           <Text style={styles.footerText}>Vous n'avez pas de compte ?</Text>
-          <Link href="/(auth)/sign-up" asChild>
-            <TouchableOpacity>
-              <Text style={styles.link}>Inscription</Text>
+          <Link
+            href="/(auth)/sign-up"
+            asChild
+            onPress={handleNavigateToSignUp}
+            disabled={isNavigatingToSignUp}
+          >
+            <TouchableOpacity disabled={isNavigatingToSignUp}>
+              <Text
+                style={[
+                  styles.link,
+                  isNavigatingToSignUp && styles.disabledLink,
+                ]}
+              >
+                Inscription
+              </Text>
             </TouchableOpacity>
           </Link>
         </View>
@@ -257,6 +280,9 @@ const styles = StyleSheet.create({
     color: '#ef4444',
     fontSize: 14,
     textAlign: 'center',
+  },
+  disabledLink: {
+    opacity: 0.5,
   },
 });
 

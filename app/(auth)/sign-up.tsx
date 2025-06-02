@@ -29,6 +29,7 @@ export default function SignUp() {
     debug?: any;
   } | null>(null);
   const [showDebugInfo, setShowDebugInfo] = useState(false);
+  const [isNavigatingToSignIn, setIsNavigatingToSignIn] = useState(false);
 
   async function handleSignUp() {
     try {
@@ -41,6 +42,13 @@ export default function SignUp() {
         console.log('Supabase URL:', env.SUPABASE_URL);
         console.log('Environment:', env.ENVIRONMENT);
         console.log('Signing up with email:', email);
+      }
+
+      // Validate inputs
+      if (!email || !password || !fullName) {
+        setError('Veuillez remplir tous les champs');
+        setLoading(false);
+        return;
       }
 
       // Use try/catch specifically for the auth.signUp call
@@ -121,7 +129,13 @@ export default function SignUp() {
             console.log('User record created successfully:', insertData);
           }
 
-          router.replace('/(onboarding)/welcome');
+          // Add a small delay before navigation to prevent UI freezing
+          setTimeout(() => {
+            if (!loading) {
+              // Double-check we're still in the sign-up process
+              router.replace('/(onboarding)/welcome');
+            }
+          }, 300);
         } catch (dbError) {
           console.error('Database operation error:', dbError);
           throw dbError;
@@ -137,6 +151,16 @@ export default function SignUp() {
       setLoading(false);
     }
   }
+
+  const handleNavigateToSignIn = () => {
+    if (isNavigatingToSignIn) return; // Prevent multiple clicks
+
+    setIsNavigatingToSignIn(true);
+    // Reset after a delay
+    setTimeout(() => {
+      setIsNavigatingToSignIn(false);
+    }, 1000);
+  };
 
   return (
     <ScrollView style={styles.container}>
@@ -266,9 +290,21 @@ export default function SignUp() {
 
         <View style={styles.footer}>
           <Text style={styles.footerText}>Vous avez déjà un compte ?</Text>
-          <Link href="/(auth)/sign-in" asChild>
-            <TouchableOpacity>
-              <Text style={styles.link}>Se connecter</Text>
+          <Link
+            href="/(auth)/sign-in"
+            asChild
+            onPress={handleNavigateToSignIn}
+            disabled={isNavigatingToSignIn}
+          >
+            <TouchableOpacity disabled={isNavigatingToSignIn}>
+              <Text
+                style={[
+                  styles.link,
+                  isNavigatingToSignIn && styles.disabledLink,
+                ]}
+              >
+                Se connecter
+              </Text>
             </TouchableOpacity>
           </Link>
         </View>
@@ -399,5 +435,8 @@ const styles = StyleSheet.create({
     fontSize: 12,
     marginBottom: 4,
     fontFamily: 'monospace',
+  },
+  disabledLink: {
+    opacity: 0.5,
   },
 });
