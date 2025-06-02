@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   View,
   Text,
@@ -7,7 +7,7 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { Clock, Tag, Play, Pause, FileVideo } from 'lucide-react-native';
-import { Video, ResizeMode } from 'expo-av';
+import { useVideoPlayer, VideoView } from 'expo-video';
 import { VideoType } from '@/types/video';
 
 type VideoCardProps = {
@@ -33,6 +33,19 @@ export default function VideoCard({
   onLoad,
   onError,
 }: VideoCardProps) {
+  const player = useVideoPlayer({ uri: video.upload_url }, (player) => {
+    player.muted = true;
+    player.shouldPlay = isPlaying;
+  });
+
+  useEffect(() => {
+    if (isPlaying) {
+      player.play();
+    } else {
+      player.pause();
+    }
+  }, [isPlaying, player]);
+
   const formatDuration = (seconds: number) => {
     if (!seconds) return '0:00';
     const minutes = Math.floor(seconds / 60);
@@ -48,22 +61,12 @@ export default function VideoCard({
             <FileVideo size={32} color="#007AFF" />
           </View>
         ) : (
-          <Video
-            source={{ uri: video.upload_url }}
+          <VideoView
+            player={player}
             style={styles.videoThumbnail}
-            shouldPlay={isPlaying}
-            isLooping={false}
-            isMuted={true}
-            resizeMode={ResizeMode.RESIZE_MODE_COVER}
-            useNativeControls={false}
-            onLoadStart={onLoadStart}
-            onLoad={onLoad}
-            onError={onError}
-            onPlaybackStatusUpdate={(status) => {
-              if (status.isLoaded && status.didJustFinish) {
-                // Video finished, handled by parent
-              }
-            }}
+            nativeControls={false}
+            contentFit="cover"
+            onFirstFrameRender={onLoad}
           />
         )}
 

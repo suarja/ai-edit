@@ -9,6 +9,7 @@ import {
   ActivityIndicator,
   Alert,
   Linking,
+  Platform,
 } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -25,19 +26,128 @@ import {
   Tag,
   Save,
 } from 'lucide-react-native';
-import { Video, ResizeMode } from 'expo-av';
-import { VideoType } from '@/types/video';
+import { useVideoPlayer, VideoView } from 'expo-video';
+import { UploadedVideoType, VideoType, isUploadedVideo } from '@/types/video';
+import * as FileSystem from 'expo-file-system';
+import * as Sharing from 'expo-sharing';
+import * as MediaLibrary from 'expo-media-library';
+import VideoPlayer from '@/components/VideoPlayer';
+import VideoDetailHeader from '@/components/VideoDetailHeader';
+import VideoDetails from '@/components/VideoDetails';
+import VideoActionButtons from '@/components/VideoActionButtons';
 
-export default function VideoDetailsScreen() {
+// VideoEditForm component for editing video metadata
+function VideoEditForm({
+  video,
+  onSave,
+  onCancel,
+}: {
+  video: UploadedVideoType;
+  onSave: (data: {
+    title: string;
+    description: string;
+    tags: string[];
+  }) => void;
+  onCancel: () => void;
+}) {
+  const [form, setForm] = useState({
+    title: video.title || '',
+    description: video.description || '',
+    tags: video.tags?.join(', ') || '',
+  });
+
+  const isValid = form.title.trim().length > 0;
+
+  return (
+    <ScrollView style={styles.editFormScroll}>
+      <View style={styles.editForm}>
+        <Text style={styles.sectionTitle}>Edit Video Details</Text>
+
+        <View style={styles.inputGroup}>
+          <Text style={styles.inputLabel}>Title *</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="Video title"
+            placeholderTextColor="#666"
+            value={form.title}
+            onChangeText={(text) =>
+              setForm((prev) => ({ ...prev, title: text }))
+            }
+          />
+        </View>
+
+        <View style={styles.inputGroup}>
+          <Text style={styles.inputLabel}>Description</Text>
+          <TextInput
+            style={styles.textArea}
+            placeholder="Video description"
+            placeholderTextColor="#666"
+            multiline
+            numberOfLines={4}
+            value={form.description}
+            onChangeText={(text) =>
+              setForm((prev) => ({ ...prev, description: text }))
+            }
+          />
+        </View>
+
+        <View style={styles.inputGroup}>
+          <Text style={styles.inputLabel}>Tags</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="Tags separated by commas"
+            placeholderTextColor="#666"
+            value={form.tags}
+            onChangeText={(text) =>
+              setForm((prev) => ({ ...prev, tags: text }))
+            }
+          />
+        </View>
+
+        <View style={styles.editActions}>
+          <TouchableOpacity style={styles.cancelButton} onPress={onCancel}>
+            <X size={16} color="#888" />
+            <Text style={styles.cancelButtonText}>Cancel</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.saveButton, !isValid && styles.buttonDisabled]}
+            onPress={() => {
+              if (isValid) {
+                onSave({
+                  title: form.title.trim(),
+                  description: form.description.trim(),
+                  tags: form.tags
+                    .split(',')
+                    .map((tag) => tag.trim())
+                    .filter(Boolean),
+                });
+              }
+            }}
+            disabled={!isValid}
+          >
+            <Check size={16} color="#fff" />
+            <Text style={styles.saveButtonText}>Save</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    </ScrollView>
+  );
+}
+
+export default function UploadedVideoDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
-  const [video, setVideo] = useState<VideoType | null>(null);
+  const [video, setVideo] = useState<UploadedVideoType | null>(null);
   const [loading, setLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
-  const [editForm, setEditForm] = useState({
-    title: '',
-    description: '',
-    tags: '',
-  });
+  const [error, setError] = useState<string | null>(null);
+
+  const player = useVideoPlayer(
+    video ? { uri: video.upload_url } : null,
+    (player) => {
+      player.muted = false;
+    }
+  );
 
   useEffect(() => {
     if (id) {
@@ -45,8 +155,15 @@ export default function VideoDetailsScreen() {
     }
   }, [id]);
 
+  useEffect(() => {
+    if (video) {
+      player.replaceAsync({ uri: video.upload_url });
+    }
+  }, [video]);
+
   const fetchVideoDetails = async () => {
     try {
+      setError(null);
       const {
         data: { user },
       } = await supabase.auth.getUser();
@@ -55,93 +172,99 @@ export default function VideoDetailsScreen() {
         return;
       }
 
-      const { data, error } = await supabase
+      const { data, error: fetchError } = await supabase
         .from('videos')
         .select('*')
         .eq('id', id)
         .eq('user_id', user.id)
         .single();
 
-      if (error) throw error;
+      if (fetchError) throw fetchError;
 
-      setVideo(data);
-      setEditForm({
+      // Format as UploadedVideoType
+      const formattedVideo: UploadedVideoType = {
+        id: data.id,
+        type: 'uploaded',
         title: data.title || '',
         description: data.description || '',
-        tags: data.tags?.join(', ') || '',
-      });
+        tags: data.tags || [],
+        upload_url: data.upload_url,
+        duration_seconds: data.duration_seconds,
+        created_at: data.created_at,
+        storage_path: data.storage_path,
+        user_id: data.user_id,
+      };
+
+      setVideo(formattedVideo);
     } catch (error) {
       console.error('Error fetching video:', error);
-      Alert.alert('Erreur', 'Impossible de charger les détails de la vidéo');
-      router.back();
+      setError('Unable to load video details');
     } finally {
       setLoading(false);
     }
   };
 
-  const handleSave = async () => {
-    if (!video || !editForm.title.trim()) {
-      Alert.alert('Erreur', 'Le titre est requis');
+  const handleSave = async (formData: {
+    title: string;
+    description: string;
+    tags: string[];
+  }) => {
+    if (!video) {
+      Alert.alert('Error', 'No video data available');
       return;
     }
 
     try {
-      const { error } = await supabase
+      const { error: updateError } = await supabase
         .from('videos')
         .update({
-          title: editForm.title.trim(),
-          description: editForm.description.trim(),
-          tags: editForm.tags
-            .split(',')
-            .map((tag) => tag.trim())
-            .filter((tag) => tag),
+          title: formData.title,
+          description: formData.description,
+          tags: formData.tags,
         })
         .eq('id', video.id);
 
-      if (error) throw error;
+      if (updateError) throw updateError;
 
       // Update local state
       setVideo({
         ...video,
-        title: editForm.title.trim(),
-        description: editForm.description.trim(),
-        tags: editForm.tags
-          .split(',')
-          .map((tag) => tag.trim())
-          .filter((tag) => tag),
+        title: formData.title,
+        description: formData.description,
+        tags: formData.tags,
       });
 
       setIsEditing(false);
-      Alert.alert('Succès', 'Vidéo mise à jour avec succès');
+      Alert.alert('Success', 'Video updated successfully');
     } catch (error) {
       console.error('Error updating video:', error);
-      Alert.alert('Erreur', 'Impossible de mettre à jour la vidéo');
+      Alert.alert('Error', 'Failed to update video');
     }
   };
 
   const handleDelete = () => {
     Alert.alert(
-      'Supprimer la vidéo',
-      'Êtes-vous sûr de vouloir supprimer cette vidéo ? Cette action est irréversible.',
+      'Delete Video',
+      'Are you sure you want to delete this video? This action cannot be undone.',
       [
-        { text: 'Annuler', style: 'cancel' },
+        { text: 'Cancel', style: 'cancel' },
         {
-          text: 'Supprimer',
+          text: 'Delete',
           style: 'destructive',
           onPress: async () => {
             try {
-              const { error } = await supabase
+              const { error: deleteError } = await supabase
                 .from('videos')
                 .delete()
                 .eq('id', video?.id);
 
-              if (error) throw error;
+              if (deleteError) throw deleteError;
 
-              Alert.alert('Succès', 'Vidéo supprimée avec succès');
+              Alert.alert('Success', 'Video deleted successfully');
               router.back();
             } catch (error) {
               console.error('Error deleting video:', error);
-              Alert.alert('Erreur', 'Impossible de supprimer la vidéo');
+              Alert.alert('Error', 'Failed to delete video');
             }
           },
         },
@@ -149,13 +272,100 @@ export default function VideoDetailsScreen() {
     );
   };
 
+  const handleEdit = () => {
+    setIsEditing(true);
+  };
+
+  const handleCancelEdit = () => {
+    setIsEditing(false);
+  };
+
   const handleDownload = async () => {
-    if (video?.upload_url) {
-      try {
-        await Linking.openURL(video.upload_url);
-      } catch (error) {
-        Alert.alert('Erreur', "Impossible d'ouvrir le lien de téléchargement");
+    if (!video?.upload_url) {
+      Alert.alert('Erreur', 'URL de la vidéo indisponible');
+      return;
+    }
+
+    try {
+      // Request permissions first (for Android)
+      if (Platform.OS === 'android') {
+        const { status } = await MediaLibrary.requestPermissionsAsync();
+        if (status !== 'granted') {
+          Alert.alert(
+            'Permission refusée',
+            'Impossible de sauvegarder la vidéo sans permission'
+          );
+          return;
+        }
       }
+
+      // Extract filename from URL
+      const fileName =
+        video.upload_url.split('/').pop() || `video-${Date.now()}.mp4`;
+      const fileUri = `${FileSystem.documentDirectory}${fileName}`;
+
+      // Show download progress
+      const downloadResumable = FileSystem.createDownloadResumable(
+        video.upload_url,
+        fileUri,
+        {},
+        (downloadProgress) => {
+          const progress =
+            downloadProgress.totalBytesWritten /
+            downloadProgress.totalBytesExpectedToWrite;
+          // You could update a progress state here if you want to show a progress bar
+          console.log(`Download progress: ${progress * 100}%`);
+        }
+      );
+
+      Alert.alert('Téléchargement', 'Le téléchargement de la vidéo a commencé');
+
+      const result = await downloadResumable.downloadAsync();
+
+      if (result && result.uri) {
+        if (Platform.OS === 'ios') {
+          // On iOS we can use the sharing API to save to camera roll
+          const canShare = await Sharing.isAvailableAsync();
+          if (canShare) {
+            await Sharing.shareAsync(result.uri);
+          } else {
+            Alert.alert(
+              'Téléchargement terminé',
+              `Vidéo téléchargée avec succès à l'emplacement: ${result.uri}`
+            );
+          }
+        } else if (Platform.OS === 'android') {
+          // On Android, save to media library
+          const asset = await MediaLibrary.createAssetAsync(result.uri);
+          await MediaLibrary.createAlbumAsync('Vidéos', asset, false);
+
+          Alert.alert(
+            'Téléchargement terminé',
+            'Vidéo téléchargée et sauvegardée dans votre galerie',
+            [
+              {
+                text: 'Ouvrir',
+                onPress: () =>
+                  FileSystem.getContentUriAsync(result.uri).then(
+                    (contentUri) => {
+                      Linking.openURL(contentUri);
+                    }
+                  ),
+              },
+              { text: 'OK' },
+            ]
+          );
+        } else {
+          // Web or other platforms
+          Alert.alert(
+            'Téléchargement terminé',
+            `Vidéo téléchargée avec succès à l'emplacement: ${result.uri}`
+          );
+        }
+      }
+    } catch (error) {
+      console.error('Error downloading video:', error);
+      Alert.alert('Erreur', 'Impossible de télécharger la vidéo');
     }
   };
 
@@ -190,6 +400,7 @@ export default function VideoDetailsScreen() {
   if (loading) {
     return (
       <SafeAreaView style={styles.container} edges={['top']}>
+        <VideoDetailHeader title="Video Details" />
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#007AFF" />
         </View>
@@ -197,191 +408,36 @@ export default function VideoDetailsScreen() {
     );
   }
 
-  if (!video) {
+  if (isEditing && video) {
     return (
       <SafeAreaView style={styles.container} edges={['top']}>
-        <View style={styles.errorContainer}>
-          <Text style={styles.errorText}>Vidéo non trouvée</Text>
-        </View>
+        <VideoDetailHeader title="Edit Video" />
+        <VideoEditForm
+          video={video}
+          onSave={handleSave}
+          onCancel={handleCancelEdit}
+        />
       </SafeAreaView>
     );
   }
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      <View style={styles.header}>
-        <TouchableOpacity
-          style={styles.backButton}
-          onPress={() => router.back()}
-        >
-          <ArrowLeft size={24} color="#fff" />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Détails de la vidéo</Text>
-        <View style={styles.headerActions}>
-          {!isEditing && (
-            <TouchableOpacity
-              style={styles.headerButton}
-              onPress={() => setIsEditing(true)}
-            >
-              <Edit3 size={20} color="#007AFF" />
-            </TouchableOpacity>
-          )}
-        </View>
-      </View>
+      <VideoDetailHeader title="Video Details" />
 
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        <View style={styles.videoContainer}>
-          <Video
-            source={{ uri: video.upload_url }}
-            style={styles.video}
-            shouldPlay={false}
-            isLooping={false}
-            isMuted={false}
-            resizeMode={ResizeMode.RESIZE_MODE_CONTAIN}
-            useNativeControls={true}
-          />
-        </View>
+        <VideoPlayer video={video} />
+        <VideoDetails video={video} error={error} />
 
-        {isEditing ? (
-          <View style={styles.editForm}>
-            <Text style={styles.sectionTitle}>Modifier les informations</Text>
-
-            <View style={styles.inputGroup}>
-              <Text style={styles.inputLabel}>Titre *</Text>
-              <TextInput
-                style={styles.input}
-                placeholder="Titre de la vidéo"
-                placeholderTextColor="#666"
-                value={editForm.title}
-                onChangeText={(text) =>
-                  setEditForm((prev) => ({ ...prev, title: text }))
-                }
-              />
-            </View>
-
-            <View style={styles.inputGroup}>
-              <Text style={styles.inputLabel}>Description</Text>
-              <TextInput
-                style={styles.textArea}
-                placeholder="Description de la vidéo"
-                placeholderTextColor="#666"
-                multiline
-                numberOfLines={4}
-                value={editForm.description}
-                onChangeText={(text) =>
-                  setEditForm((prev) => ({ ...prev, description: text }))
-                }
-              />
-            </View>
-
-            <View style={styles.inputGroup}>
-              <Text style={styles.inputLabel}>Tags</Text>
-              <TextInput
-                style={styles.input}
-                placeholder="Tags séparés par des virgules"
-                placeholderTextColor="#666"
-                value={editForm.tags}
-                onChangeText={(text) =>
-                  setEditForm((prev) => ({ ...prev, tags: text }))
-                }
-              />
-            </View>
-
-            <View style={styles.editActions}>
-              <TouchableOpacity
-                style={styles.cancelButton}
-                onPress={() => {
-                  setIsEditing(false);
-                  setEditForm({
-                    title: video.title || '',
-                    description: video.description || '',
-                    tags: video.tags?.join(', ') || '',
-                  });
-                }}
-              >
-                <X size={16} color="#888" />
-                <Text style={styles.cancelButtonText}>Annuler</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={[
-                  styles.saveButton,
-                  !editForm.title.trim() && styles.buttonDisabled,
-                ]}
-                onPress={handleSave}
-                disabled={!editForm.title.trim()}
-              >
-                <Check size={16} color="#fff" />
-                <Text style={styles.saveButtonText}>Sauvegarder</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        ) : (
-          <View style={styles.infoSection}>
-            <Text style={styles.videoTitle}>{video.title}</Text>
-
-            {video.description && (
-              <Text style={styles.videoDescription}>{video.description}</Text>
-            )}
-
-            <View style={styles.metaInfo}>
-              <View style={styles.metaItem}>
-                <Clock size={16} color="#888" />
-                <Text style={styles.metaText}>
-                  {video.duration_seconds > 0
-                    ? formatDuration(video.duration_seconds)
-                    : 'Durée non spécifiée'}
-                </Text>
-              </View>
-
-              <View style={styles.metaItem}>
-                <Text style={styles.metaLabel}>Créé le:</Text>
-                <Text style={styles.metaText}>
-                  {new Date(video.created_at).toLocaleDateString()}
-                </Text>
-              </View>
-            </View>
-
-            {video.tags && video.tags.length > 0 && (
-              <View style={styles.tagsSection}>
-                <View style={styles.tagHeader}>
-                  <Tag size={16} color="#888" />
-                  <Text style={styles.sectionTitle}>Tags</Text>
-                </View>
-                <View style={styles.tagsContainer}>
-                  {video.tags.map((tag, index) => (
-                    <View key={index} style={styles.tagChip}>
-                      <Text style={styles.tagChipText}>{tag}</Text>
-                    </View>
-                  ))}
-                </View>
-              </View>
-            )}
-          </View>
-        )}
-
-        <View style={styles.actionsSection}>
-          <TouchableOpacity
-            style={styles.primaryButton}
-            onPress={handleDownload}
-          >
-            <Download size={20} color="#fff" />
-            <Text style={styles.primaryButtonText}>Télécharger</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={styles.secondaryButton}
-            onPress={copyVideoUrl}
-          >
-            <ExternalLink size={20} color="#007AFF" />
-            <Text style={styles.secondaryButtonText}>Copier l'URL</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity style={styles.dangerButton} onPress={handleDelete}>
-            <Trash2 size={20} color="#fff" />
-            <Text style={styles.dangerButtonText}>Supprimer</Text>
-          </TouchableOpacity>
-        </View>
+        <VideoActionButtons
+          video={video}
+          layout="column"
+          showEdit={true}
+          showDelete={true}
+          showCopyLink={true}
+          onEdit={handleEdit}
+          onDelete={handleDelete}
+        />
       </ScrollView>
     </SafeAreaView>
   );
@@ -392,33 +448,6 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#000',
   },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#333',
-  },
-  backButton: {
-    padding: 8,
-  },
-  headerTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#fff',
-    flex: 1,
-    textAlign: 'center',
-    marginHorizontal: 16,
-  },
-  headerActions: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  headerButton: {
-    padding: 8,
-  },
   content: {
     flex: 1,
   },
@@ -427,86 +456,19 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  errorContainer: {
+  editFormScroll: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
   },
-  errorText: {
-    color: '#fff',
-    fontSize: 16,
-  },
-  videoContainer: {
-    height: 250,
-    backgroundColor: '#333',
-    marginBottom: 20,
-  },
-  video: {
-    width: '100%',
-    height: '100%',
-  },
-  infoSection: {
+  editForm: {
+    flex: 1,
     padding: 20,
-    gap: 16,
-  },
-  videoTitle: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#fff',
-    lineHeight: 30,
-  },
-  videoDescription: {
-    fontSize: 16,
-    color: '#ccc',
-    lineHeight: 22,
-  },
-  metaInfo: {
-    gap: 12,
-  },
-  metaItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  metaLabel: {
-    color: '#888',
-    fontSize: 14,
-  },
-  metaText: {
-    color: '#ccc',
-    fontSize: 14,
-  },
-  tagsSection: {
-    gap: 12,
-  },
-  tagHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
+    gap: 20,
   },
   sectionTitle: {
     fontSize: 18,
     fontWeight: '600',
     color: '#fff',
-  },
-  tagsContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-  },
-  tagChip: {
-    backgroundColor: '#333',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 16,
-  },
-  tagChipText: {
-    color: '#fff',
-    fontSize: 12,
-  },
-  editForm: {
-    padding: 20,
-    gap: 20,
+    marginBottom: 8,
   },
   inputGroup: {
     gap: 8,
@@ -567,53 +529,5 @@ const styles = StyleSheet.create({
   },
   buttonDisabled: {
     opacity: 0.5,
-  },
-  actionsSection: {
-    padding: 20,
-    gap: 12,
-  },
-  primaryButton: {
-    backgroundColor: '#007AFF',
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: 16,
-    borderRadius: 12,
-    gap: 8,
-  },
-  primaryButtonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  secondaryButton: {
-    backgroundColor: 'transparent',
-    borderWidth: 1,
-    borderColor: '#007AFF',
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: 16,
-    borderRadius: 12,
-    gap: 8,
-  },
-  secondaryButtonText: {
-    color: '#007AFF',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  dangerButton: {
-    backgroundColor: '#ef4444',
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: 16,
-    borderRadius: 12,
-    gap: 8,
-  },
-  dangerButtonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '600',
   },
 });

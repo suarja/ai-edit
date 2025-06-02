@@ -4,15 +4,15 @@
     "slug": "ai-edit",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icons/icon-dark.png",
+    "icon": "./assets/icons/ios-dark.png",
     "scheme": "ai-edit",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
       "icon": {
-        "light": "./assets/icons/icon-light.png",
-        "dark": "./assets/icons/icon-dark.png",
-        "tinted": "./assets/icons/icon-tinted.png"
+        "light": "./assets/icons/ios-light.png",
+        "dark": "./assets/icons/ios-dark.png",
+        "tinted": "./assets/icons/ios-tinted.png"
       },
       "supportsTablet": true,
       "bundleIdentifier": "com.swarecito.aiedit",
@@ -42,7 +42,7 @@
     "web": {
       "bundler": "metro",
       "output": "server",
-      "favicon": "./assets/icons/icon-dark.png"
+      "favicon": "./assets/icons/ios-dark.png"
     },
     "plugins": [
       "expo-router",
@@ -66,7 +66,22 @@
         {
           "cameraPermission": "Allow $(PRODUCT_NAME) to access your camera to let you ..."
         }
-      ]
+      ],
+      [
+        "expo-media-library",
+        {
+          "photosPermission": "Allow $(PRODUCT_NAME) to access your photos to save videos",
+          "savePhotosPermission": "Allow $(PRODUCT_NAME) to save videos to your photo library",
+          "isAccessMediaLocationEnabled": true
+        }
+      ],
+      [
+        "expo-file-system",
+        {
+          "filePermission": "Allow $(PRODUCT_NAME) to access files on your device"
+        }
+      ],
+      "expo-video"
     ],
     "experiments": {
       "typedRoutes": true

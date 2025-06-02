@@ -7,7 +7,7 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { Clock, FileVideo, Play } from 'lucide-react-native';
-import { Video, ResizeMode } from 'expo-av';
+import { useVideoPlayer, VideoView } from 'expo-video';
 import { VideoType } from '@/types/video';
 
 type VideoSelectionCardProps = {
@@ -23,6 +23,10 @@ export default function VideoSelectionCard({
 }: VideoSelectionCardProps) {
   const [isLoading, setIsLoading] = useState(true);
   const [hasError, setHasError] = useState(false);
+
+  const player = useVideoPlayer({ uri: video.upload_url }, (player) => {
+    player.muted = true;
+  });
 
   const formatDuration = (seconds: number) => {
     if (!seconds) return '0:00';
@@ -55,16 +59,12 @@ export default function VideoSelectionCard({
           </View>
         ) : (
           <>
-            <Video
-              source={{ uri: video.upload_url }}
+            <VideoView
+              player={player}
               style={styles.videoThumbnail}
-              shouldPlay={false}
-              isLooping={false}
-              isMuted={true}
-              resizeMode={ResizeMode.RESIZE_MODE_COVER}
-              useNativeControls={false}
-              onLoad={handleVideoLoad}
-              onError={handleVideoError}
+              nativeControls={false}
+              contentFit="cover"
+              onFirstFrameRender={handleVideoLoad}
             />
 
             {isLoading && (
