@@ -12,6 +12,7 @@ import { Link, router } from 'expo-router';
 import { supabase } from '@/lib/supabase';
 import { Mail, Lock, User, ArrowRight } from 'lucide-react-native';
 import { env } from '@/lib/config/env';
+import { IMAGES } from '@/lib/constants/images';
 
 export default function SignUp() {
   const [email, setEmail] = useState('');
@@ -142,7 +143,7 @@ export default function SignUp() {
       <View style={styles.header}>
         <Image
           source={{
-            uri: 'https://images.pexels.com/photos/2882566/pexels-photo-2882566.jpeg',
+            uri: IMAGES.signUp.header_plane,
           }}
           style={styles.headerImage}
         />
@@ -287,13 +288,15 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   headerImage: {
-    ...StyleSheet.absoluteFillObject,
-    width: '100%',
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
     height: 300,
   },
   overlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0,0,0,0.6)',
+    backgroundColor: 'rgba(0,0,0,0.3)',
   },
   title: {
     fontSize: 32,

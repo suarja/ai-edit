@@ -19,6 +19,7 @@ import {
 } from '@/lib/services/errorReporting';
 import { withErrorBoundary } from '@/components/ErrorBoundary';
 import { env } from '@/lib/config/env';
+import { IMAGES } from '@/lib/constants/images';
 
 function SignIn() {
   const [email, setEmail] = useState('');
@@ -102,7 +103,7 @@ function SignIn() {
       <View style={styles.header}>
         <Image
           source={{
-            uri: 'https://images.pexels.com/photos/3756879/pexels-photo-3756879.jpeg',
+            uri: IMAGES.signIn.header,
           }}
           style={styles.headerImage}
         />

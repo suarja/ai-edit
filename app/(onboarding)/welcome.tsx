@@ -6,6 +6,7 @@ import { Audio } from 'expo-av';
 import { useOnboarding } from '@/components/providers/OnboardingProvider';
 import { ProgressBar } from '@/components/onboarding/ProgressBar';
 import { useOnboardingSteps } from '@/components/onboarding/OnboardingSteps';
+import { IMAGES } from '@/lib/constants/images';
 
 const MAX_RECORDING_DURATION = 120000; // 2 minutes in milliseconds
 
@@ -40,7 +41,7 @@ export default function WelcomeScreen() {
       <View style={styles.header}>
         <Image
           source={{
-            uri: 'https://images.pexels.com/photos/3756879/pexels-photo-3756879.jpeg',
+            uri: IMAGES.welcome.header_studio,
           }}
           style={styles.headerImage}
         />
@@ -115,13 +116,15 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   headerImage: {
-    ...StyleSheet.absoluteFillObject,
-    width: '100%',
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
     height: 220,
   },
   overlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0,0,0,0.6)',
+    backgroundColor: 'rgba(0,0,0,0.2)',
   },
   title: {
     fontSize: 28,
