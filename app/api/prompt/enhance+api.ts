@@ -41,7 +41,7 @@ export async function POST(request: Request) {
     }
 
     // Step 3: Validate request
-    const { prompt, type = 'general' } = requestBody;
+    const { prompt, systemPrompt, type = 'general' } = requestBody;
 
     if (!prompt || typeof prompt !== 'string') {
       return errorResponse('Missing or invalid prompt', HttpStatus.BAD_REQUEST);
@@ -51,6 +51,7 @@ export async function POST(request: Request) {
     const promptId = 'prompt-enhancer-agent';
     const filledPrompt = PromptService.fillPromptTemplate(promptId, {
       userInput: prompt,
+      systemInput: systemPrompt || '',
     });
 
     if (!filledPrompt) {
@@ -68,13 +69,56 @@ export async function POST(request: Request) {
       maxTokens: 500,
     });
 
+    // Step 6: If systemPrompt is provided, enhance it as well
+    let enhancedSystemPrompt = systemPrompt;
+
+    if (systemPrompt && systemPrompt.trim()) {
+      const systemPromptId = 'system-prompt-enhancer-agent';
+      const filledSystemPrompt = PromptService.fillPromptTemplate(
+        systemPromptId,
+        {
+          userInput: systemPrompt,
+          mainPrompt: prompt,
+        }
+      );
+
+      if (filledSystemPrompt) {
+        enhancedSystemPrompt = await OpenAIService.generateCompletion({
+          systemPrompt: filledSystemPrompt.system,
+          userPrompt: filledSystemPrompt.user,
+          temperature: 0.7,
+          maxTokens: 300,
+        });
+      }
+    } else if (!systemPrompt) {
+      // Generate a system prompt if none was provided
+      const systemSplitPromptId = 'system-prompt-generator-agent';
+      const filledSplitPrompt = PromptService.fillPromptTemplate(
+        systemSplitPromptId,
+        {
+          mainPrompt: prompt,
+        }
+      );
+
+      if (filledSplitPrompt) {
+        enhancedSystemPrompt = await OpenAIService.generateCompletion({
+          systemPrompt: filledSplitPrompt.system,
+          userPrompt: filledSplitPrompt.user,
+          temperature: 0.7,
+          maxTokens: 300,
+        });
+      }
+    }
+
     console.log('✅ Prompt enhancement completed');
 
-    // Step 6: Return the enhanced prompt
+    // Step 7: Return the enhanced prompts
     return successResponse(
       {
         original: prompt,
         enhanced: enhancedPrompt,
+        originalSystemPrompt: systemPrompt || null,
+        enhancedSystemPrompt: enhancedSystemPrompt || null,
       },
       HttpStatus.OK
     );

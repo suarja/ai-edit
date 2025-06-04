@@ -106,14 +106,78 @@
     },
     "prompts": {
       "system": "You are an AI assistant specialized in improving user prompts to get better AI-generated content. Your task is to enhance the user's prompt by adding detail, structure, and clarity while preserving their original intent. Focus on making the prompt more specific, actionable, and comprehensive.",
-      "user": "Please enhance the following prompt to get better AI-generated content:\n\n{userInput}\n\nProvide only the enhanced prompt without explanations or additional commentary.",
-      "developer": "The enhanced prompt should be returned as plain text without any additional formatting or comments."
+      "user": "Please enhance the following prompt to get better AI-generated content:\n\n{userInput}\n\nSystem Prompt (if provided): {systemInput}\n\nProvide only the enhanced prompt without explanations or additional commentary.",
+      "developer": "The enhanced prompt should be returned as plain text without any additional formatting or comments. If systemInput is provided, it should be considered for context but not included in the enhancement."
     },
     "history": [
       {
         "version": "v0.9.0",
         "updatedAt": "2025-05-30T10:00:00Z",
         "changelog": "Initial implementation of prompt enhancer"
+      }
+    ]
+  },
+  {
+    "id": "system-prompt-enhancer-agent",
+    "name": "System Prompt Enhancer Agent",
+    "description": "Improves system prompts to complement main prompts",
+    "context": "Used to enhance system prompts when the user has provided both main and system prompts",
+    "version": "v1.0.0",
+    "status": "LATEST",
+    "createdAt": "2025-06-15T10:00:00Z",
+    "updatedAt": "2025-06-15T10:00:00Z",
+    "author": "AI Team",
+    "tags": ["enhancement", "prompt", "system prompt", "optimization"],
+    "metadata": {
+      "notes": "This agent enhances system prompts to better complement the main prompt.",
+      "evaluation": {
+        "score": 8.3,
+        "criteria": "Relevance, Complementarity, Technical Guidance",
+        "lastTested": "2025-06-14"
+      }
+    },
+    "prompts": {
+      "system": "You are an AI assistant specialized in enhancing system prompts that accompany main prompts in AI content generation. Your task is to improve system prompts by adding technical guidance, constraints, and quality parameters that complement the main prompt. Focus on making the system prompt provide clear technical direction while avoiding redundancy with the main prompt.",
+      "user": "Please enhance the following system prompt to better complement its main prompt:\n\nSystem Prompt to Enhance: {userInput}\n\nMain Prompt: {mainPrompt}\n\nProvide only the enhanced system prompt without explanations or additional commentary.",
+      "developer": "The enhanced system prompt should be returned as plain text without any additional formatting or comments. It should complement the main prompt by adding technical guidance rather than duplicating content requirements."
+    },
+    "history": [
+      {
+        "version": "v1.0.0",
+        "updatedAt": "2025-06-15T10:00:00Z",
+        "changelog": "Initial implementation of system prompt enhancer"
+      }
+    ]
+  },
+  {
+    "id": "system-prompt-generator-agent",
+    "name": "System Prompt Generator Agent",
+    "description": "Generates appropriate system prompts for main prompts",
+    "context": "Used when a user provides only a main prompt without a system prompt",
+    "version": "v1.0.0",
+    "status": "LATEST",
+    "createdAt": "2025-06-15T10:00:00Z",
+    "updatedAt": "2025-06-15T10:00:00Z",
+    "author": "AI Team",
+    "tags": ["generation", "prompt", "system prompt"],
+    "metadata": {
+      "notes": "This agent generates appropriate system prompts to complement main prompts, splitting concerns between user and system instructions.",
+      "evaluation": {
+        "score": 8.4,
+        "criteria": "Relevance, Complementarity, Technical Guidance",
+        "lastTested": "2025-06-14"
+      }
+    },
+    "prompts": {
+      "system": "You are an AI assistant specialized in creating system prompts that complement main prompts in AI content generation. Your task is to generate a system prompt that provides technical guidance, constraints, and quality parameters that help execute the main prompt more effectively. Focus on creating a system prompt that handles the technical 'how' while letting the main prompt handle the 'what'.",
+      "user": "Please generate an appropriate system prompt to complement this main prompt:\n\nMain Prompt: {mainPrompt}\n\nThe system prompt should provide technical guidance without duplicating content requirements. Provide only the generated system prompt without explanations or additional commentary.",
+      "developer": "The generated system prompt should be returned as plain text without any additional formatting or comments. It should focus on providing technical guidance, quality parameters, and constraints that help the AI better execute the main prompt."
+    },
+    "history": [
+      {
+        "version": "v1.0.0",
+        "updatedAt": "2025-06-15T10:00:00Z",
+        "changelog": "Initial implementation of system prompt generator"
       }
     ]
   }
