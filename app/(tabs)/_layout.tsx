@@ -54,18 +54,6 @@ export default function TabLayout() {
           }}
         />
         <Tabs.Screen
-          name="editorial"
-          options={{
-            href: null,
-          }}
-        />
-        <Tabs.Screen
-          name="voice-clone"
-          options={{
-            href: null,
-          }}
-        />
-        <Tabs.Screen
           name="videos/[id]"
           options={{
             href: null,

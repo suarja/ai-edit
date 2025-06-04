@@ -1,9 +1,35 @@
 import { useState, useEffect, useCallback } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Switch, Image, ActivityIndicator, ScrollView, TextInput, RefreshControl } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  Switch,
+  Image,
+  ActivityIndicator,
+  ScrollView,
+  TextInput,
+  RefreshControl,
+} from 'react-native';
 import { router } from 'expo-router';
 import { supabase } from '@/lib/supabase';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Bell, Key, Shield, CircleHelp as HelpCircle, LogOut, Globe, CircleAlert as AlertCircle, Check, X, Mic, CreditCard as Edit3, Bug, Play, Wand as Wand2 } from 'lucide-react-native';
+import {
+  Bell,
+  Key,
+  Shield,
+  CircleHelp as HelpCircle,
+  LogOut,
+  Globe,
+  CircleAlert as AlertCircle,
+  Check,
+  X,
+  Mic,
+  CreditCard as Edit3,
+  Bug,
+  Play,
+  Wand as Wand2,
+} from 'lucide-react-native';
 
 type UserProfile = {
   id: string;
@@ -51,7 +77,9 @@ export default function SettingsScreen() {
 
   const fetchProfile = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (!user) {
         router.replace('/(auth)/sign-in');
         return;
@@ -140,8 +168,8 @@ export default function SettingsScreen() {
   const debugSection = (
     <View style={styles.section}>
       <Text style={styles.sectionTitle}>Débogage</Text>
-      
-      <TouchableOpacity 
+
+      <TouchableOpacity
         style={styles.settingItem}
         onPress={() => router.push('/(onboarding)/welcome')}
       >
@@ -153,7 +181,7 @@ export default function SettingsScreen() {
 
       <View style={styles.debugContainer}>
         <Text style={styles.debugTitle}>Tester la Génération Vidéo</Text>
-        
+
         <TextInput
           style={styles.debugInput}
           placeholder="Entrez une description test..."
@@ -178,8 +206,10 @@ export default function SettingsScreen() {
         )}
 
         <TouchableOpacity
-          style={[styles.debugButton, testingLoading && styles.debugButtonDisabled]}
-         
+          style={[
+            styles.debugButton,
+            testingLoading && styles.debugButtonDisabled,
+          ]}
           disabled={testingLoading}
         >
           {testingLoading ? (
@@ -201,8 +231,8 @@ export default function SettingsScreen() {
         <Text style={styles.title}>Paramètres</Text>
       </View>
 
-      <ScrollView 
-        style={styles.content} 
+      <ScrollView
+        style={styles.content}
         showsVerticalScrollIndicator={false}
         refreshControl={
           <RefreshControl
@@ -221,7 +251,9 @@ export default function SettingsScreen() {
 
         {success && (
           <View style={styles.successContainer}>
-            <Text style={styles.successText}>Profil mis à jour avec succès !</Text>
+            <Text style={styles.successText}>
+              Profil mis à jour avec succès !
+            </Text>
           </View>
         )}
 
@@ -229,7 +261,9 @@ export default function SettingsScreen() {
           <View style={styles.avatarContainer}>
             <Image
               source={{
-                uri: editedProfile.avatar_url || 'https://images.pexels.com/photos/2379005/pexels-photo-2379005.jpeg'
+                uri:
+                  editedProfile.avatar_url ||
+                  'https://images.pexels.com/photos/2379005/pexels-photo-2379005.jpeg',
               }}
               style={styles.profileImage}
             />
@@ -241,21 +275,27 @@ export default function SettingsScreen() {
                 <TextInput
                   style={styles.nameInput}
                   value={editedProfile.full_name || ''}
-                  onChangeText={(text) => setEditedProfile(prev => ({ ...prev, full_name: text }))}
+                  onChangeText={(text) =>
+                    setEditedProfile((prev) => ({ ...prev, full_name: text }))
+                  }
                   placeholder="Entrez votre nom"
                   placeholderTextColor="#666"
                 />
                 <TextInput
                   style={styles.nameInput}
                   value={editedProfile.avatar_url || ''}
-                  onChangeText={(text) => setEditedProfile(prev => ({ ...prev, avatar_url: text }))}
+                  onChangeText={(text) =>
+                    setEditedProfile((prev) => ({ ...prev, avatar_url: text }))
+                  }
                   placeholder="URL de l'avatar"
                   placeholderTextColor="#666"
                 />
               </>
             ) : (
               <>
-                <Text style={styles.profileName}>{profile.full_name || 'Nom non défini'}</Text>
+                <Text style={styles.profileName}>
+                  {profile.full_name || 'Nom non défini'}
+                </Text>
                 <Text style={styles.profileEmail}>{profile.email}</Text>
               </>
             )}
@@ -278,7 +318,7 @@ export default function SettingsScreen() {
                 disabled={updating}
               >
                 {updating ? (
-                  <ActivityIndicator size="small\" color="#fff" />
+                  <ActivityIndicator size="small" color="#fff" />
                 ) : (
                   <Check size={20} color="#fff" />
                 )}
@@ -296,10 +336,10 @@ export default function SettingsScreen() {
 
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Création de Contenu</Text>
-          
-          <TouchableOpacity 
+
+          <TouchableOpacity
             style={styles.settingItem}
-            onPress={() => router.push('/(tabs)/voice-clone')}
+            onPress={() => router.push('/(settings)/voice-clone')}
           >
             <View style={styles.settingInfo}>
               <Mic size={24} color="#fff" />
@@ -307,27 +347,37 @@ export default function SettingsScreen() {
             </View>
           </TouchableOpacity>
 
-          <TouchableOpacity 
+          <TouchableOpacity
             style={styles.settingItem}
-            onPress={() => router.push('/(tabs)/editorial')}
+            onPress={() => router.push('/(settings)/editorial')}
           >
             <View style={styles.settingInfo}>
               <Edit3 size={24} color="#fff" />
               <Text style={styles.settingText}>Profil Éditorial</Text>
             </View>
           </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.settingItem}
+            onPress={() => router.push('/(settings)/video-settings')}
+          >
+            <View style={styles.settingInfo}>
+              <Play size={24} color="#fff" />
+              <Text style={styles.settingText}>Configuration Vidéo</Text>
+            </View>
+          </TouchableOpacity>
         </View>
 
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Compte</Text>
-          
+
           <TouchableOpacity style={styles.settingItem}>
             <View style={styles.settingInfo}>
               <Key size={24} color="#fff" />
               <Text style={styles.settingText}>Clés API</Text>
             </View>
           </TouchableOpacity>
-          
+
           <TouchableOpacity style={styles.settingItem}>
             <View style={styles.settingInfo}>
               <Shield size={24} color="#fff" />
@@ -338,7 +388,7 @@ export default function SettingsScreen() {
 
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Préférences</Text>
-          
+
           <View style={styles.settingItem}>
             <View style={styles.settingInfo}>
               <Bell size={24} color="#fff" />
@@ -363,7 +413,7 @@ export default function SettingsScreen() {
 
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Support</Text>
-          
+
           <TouchableOpacity style={styles.settingItem}>
             <View style={styles.settingInfo}>
               <HelpCircle size={24} color="#fff" />

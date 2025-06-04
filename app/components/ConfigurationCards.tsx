@@ -26,15 +26,15 @@ const ConfigurationCards: React.FC<ConfigurationCardsProps> = ({
   captionConfig,
 }) => {
   const navigateToVoice = () => {
-    router.push('/(settings)/voice-settings');
+    router.push('/(settings)/voice-clone');
   };
 
   const navigateToEditorial = () => {
-    router.push('/(settings)/editorial-profile');
+    router.push('/(settings)/editorial');
   };
 
   const navigateToCaptions = () => {
-    router.push('/(settings)/caption-settings');
+    router.push('/(settings)/video-settings');
   };
 
   return (
