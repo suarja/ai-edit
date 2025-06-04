@@ -1,14 +1,13 @@
 import OpenAI from 'openai';
 
 export const MODELS = {
- "o3": "o3-2025-04-16",
-  "o4-mini": "o4-mini-2025-04-16",
-  "4.1": "gpt-4.1-2025-04-14",
-  "4.1-nano": "gpt-4.1-nano-2025-04-14",
-}
+  o3: 'o3-2025-04-16',
+  'o4-mini': 'o4-mini-2025-04-16',
+  '4.1': 'gpt-4.1-2025-04-14',
+  '4.1-nano': 'gpt-4.1-nano-2025-04-14',
+};
 
-export const MODEL = MODELS['o4-mini']
-
+const MODEL = MODELS['o4-mini'];
 
 export function createOpenAIClient() {
   if (!process.env.OPENAI_API_KEY) {

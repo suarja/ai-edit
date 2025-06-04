@@ -27,11 +27,9 @@ import {
   Mic,
   CreditCard as Edit3,
   Bug,
+  Play,
   Wand as Wand2,
-  Search,
 } from 'lucide-react-native';
-import UsageDashboard from '@/components/UsageDashboard';
-import AdminUsageControl from '@/components/AdminUsageControl';
 
 type UserProfile = {
   id: string;
@@ -98,20 +96,11 @@ export default function SettingsScreen() {
 
   const fetchProfile = async () => {
     try {
-      setLoading(true);
-      console.log('Fetching profile...');
-
       const {
         data: { user },
-        error: userError,
       } = await supabase.auth.getUser();
-
-      if (userError || !user) {
-        console.log('No user found, redirecting to sign-in');
-        // Add a small delay to prevent navigation loops
-        setTimeout(() => {
-          router.replace('/(auth)/sign-in');
-        }, 100);
+      if (!user) {
+        router.replace('/(auth)/sign-in');
         return;
       }
 
@@ -620,22 +609,9 @@ export default function SettingsScreen() {
 
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Création de Contenu</Text>
-
-          <UsageDashboard
-            usageData={
-              userUsage
-                ? {
-                    videos_generated: userUsage.videos_generated,
-                    videos_limit: userUsage.videos_limit,
-                  }
-                : null
-            }
-            forceRefresh={refreshing}
-          />
-
           <TouchableOpacity
             style={styles.settingItem}
-            onPress={() => router.push('/(tabs)/voice-clone')}
+            onPress={() => router.push('/(settings)/voice-clone')}
           >
             <View style={styles.settingInfo}>
               <Mic size={24} color="#fff" />
@@ -645,11 +621,21 @@ export default function SettingsScreen() {
 
           <TouchableOpacity
             style={styles.settingItem}
-            onPress={() => router.push('/(tabs)/editorial')}
+            onPress={() => router.push('/(settings)/editorial')}
           >
             <View style={styles.settingInfo}>
               <Edit3 size={24} color="#fff" />
               <Text style={styles.settingText}>Profil Éditorial</Text>
+            </View>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.settingItem}
+            onPress={() => router.push('/(settings)/video-settings')}
+          >
+            <View style={styles.settingInfo}>
+              <Play size={24} color="#fff" />
+              <Text style={styles.settingText}>Configuration Vidéo</Text>
             </View>
           </TouchableOpacity>
         </View>

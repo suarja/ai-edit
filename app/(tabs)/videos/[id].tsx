@@ -53,10 +53,10 @@ export default function GeneratedVideoDetailScreen() {
       };
 
       // Set the video details
-      setVideo(formattedVideo);
+      setVideoDetails(videoRequest as any);
 
       // If the video is still rendering, check the current status
-      if (formattedVideo.render_status === 'rendering') {
+      if ((videoRequest as any).render_status === 'rendering') {
         checkVideoStatus();
       }
     } catch (err) {

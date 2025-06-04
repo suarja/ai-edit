@@ -6,9 +6,6 @@ import {
   TouchableOpacity,
   StyleSheet,
   Image,
-  ScrollView,
-  KeyboardAvoidingView,
-  Platform,
 } from 'react-native';
 import { Link, router } from 'expo-router';
 import { supabase } from '@/lib/supabase';
@@ -60,76 +57,19 @@ export default function SignUp() {
           password,
         });
 
-        // Capture all available error details from auth signup
-        if (signUpError) {
-          console.error('Sign up error:', signUpError);
-          console.log('Sign up data:', JSON.stringify(data));
+      if (signUpError) throw signUpError;
 
-          // Store detailed error information
-          setDetailedError({
-            name: signUpError.name,
-            code: signUpError.code || 'unknown',
-            message: signUpError.message,
-            status: signUpError.status,
-            debug: {
-              url: env.SUPABASE_URL,
-              environment: env.ENVIRONMENT,
-              testflight: env.IS_TESTFLIGHT,
-              hasUser: data?.user ? 'yes' : 'no',
-              hasSession: data?.session ? 'yes' : 'no',
-            },
-          });
+      if (data.user) {
+        const { error: insertError } = await supabase.from('users').insert({
+          id: data.user.id,
+          full_name: fullName,
+          role: 'user',
+        });
 
-          console.log('Detailed error:', detailedError);
-
-          throw signUpError;
+        if (insertError) {
+          console.error('Failed to create user record:', insertError);
+          throw new Error("Échec de l'inscription. Veuillez réessayer.");
         }
-
-        if (__DEV__) {
-          console.log('Auth signup successful, user:', data.user?.id);
-        }
-
-        if (!data.user) {
-          throw new Error('No user returned from signup');
-        }
-
-        // Proceed with user record creation
-        try {
-          if (__DEV__) {
-            console.log(
-              'Attempting to insert user record with ID:',
-              data.user.id
-            );
-          }
-
-          const { error: insertError, data: insertData } = await supabase
-            .from('users')
-            .insert({
-              id: data.user.id,
-              full_name: fullName,
-              role: 'user',
-            });
-
-          if (insertError) {
-            console.error('Failed to create user record:', insertError);
-            // Show more detailed error information
-            console.error('Error code:', insertError.code);
-            console.error('Error message:', insertError.message);
-            console.error('Error details:', insertError.details);
-
-            // Store detailed error for UI display
-            setDetailedError({
-              code: insertError.code,
-              message: insertError.message,
-              details: insertError.details,
-            });
-
-            throw new Error(`Échec de l'inscription: ${insertError.message}`);
-          }
-
-          if (__DEV__) {
-            console.log('User record created successfully:', insertData);
-          }
 
           // Add a small delay before navigation to prevent UI freezing
           setTimeout(() => {
@@ -165,96 +105,23 @@ export default function SignUp() {
   };
 
   return (
-    <KeyboardAvoidingView
-      style={styles.container}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-    >
-      <ScrollView contentContainerStyle={styles.scrollContainer}>
-        <View style={styles.header}>
-          <Image
-            source={{
-              uri: IMAGES.signUp.header_plane,
-            }}
-            style={styles.headerImage}
-          />
-          <View style={styles.overlay} />
-          <Text style={styles.title}>Créer un Compte</Text>
-          <Text style={styles.subtitle}>
-            Rejoignez-nous et commencez à créer des vidéos incroyables
-          </Text>
-        </View>
+    <View style={styles.container}>
+      <View style={styles.header}>
+        <Image
+          source={{
+            uri: 'https://images.pexels.com/photos/2882566/pexels-photo-2882566.jpeg',
+          }}
+          style={styles.headerImage}
+        />
+        <View style={styles.overlay} />
+        <Text style={styles.title}>Créer un Compte</Text>
+        <Text style={styles.subtitle}>
+          Rejoignez-nous et commencez à créer des vidéos incroyables
+        </Text>
+      </View>
 
-        <View style={styles.contentContainer}>
-          <View style={styles.formContainer}>
-            {error && (
-              <View style={styles.errorContainer}>
-                <Text style={styles.error}>{error}</Text>
-
-                {detailedError && (
-                  <TouchableOpacity
-                    style={styles.debugButton}
-                    onPress={() => setShowDebugInfo(!showDebugInfo)}
-                  >
-                    <Text style={styles.debugButtonText}>
-                      {showDebugInfo
-                        ? 'Masquer les détails'
-                        : 'Afficher les détails'}
-                    </Text>
-                  </TouchableOpacity>
-                )}
-
-                {showDebugInfo && detailedError && (
-                  <View style={styles.debugInfo}>
-                    <Text style={styles.debugTitle}>
-                      Informations de débogage:
-                    </Text>
-                    {detailedError.name && (
-                      <Text style={styles.debugText}>
-                        Type: {detailedError.name}
-                      </Text>
-                    )}
-                    {detailedError.code && (
-                      <Text style={styles.debugText}>
-                        Code: {detailedError.code}
-                      </Text>
-                    )}
-                    {detailedError.message && (
-                      <Text style={styles.debugText}>
-                        Message: {detailedError.message}
-                      </Text>
-                    )}
-                    {detailedError.status && (
-                      <Text style={styles.debugText}>
-                        Status: {detailedError.status}
-                      </Text>
-                    )}
-                    {detailedError.details && (
-                      <Text style={styles.debugText}>
-                        Détails: {detailedError.details}
-                      </Text>
-                    )}
-                    <Text style={styles.debugText}>
-                      URL: {env.SUPABASE_URL}
-                    </Text>
-                    <Text style={styles.debugText}>
-                      Environnement: {env.ENVIRONMENT}
-                    </Text>
-                    <Text style={styles.debugText}>
-                      TestFlight: {env.IS_TESTFLIGHT ? 'Oui' : 'Non'}
-                    </Text>
-
-                    {detailedError.debug &&
-                      Object.entries(detailedError.debug).map(
-                        ([key, value]) => (
-                          <Text key={key} style={styles.debugText}>
-                            {key}: {String(value)}
-                          </Text>
-                        )
-                      )}
-                  </View>
-                )}
-              </View>
-            )}
+      <View style={styles.form}>
+        {error && <Text style={styles.error}>{error}</Text>}
 
             <View style={styles.inputContainer}>
               <User size={20} color="#888" />
@@ -293,16 +160,14 @@ export default function SignUp() {
             </View>
           </View>
 
-          <View style={styles.buttonContainer}>
-            <TouchableOpacity
-              style={[styles.button, loading && styles.buttonDisabled]}
-              onPress={handleSignUp}
-              disabled={loading}
-            >
-              <Text style={styles.buttonText}>S'inscrire</Text>
-              <ArrowRight size={20} color="#fff" />
-            </TouchableOpacity>
-          </View>
+        <TouchableOpacity
+          style={[styles.button, loading && styles.buttonDisabled]}
+          onPress={handleSignUp}
+          disabled={loading}
+        >
+          <Text style={styles.buttonText}>S'inscrire</Text>
+          <ArrowRight size={20} color="#fff" />
+        </TouchableOpacity>
 
           <View style={styles.footer}>
             <Text style={styles.footerText}>Vous avez déjà un compte ?</Text>

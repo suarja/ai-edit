@@ -1,61 +1,107 @@
-// Base video interface that both types will implement
-export interface BaseVideoType {
+export interface VideoType {
   id: string;
-  title?: string;
-  description?: string;
-  tags?: string[];
-  created_at: string;
-  duration_seconds?: number;
-}
-
-// Regular uploaded video type
-export interface UploadedVideoType extends BaseVideoType {
+  title: string;
+  description: string;
   upload_url: string;
-  storage_path?: string;
-  user_id?: string;
-  type: 'uploaded';
+  tags: string[];
+  user_id: string;
+  created_at: string;
+  updated_at: string;
+  duration?: number;
+  thumbnail_url?: string;
+  file_size?: number;
+  processing_status?: 'pending' | 'processing' | 'completed' | 'failed';
 }
 
-// AI-generated video type
-export interface GeneratedVideoType extends BaseVideoType {
-  render_status: 'queued' | 'rendering' | 'done' | 'error';
-  render_url: string | null;
-  render_snapshot_url?: string | null;
-  render_duration?: number | null;
-  render_width?: number | null;
-  render_height?: number | null;
-  render_error?: string | null;
-  script_id?: string;
-  script?: {
-    id: string;
-    raw_prompt: string;
-    generated_script: string;
-  } | null;
-  type: 'generated';
+export interface CaptionConfiguration {
+  presetId: string;
+  placement: 'top' | 'bottom' | 'center';
+  lines: number;
+  fontFamily?: string;
+  fontSize?: number;
+  fontColor?: string;
+  backgroundColor?: string;
+  animation?: string;
+  effect?: string;
+  highlightColor?: string;
+  maxWordsPerLine?: number;
 }
 
-// Union type for any video
-export type VideoType = UploadedVideoType | GeneratedVideoType;
+// Enhanced types for better validation
+export interface ValidatedVideo {
+  id: string;
+  url: string;
+  title: string;
+  description: string;
+  tags: string[];
+}
 
-// Utility functions to check which type of video we're dealing with
-export const isUploadedVideo = (
-  video: VideoType
-): video is UploadedVideoType => {
-  return video.type === 'uploaded';
-};
+export interface VideoGenerationRequest {
+  prompt: string;
+  systemPrompt: string;
+  selectedVideos: VideoType[];
+  editorialProfile: EditorialProfile;
+  voiceId: string;
+  captionConfig?: CaptionConfiguration;
+  outputLanguage: string;
+}
 
-export const isGeneratedVideo = (
-  video: VideoType
-): video is GeneratedVideoType => {
-  return video.type === 'generated';
-};
+export interface EditorialProfile {
+  persona_description: string;
+  tone_of_voice: string;
+  audience: string;
+  style_notes: string;
+}
 
-// Utility to get the video URL regardless of type
-export const getVideoUrl = (video: VideoType): string | null => {
-  if (isUploadedVideo(video)) {
-    return video.upload_url;
-  } else if (isGeneratedVideo(video)) {
-    return video.render_url;
-  }
-  return null;
-};
+export interface VideoGenerationResult {
+  requestId: string;
+  scriptId: string;
+  renderId: string;
+  status: 'queued' | 'processing' | 'completed' | 'failed';
+  estimatedCompletionTime?: Date;
+}
+
+export interface VideoGenerationError extends Error {
+  code: string;
+  context?: Record<string, any>;
+  retryable: boolean;
+  userMessage: string;
+}
+
+// Type guards for runtime validation
+export function isValidVideo(video: any): video is VideoType {
+  return (
+    typeof video === 'object' &&
+    video !== null &&
+    typeof video.id === 'string' &&
+    typeof video.upload_url === 'string' &&
+    typeof video.title === 'string' &&
+    Array.isArray(video.tags)
+  );
+}
+
+export function isValidCaptionConfig(
+  config: any
+): config is CaptionConfiguration {
+  return (
+    typeof config === 'object' &&
+    config !== null &&
+    typeof config.presetId === 'string' &&
+    ['top', 'bottom', 'center'].includes(config.placement) &&
+    typeof config.lines === 'number' &&
+    config.lines > 0
+  );
+}
+
+export function isValidEditorialProfile(
+  profile: any
+): profile is EditorialProfile {
+  return (
+    typeof profile === 'object' &&
+    profile !== null &&
+    typeof profile.persona_description === 'string' &&
+    typeof profile.tone_of_voice === 'string' &&
+    typeof profile.audience === 'string' &&
+    typeof profile.style_notes === 'string'
+  );
+}

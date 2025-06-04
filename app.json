@@ -52,13 +52,11 @@
           "image": "./assets/icons/splash-icon-dark.png",
           "imageWidth": 200,
           "resizeMode": "contain",
-          "backgroundColor": "#ffffff",
-          "dark": {
-            "image": "./assets/icons/splash-icon-light.png",
-            "imageWidth": 200,
-            "resizeMode": "contain",
-            "backgroundColor": "#000000"
-          }
+          "backgroundColor": "#ffffff"
+        },
+        "expo-router",
+        {
+          "origin": "https://ai-edit.expo.app/"
         }
       ],
       [
@@ -67,21 +65,7 @@
           "cameraPermission": "Allow $(PRODUCT_NAME) to access your camera to let you ..."
         }
       ],
-      [
-        "expo-media-library",
-        {
-          "photosPermission": "Allow $(PRODUCT_NAME) to access your photos to save videos",
-          "savePhotosPermission": "Allow $(PRODUCT_NAME) to save videos to your photo library",
-          "isAccessMediaLocationEnabled": true
-        }
-      ],
-      [
-        "expo-file-system",
-        {
-          "filePermission": "Allow $(PRODUCT_NAME) to access files on your device"
-        }
-      ],
-      "expo-video"
+      "expo-font"
     ],
     "experiments": {
       "typedRoutes": true
