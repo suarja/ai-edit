@@ -45,7 +45,12 @@
       "favicon": "./assets/icons/ios-dark.png"
     },
     "plugins": [
-      "expo-router",
+      [
+        "expo-router",
+        {
+          "origin": "https://ai-edit.expo.app/"
+        }
+      ],
       [
         "expo-splash-screen",
         {
@@ -53,10 +58,6 @@
           "imageWidth": 200,
           "resizeMode": "contain",
           "backgroundColor": "#ffffff"
-        },
-        "expo-router",
-        {
-          "origin": "https://ai-edit.expo.app/"
         }
       ],
       [
