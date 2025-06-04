@@ -84,7 +84,7 @@ const PromptInput: React.FC<PromptInputProps> = ({
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <View>
+        <View style={styles.titleSection}>
           <Text style={styles.title}>{title}</Text>
           <Text style={styles.description}>{description}</Text>
         </View>
@@ -138,6 +138,11 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'flex-start',
     marginBottom: 12,
+    gap: 12,
+  },
+  titleSection: {
+    flex: 1,
+    marginRight: 8,
   },
   title: {
     fontSize: 18,
@@ -148,6 +153,7 @@ const styles = StyleSheet.create({
   description: {
     fontSize: 14,
     color: '#888',
+    flexShrink: 1,
   },
   enhanceButton: {
     flexDirection: 'row',
@@ -157,6 +163,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     borderRadius: 16,
     gap: 6,
+    flexShrink: 0,
+    minWidth: 90,
   },
   enhanceButtonDisabled: {
     backgroundColor: 'rgba(0, 122, 255, 0.5)',

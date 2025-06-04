@@ -279,7 +279,98 @@ We will follow a TDD approach with the following test layers:
   - [ ] Test purchase flow on iOS and Android
   - [ ] Implement restore purchases functionality
 
-# 🎯 CURRENT TASK: Video Generation Pipeline Audit & Improvements
+# 🎯 CURRENT TASK: UI Improvements & Language Selector Enhancement
+
+## 📋 TASK DETAILS
+
+- **Type**: Level 1 - Quick Bug Fix
+- **Priority**: Medium
+- **Status**: COMPLETED - BUILD Mode
+- **Complexity**: Low
+- **Duration**: 1 hour
+
+## 🎯 OBJECTIVE
+
+Fix UI overflow issues and improve language selector placement in the video request screen.
+
+## 🔧 IMPLEMENTED FIXES
+
+### 1. Fixed "Améliorer" Button Overflow ✅
+
+- **Issue**: The enhance button in PromptInput was overflowing to the right
+- **Solution**:
+  - Added flexible layout with `gap: 12` between title section and button
+  - Wrapped title and description in a `titleSection` container with `flex: 1`
+  - Added `flexShrink: 0` and `minWidth: 90` to the enhance button
+  - Added `marginRight: 8` to ensure proper spacing
+
+### 2. Moved Language Selector to Advanced Section ✅
+
+- **Issue**: Language selector was in the main flow, should be in advanced settings
+- **Solution**:
+  - Moved LanguageSelector from between PromptInput and VideoSelectionCarousel
+  - Placed it as the first item in the advanced settings section
+  - Improved user flow by grouping all configuration options together
+
+### 3. Fixed EditorialProfile Type Compatibility ✅
+
+- **Issue**: Type mismatch between different EditorialProfile definitions
+- **Root Cause**:
+  - `useVideoRequest` hook defined EditorialProfile with `string | null` fields
+  - `/types/video.ts` defined EditorialProfile with required `string` fields
+  - `useConfigurationStatus` was importing from `/types/video.ts` causing type conflicts
+- **Solution**:
+  - Updated `useConfigurationStatus.ts` to define its own types that match `useVideoRequest`
+  - Added explicit `Boolean()` conversions to ensure proper type inference
+  - Maintained backward compatibility while fixing type consistency
+
+## 📁 FILES MODIFIED
+
+### UI Components ✅
+
+- `app/components/PromptInput.tsx` - Fixed button overflow with flexible layout
+- `app/(tabs)/request-video.tsx` - Moved language selector to advanced section
+
+### Type Definitions ✅
+
+- `app/hooks/useConfigurationStatus.ts` - Fixed type compatibility and boolean returns
+
+## 🎯 IMPROVEMENTS ACHIEVED
+
+### 1. Better User Experience ✅
+
+- No more button overflow issues on smaller screens
+- Logical grouping of advanced settings including language selection
+- Cleaner main interface flow
+
+### 2. Type Safety ✅
+
+- Resolved TypeScript compilation errors
+- Consistent type definitions across the application
+- Proper boolean type inference
+
+### 3. Code Quality ✅
+
+- Better separation of concerns
+- Improved layout flexibility
+- Explicit type conversions for reliability
+
+## 🔄 NEXT STEPS
+
+1. Test on various screen sizes to ensure responsive behavior
+2. Consider adding language selection validation feedback
+3. Monitor user interaction patterns with the new layout
+
+## 📝 TECHNICAL NOTES
+
+- The language selector is now properly grouped with other advanced settings
+- Button overflow fix uses modern flexbox patterns for better responsiveness
+- Type fixes maintain compatibility while ensuring compile-time safety
+- All changes are backward compatible and don't affect existing functionality
+
+---
+
+# 🎯 PREVIOUS TASK: Video Generation Pipeline Audit & Improvements
 
 ## 📋 TASK DETAILS
 

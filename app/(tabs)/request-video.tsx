@@ -93,12 +93,6 @@ export default function RequestVideoScreen() {
           outputLanguage={videoRequest.outputLanguage}
         />
 
-        {/* Language selector */}
-        <LanguageSelector
-          selectedLanguage={videoRequest.outputLanguage}
-          onLanguageChange={videoRequest.setOutputLanguage}
-        />
-
         {/* Video selection */}
         <VideoSelectionCarousel
           videos={videoRequest.sourceVideos}
@@ -118,6 +112,12 @@ export default function RequestVideoScreen() {
         {/* Advanced settings */}
         {videoRequest.showAdvanced && (
           <View style={styles.configSection}>
+            {/* Language selector */}
+            <LanguageSelector
+              selectedLanguage={videoRequest.outputLanguage}
+              onLanguageChange={videoRequest.setOutputLanguage}
+            />
+
             {/* System prompt input */}
             <SystemPromptInput
               systemPrompt={videoRequest.systemPrompt}
