@@ -54,7 +54,8 @@
         {
           "cameraPermission": "Allow $(PRODUCT_NAME) to access your camera to let you ..."
         }
-      ]
+      ],
+      "expo-font"
     ],
     "experiments": {
       "typedRoutes": true
