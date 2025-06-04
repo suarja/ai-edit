@@ -1,4 +1,4 @@
-import { VideoType } from '@/types/video';
+import { VideoType, CaptionConfiguration } from '@/types/video';
 import { errorResponse, HttpStatus } from '@/lib/utils/api/responses';
 
 /**
@@ -17,6 +17,7 @@ export type VideoGenerationPayload = {
   selectedVideos: VideoType[];
   editorialProfile: EditorialProfile;
   voiceId: string;
+  captionConfig?: CaptionConfiguration;
 };
 
 /**
@@ -36,8 +37,14 @@ export class VideoValidationService {
    * @returns ValidationResult with either the validated payload or an error
    */
   static validateRequest(body: any): ValidationResult {
-    const { prompt, systemPrompt, selectedVideos, editorialProfile, voiceId } =
-      body;
+    const {
+      prompt,
+      systemPrompt,
+      selectedVideos,
+      editorialProfile,
+      voiceId,
+      captionConfig,
+    } = body;
 
     // Check required fields
     const missing = {
@@ -69,6 +76,7 @@ export class VideoValidationService {
         selectedVideos,
         editorialProfile,
         voiceId,
+        captionConfig,
       },
     };
   }

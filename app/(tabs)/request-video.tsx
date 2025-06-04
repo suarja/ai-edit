@@ -17,12 +17,15 @@ import {
   CircleAlert as AlertCircle,
   Sparkles,
   Settings,
+  Wand2,
 } from 'lucide-react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { VideoType } from '@/types/video';
+import { VideoType, CaptionConfiguration } from '@/types/video';
 import VideoSelectionCarousel from '@/components/VideoSelectionCarousel';
 import VoiceCloneSection from '@/components/VoiceCloneSection';
 import EditorialProfileSection from '@/components/EditorialProfileSection';
+import VideoSettingsSection from '@/components/VideoSettingsSection';
+import { VIDEO_PRESETS } from '@/lib/config/video-presets';
 
 // Default voice ID to use when no voice clone exists
 const DEFAULT_VOICE_ID = 'NFcw9p0jKu3zbmXieNPE';
@@ -35,6 +38,13 @@ const DEFAULT_EDITORIAL_PROFILE = {
   audience: "Professionnels passionnés par la productivité et l'innovation",
   style_notes:
     'Explications claires avec des exemples pratiques, maintenant un équilibre entre informatif et engageant',
+};
+
+// Default caption configuration
+const DEFAULT_CAPTION_CONFIG: CaptionConfiguration = {
+  presetId: 'karaoke',
+  placement: 'bottom',
+  lines: 3,
 };
 
 type VoiceClone = {
@@ -62,6 +72,7 @@ export default function RequestVideoScreen() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [enhancing, setEnhancing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [prompt, setPrompt] = useState('');
   const [systemPrompt, setSystemPrompt] = useState('');
@@ -74,6 +85,9 @@ export default function RequestVideoScreen() {
   const [useEditorialProfile, setUseEditorialProfile] = useState(true);
   const [customEditorialProfile, setCustomEditorialProfile] =
     useState<CustomEditorialProfile>(DEFAULT_EDITORIAL_PROFILE);
+  const [captionConfig, setCaptionConfig] = useState<CaptionConfiguration>(
+    DEFAULT_CAPTION_CONFIG
+  );
 
   useEffect(() => {
     fetchInitialData();
@@ -158,6 +172,49 @@ export default function RequestVideoScreen() {
     );
   };
 
+  const enhancePrompt = async () => {
+    if (!prompt.trim()) {
+      Alert.alert(
+        'Description manquante',
+        'Veuillez entrer une description à améliorer.',
+        [{ text: 'OK' }]
+      );
+      return;
+    }
+
+    try {
+      setEnhancing(true);
+      setError(null);
+
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+
+      const response = await fetch('/api/prompt/enhance', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${session?.access_token}`,
+        },
+        body: JSON.stringify({ prompt: prompt.trim() }),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Failed to enhance prompt');
+      }
+
+      // Update the prompt with the enhanced version
+      setPrompt(result.data.enhanced);
+    } catch (err) {
+      console.error('Error enhancing prompt:', err);
+      setError(err instanceof Error ? err.message : 'Failed to enhance prompt');
+    } finally {
+      setEnhancing(false);
+    }
+  };
+
   const validateRequest = () => {
     if (!prompt.trim()) {
       Alert.alert(
@@ -184,6 +241,15 @@ export default function RequestVideoScreen() {
       Alert.alert(
         'Détails éditoriaux manquants',
         'Pour un contenu plus authentique et personnalisé, veuillez fournir des détails sur votre style de contenu.',
+        [{ text: 'OK' }]
+      );
+      return false;
+    }
+
+    if (!captionConfig.presetId) {
+      Alert.alert(
+        'Style de sous-titres manquant',
+        'Veuillez sélectionner un style de sous-titres pour votre vidéo.',
         [{ text: 'OK' }]
       );
       return false;
@@ -217,6 +283,7 @@ export default function RequestVideoScreen() {
         selectedVideos: selectedVideoData,
         voiceId: voiceClone?.elevenlabs_voice_id || DEFAULT_VOICE_ID,
         editorialProfile: profileData,
+        captionConfig: captionConfig,
       };
 
       // console.log('Submitting video generation request:', requestPayload);
@@ -316,16 +383,32 @@ export default function RequestVideoScreen() {
           <Text style={styles.sectionDescription}>
             Décrivez le type de contenu que vous souhaitez créer
           </Text>
-          <TextInput
-            style={styles.promptInput}
-            multiline
-            numberOfLines={6}
-            placeholder="Ex: Créez une vidéo explicative sur les meilleures pratiques de productivité, en utilisant un ton professionnel mais accessible..."
-            placeholderTextColor="#666"
-            value={prompt}
-            onChangeText={setPrompt}
-            maxLength={1000}
-          />
+          <View style={styles.inputContainer}>
+            <TextInput
+              style={styles.promptInput}
+              multiline
+              numberOfLines={6}
+              placeholder="Ex: Créez une vidéo explicative sur les meilleures pratiques de productivité, en utilisant un ton professionnel mais accessible..."
+              placeholderTextColor="#666"
+              value={prompt}
+              onChangeText={setPrompt}
+              maxLength={1000}
+            />
+            <TouchableOpacity
+              style={styles.enhanceButton}
+              onPress={enhancePrompt}
+              disabled={enhancing || !prompt.trim()}
+            >
+              {enhancing ? (
+                <ActivityIndicator color="#fff" size="small" />
+              ) : (
+                <Wand2 size={18} color="#fff" />
+              )}
+              <Text style={styles.enhanceButtonText}>
+                {enhancing ? 'Amélioration...' : 'Améliorer'}
+              </Text>
+            </TouchableOpacity>
+          </View>
           <View style={styles.inputFooter}>
             <Text style={styles.charCount}>{prompt.length}/1000</Text>
           </View>
@@ -362,6 +445,11 @@ export default function RequestVideoScreen() {
             </View>
           </View>
         )}
+
+        <VideoSettingsSection
+          captionConfig={captionConfig}
+          onCaptionConfigChange={setCaptionConfig}
+        />
 
         <VideoSelectionCarousel
           videos={sourceVideos}
@@ -488,6 +576,9 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     lineHeight: 22,
   },
+  inputContainer: {
+    position: 'relative',
+  },
   promptInput: {
     backgroundColor: '#1a1a1a',
     borderRadius: 16,
@@ -498,6 +589,28 @@ const styles = StyleSheet.create({
     minHeight: 140,
     borderWidth: 1,
     borderColor: '#333',
+    paddingBottom: 60, // Extra space for the enhance button
+  },
+  enhanceButton: {
+    position: 'absolute',
+    right: 16,
+    bottom: 16,
+    backgroundColor: '#7958FF',
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    shadowColor: '#7958FF',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+  },
+  enhanceButtonText: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: '600',
   },
   systemPromptInput: {
     backgroundColor: '#1a1a1a',

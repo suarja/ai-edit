@@ -5,6 +5,8 @@ import { ScriptReviewer } from '@/lib/agents/scriptReviewer';
 import { CreatomateBuilder } from '@/lib/agents/creatomateBuilder';
 import { MODELS } from '@/lib/config/openai';
 import { EditorialProfile, VideoGenerationPayload } from './validation';
+import { PromptService } from '@/lib/services/prompts';
+import { convertCaptionConfigToCreatomate } from '@/lib/utils/video/caption-converter';
 
 /**
  * Result of video generation process
@@ -43,8 +45,14 @@ export class VideoGeneratorService {
   async generateVideo(
     payload: VideoGenerationPayload
   ): Promise<VideoGenerationResult> {
-    const { prompt, systemPrompt, selectedVideos, editorialProfile, voiceId } =
-      payload;
+    const {
+      prompt,
+      systemPrompt,
+      selectedVideos,
+      editorialProfile,
+      voiceId,
+      captionConfig,
+    } = payload;
 
     // Step 1: Generate and review script
     const { scriptId, reviewedScript } = await this.generateAndSaveScript(
@@ -56,7 +64,8 @@ export class VideoGeneratorService {
     // Step 2: Create video request record
     const videoRequest = await this.createVideoRequest(
       scriptId,
-      selectedVideos
+      selectedVideos,
+      captionConfig
     );
 
     // Step 3: Fetch and validate videos
@@ -67,7 +76,8 @@ export class VideoGeneratorService {
       reviewedScript,
       videosObj,
       voiceId,
-      editorialProfile
+      editorialProfile,
+      captionConfig
     );
 
     // Step 5: Store training data
@@ -154,7 +164,8 @@ export class VideoGeneratorService {
    */
   private async createVideoRequest(
     scriptId: string,
-    selectedVideos: any[]
+    selectedVideos: any[],
+    captionConfig?: any
   ): Promise<{ id: string }> {
     console.log('Creating video request...');
     const { data, error } = await supabase
@@ -164,6 +175,7 @@ export class VideoGeneratorService {
         script_id: scriptId,
         selected_videos: selectedVideos.map((v) => v.id),
         render_status: 'queued',
+        caption_config: captionConfig || null,
       })
       .select()
       .single();
@@ -220,15 +232,40 @@ export class VideoGeneratorService {
     script: string,
     selectedVideos: any[],
     voiceId: string,
-    editorialProfile: EditorialProfile
+    editorialProfile: EditorialProfile,
+    captionConfig?: any
   ): Promise<any> {
     console.log('Generating video template...');
+
+    // Get the video-creatomate-agent prompt from the prompt bank
+    const promptTemplate = PromptService.fillPromptTemplate(
+      'video-creatomate-agent',
+      {
+        prompt: script,
+        systemPrompt:
+          'Generate a compelling video with specified caption styles',
+        editorialProfile,
+        captionConfig: captionConfig || 'Default captions',
+      }
+    );
+
+    if (!promptTemplate) {
+      console.warn('Prompt template not found, using default template');
+    }
+
+    // Convert caption configuration to Creatomate format
+    const captionStructure = convertCaptionConfigToCreatomate(captionConfig);
+
+    // Build the template with the agent
     const template = await this.creatomateBuilder.buildJson({
       script,
       selectedVideos,
       voiceId,
       editorialProfile,
+      captionStructure,
+      agentPrompt: promptTemplate?.system,
     });
+
     console.log('Template generated successfully');
     return template;
   }

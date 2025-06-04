@@ -11,7 +11,8 @@
     "ios": "expo run:ios",
     "test": "jest",
     "test:watch": "jest --watch",
-    "test:coverage": "jest --coverage"
+    "test:coverage": "jest --coverage",
+    "test:video": "jest __tests__/services/video/ --watch"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.817.0",

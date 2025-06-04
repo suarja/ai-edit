@@ -9,3 +9,32 @@ export type VideoType = {
   storage_path?: string;
   user_id?: string;
 };
+
+export type CaptionPreset = {
+  name: string;
+  id: string;
+  fontFamily: string;
+  fontSize: number;
+  fontWeight: string;
+  fontColor: string;
+  uppercase: boolean;
+  strokeColor: string;
+  strokeWidth: number;
+  shadow: boolean;
+  shadowColor: string;
+  shadowOffsetX: number;
+  shadowOffsetY: number;
+  shadowBlur: number;
+  animation: string;
+  effect: string;
+  placement: 'top' | 'middle' | 'bottom';
+  lines: 1 | 3;
+  highlightColor: string;
+  maxWordsPerLine: number;
+};
+
+export type CaptionConfiguration = {
+  presetId: string;
+  placement?: 'top' | 'middle' | 'bottom';
+  lines?: 1 | 3;
+};
