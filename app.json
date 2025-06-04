@@ -47,6 +47,10 @@
           "imageWidth": 200,
           "resizeMode": "contain",
           "backgroundColor": "#ffffff"
+        },
+        "expo-router",
+        {
+          "origin": "https://ai-edit.expo.app/"
         }
       ],
       [

@@ -74,10 +74,10 @@ export default function VideoDetailsScreen() {
       if (videoError) throw videoError;
 
       // Set the video details
-      setVideoDetails(videoRequest);
+      setVideoDetails(videoRequest as any);
 
       // If the video is still rendering, check the current status
-      if (videoRequest.render_status === 'rendering') {
+      if ((videoRequest as any).render_status === 'rendering') {
         checkVideoStatus();
       }
     } catch (err) {
