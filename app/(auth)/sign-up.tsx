@@ -6,6 +6,9 @@ import {
   TouchableOpacity,
   StyleSheet,
   Image,
+  ScrollView,
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
 import { Link, router } from 'expo-router';
 import { supabase } from '@/lib/supabase';
@@ -27,7 +30,6 @@ export default function SignUp() {
     status?: number;
     debug?: any;
   } | null>(null);
-  const [showDebugInfo, setShowDebugInfo] = useState(false);
   const [isNavigatingToSignIn, setIsNavigatingToSignIn] = useState(false);
 
   async function handleSignUp() {
@@ -50,26 +52,26 @@ export default function SignUp() {
         return;
       }
 
-      // Use try/catch specifically for the auth.signUp call
-      try {
-        const { error: signUpError, data } = await supabase.auth.signUp({
-          email,
-          password,
-        });
+      // Sign up the user
+      const { error: signUpError, data } = await supabase.auth.signUp({
+        email,
+        password,
+      });
 
       if (signUpError) throw signUpError;
 
       if (data.user) {
-        const { error: insertError } = await supabase.from('users').insert({
-          id: data.user.id,
-          full_name: fullName,
-          role: 'user',
-        });
+        try {
+          const { error: insertError } = await supabase.from('users').insert({
+            id: data.user.id,
+            full_name: fullName,
+            role: 'user',
+          });
 
-        if (insertError) {
-          console.error('Failed to create user record:', insertError);
-          throw new Error("Échec de l'inscription. Veuillez réessayer.");
-        }
+          if (insertError) {
+            console.error('Failed to create user record:', insertError);
+            throw new Error("Échec de l'inscription. Veuillez réessayer.");
+          }
 
           // Add a small delay before navigation to prevent UI freezing
           setTimeout(() => {
@@ -82,9 +84,6 @@ export default function SignUp() {
           console.error('Database operation error:', dbError);
           throw dbError;
         }
-      } catch (authError: any) {
-        console.error('Auth signup error:', authError.message);
-        throw authError;
       }
     } catch (e: any) {
       console.error('Signup error:', e.message);
@@ -105,23 +104,28 @@ export default function SignUp() {
   };
 
   return (
-    <View style={styles.container}>
-      <View style={styles.header}>
-        <Image
-          source={{
-            uri: 'https://images.pexels.com/photos/2882566/pexels-photo-2882566.jpeg',
-          }}
-          style={styles.headerImage}
-        />
-        <View style={styles.overlay} />
-        <Text style={styles.title}>Créer un Compte</Text>
-        <Text style={styles.subtitle}>
-          Rejoignez-nous et commencez à créer des vidéos incroyables
-        </Text>
-      </View>
+    <KeyboardAvoidingView
+      style={styles.container}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+    >
+      <ScrollView style={styles.scrollContainer}>
+        <View style={styles.header}>
+          <Image
+            source={{
+              uri: 'https://images.pexels.com/photos/2882566/pexels-photo-2882566.jpeg',
+            }}
+            style={styles.headerImage}
+          />
+          <View style={styles.overlay} />
+          <Text style={styles.title}>Créer un Compte</Text>
+          <Text style={styles.subtitle}>
+            Rejoignez-nous et commencez à créer des vidéos incroyables
+          </Text>
+        </View>
 
-      <View style={styles.form}>
-        {error && <Text style={styles.error}>{error}</Text>}
+        <View style={styles.contentContainer}>
+          <View style={styles.formContainer}>
+            {error && <Text style={styles.error}>{error}</Text>}
 
             <View style={styles.inputContainer}>
               <User size={20} color="#888" />
@@ -160,14 +164,16 @@ export default function SignUp() {
             </View>
           </View>
 
-        <TouchableOpacity
-          style={[styles.button, loading && styles.buttonDisabled]}
-          onPress={handleSignUp}
-          disabled={loading}
-        >
-          <Text style={styles.buttonText}>S'inscrire</Text>
-          <ArrowRight size={20} color="#fff" />
-        </TouchableOpacity>
+          <View style={styles.buttonContainer}>
+            <TouchableOpacity
+              style={[styles.button, loading && styles.buttonDisabled]}
+              onPress={handleSignUp}
+              disabled={loading}
+            >
+              <Text style={styles.buttonText}>S'inscrire</Text>
+              <ArrowRight size={20} color="#fff" />
+            </TouchableOpacity>
+          </View>
 
           <View style={styles.footer}>
             <Text style={styles.footerText}>Vous avez déjà un compte ?</Text>

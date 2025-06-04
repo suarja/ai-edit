@@ -1,6 +1,5 @@
-import { NextResponse } from 'next/server';
-import { supabase } from '@/lib/supabase';
 import { PromptBank } from '@/lib/services/prompts/promptBank';
+import { errorResponse, successResponse } from '@/lib/utils/api/responses';
 
 export async function POST(request: Request) {
   try {
@@ -8,17 +7,11 @@ export async function POST(request: Request) {
     const { userInput, outputLanguage } = body;
 
     if (!userInput) {
-      return NextResponse.json(
-        { error: 'Missing required field: userInput' },
-        { status: 400 }
-      );
+      return errorResponse('Missing required field: userInput', 400);
     }
 
     if (!outputLanguage) {
-      return NextResponse.json(
-        { error: 'Missing required field: outputLanguage' },
-        { status: 400 }
-      );
+      return errorResponse('Missing required field: outputLanguage', 400);
     }
 
     console.log('🚀 Enhancing prompt with language:', outputLanguage);
@@ -28,10 +21,7 @@ export async function POST(request: Request) {
     const enhancerAgent = promptBank.getPrompt('prompt-enhancer-agent');
 
     if (!enhancerAgent) {
-      return NextResponse.json(
-        { error: 'Prompt enhancer agent not found' },
-        { status: 500 }
-      );
+      return errorResponse('Prompt enhancer agent not found', 500);
     }
 
     // Call OpenAI to enhance the prompt
@@ -67,12 +57,12 @@ export async function POST(request: Request) {
     const result = await response.json();
     const enhancedPrompt = result.choices[0].message.content.trim();
 
-    return NextResponse.json({ enhancedPrompt });
+    return successResponse({ enhancedPrompt });
   } catch (error) {
     console.error('Error enhancing prompt:', error);
-    return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'Unknown error' },
-      { status: 500 }
+    return errorResponse(
+      error instanceof Error ? error.message : 'Unknown error',
+      500
     );
   }
 }

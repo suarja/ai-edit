@@ -1,5 +1,6 @@
-import { NextResponse } from 'next/server';
 import { PromptBank } from '@/lib/services/prompts/promptBank';
+import { errorResponse } from '@/lib/utils/api/responses';
+import { successResponse } from '@/lib/utils/api/responses';
 
 export async function POST(request: Request) {
   try {
@@ -7,16 +8,16 @@ export async function POST(request: Request) {
     const { mainPrompt, outputLanguage } = body;
 
     if (!mainPrompt) {
-      return NextResponse.json(
-        { error: 'Missing required field: mainPrompt' },
-        { status: 400 }
+      return errorResponse(
+        'Missing required field: mainPrompt',
+        400
       );
     }
 
     if (!outputLanguage) {
-      return NextResponse.json(
-        { error: 'Missing required field: outputLanguage' },
-        { status: 400 }
+      return errorResponse(
+        'Missing required field: outputLanguage',
+        400
       );
     }
 
@@ -29,9 +30,9 @@ export async function POST(request: Request) {
     );
 
     if (!generatorAgent) {
-      return NextResponse.json(
-        { error: 'System prompt generator agent not found' },
-        { status: 500 }
+      return errorResponse(
+        'System prompt generator agent not found',
+        500
       );
     }
 
@@ -68,12 +69,12 @@ export async function POST(request: Request) {
     const result = await response.json();
     const generatedPrompt = result.choices[0].message.content.trim();
 
-    return NextResponse.json({ generatedPrompt });
+    return successResponse({ generatedPrompt });
   } catch (error) {
     console.error('Error generating system prompt:', error);
-    return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'Unknown error' },
-      { status: 500 }
+    return errorResponse(
+      error instanceof Error ? error.message : 'Unknown error',
+      500
     );
   }
 }

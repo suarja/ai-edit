@@ -1,5 +1,5 @@
-import { NextResponse } from 'next/server';
 import { PromptBank } from '@/lib/services/prompts/promptBank';
+import { errorResponse, successResponse } from '@/lib/utils/api/responses';
 
 export async function POST(request: Request) {
   try {
@@ -7,17 +7,14 @@ export async function POST(request: Request) {
     const { userInput, mainPrompt, outputLanguage } = body;
 
     if (!userInput || !mainPrompt) {
-      return NextResponse.json(
-        { error: 'Missing required fields: userInput or mainPrompt' },
-        { status: 400 }
+      return errorResponse(
+        'Missing required fields: userInput or mainPrompt',
+        400
       );
     }
 
     if (!outputLanguage) {
-      return NextResponse.json(
-        { error: 'Missing required field: outputLanguage' },
-        { status: 400 }
-      );
+      return errorResponse('Missing required field: outputLanguage', 400);
     }
 
     console.log('🚀 Enhancing system prompt with language:', outputLanguage);
@@ -27,10 +24,7 @@ export async function POST(request: Request) {
     const enhancerAgent = promptBank.getPrompt('system-prompt-enhancer-agent');
 
     if (!enhancerAgent) {
-      return NextResponse.json(
-        { error: 'System prompt enhancer agent not found' },
-        { status: 500 }
-      );
+      return errorResponse('System prompt enhancer agent not found', 500);
     }
 
     // Call OpenAI to enhance the system prompt
@@ -67,12 +61,12 @@ export async function POST(request: Request) {
     const result = await response.json();
     const enhancedPrompt = result.choices[0].message.content.trim();
 
-    return NextResponse.json({ enhancedPrompt });
+    return successResponse({ enhancedPrompt });
   } catch (error) {
     console.error('Error enhancing system prompt:', error);
-    return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'Unknown error' },
-      { status: 500 }
+    return errorResponse(
+      error instanceof Error ? error.message : 'Unknown error',
+      500
     );
   }
 }
