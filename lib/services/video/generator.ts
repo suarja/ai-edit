@@ -647,7 +647,7 @@ export class VideoGeneratorService {
               updated_at: new Date().toISOString(),
             })
             .eq('id', videoRequestId)
-            .then()
+            .then() as Promise<any>
         );
       }
 
@@ -660,7 +660,7 @@ export class VideoGeneratorService {
               updated_at: new Date().toISOString(),
             })
             .eq('id', scriptId)
-            .then()
+            .then() as Promise<any>
         );
       }
 
