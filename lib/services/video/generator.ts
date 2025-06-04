@@ -4,7 +4,11 @@ import { ScriptGenerator } from '@/lib/agents/scriptGenerator';
 import { ScriptReviewer } from '@/lib/agents/scriptReviewer';
 import { CreatomateBuilder } from '@/lib/agents/creatomateBuilder';
 import { MODELS } from '@/lib/config/openai';
-import { EditorialProfile, VideoGenerationPayload } from './validation';
+import {
+  EditorialProfile,
+  VideoGenerationPayload,
+  VideoValidationService,
+} from './validation';
 import { PromptService } from '@/lib/services/prompts';
 import { convertCaptionConfigToCreatomate } from '@/lib/utils/video/caption-converter';
 
@@ -52,6 +56,7 @@ export class VideoGeneratorService {
       editorialProfile,
       voiceId,
       captionConfig,
+      outputLanguage,
     } = payload;
 
     // Step 1: Generate and review script
@@ -65,7 +70,8 @@ export class VideoGeneratorService {
     const videoRequest = await this.createVideoRequest(
       scriptId,
       selectedVideos,
-      captionConfig
+      captionConfig,
+      outputLanguage
     );
 
     // Step 3: Fetch and validate videos
@@ -165,7 +171,8 @@ export class VideoGeneratorService {
   private async createVideoRequest(
     scriptId: string,
     selectedVideos: any[],
-    captionConfig?: any
+    captionConfig?: any,
+    outputLanguage?: string
   ): Promise<{ id: string }> {
     console.log('Creating video request...');
     const { data, error } = await supabase
@@ -176,6 +183,7 @@ export class VideoGeneratorService {
         selected_videos: selectedVideos.map((v) => v.id),
         render_status: 'queued',
         caption_config: captionConfig || null,
+        output_language: outputLanguage || null,
       })
       .select()
       .single();

@@ -7,6 +7,9 @@ import { VideoType, CaptionConfiguration } from '@/types/video';
 // Default voice ID
 const DEFAULT_VOICE_ID = 'NFcw9p0jKu3zbmXieNPE';
 
+// Default language
+const DEFAULT_LANGUAGE = 'fr';
+
 // Default editorial profile
 const DEFAULT_EDITORIAL_PROFILE = {
   persona_description:
@@ -64,6 +67,9 @@ export default function useVideoRequest() {
   const [captionConfig, setCaptionConfig] = useState<CaptionConfiguration>(
     DEFAULT_CAPTION_CONFIG
   );
+  // Add language state with French as default
+  const [outputLanguage, setOutputLanguage] =
+    useState<string>(DEFAULT_LANGUAGE);
 
   useEffect(() => {
     fetchInitialData();
@@ -188,6 +194,15 @@ export default function useVideoRequest() {
       return false;
     }
 
+    if (!outputLanguage) {
+      Alert.alert(
+        'Langue de sortie manquante',
+        'Veuillez sélectionner une langue pour votre vidéo.',
+        [{ text: 'OK' }]
+      );
+      return false;
+    }
+
     return true;
   };
 
@@ -217,6 +232,7 @@ export default function useVideoRequest() {
         voiceId: voiceClone?.elevenlabs_voice_id || DEFAULT_VOICE_ID,
         editorialProfile: profileData,
         captionConfig: captionConfig,
+        outputLanguage: outputLanguage,
       };
 
       const {
@@ -280,6 +296,7 @@ export default function useVideoRequest() {
     useEditorialProfile,
     customEditorialProfile,
     captionConfig,
+    outputLanguage,
 
     // Actions
     setPrompt,
@@ -292,5 +309,6 @@ export default function useVideoRequest() {
     setCaptionConfig,
     setUseEditorialProfile,
     setCustomEditorialProfile,
+    setOutputLanguage,
   };
 }

@@ -1,26 +1,26 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
   TextInput,
+  StyleSheet,
   TouchableOpacity,
   ActivityIndicator,
-  StyleSheet,
 } from 'react-native';
-import { Wand2 } from 'lucide-react-native';
-import usePromptEnhancement from '@/app/hooks/usePromptEnhancement';
+import { Sparkles } from 'lucide-react-native';
+import { usePromptEnhancement } from '@/app/hooks/usePromptEnhancement';
 
 type PromptInputProps = {
   prompt: string;
   systemPrompt: string;
   onPromptChange: (text: string) => void;
   onSystemPromptChange: (text: string) => void;
-  title: string;
-  description: string;
-  placeholder: string;
+  title?: string;
+  description?: string;
+  placeholder?: string;
   maxLength?: number;
-  multiline?: boolean;
   numberOfLines?: number;
+  outputLanguage: string;
 };
 
 const PromptInput: React.FC<PromptInputProps> = ({
@@ -28,131 +28,165 @@ const PromptInput: React.FC<PromptInputProps> = ({
   systemPrompt,
   onPromptChange,
   onSystemPromptChange,
-  title,
-  description,
-  placeholder,
-  maxLength = 1000,
-  multiline = true,
-  numberOfLines = 6,
+  title = 'Description',
+  description = 'Décrivez ce que vous souhaitez créer',
+  placeholder = 'Soyez aussi précis que possible...',
+  maxLength = 500,
+  numberOfLines = 4,
+  outputLanguage,
 }) => {
-  const { enhancing, error, enhancePrompt } = usePromptEnhancement();
+  const [enhancing, setEnhancing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const promptEnhancement = usePromptEnhancement();
 
-  const handleEnhancePrompt = async () => {
-    enhancePrompt(
-      prompt,
-      systemPrompt,
-      (enhancedPrompt, enhancedSystemPrompt) => {
-        onPromptChange(enhancedPrompt);
+  const handleEnhance = async () => {
+    if (!prompt.trim()) {
+      setError("Veuillez entrer une description avant d'améliorer");
+      return;
+    }
+
+    try {
+      setEnhancing(true);
+      setError(null);
+
+      const enhancedPrompt = await promptEnhancement.enhancePrompt(
+        prompt,
+        outputLanguage
+      );
+      onPromptChange(enhancedPrompt);
+
+      if (systemPrompt.trim()) {
+        const enhancedSystemPrompt =
+          await promptEnhancement.enhanceSystemPrompt(
+            systemPrompt,
+            enhancedPrompt,
+            outputLanguage
+          );
         onSystemPromptChange(enhancedSystemPrompt);
+      } else {
+        const generatedSystemPrompt =
+          await promptEnhancement.generateSystemPrompt(
+            enhancedPrompt,
+            outputLanguage
+          );
+        onSystemPromptChange(generatedSystemPrompt);
       }
-    );
+    } catch (err) {
+      console.error('Error in prompt enhancement:', err);
+      setError(
+        err instanceof Error ? err.message : "Erreur lors de l'amélioration"
+      );
+    } finally {
+      setEnhancing(false);
+    }
   };
 
   return (
-    <View style={styles.section}>
-      <Text style={styles.sectionTitle}>{title}</Text>
-      <Text style={styles.sectionDescription}>{description}</Text>
-      <View style={styles.inputContainer}>
-        <TextInput
-          style={styles.promptInput}
-          multiline={multiline}
-          numberOfLines={numberOfLines}
-          placeholder={placeholder}
-          placeholderTextColor="#666"
-          value={prompt}
-          onChangeText={onPromptChange}
-          maxLength={maxLength}
-        />
+    <View style={styles.container}>
+      <View style={styles.header}>
+        <View>
+          <Text style={styles.title}>{title}</Text>
+          <Text style={styles.description}>{description}</Text>
+        </View>
         <TouchableOpacity
-          style={styles.enhanceButton}
-          onPress={handleEnhancePrompt}
+          style={[
+            styles.enhanceButton,
+            enhancing && styles.enhanceButtonDisabled,
+          ]}
+          onPress={handleEnhance}
           disabled={enhancing || !prompt.trim()}
         >
           {enhancing ? (
-            <ActivityIndicator color="#fff" size="small" />
+            <ActivityIndicator size="small" color="#fff" />
           ) : (
-            <Wand2 size={18} color="#fff" />
+            <>
+              <Sparkles size={14} color="#fff" />
+              <Text style={styles.enhanceButtonText}>Améliorer</Text>
+            </>
           )}
-          <Text style={styles.enhanceButtonText}>
-            {enhancing ? 'Amélioration...' : 'Améliorer'}
-          </Text>
         </TouchableOpacity>
       </View>
-      <View style={styles.inputFooter}>
-        <Text style={styles.charCount}>
+
+      <TextInput
+        style={styles.input}
+        multiline
+        numberOfLines={numberOfLines}
+        placeholder={placeholder}
+        placeholderTextColor="#666"
+        value={prompt}
+        onChangeText={onPromptChange}
+        maxLength={maxLength}
+      />
+
+      {error && <Text style={styles.errorText}>{error}</Text>}
+
+      <View style={styles.counter}>
+        <Text style={styles.counterText}>
           {prompt.length}/{maxLength}
         </Text>
       </View>
-      {error && <Text style={styles.errorText}>{error}</Text>}
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  section: {
-    marginBottom: 32,
+  container: {
+    marginBottom: 24,
   },
-  sectionTitle: {
-    fontSize: 20,
-    fontWeight: '700',
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: 12,
+  },
+  title: {
+    fontSize: 18,
+    fontWeight: 'bold',
     color: '#fff',
-    marginBottom: 6,
+    marginBottom: 4,
   },
-  sectionDescription: {
-    fontSize: 15,
+  description: {
+    fontSize: 14,
     color: '#888',
-    marginBottom: 16,
-    lineHeight: 22,
-  },
-  inputContainer: {
-    position: 'relative',
-  },
-  promptInput: {
-    backgroundColor: '#1a1a1a',
-    borderRadius: 16,
-    padding: 20,
-    color: '#fff',
-    fontSize: 16,
-    textAlignVertical: 'top',
-    minHeight: 140,
-    borderWidth: 1,
-    borderColor: '#333',
-    paddingBottom: 60, // Extra space for the enhance button
   },
   enhanceButton: {
-    position: 'absolute',
-    right: 16,
-    bottom: 16,
-    backgroundColor: '#7958FF',
-    borderRadius: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 10,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
-    shadowColor: '#7958FF',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
+    backgroundColor: '#007AFF',
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    borderRadius: 16,
+    gap: 6,
+  },
+  enhanceButtonDisabled: {
+    backgroundColor: 'rgba(0, 122, 255, 0.5)',
   },
   enhanceButtonText: {
     color: '#fff',
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
   },
-  inputFooter: {
-    flexDirection: 'row',
-    justifyContent: 'flex-end',
+  input: {
+    backgroundColor: '#1a1a1a',
+    color: '#fff',
+    borderRadius: 8,
+    padding: 16,
+    fontSize: 16,
+    textAlignVertical: 'top',
+    minHeight: 120,
+  },
+  counter: {
+    alignItems: 'flex-end',
     marginTop: 8,
   },
-  charCount: {
+  counterText: {
     color: '#888',
     fontSize: 12,
   },
   errorText: {
-    color: '#ef4444',
-    fontSize: 14,
+    color: '#ff3b30',
     marginTop: 8,
+    fontSize: 14,
   },
 });
 

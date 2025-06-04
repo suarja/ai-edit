@@ -65,3 +65,5 @@ export class PromptService {
     };
   }
 }
+
+export * from './promptBank';

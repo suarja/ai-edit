@@ -5,68 +5,156 @@ import { Alert } from 'react-native';
 /**
  * Custom hook to handle prompt enhancement with API integration
  */
-export default function usePromptEnhancement() {
+export function usePromptEnhancement() {
   const [enhancing, setEnhancing] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [enhancementError, setEnhancementError] = useState<string | null>(null);
 
   /**
    * Enhance a prompt using the API
    * @param prompt Main prompt to enhance
-   * @param systemPrompt Optional system prompt to incorporate
-   * @param onSuccess Callback with enhanced prompt
+   * @param outputLanguage Language of the enhanced prompt
+   * @returns Enhanced prompt
    */
   const enhancePrompt = async (
     prompt: string,
-    systemPrompt: string = '',
-    onSuccess: (enhancedPrompt: string, enhancedSystemPrompt: string) => void
-  ) => {
-    if (!prompt.trim()) {
-      Alert.alert(
-        'Description manquante',
-        'Veuillez entrer une description à améliorer.',
-        [{ text: 'OK' }]
-      );
-      return;
-    }
-
+    outputLanguage: string
+  ): Promise<string> => {
     try {
       setEnhancing(true);
-      setError(null);
+      setEnhancementError(null);
 
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
-
-      const requestBody: any = { prompt: prompt.trim() };
-
-      // Include system prompt if provided
-      if (systemPrompt.trim()) {
-        requestBody.systemPrompt = systemPrompt.trim();
+      if (!prompt.trim()) {
+        return '';
       }
 
-      const response = await fetch('/api/prompt/enhance', {
+      console.log('Enhancing prompt...');
+      const response = await fetch('/api/prompts/enhance', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${session?.access_token}`,
         },
-        body: JSON.stringify(requestBody),
+        body: JSON.stringify({
+          userInput: prompt,
+          outputLanguage: outputLanguage,
+        }),
       });
 
-      const result = await response.json();
-
       if (!response.ok) {
-        throw new Error(result.error || 'Failed to enhance prompt');
+        throw new Error('Failed to enhance prompt');
       }
 
-      // Call success callback with enhanced content
-      onSuccess(
-        result.data.enhanced,
-        result.data.enhancedSystemPrompt || systemPrompt
-      );
+      const result = await response.json();
+      console.log('Prompt enhanced');
+      return result.enhancedPrompt;
     } catch (err) {
       console.error('Error enhancing prompt:', err);
-      setError(err instanceof Error ? err.message : 'Failed to enhance prompt');
+      setEnhancementError(
+        err instanceof Error ? err.message : 'Unknown error enhancing prompt'
+      );
+      return prompt; // Return original prompt on error
+    } finally {
+      setEnhancing(false);
+    }
+  };
+
+  /**
+   * Enhance a system prompt using the API
+   * @param systemPrompt System prompt to enhance
+   * @param mainPrompt Main prompt to incorporate
+   * @param outputLanguage Language of the enhanced system prompt
+   * @returns Enhanced system prompt
+   */
+  const enhanceSystemPrompt = async (
+    systemPrompt: string,
+    mainPrompt: string,
+    outputLanguage: string
+  ): Promise<string> => {
+    try {
+      setEnhancing(true);
+      setEnhancementError(null);
+
+      if (!systemPrompt.trim() || !mainPrompt.trim()) {
+        return systemPrompt;
+      }
+
+      console.log('Enhancing system prompt...');
+      const response = await fetch('/api/prompts/enhance-system', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          userInput: systemPrompt,
+          mainPrompt: mainPrompt,
+          outputLanguage: outputLanguage,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to enhance system prompt');
+      }
+
+      const result = await response.json();
+      console.log('System prompt enhanced');
+      return result.enhancedPrompt;
+    } catch (err) {
+      console.error('Error enhancing system prompt:', err);
+      setEnhancementError(
+        err instanceof Error
+          ? err.message
+          : 'Unknown error enhancing system prompt'
+      );
+      return systemPrompt; // Return original system prompt on error
+    } finally {
+      setEnhancing(false);
+    }
+  };
+
+  /**
+   * Generate a system prompt using the API
+   * @param mainPrompt Main prompt to generate system prompt for
+   * @param outputLanguage Language of the generated system prompt
+   * @returns Generated system prompt
+   */
+  const generateSystemPrompt = async (
+    mainPrompt: string,
+    outputLanguage: string
+  ): Promise<string> => {
+    try {
+      setEnhancing(true);
+      setEnhancementError(null);
+
+      if (!mainPrompt.trim()) {
+        return '';
+      }
+
+      console.log('Generating system prompt...');
+      const response = await fetch('/api/prompts/generate-system', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          mainPrompt: mainPrompt,
+          outputLanguage: outputLanguage,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to generate system prompt');
+      }
+
+      const result = await response.json();
+      console.log('System prompt generated');
+      return result.generatedPrompt;
+    } catch (err) {
+      console.error('Error generating system prompt:', err);
+      setEnhancementError(
+        err instanceof Error
+          ? err.message
+          : 'Unknown error generating system prompt'
+      );
+      return ''; // Return empty string on error
     } finally {
       setEnhancing(false);
     }
@@ -74,7 +162,9 @@ export default function usePromptEnhancement() {
 
   return {
     enhancing,
-    error,
+    enhancementError,
     enhancePrompt,
+    enhanceSystemPrompt,
+    generateSystemPrompt,
   };
 }

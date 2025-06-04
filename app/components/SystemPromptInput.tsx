@@ -4,11 +4,13 @@ import { View, Text, TextInput, StyleSheet } from 'react-native';
 type SystemPromptInputProps = {
   systemPrompt: string;
   onSystemPromptChange: (text: string) => void;
+  outputLanguage: string;
 };
 
 const SystemPromptInput: React.FC<SystemPromptInputProps> = ({
   systemPrompt,
   onSystemPromptChange,
+  outputLanguage,
 }) => {
   return (
     <View style={styles.section}>

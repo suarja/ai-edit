@@ -18,6 +18,7 @@ export type VideoGenerationPayload = {
   editorialProfile: EditorialProfile;
   voiceId: string;
   captionConfig?: CaptionConfiguration;
+  outputLanguage: string;
 };
 
 /**
@@ -44,6 +45,7 @@ export class VideoValidationService {
       editorialProfile,
       voiceId,
       captionConfig,
+      outputLanguage,
     } = body;
 
     // Check required fields
@@ -53,10 +55,11 @@ export class VideoValidationService {
       systemPrompt: !systemPrompt,
       editorialProfile: !editorialProfile,
       voiceId: !voiceId,
+      outputLanguage: !outputLanguage,
     };
 
     // If any required fields are missing, return error
-    if (!prompt || !selectedVideos?.length) {
+    if (!prompt || !selectedVideos?.length || !outputLanguage) {
       return {
         success: false,
         error: errorResponse(
@@ -77,6 +80,7 @@ export class VideoValidationService {
         editorialProfile,
         voiceId,
         captionConfig,
+        outputLanguage,
       },
     };
   }

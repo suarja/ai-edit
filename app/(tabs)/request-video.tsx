@@ -22,6 +22,7 @@ import ConfigurationCards from '@/app/components/ConfigurationCards';
 import SubmitButton from '@/app/components/SubmitButton';
 import ErrorDisplay from '@/app/components/ErrorDisplay';
 import AdvancedToggle from '@/app/components/AdvancedToggle';
+import LanguageSelector from '@/app/components/LanguageSelector';
 
 export default function RequestVideoScreen() {
   // Main state and actions from hooks
@@ -89,6 +90,13 @@ export default function RequestVideoScreen() {
           placeholder="Ex: Créez une vidéo explicative sur les meilleures pratiques de productivité, en utilisant un ton professionnel mais accessible..."
           maxLength={1000}
           numberOfLines={6}
+          outputLanguage={videoRequest.outputLanguage}
+        />
+
+        {/* Language selector */}
+        <LanguageSelector
+          selectedLanguage={videoRequest.outputLanguage}
+          onLanguageChange={videoRequest.setOutputLanguage}
         />
 
         {/* Video selection */}
@@ -114,6 +122,7 @@ export default function RequestVideoScreen() {
             <SystemPromptInput
               systemPrompt={videoRequest.systemPrompt}
               onSystemPromptChange={videoRequest.setSystemPrompt}
+              outputLanguage={videoRequest.outputLanguage}
             />
 
             {/* Configuration cards with proper navigation */}
