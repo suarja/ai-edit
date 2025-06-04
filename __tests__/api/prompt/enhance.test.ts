@@ -3,6 +3,7 @@ import { AuthService } from '@/lib/services/auth';
 import { PromptService } from '@/lib/services/prompts';
 import { OpenAIService } from '@/lib/services/openai';
 import { HttpStatus } from '@/lib/utils/api/responses';
+import { jest, describe, beforeEach, test, expect } from '@jest/globals';
 
 // Mock dependencies
 jest.mock('@/lib/services/auth');
