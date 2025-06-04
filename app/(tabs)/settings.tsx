@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -336,7 +336,6 @@ export default function SettingsScreen() {
 
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Création de Contenu</Text>
-
           <TouchableOpacity
             style={styles.settingItem}
             onPress={() => router.push('/(settings)/voice-clone')}

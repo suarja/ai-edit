@@ -1,5 +1,12 @@
 import { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image } from 'react-native';
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  StyleSheet,
+  Image,
+} from 'react-native';
 import { Link, router } from 'expo-router';
 import { supabase } from '@/lib/supabase';
 import { Mail, Lock, User, ArrowRight } from 'lucide-react-native';
@@ -24,17 +31,15 @@ export default function SignUp() {
       if (signUpError) throw signUpError;
 
       if (data.user) {
-        const { error: insertError } = await supabase
-          .from('users')
-          .insert({
-            id: data.user.id,
-            full_name: fullName,
-            role: 'user',
-          });
+        const { error: insertError } = await supabase.from('users').insert({
+          id: data.user.id,
+          full_name: fullName,
+          role: 'user',
+        });
 
         if (insertError) {
           console.error('Failed to create user record:', insertError);
-          throw new Error('Échec de l\'inscription. Veuillez réessayer.');
+          throw new Error("Échec de l'inscription. Veuillez réessayer.");
         }
 
         router.replace('/(onboarding)/welcome');
@@ -49,19 +54,21 @@ export default function SignUp() {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Image 
-          source={{ uri: 'https://images.pexels.com/photos/2882566/pexels-photo-2882566.jpeg' }}
+        <Image
+          source={{
+            uri: 'https://images.pexels.com/photos/2882566/pexels-photo-2882566.jpeg',
+          }}
           style={styles.headerImage}
         />
         <View style={styles.overlay} />
         <Text style={styles.title}>Créer un Compte</Text>
-        <Text style={styles.subtitle}>Rejoignez-nous et commencez à créer des vidéos incroyables</Text>
+        <Text style={styles.subtitle}>
+          Rejoignez-nous et commencez à créer des vidéos incroyables
+        </Text>
       </View>
 
       <View style={styles.form}>
-        {error && (
-          <Text style={styles.error}>{error}</Text>
-        )}
+        {error && <Text style={styles.error}>{error}</Text>}
 
         <View style={styles.inputContainer}>
           <User size={20} color="#888" />
@@ -102,7 +109,8 @@ export default function SignUp() {
         <TouchableOpacity
           style={[styles.button, loading && styles.buttonDisabled]}
           onPress={handleSignUp}
-          disabled={loading}>
+          disabled={loading}
+        >
           <Text style={styles.buttonText}>S'inscrire</Text>
           <ArrowRight size={20} color="#fff" />
         </TouchableOpacity>
@@ -131,8 +139,10 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   headerImage: {
-    ...StyleSheet.absoluteFillObject,
-    width: '100%',
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
     height: 300,
   },
   overlay: {
