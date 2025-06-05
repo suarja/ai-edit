@@ -1,21 +1,11 @@
-import React, { useState } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  TextInput,
-  TouchableOpacity,
-  ScrollView,
-  Alert,
-} from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, TextInput, ScrollView } from 'react-native';
 import {
   User,
   MessageCircle,
   Users,
   FileText,
   Lightbulb,
-  Save,
-  X,
 } from 'lucide-react-native';
 
 type EditorialProfile = {
@@ -97,6 +87,11 @@ export default function EditorialProfileForm({
   const [formData, setFormData] = useState<EditorialProfile>(profile);
   const [activeField, setActiveField] = useState<string | null>(null);
 
+  // Update parent component whenever form data changes
+  useEffect(() => {
+    onSave(formData);
+  }, [formData, onSave]);
+
   const updateField = (key: keyof EditorialProfile, value: string) => {
     setFormData((prev) => ({ ...prev, [key]: value }));
   };
@@ -109,53 +104,23 @@ export default function EditorialProfileForm({
     return Math.round((filledFields / fields.length) * 100);
   };
 
-  const handleSave = () => {
-    const missingFields = FIELD_CONFIGS.filter(
-      (config) =>
-        !formData[config.key] || formData[config.key].trim().length === 0
-    );
-
-    if (missingFields.length > 0) {
-      Alert.alert(
-        'Profil incomplet',
-        `Veuillez remplir tous les champs pour créer un profil complet. Champs manquants: ${missingFields
-          .map((f) => f.title)
-          .join(', ')}`,
-        [
-          { text: 'Continuer quand même', onPress: () => onSave(formData) },
-          { text: 'Compléter', style: 'cancel' },
-        ]
-      );
-      return;
-    }
-
-    onSave(formData);
-  };
-
   const completion = getCompletionPercentage();
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
-        <View style={styles.headerContent}>
-          <Text style={styles.title}>Profil Éditorial</Text>
-          <View style={styles.completionContainer}>
-            <View style={styles.completionBar}>
-              <View
-                style={[
-                  styles.completionFill,
-                  { width: `${completion}%` },
-                  completion === 100 && styles.completionFillComplete,
-                ]}
-              />
-            </View>
-            <Text style={styles.completionText}>{completion}% complété</Text>
+      <View style={styles.progressContainer}>
+        <View style={styles.completionContainer}>
+          <View style={styles.completionBar}>
+            <View
+              style={[
+                styles.completionFill,
+                { width: `${completion}%` },
+                completion === 100 && styles.completionFillComplete,
+              ]}
+            />
           </View>
+          <Text style={styles.completionText}>{completion}% complété</Text>
         </View>
-
-        <TouchableOpacity style={styles.closeButton} onPress={onCancel}>
-          <X size={20} color="#888" />
-        </TouchableOpacity>
       </View>
 
       <ScrollView style={styles.form} showsVerticalScrollIndicator={false}>
@@ -227,23 +192,6 @@ export default function EditorialProfileForm({
           );
         })}
       </ScrollView>
-
-      <View style={styles.footer}>
-        <TouchableOpacity style={styles.cancelButton} onPress={onCancel}>
-          <Text style={styles.cancelButtonText}>Annuler</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={[styles.saveButton, saving && styles.saveButtonDisabled]}
-          onPress={handleSave}
-          disabled={saving}
-        >
-          <Save size={16} color="#fff" />
-          <Text style={styles.saveButtonText}>
-            {saving ? 'Sauvegarde...' : 'Sauvegarder'}
-          </Text>
-        </TouchableOpacity>
-      </View>
     </View>
   );
 }
@@ -253,23 +201,11 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#000',
   },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    justifyContent: 'space-between',
+  progressContainer: {
     padding: 20,
     paddingBottom: 16,
     borderBottomWidth: 1,
     borderBottomColor: '#333',
-  },
-  headerContent: {
-    flex: 1,
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#fff',
-    marginBottom: 12,
   },
   completionContainer: {
     gap: 6,
@@ -292,10 +228,6 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: '#888',
     fontWeight: '500',
-  },
-  closeButton: {
-    padding: 8,
-    marginLeft: 16,
   },
   form: {
     flex: 1,
@@ -397,43 +329,5 @@ const styles = StyleSheet.create({
     color: '#007AFF',
     lineHeight: 18,
     marginBottom: 2,
-  },
-  footer: {
-    flexDirection: 'row',
-    padding: 20,
-    paddingTop: 16,
-    borderTopWidth: 1,
-    borderTopColor: '#333',
-    gap: 12,
-  },
-  cancelButton: {
-    flex: 1,
-    backgroundColor: '#333',
-    paddingVertical: 16,
-    borderRadius: 12,
-    alignItems: 'center',
-  },
-  cancelButtonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  saveButton: {
-    flex: 2,
-    backgroundColor: '#007AFF',
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 16,
-    borderRadius: 12,
-    gap: 8,
-  },
-  saveButtonDisabled: {
-    opacity: 0.7,
-  },
-  saveButtonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '600',
   },
 });
