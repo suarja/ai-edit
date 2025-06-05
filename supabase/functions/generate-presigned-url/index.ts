@@ -1,5 +1,9 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
-import { S3Client, PutObjectCommand } from 'npm:@aws-sdk/client-s3';
+import {
+  S3Client,
+  PutObjectCommand,
+  PutBucketCorsCommand,
+} from 'npm:@aws-sdk/client-s3';
 import { getSignedUrl } from 'npm:@aws-sdk/s3-request-presigner';
 
 // Validate environment variables
@@ -25,6 +29,37 @@ const s3Client = new S3Client({
     secretAccessKey: Deno.env.get('AWS_SECRET_ACCESS_KEY')!,
   },
 });
+
+// CORS configuration for the S3 bucket
+const corsConfig = {
+  CORSRules: [
+    {
+      AllowedHeaders: ['*'],
+      AllowedMethods: ['PUT', 'POST', 'DELETE', 'GET'],
+      AllowedOrigins: [
+        'https://ai-edit.expo.app',
+        'http://localhost:3000',
+        'http://localhost:19000',
+        'http://localhost:19006',
+      ],
+      ExposeHeaders: ['ETag'],
+    },
+  ],
+};
+
+// Function to update bucket CORS configuration
+async function updateBucketCors() {
+  try {
+    const command = new PutBucketCorsCommand({
+      Bucket: BUCKET_NAME,
+      CORSConfiguration: corsConfig,
+    });
+    await s3Client.send(command);
+    console.log('Successfully updated bucket CORS configuration');
+  } catch (error) {
+    console.error('Error updating bucket CORS:', error);
+  }
+}
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -78,6 +113,9 @@ serve(async (req) => {
         }
       );
     }
+
+    // Update bucket CORS configuration
+    await updateBucketCors();
 
     // Generate unique file name
     const timestamp = Date.now();
