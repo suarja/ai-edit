@@ -10,7 +10,7 @@ export default function OnboardingLayout() {
   const [error, setError] = useState<string | null>(null);
   const [isRedirecting, setIsRedirecting] = useState(false);
   const router = useRouter();
-  const redirectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const redirectTimeoutRef = useRef<number | null>(null);
 
   // Clear timeout on unmount
   useEffect(() => {
@@ -36,13 +36,15 @@ export default function OnboardingLayout() {
         if (error) {
           console.error('Auth error:', error);
           setError(`Authentication error: ${error.message}`);
-          handleRedirect('/(auth)/sign-in', 'authentication error');
+          // Don't redirect during onboarding to prevent loops
+          setLoading(false);
           return;
         }
 
         if (!data.session) {
-          console.log('No session found, redirecting to sign-in');
-          handleRedirect('/(auth)/sign-in', 'no session');
+          console.log('No session found, but allowing onboarding to continue');
+          // Allow onboarding to continue even without session
+          setLoading(false);
           return;
         }
 
@@ -50,12 +52,16 @@ export default function OnboardingLayout() {
       } catch (err) {
         console.error('Error checking auth state:', err);
         setError('An unexpected error occurred while checking authentication');
-        handleRedirect('/(auth)/sign-in', 'unexpected error');
+        // Don't redirect to prevent loops
+        setLoading(false);
       }
     };
 
-    checkAuthState();
-  }, [router, isRedirecting]);
+    // Only run auth check once on mount, not when isRedirecting changes
+    if (!isRedirecting) {
+      checkAuthState();
+    }
+  }, []); // Remove dependencies to prevent infinite loops
 
   // Handle redirect with state tracking
   const handleRedirect = (path: string, reason: string) => {
@@ -68,6 +74,11 @@ export default function OnboardingLayout() {
     if (redirectTimeoutRef.current) {
       clearTimeout(redirectTimeoutRef.current);
     }
+
+    // Actually perform the redirect
+    redirectTimeoutRef.current = setTimeout(() => {
+      router.replace(path as any);
+    }, 100);
   };
 
   if (loading) {

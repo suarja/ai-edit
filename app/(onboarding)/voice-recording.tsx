@@ -40,6 +40,7 @@ export default function VoiceRecordingScreen() {
   const [error, setError] = useState<string | null>(null);
   const [progress, setProgress] = useState<string>('');
   const [recordingDuration, setRecordingDuration] = useState(0);
+  const [isCompleted, setIsCompleted] = useState(false);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   // Cleanup recording on unmount
@@ -283,9 +284,9 @@ export default function VoiceRecordingScreen() {
       setProgress('Configuration de votre profil...');
       await new Promise((resolve) => setTimeout(resolve, 1000));
 
-      // Mark step as completed and proceed to next step
+      // Mark step as completed - user will manually continue
       markStepCompleted('voice-recording');
-      nextStep();
+      setIsCompleted(true);
     } catch (err: any) {
       console.error('Error processing recording:', err);
       setError(err?.message || "Échec du traitement de l'enregistrement");
@@ -312,6 +313,10 @@ export default function VoiceRecordingScreen() {
       setProcessing(false);
       setProgress('');
     }
+  };
+
+  const handleContinue = () => {
+    nextStep();
   };
 
   const handleSkip = async () => {
@@ -366,7 +371,13 @@ export default function VoiceRecordingScreen() {
       setProcessing(false);
       setProgress('');
       markStepCompleted('voice-recording');
-      nextStep();
+
+      // Auto-advance when skipping since user explicitly chose to skip
+      // Add a small delay to ensure processing state is cleared
+      setTimeout(() => {
+        console.log('Voice recording skip: auto-advancing to next step');
+        nextStep();
+      }, 100);
     }
   };
 
@@ -446,18 +457,28 @@ export default function VoiceRecordingScreen() {
           </TouchableOpacity>
         )}
 
-        <TouchableOpacity
-          style={styles.skipButton}
-          onPress={handleSkip}
-          disabled={processing}
-        >
-          <Text
-            style={[styles.skipButtonText, processing && styles.disabledText]}
+        {isCompleted ? (
+          <TouchableOpacity
+            style={styles.continueButton}
+            onPress={handleContinue}
           >
-            Je préfère écrire à la place
-          </Text>
-          <ArrowRight size={20} color={processing ? '#555' : '#888'} />
-        </TouchableOpacity>
+            <Text style={styles.continueButtonText}>Continuer</Text>
+            <ArrowRight size={20} color="#fff" />
+          </TouchableOpacity>
+        ) : (
+          <TouchableOpacity
+            style={styles.skipButton}
+            onPress={handleSkip}
+            disabled={processing}
+          >
+            <Text
+              style={[styles.skipButtonText, processing && styles.disabledText]}
+            >
+              Je préfère écrire à la place
+            </Text>
+            <ArrowRight size={20} color={processing ? '#555' : '#888'} />
+          </TouchableOpacity>
+        )}
       </View>
     </SafeAreaView>
   );
@@ -562,6 +583,20 @@ const styles = StyleSheet.create({
   },
   recordingText: {
     color: '#ef4444',
+  },
+  continueButton: {
+    backgroundColor: '#007AFF',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 16,
+    borderRadius: 12,
+    gap: 8,
+  },
+  continueButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
   },
   skipButton: {
     flexDirection: 'row',

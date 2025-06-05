@@ -1,4 +1,4 @@
-import { useOnboardingSteps } from "@/components/onboarding/OnboardingSteps";
+import { useOnboardingSteps } from '@/components/onboarding/OnboardingSteps';
 import React from 'react';
 import {
   View,
@@ -13,15 +13,9 @@ import { ProgressBar } from '@/components/onboarding/ProgressBar';
 import { PenTool, Video, Sparkles, Cpu, ArrowRight } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
 
-
-  export default function FeaturesScreen() {
-  const onboardingSteps = useOnboardingSteps();  const { nextStep, markStepCompleted, setAutoProgressEnabled } =
-    useOnboarding();
-
-  // Disable auto-progress when this screen loads
-  React.useEffect(() => {
-    setAutoProgressEnabled(false);
-  }, []);
+export default function FeaturesScreen() {
+  const onboardingSteps = useOnboardingSteps();
+  const { nextStep, markStepCompleted } = useOnboarding();
 
   const handleContinue = () => {
     markStepCompleted('features');

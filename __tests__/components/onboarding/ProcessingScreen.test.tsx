@@ -98,28 +98,39 @@ describe('ProcessingScreen', () => {
     );
   });
 
-  it('calls onComplete when autoComplete is true', () => {
-    render(
+  it('auto-advances when processing is complete', () => {
+    const { queryByText } = render(
       <ProcessingScreen
         title={mockTitle}
         message={mockMessage}
         steps={mockSteps}
         onComplete={mockOnComplete}
-        autoComplete={true}
-        completionDelay={500}
       />
     );
 
-    // Advance through all steps
+    // Initially, continue button should not be visible
+    expect(queryByText('Continuer')).toBeFalsy();
+
+    // Advance through all steps with precise timing
     act(() => {
-      jest.advanceTimersByTime(1500 * (mockSteps.length - 1));
+      jest.advanceTimersByTime(1500); // Step 1
+    });
+    act(() => {
+      jest.advanceTimersByTime(1500); // Step 2
+    });
+    act(() => {
+      jest.advanceTimersByTime(1500); // Step 3 and completion
     });
 
-    // Wait for completion delay
+    // Continue button should never appear for processing screens
+    expect(queryByText('Continuer')).toBeFalsy();
+
+    // Now advance time to trigger the auto-complete
     act(() => {
-      jest.advanceTimersByTime(500);
+      jest.advanceTimersByTime(1000); // Auto-complete delay
     });
 
-    expect(mockOnComplete).toHaveBeenCalled();
+    // onComplete should have been called automatically
+    expect(mockOnComplete).toHaveBeenCalledTimes(1);
   });
 });

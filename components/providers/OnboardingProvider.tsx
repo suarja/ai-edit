@@ -4,6 +4,7 @@ import {
   ReactNode,
   useState,
   useEffect,
+  useRef,
 } from 'react';
 import { router } from 'expo-router';
 import * as Haptics from 'expo-haptics';
@@ -36,9 +37,6 @@ interface OnboardingContextType {
   jumpToStep: (step: OnboardingStep) => void;
   markStepCompleted: (step: OnboardingStep) => void;
   setSurveyAnswer: (questionId: string, answerId: string) => void;
-  autoProgressEnabled: boolean;
-  setAutoProgressEnabled: (enabled: boolean) => void;
-  isAutoProgressAllowed: (step: OnboardingStep) => boolean;
   visibleSteps: OnboardingStep[];
 }
 
@@ -54,13 +52,6 @@ interface OnboardingProviderProps {
   initialCompletedSteps?: OnboardingStep[];
   initialSurveyAnswers?: SurveyAnswers;
 }
-
-// Screens that should not auto-advance
-const MANUAL_ADVANCE_SCREENS: OnboardingStep[] = [
-  'features',
-  'trial-offer',
-  'subscription',
-];
 
 // Full step order
 const FULL_STEP_ORDER: OnboardingStep[] = [
@@ -120,23 +111,43 @@ export const OnboardingProvider = ({
   );
   const [surveyAnswers, setSurveyAnswers] =
     useState<SurveyAnswers>(initialSurveyAnswers);
-  const [autoProgressEnabled, setAutoProgressEnabled] = useState(false);
-
-  // Check if current screen should allow auto-progress
-  const isAutoProgressAllowed = (step: OnboardingStep): boolean => {
-    // If auto-progress is globally disabled via feature flag, return false
-    if (features.disableAutoProgress) {
-      return false;
-    }
-    // Otherwise check if the step is in the manual advance list
-    return !MANUAL_ADVANCE_SCREENS.includes(step);
-  };
+  const [isNavigating, setIsNavigating] = useState(false);
+  const navigationTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
+    null
+  );
+  const navigationCallCountRef = useRef(0);
 
   const nextStep = () => {
+    // Increment call count for debugging
+    navigationCallCountRef.current += 1;
+    const callId = navigationCallCountRef.current;
+
+    console.log(
+      `nextStep called (call #${callId}), current step: ${currentStep}, isNavigating: ${isNavigating}`
+    );
+
+    // Prevent rapid navigation calls with enhanced protection
+    if (isNavigating) {
+      console.log(
+        `Navigation already in progress, ignoring nextStep call #${callId}`
+      );
+      return;
+    }
+
     const currentIndex = visibleSteps.indexOf(currentStep);
 
     if (currentIndex < visibleSteps.length - 1) {
       const nextStepInOrder = visibleSteps[currentIndex + 1];
+      console.log(
+        `Navigation call #${callId}: ${currentStep} → ${nextStepInOrder}`
+      );
+
+      setIsNavigating(true);
+
+      // Clear any existing timeout
+      if (navigationTimeoutRef.current) {
+        clearTimeout(navigationTimeoutRef.current);
+      }
 
       // Provide haptic feedback
       try {
@@ -145,9 +156,19 @@ export const OnboardingProvider = ({
         console.log('Haptics not available');
       }
 
-      // Navigate to the next screen
+      // Navigate to the next screen immediately
       router.push(STEP_PATHS[nextStepInOrder] as any);
       setCurrentStep(nextStepInOrder);
+
+      // Reset navigation lock with enhanced timeout
+      navigationTimeoutRef.current = setTimeout(() => {
+        setIsNavigating(false);
+        console.log(`Navigation lock released for call #${callId}`);
+      }, 3000); // Extended to 3 seconds for better protection
+    } else {
+      console.log(
+        `Call #${callId}: Already at the last step (${currentStep}), cannot advance further`
+      );
     }
   };
 
@@ -192,6 +213,15 @@ export const OnboardingProvider = ({
     });
   };
 
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (navigationTimeoutRef.current) {
+        clearTimeout(navigationTimeoutRef.current);
+      }
+    };
+  }, []);
+
   const value = {
     currentStep,
     completedSteps,
@@ -201,9 +231,6 @@ export const OnboardingProvider = ({
     jumpToStep,
     markStepCompleted,
     setSurveyAnswer,
-    autoProgressEnabled,
-    setAutoProgressEnabled,
-    isAutoProgressAllowed,
     visibleSteps,
   };
 

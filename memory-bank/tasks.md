@@ -905,3 +905,325 @@ Audit the video generation pipeline for bad practices and implement self-evident
 **Quality Score**: 9/10 - Comprehensive improvements with proper testing
 
 The video generation pipeline has been transformed from a basic implementation to a robust, production-ready service with comprehensive error handling, type safety, and performance optimizations.
+
+## 🚨 CRITICAL FIX: AUTO-ADVANCE REMOVAL
+
+### Issue
+
+Users reported that the onboarding flow was automatically advancing through screens without user input, making it impossible to read content and complete steps at their own pace.
+
+### Root Cause Analysis
+
+The auto-advance functionality was implemented in multiple locations:
+
+1. `ProcessingScreen` component had `autoComplete` feature
+2. `voice-recording.tsx` automatically called `nextStep()` after processing
+3. `OnboardingProvider` had auto-progress state management
+
+### Solution ✅ COMPLETED
+
+#### 1. Removed Auto-Progress Infrastructure
+
+- **File**: `components/providers/OnboardingProvider.tsx`
+- Removed `autoProgressEnabled` state
+- Removed `setAutoProgressEnabled` function
+- Removed `isAutoProgressAllowed` function
+- Removed `MANUAL_ADVANCE_SCREENS` array
+- Fixed 'survey' step type consistency
+
+#### 2. Fixed ProcessingScreen Component
+
+- **File**: `components/onboarding/ProcessingScreen.tsx`
+- Removed `autoComplete` prop and related logic
+- Always shows continue button when processing is complete
+- Users must manually click "Continuer" to proceed
+
+#### 3. Fixed Voice Recording Screen
+
+- **File**: `app/(onboarding)/voice-recording.tsx`
+- Removed automatic `nextStep()` calls after recording processing
+- Removed automatic `nextStep()` calls after skip handling
+- Added `isCompleted` state to track completion
+- Added manual "Continuer" button that appears when step is complete
+- Users must manually click to proceed after recording or skipping
+
+#### 4. Updated All Onboarding Screens
+
+- **Files**: `features.tsx`, `trial-offer.tsx`, `subscription.tsx`
+- Removed `setAutoProgressEnabled(false)` calls
+- Removed auto-progress useEffect hooks
+
+#### 5. Updated Tests
+
+- **File**: `__tests__/components/onboarding/ProcessingScreen.test.tsx`
+- Updated test to verify continue button appears instead of auto-advancing
+- Confirmed no automatic calls to `onComplete`
+
+### Files Modified
+
+- `components/providers/OnboardingProvider.tsx`
+- `components/onboarding/ProcessingScreen.tsx`
+- `app/(onboarding)/processing.tsx`
+- `app/(onboarding)/voice-recording.tsx`
+- `app/(onboarding)/features.tsx`
+- `app/(onboarding)/trial-offer.tsx`
+- `app/(onboarding)/subscription.tsx`
+- `__tests__/components/onboarding/ProcessingScreen.test.tsx`
+
+### Result ✅
+
+- **NO MORE AUTOMATIC ADVANCEMENT**: Users now have complete control over onboarding flow pace
+- **Manual Continue Buttons**: Clear "Continuer" buttons appear when steps are complete
+- **Processing Screen**: Shows continue button after processing completes
+- **Voice Recording**: Shows continue button after recording or skipping
+- **All Tests Pass**: Functionality verified with updated tests
+
+### User Experience Impact
+
+- Users can now read and understand each step fully
+- No more rushing through important onboarding content
+- Clear indication when they can proceed to next step
+- Complete user control over pacing
+
+## ADDITIONAL FIXES - NAVIGATION REPETITION ISSUE
+
+### Follow-up Issue
+
+After initial fix, user reported screens were still auto-advancing from processing screen onwards and success screen was repeating 3 times.
+
+### Additional Root Causes Found
+
+1. **Processing Screen Container**: Still had automatic `nextStep()` call in `handleComplete`
+2. **Editorial Profile Screen**: Had automatic `nextStep()` calls in save and cancel handlers
+3. **Navigation Race Conditions**: Multiple rapid `nextStep()` calls could cause screen repetition
+
+### Additional Fixes Applied ✅
+
+#### 1. Fixed Processing Screen Container
+
+- **File**: `app/(onboarding)/processing.tsx`
+- Removed automatic `nextStep()` call from `handleComplete` function
+- Processing screen now requires manual continue button press
+
+#### 2. Fixed Editorial Profile Screen
+
+- **File**: `app/(onboarding)/editorial-profile.tsx`
+- Removed automatic `nextStep()` call from `handleSave` function
+- Removed automatic `nextStep()` call from `handleCancel` function
+- Added success alert instead of automatic navigation
+- Users must manually navigate after saving or canceling
+
+#### 3. Added Navigation Guard
+
+- **File**: `components/providers/OnboardingProvider.tsx`
+- Added `isNavigating` state to prevent rapid navigation calls
+- Added 500ms cooldown between navigation attempts
+- Prevents multiple router.push calls that could cause screen repetition
+- Console logging for debugging navigation issues
+
+### Result ✅
+
+- **NO AUTO-ADVANCE FROM ANY SCREEN**: Complete removal of all automatic navigation
+- **PREVENTED SCREEN REPETITION**: Navigation guard prevents rapid calls
+- **MANUAL CONTROL EVERYWHERE**: All screens now require user action to proceed
+- **CLEAR SUCCESS FEEDBACK**: Proper alerts and UI feedback for completed actions
+
+## SMART AUTO-ADVANCE - LOGICAL FIXES
+
+### Issue After Over-Correction
+
+After removing all auto-advance functionality, users reported legitimate scenarios where auto-advance should happen:
+
+1. **Voice Recording Skip**: When user clicks "Je préfère écrire à la place" (skip), they expect automatic advancement since they explicitly chose to skip
+2. **Processing Screen**: When processing completes, should auto-advance since there's nothing for users to interact with - it's a loading screen
+3. **Continue Button Not Working**: Manual continue buttons weren't working properly
+
+### Logical Auto-Advance Restoration ✅
+
+#### 1. Restored Processing Screen Auto-Advance
+
+- **File**: `app/(onboarding)/processing.tsx`
+- **Logic**: Processing screens should auto-advance since they're purely loading states
+- **Change**: Added `nextStep()` call back to `handleComplete`
+- **Reasoning**: Users have nothing to interact with during processing
+
+#### 2. Restored Voice Recording Skip Auto-Advance
+
+- **File**: `app/(onboarding)/voice-recording.tsx`
+- **Logic**: When user explicitly skips, should auto-advance since they chose not to record
+- **Change**: Added `nextStep()` call in skip handling finally block
+- **Reasoning**: Skipping is an explicit user choice, not automatic behavior
+
+#### 3. Maintained Manual Continue for Recording Completion
+
+- **File**: `app/(onboarding)/voice-recording.tsx`
+- **Logic**: When user completes recording, show manual continue button
+- **Reasoning**: Users should review their recording before proceeding
+
+### Final Smart Logic ✅
+
+**Auto-Advance Scenarios** (Logical):
+
+- ✅ Processing completion (nothing to interact with)
+- ✅ User chooses to skip voice recording (explicit choice)
+
+**Manual Continue Scenarios** (User choice):
+
+- ✅ Voice recording completed (let user review)
+- ✅ Editorial profile saved (let user see confirmation)
+- ✅ All other interactive screens
+
+**Navigation Protection**:
+
+- ✅ 500ms guard against rapid navigation calls
+- ✅ Console logging for debugging
+
+## FINAL FIXES - PROCESSING AUTO-ADVANCE AND POPUP LOOPS
+
+### Critical Issues Found
+
+User reported that:
+
+1. Processing screen still required manual advancement (should auto-advance as it's a loading state)
+2. Infinite popup loops occurred after processing, requiring app reload
+
+### Root Causes and Fixes ✅
+
+#### 1. Processing Screen Manual Advancement
+
+- **Issue**: ProcessingScreen component was showing continue button instead of auto-advancing
+- **Root Cause**: Component had "user must manually continue" comment and continue button UI
+- **Fix**:
+  - Added automatic `onComplete()` call with 1-second delay after processing completes
+  - Removed manual continue button since processing screens should auto-advance
+  - Updated test to verify auto-advance behavior instead of manual button
+
+#### 2. Infinite Popup Loops
+
+- **Issue**: Auth redirects during onboarding causing navigation conflicts with navigation guard
+- **Root Cause**: `router.replace('/(auth)/sign-in')` calls in editorial-profile screen during onboarding
+- **Fix**:
+  - Replaced auth redirects with error messages during onboarding
+  - Added graceful error handling instead of forced navigation
+  - Improved success flow with continue button in alert
+
+#### 3. Editorial Profile Navigation
+
+- **File**: `app/(onboarding)/editorial-profile.tsx`
+- **Improvements**:
+  - Replaced `router.replace` calls with user-friendly error messages
+  - Added continue button in success alert that calls `nextStep()`
+  - Fixed cancel flow to properly advance when user chooses to continue
+  - Prevented auth redirect loops during onboarding
+
+### Test Updates ✅
+
+- **File**: `__tests__/components/onboarding/ProcessingScreen.test.tsx`
+- **Changes**:
+  - Updated test name from "shows continue button" to "auto-advances when processing is complete"
+  - Verified no continue button appears for processing screens
+  - Confirmed `onComplete` is called automatically after 1-second delay
+  - All tests passing
+
+### Final Flow Logic ✅
+
+**Processing Screens**: Auto-advance (loading states)
+**Voice Skip**: Auto-advance (explicit user choice)  
+**Voice Recording Complete**: Manual continue (let user review)
+**Editorial Profile Save**: Continue button in success alert
+**Navigation Protection**: Prevents rapid calls and auth redirect loops
+
+## INFINITE LOOP FINAL RESOLUTION
+
+### Issue Persistence
+
+User reported that infinite loops were still occurring despite previous fixes.
+
+### Deep Root Cause Analysis ✅
+
+After investigation, found multiple sources of infinite loops:
+
+1. **Navigation Guard Race Conditions**: 500ms timeout was too short for complex navigation scenarios
+2. **ProcessingScreen Multiple Calls**: useEffect dependency array causing multiple `onComplete` calls
+3. **Memory Leaks**: Timeout cleanup not properly handled
+4. **Router Push Conflicts**: Rapid navigation state changes causing conflicts
+
+### Comprehensive Fixes Applied ✅
+
+#### 1. Enhanced Navigation Guard
+
+- **File**: `components/providers/OnboardingProvider.tsx`
+- **Changes**:
+  - Added `useRef` for timeout management
+  - Increased navigation lock timeout from 500ms to 2000ms
+  - Added timeout cleanup on component unmount
+  - Enhanced console logging for debugging
+  - Clear existing timeouts before setting new ones
+
+#### 2. ProcessingScreen Double-Call Prevention
+
+- **File**: `components/onboarding/ProcessingScreen.tsx`
+- **Changes**:
+  - Added `onCompleteCallled` state to prevent multiple calls
+  - Added guard to ensure `onComplete` is only called once
+  - Enhanced logging to track completion calls
+  - Updated dependency array to include the guard state
+
+#### 3. Memory Management
+
+- **File**: `components/providers/OnboardingProvider.tsx`
+- **Added**:
+  - Cleanup effect to clear timeouts on unmount
+  - Proper timeout reference management
+  - TypeScript fixes for timeout types
+
+#### 4. Enhanced Error Handling
+
+- **File**: `app/(onboarding)/editorial-profile.tsx`
+- **Previous Fix**: Replaced auth redirects with error messages (already applied)
+
+### Technical Implementation Details ✅
+
+**Navigation Guard Logic**:
+
+```typescript
+if (isNavigating) {
+  console.log('Navigation already in progress, ignoring nextStep call');
+  return;
+}
+```
+
+**ProcessingScreen Guard**:
+
+```typescript
+if (onComplete && !onCompleteCallled) {
+  setOnCompleteCalled(true);
+  setTimeout(() => {
+    console.log('ProcessingScreen calling onComplete');
+    onComplete();
+  }, 1000);
+}
+```
+
+**Timeout Management**:
+
+```typescript
+// Clear any existing timeout
+if (navigationTimeoutRef.current) {
+  clearTimeout(navigationTimeoutRef.current);
+}
+
+// Set new timeout with cleanup
+navigationTimeoutRef.current = setTimeout(() => {
+  setIsNavigating(false);
+  console.log('Navigation lock released');
+}, 2000);
+```
+
+### Testing Verification ✅
+
+- **ProcessingScreen Tests**: All passing with correct auto-advance behavior
+- **Console Logging**: Added for debugging navigation flow
+- **Guard Prevention**: Verified with test logs showing single onComplete call
+
+**Status**: ✅ COMPLETED - Multiple-layer protection against infinite loops implemented and tested

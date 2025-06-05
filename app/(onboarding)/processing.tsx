@@ -14,17 +14,14 @@ const processingSteps = [
 ];
 
 export default function ProcessingScreenContainer() {
-  const { nextStep, markStepCompleted, surveyAnswers, isAutoProgressAllowed } =
-    useOnboarding();
+  const { nextStep, markStepCompleted, surveyAnswers } = useOnboarding();
   const onboardingSteps = useOnboardingSteps();
 
   const handleComplete = () => {
     markStepCompleted('processing');
+    // Auto-advance after processing since there's nothing for user to interact with
     nextStep();
   };
-
-  // Check if auto-progress is allowed for this step
-  const shouldAutoProgress = isAutoProgressAllowed('processing');
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
@@ -39,7 +36,6 @@ export default function ProcessingScreenContainer() {
         message="Veuillez patienter pendant que nous personnalisons votre expérience selon vos préférences"
         steps={processingSteps}
         onComplete={handleComplete}
-        autoComplete={shouldAutoProgress}
       />
     </SafeAreaView>
   );

@@ -1,4 +1,4 @@
-import { useOnboardingSteps } from "@/components/onboarding/OnboardingSteps";
+import { useOnboardingSteps } from '@/components/onboarding/OnboardingSteps';
 import React, { useState, useEffect } from 'react';
 import {
   View,
@@ -15,19 +15,13 @@ import { subscriptionPlans } from '@/constants/subscriptionPlans';
 import * as Haptics from 'expo-haptics';
 import { ArrowRight } from 'lucide-react-native';
 
-
-  export default function SubscriptionScreen() {
-  const onboardingSteps = useOnboardingSteps();  const { nextStep, markStepCompleted, setAutoProgressEnabled } =
-    useOnboarding();
+export default function SubscriptionScreen() {
+  const onboardingSteps = useOnboardingSteps();
+  const { nextStep, markStepCompleted } = useOnboarding();
   const [selectedPlanId, setSelectedPlanId] = useState<string>(
     subscriptionPlans.find((plan) => plan.isRecommended)?.id ||
       subscriptionPlans[0].id
   );
-
-  // Disable auto-progress when this screen loads
-  useEffect(() => {
-    setAutoProgressEnabled(false);
-  }, []);
 
   const handleSelectPlan = (planId: string) => {
     setSelectedPlanId(planId);

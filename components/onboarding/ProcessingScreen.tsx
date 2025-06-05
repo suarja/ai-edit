@@ -14,8 +14,6 @@ interface ProcessingScreenProps {
   message: string;
   steps: string[];
   onComplete?: () => void;
-  autoComplete?: boolean;
-  completionDelay?: number;
 }
 
 export const ProcessingScreen: React.FC<ProcessingScreenProps> = ({
@@ -23,11 +21,10 @@ export const ProcessingScreen: React.FC<ProcessingScreenProps> = ({
   message,
   steps,
   onComplete,
-  autoComplete = false,
-  completionDelay = 2000,
 }) => {
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
   const [completed, setCompleted] = useState(false);
+  const [onCompleteCallled, setOnCompleteCalled] = useState(false);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -52,21 +49,19 @@ export const ProcessingScreen: React.FC<ProcessingScreenProps> = ({
           console.log('Haptics not available');
         }
 
-        // Auto complete after delay if specified and allowed
-        if (autoComplete && onComplete) {
-          setTimeout(onComplete, completionDelay);
+        // Auto-call onComplete for processing screens since they are loading states
+        if (onComplete && !onCompleteCallled) {
+          setOnCompleteCalled(true);
+          setTimeout(() => {
+            console.log('ProcessingScreen calling onComplete');
+            onComplete();
+          }, 1000); // Brief delay to show completion state
         }
       }
     }, 1500); // Advance steps every 1.5 seconds
 
     return () => clearInterval(interval);
-  }, [
-    currentStepIndex,
-    steps.length,
-    autoComplete,
-    onComplete,
-    completionDelay,
-  ]);
+  }, [currentStepIndex, steps.length, onComplete, onCompleteCallled]);
 
   const handleContinue = () => {
     if (completed && onComplete) {
@@ -112,16 +107,7 @@ export const ProcessingScreen: React.FC<ProcessingScreenProps> = ({
         ))}
       </View>
 
-      {/* Show continue button when processing is complete but not auto-completing */}
-      {completed && !autoComplete && onComplete && (
-        <TouchableOpacity
-          style={styles.continueButton}
-          onPress={handleContinue}
-        >
-          <Text style={styles.continueButtonText}>Continuer</Text>
-          <ArrowRight size={20} color="#fff" />
-        </TouchableOpacity>
-      )}
+      {/* Processing screens auto-advance, no manual button needed */}
     </View>
   );
 };

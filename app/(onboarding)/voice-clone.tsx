@@ -6,7 +6,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function OnboardingVoiceCloneScreen() {
   const handleCreateVoice = () => {
-    router.push('/(tabs)/voice-clone');
+    router.push('/(settings)/voice-clone');
   };
 
   const handleSkip = () => {

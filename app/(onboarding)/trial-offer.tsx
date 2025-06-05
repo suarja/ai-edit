@@ -1,4 +1,4 @@
-import { useOnboardingSteps } from "@/components/onboarding/OnboardingSteps";
+import { useOnboardingSteps } from '@/components/onboarding/OnboardingSteps';
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -7,15 +7,9 @@ import { ProgressBar } from '@/components/onboarding/ProgressBar';
 import { Bell, ArrowRight } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
 
-
-  export default function TrialOfferScreen() {
-  const onboardingSteps = useOnboardingSteps();  const { nextStep, markStepCompleted, setAutoProgressEnabled } =
-    useOnboarding();
-
-  // Disable auto-progress when this screen loads
-  React.useEffect(() => {
-    setAutoProgressEnabled(false);
-  }, []);
+export default function TrialOfferScreen() {
+  const onboardingSteps = useOnboardingSteps();
+  const { nextStep, markStepCompleted } = useOnboarding();
 
   const handleContinue = () => {
     markStepCompleted('trial-offer');
