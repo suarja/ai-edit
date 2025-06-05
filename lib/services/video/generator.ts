@@ -640,7 +640,6 @@ export class VideoGeneratorService {
         .update({
           render_status: 'rendering',
           render_id: renderId,
-          updated_at: new Date().toISOString(),
         })
         .eq('id', requestId);
 
@@ -689,7 +688,6 @@ export class VideoGeneratorService {
             .from('video_requests')
             .update({
               render_status: 'failed',
-              updated_at: new Date().toISOString(),
             })
             .eq('id', videoRequestId)
             .then() as Promise<any>
@@ -702,7 +700,6 @@ export class VideoGeneratorService {
             .from('scripts')
             .update({
               status: 'failed',
-              updated_at: new Date().toISOString(),
             })
             .eq('id', scriptId)
             .then() as Promise<any>
