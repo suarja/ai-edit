@@ -251,7 +251,7 @@ export const env: EnvConfig = {
   ENVIRONMENT: getEnvVar('EXPO_PUBLIC_ENVIRONMENT', 'development') as any,
 
   // Server URL with fallback
-  SERVER_URL: getEnvVar('EXPO_PUBLIC_SERVER_URL', 'https://ai-edit.expo.app'),
+  SERVER_URL: getEnvVar('EXPO_PUBLIC_SERVER_URL', 'http://localhost:8081'),
 
   // Optional API keys
   OPENAI_API_KEY: getEnvVar('OPENAI_API_KEY'),
