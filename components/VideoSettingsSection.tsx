@@ -4,11 +4,10 @@ import {
   Text,
   StyleSheet,
   TouchableOpacity,
-  Image,
   ScrollView,
   useWindowDimensions,
 } from 'react-native';
-import { CaptionConfiguration, CaptionPreset } from '@/types/video';
+import { CaptionConfiguration } from '@/types/video';
 import { VIDEO_PRESETS } from '@/lib/config/video-presets';
 
 type VideoSettingsSectionProps = {
@@ -29,7 +28,6 @@ const VideoSettingsSection: React.FC<VideoSettingsSectionProps> = ({
       onCaptionConfigChange({
         presetId,
         placement: 'bottom',
-        lines: 3,
       });
       return;
     }
@@ -40,7 +38,7 @@ const VideoSettingsSection: React.FC<VideoSettingsSectionProps> = ({
     });
   };
 
-  const handlePlacementChange = (placement: 'top' | 'middle' | 'bottom') => {
+  const handlePlacementChange = (placement: 'top' | 'center' | 'bottom') => {
     // Ensure we have a preset ID before updating
     if (!captionConfig || !captionConfig.presetId) {
       // Select first preset if none is selected
@@ -57,22 +55,22 @@ const VideoSettingsSection: React.FC<VideoSettingsSectionProps> = ({
     });
   };
 
-  const handleLinesChange = (lines: 1 | 3) => {
-    // Ensure we have a preset ID before updating
-    if (!captionConfig || !captionConfig.presetId) {
-      // Select first preset if none is selected
-      onCaptionConfigChange({
-        presetId: VIDEO_PRESETS[0].id,
-        lines,
-      });
-      return;
-    }
+  // const handleLinesChange = (lines: 1 | 3) => {
+  //   // Ensure we have a preset ID before updating
+  //   if (!captionConfig || !captionConfig.presetId) {
+  //     // Select first preset if none is selected
+  //     onCaptionConfigChange({
+  //       presetId: VIDEO_PRESETS[0].id,
+  //       lines,
+  //     });
+  //     return;
+  //   }
 
-    onCaptionConfigChange({
-      ...captionConfig,
-      lines,
-    });
-  };
+  //   onCaptionConfigChange({
+  //     ...captionConfig,
+  //     lines,
+  //   });
+  // };
 
   // Find the selected preset
   const selectedPreset = VIDEO_PRESETS.find(
@@ -165,15 +163,15 @@ const VideoSettingsSection: React.FC<VideoSettingsSectionProps> = ({
               <TouchableOpacity
                 style={[
                   styles.optionButton,
-                  captionConfig.placement === 'middle' &&
+                  captionConfig.placement === 'center' &&
                     styles.selectedOptionButton,
                 ]}
-                onPress={() => handlePlacementChange('middle')}
+                onPress={() => handlePlacementChange('center')}
               >
                 <Text
                   style={[
                     styles.optionButtonText,
-                    captionConfig.placement === 'middle' &&
+                    captionConfig.placement === 'center' &&
                       styles.selectedOptionButtonText,
                   ]}
                 >
@@ -201,7 +199,7 @@ const VideoSettingsSection: React.FC<VideoSettingsSectionProps> = ({
             </View>
           </View>
 
-          <View style={styles.optionSection}>
+          {/*    <View style={styles.optionSection}>
             <Text style={styles.optionTitle}>Lignes</Text>
             <View style={styles.optionButtons}>
               <TouchableOpacity
@@ -239,7 +237,7 @@ const VideoSettingsSection: React.FC<VideoSettingsSectionProps> = ({
                 </Text>
               </TouchableOpacity>
             </View>
-          </View>
+          </View> */}
         </>
       )}
     </View>

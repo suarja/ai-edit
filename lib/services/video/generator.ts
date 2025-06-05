@@ -9,11 +9,7 @@ import {
   VideoGenerationPayload,
   VideoValidationService,
 } from './validation';
-import {
-  VideoGenerationResult,
-  VideoGenerationError,
-  ValidatedVideo,
-} from '@/types/video';
+import { VideoGenerationResult, ValidatedVideo } from '@/types/video';
 import { PromptService } from '@/lib/services/prompts';
 import { convertCaptionConfigToCreatomate } from '@/lib/utils/video/caption-converter';
 
@@ -27,7 +23,7 @@ export class VideoGeneratorService {
   private creatomateBuilder: CreatomateBuilder;
 
   // Timeout configurations
-  private static readonly SCRIPT_GENERATION_TIMEOUT = 60000; // 60 seconds
+  private static readonly SCRIPT_GENERATION_TIMEOUT = 120000; // 2 minutes
   private static readonly CREATOMATE_API_TIMEOUT = 120000; // 2 minutes
   private static readonly DATABASE_OPERATION_TIMEOUT = 30000; // 30 seconds
 
@@ -423,7 +419,7 @@ export class VideoGeneratorService {
             'Generate a compelling video with specified caption styles',
           editorialProfile,
           captionConfig: captionConfig || 'Default captions',
-          outputLanguage: outputLanguage || 'en',
+          outputLanguage: outputLanguage || 'fr',
         }
       );
 
@@ -503,7 +499,7 @@ export class VideoGeneratorService {
 
       // Get the server's base URL for webhook callbacks
       const baseUrl =
-        process.env.EXPO_PUBLIC_SERVER_URL || 'https://your-production-url.com';
+        process.env.EXPO_PUBLIC_SERVER_URL || 'https://ai-edit.expo.app';
       const webhookUrl = `${baseUrl}/api/webhooks/creatomate`;
 
       const renderPayload = {

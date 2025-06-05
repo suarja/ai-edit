@@ -10,8 +10,8 @@ import {
 import * as ImagePicker from 'expo-image-picker';
 import { openSettings } from 'expo-linking';
 import { Video as VideoIcon } from 'lucide-react-native';
-import { MediaTypeOptions, MediaType } from 'expo-image-picker';
-import { env, getEnvVar } from '@/lib/config/env';
+import { MediaType } from 'expo-image-picker';
+import { env } from '@/lib/config/env';
 
 type VideoUploaderProps = {
   onUploadComplete?: (videoData: { videoId: string; url: string }) => void;

@@ -16,7 +16,6 @@ export interface VideoType {
 export interface CaptionConfiguration {
   presetId: string;
   placement: 'top' | 'bottom' | 'center';
-  lines: number;
   fontFamily?: string;
   fontSize?: number;
   fontColor?: string;

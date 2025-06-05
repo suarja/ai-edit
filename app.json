@@ -48,7 +48,7 @@
       [
         "expo-router",
         {
-          "origin": "https://ai-edit.expo.app/"
+          "origin": "https://ai-edit.expo.app"
         }
       ],
       [

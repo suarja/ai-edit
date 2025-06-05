@@ -47,7 +47,7 @@ export type PromptDefinition = {
   description: string;
   context: string;
   version: string;
-  status: 'LATEST' | 'DEPRECATED' | 'DRAFT';
+  status: 'LATEST' | 'DEPRECATED' | 'DRAFT' | string;
   createdAt: string;
   updatedAt: string;
   author: string;

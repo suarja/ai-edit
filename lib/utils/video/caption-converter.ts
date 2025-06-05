@@ -23,7 +23,7 @@ export function convertCaptionConfigToCreatomate(
           x: '50%',
           y: '90%',
           width: '86.66%',
-          height: '100.71%',
+          height: '100%',
           font_family: 'Montserrat',
           font_weight: '700',
           font_size: '40px',
@@ -52,13 +52,12 @@ export function convertCaptionConfigToCreatomate(
 
   // Use config values or fallback to preset values
   const placement = config.placement || preset.placement;
-  const lines = config.lines || preset.lines;
 
   // Map placement to y position
   let yPosition = '90%'; // Default bottom
   if (placement === 'top') {
     yPosition = '10%';
-  } else if (placement === 'middle') {
+  } else if (placement === 'center') {
     yPosition = '50%';
   }
 
@@ -74,7 +73,7 @@ export function convertCaptionConfigToCreatomate(
         x: '50%',
         y: yPosition,
         width: '86.66%',
-        height: '100.71%',
+        height: '100%',
         font_family: preset.fontFamily,
         font_weight: preset.fontWeight === 'bold' ? '700' : '400',
         font_size: `${preset.fontSize}px`,
@@ -87,7 +86,7 @@ export function convertCaptionConfigToCreatomate(
         shadow_x: `${preset.shadowOffsetX}px`,
         shadow_y: `${preset.shadowOffsetY}px`,
         transcript_effect: preset.effect,
-        transcript_placement: placement,
+        transcript_placement: 'animate',
         transcript_maximum_length: preset.maxWordsPerLine,
         highlight_color: preset.highlightColor,
       },
