@@ -6,6 +6,7 @@ import {
   StyleSheet,
   ActivityIndicator,
   Alert,
+  Platform,
 } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { openSettings } from 'expo-linking';
@@ -17,6 +18,8 @@ type VideoUploaderProps = {
   onUploadComplete?: (videoData: { videoId: string; url: string }) => void;
   onUploadError?: (error: Error) => void;
 };
+
+const isWeb = Platform.OS === 'web';
 
 export default function VideoUploader({
   onUploadComplete,
@@ -89,8 +92,8 @@ export default function VideoUploader({
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json',
-                // Include anon key for authorization
                 Authorization: `Bearer ${env.SUPABASE_ANON_KEY}`,
+                'x-client-platform': isWeb ? 'web' : 'mobile',
               },
               body: JSON.stringify({
                 fileName,
@@ -133,6 +136,10 @@ export default function VideoUploader({
             body: blob,
             headers: {
               'Content-Type': fileType,
+              ...(isWeb && {
+                Authorization: `Bearer ${env.SUPABASE_ANON_KEY}`,
+                'x-client-platform': 'web',
+              }),
             },
           });
 
