@@ -82,13 +82,15 @@ export default function VideoUploader({
           console.log('Getting presigned URL from S3...');
           setUploadStatus("Génération de l'URL de téléchargement...");
 
-          // Get presigned URL from our API
+          // Get presigned URL from Supabase function
           const presignedResponse = await fetch(
-            `${env.SERVER_URL}/api/s3-upload`,
+            `${env.SUPABASE_URL}/functions/v1/generate-presigned-url`,
             {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json',
+                // Include anon key for authorization
+                Authorization: `Bearer ${env.SUPABASE_ANON_KEY}`,
               },
               body: JSON.stringify({
                 fileName,
@@ -114,6 +116,7 @@ export default function VideoUploader({
             s3FileName,
           });
 
+          console.log(presignedUrl);
           // Convert asset to blob for upload
           console.log('Converting asset to blob...');
           setUploadStatus('Conversion du fichier...');
