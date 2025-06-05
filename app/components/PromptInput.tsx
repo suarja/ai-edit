@@ -40,7 +40,7 @@ const PromptInput: React.FC<PromptInputProps> = ({
   const promptEnhancement = usePromptEnhancement();
 
   const handleEnhance = async () => {
-    if (!prompt.trim()) {
+    if (!prompt || !prompt.trim()) {
       setError("Veuillez entrer une description avant d'améliorer");
       return;
     }
@@ -55,7 +55,7 @@ const PromptInput: React.FC<PromptInputProps> = ({
       );
       onPromptChange(enhancedPrompt);
 
-      if (systemPrompt.trim()) {
+      if (systemPrompt && systemPrompt.trim()) {
         const enhancedSystemPrompt =
           await promptEnhancement.enhanceSystemPrompt(
             systemPrompt,
@@ -94,7 +94,7 @@ const PromptInput: React.FC<PromptInputProps> = ({
             enhancing && styles.enhanceButtonDisabled,
           ]}
           onPress={handleEnhance}
-          disabled={enhancing || !prompt.trim()}
+          disabled={enhancing || !prompt || !prompt.trim()}
         >
           {enhancing ? (
             <ActivityIndicator size="small" color="#fff" />
@@ -114,7 +114,7 @@ const PromptInput: React.FC<PromptInputProps> = ({
         placeholder={placeholder}
         placeholderTextColor="#666"
         autoFocus={true}
-        value={prompt}
+        value={prompt || ''}
         onChangeText={onPromptChange}
         maxLength={maxLength}
       />
@@ -123,7 +123,7 @@ const PromptInput: React.FC<PromptInputProps> = ({
 
       <View style={styles.counter}>
         <Text style={styles.counterText}>
-          {prompt.length}/{maxLength}
+          {(prompt || '').length}/{maxLength}
         </Text>
       </View>
     </View>

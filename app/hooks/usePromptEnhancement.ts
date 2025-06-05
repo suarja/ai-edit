@@ -23,7 +23,7 @@ export function usePromptEnhancement() {
       setEnhancing(true);
       setEnhancementError(null);
 
-      if (!prompt.trim()) {
+      if (!prompt || !prompt.trim()) {
         return '';
       }
 
@@ -73,8 +73,13 @@ export function usePromptEnhancement() {
       setEnhancing(true);
       setEnhancementError(null);
 
-      if (!systemPrompt.trim() || !mainPrompt.trim()) {
-        return systemPrompt;
+      if (
+        !systemPrompt ||
+        !systemPrompt.trim() ||
+        !mainPrompt ||
+        !mainPrompt.trim()
+      ) {
+        return systemPrompt || '';
       }
 
       console.log('Enhancing system prompt...');
@@ -124,7 +129,7 @@ export function usePromptEnhancement() {
       setEnhancing(true);
       setEnhancementError(null);
 
-      if (!mainPrompt.trim()) {
+      if (!mainPrompt || !mainPrompt.trim()) {
         return '';
       }
 
