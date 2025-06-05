@@ -23,7 +23,7 @@ export class VideoGeneratorService {
   private creatomateBuilder: CreatomateBuilder;
 
   // Timeout configurations
-  private static readonly SCRIPT_GENERATION_TIMEOUT = 120000; // 2 minutes
+  private static readonly SCRIPT_GENERATION_TIMEOUT = 120000; // 60 seconds
   private static readonly CREATOMATE_API_TIMEOUT = 120000; // 2 minutes
   private static readonly DATABASE_OPERATION_TIMEOUT = 30000; // 30 seconds
 
@@ -92,17 +92,17 @@ export class VideoGeneratorService {
       videoRequestId = videoRequest.id;
 
       // Step 3: Fetch and validate videos (can be done in parallel with template generation)
-      const videosValidationPromise = this.withTimeout(
+      const videosValidation = await this.withTimeout(
         this.fetchAndValidateVideos(selectedVideos),
         VideoGeneratorService.DATABASE_OPERATION_TIMEOUT,
         'Video validation timed out'
       );
 
       // Step 4: Generate Creatomate template (start in parallel)
-      const templatePromise = this.withTimeout(
+      const template = await this.withTimeout(
         this.generateTemplate(
           reviewedScript,
-          [],
+          videosValidation,
           voiceId,
           editorialProfile,
           captionConfig,
@@ -111,12 +111,6 @@ export class VideoGeneratorService {
         VideoGeneratorService.SCRIPT_GENERATION_TIMEOUT,
         'Template generation timed out'
       );
-
-      // Wait for both operations to complete
-      const [videosObj, template] = await Promise.all([
-        videosValidationPromise,
-        templatePromise,
-      ]);
 
       // Step 5: Store training data (fire and forget - don't block on failures)
       this.storeTrainingDataAsync(
@@ -221,7 +215,7 @@ export class VideoGeneratorService {
         editorialProfile,
         systemPrompt
       );
-      console.log('✅ Script generated successfully');
+      console.log('✅ Script generated successfully', { generatedScript });
 
       console.log('🔍 Reviewing script...');
       const reviewedScript = await this.scriptReviewer.review(
@@ -236,7 +230,7 @@ export class VideoGeneratorService {
         Output Language: ${outputLanguage}
         `
       );
-      console.log('✅ Script reviewed successfully');
+      console.log('✅ Script reviewed successfully', { reviewedScript });
 
       console.log('💾 Creating script record...');
       const { data: script, error: scriptError } = await supabase
@@ -377,7 +371,9 @@ export class VideoGeneratorService {
           updated_at: video.updated_at || new Date().toISOString(),
         }))
       );
-      console.log(`✅ Validated ${validatedVideos.length} videos`);
+      console.log(`✅ Validated ${validatedVideos.length} videos`, {
+        validatedVideos,
+      });
 
       return validatedVideos;
     } catch (error) {
@@ -426,6 +422,9 @@ export class VideoGeneratorService {
       if (!promptTemplate) {
         console.warn('⚠️ Prompt template not found, using default template');
       }
+      console.log('🔍 Prompt template:', {
+        promptTemplate: JSON.stringify(promptTemplate, null, 2),
+      });
 
       // Convert caption configuration to Creatomate format
       const captionStructure = convertCaptionConfigToCreatomate(captionConfig);
@@ -440,7 +439,9 @@ export class VideoGeneratorService {
         agentPrompt: promptTemplate?.system,
       });
 
-      console.log('✅ Template generated successfully');
+      console.log('✅ Template generated successfully', {
+        template: JSON.stringify(template, null, 2),
+      });
       return template;
     } catch (error) {
       throw VideoValidationService.createError(
