@@ -21,6 +21,14 @@ type VideoUploaderProps = {
 
 const isWeb = Platform.OS === 'web';
 
+// Helper to get the correct Supabase Functions URL
+const getSupabaseFunctionUrl = (url: string) => {
+  // Convert the base Supabase URL to the Functions URL format
+  return url
+    .replace('https://', 'https://')
+    .replace('.supabase.co', '.functions.supabase.co');
+};
+
 export default function VideoUploader({
   onUploadComplete,
   onUploadError,
@@ -85,9 +93,11 @@ export default function VideoUploader({
           console.log('Getting presigned URL from S3...');
           setUploadStatus("Génération de l'URL de téléchargement...");
 
-          // Get presigned URL from Supabase function
+          // Get presigned URL from Supabase function using the correct URL format
           const presignedResponse = await fetch(
-            `${env.SUPABASE_URL}/functions/v1/generate-presigned-url`,
+            `${getSupabaseFunctionUrl(
+              env.SUPABASE_URL
+            )}/generate-presigned-url`,
             {
               method: 'POST',
               headers: {

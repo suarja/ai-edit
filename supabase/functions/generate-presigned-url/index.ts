@@ -133,6 +133,16 @@ serve(async (req) => {
       if (isWeb) {
         // For web, return a URL to this function for PUT requests
         const uploadUrl = new URL(req.url);
+        // Ensure HTTPS
+        uploadUrl.protocol = 'https:';
+        // Use the functions subdomain
+        uploadUrl.hostname = uploadUrl.hostname.replace('http://', 'https://');
+        if (!uploadUrl.hostname.includes('.functions.')) {
+          uploadUrl.hostname = uploadUrl.hostname.replace(
+            '.supabase.co',
+            '.functions.supabase.co'
+          );
+        }
         uploadUrl.searchParams.set('key', uniqueFileName);
         uploadUrl.searchParams.set('contentType', fileType);
 
