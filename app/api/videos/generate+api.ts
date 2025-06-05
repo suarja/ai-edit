@@ -9,6 +9,7 @@ import {
   HttpStatus,
 } from '@/lib/utils/api/responses';
 import { supabase } from '@/lib/supabase';
+import { supabaseServiceRole } from '@/lib/server-client';
 
 /**
  * Video generation API controller
@@ -30,8 +31,17 @@ export async function POST(request: Request) {
     }
 
     // Step 2: Check usage limits
-    console.log('📊 Checking usage limits for user:');
-    const { data: usage, error: usageError } = await supabase
+    console.log('📊 Checking usage limits for user:', user.id);
+
+    // Log whether we're using service role or regular client
+    console.log(
+      `🔑 Using ${
+        supabase === supabaseServiceRole ? 'regular' : 'service role'
+      } client for database access`
+    );
+
+    // Use service role to bypass RLS for usage checking (fallback to regular client if not available)
+    const { data: usage, error: usageError } = await supabaseServiceRole
       .from('user_usage')
       .select('videos_generated, videos_limit, next_reset_date')
       .eq('user_id', user.id)
@@ -85,7 +95,9 @@ export async function POST(request: Request) {
 
     // Step 6: Update usage counter
     console.log('📝 Updating usage counter for user:', user.id);
-    const { error: updateError } = await supabase
+
+    // Update using the same client that was used for fetching
+    const { error: updateError } = await supabaseServiceRole
       .from('user_usage')
       .update({
         videos_generated: usage.videos_generated + 1,

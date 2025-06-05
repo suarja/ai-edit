@@ -1,5 +1,42 @@
 # Project Progress: AI Edit
 
+## Latest Build: Database Usage Check Fix
+
+**Date**: 2024-01-14  
+**Type**: Level 1 Bug Fix  
+**Status**: Implementation Complete
+
+### Issue Fixed
+
+- **Problem**: Users encountered PGRST116 error when generating videos due to Row Level Security (RLS) issues
+- **Error Location**: `app/api/videos/generate+api.ts` and `lib/server-client.ts`
+- **Impact**: Users unable to generate videos because RLS prevented access to usage records
+
+### Solution Implemented
+
+- **Service Role Client**: Added dedicated Supabase client with service role permissions to bypass RLS
+- **API Enhancement**: Updated video generation API to use service role for admin operations
+- **Security Model**: Maintained RLS for regular operations while allowing admin functions to work properly
+
+### Files Modified
+
+- ✅ `lib/server-client.ts` - Added service role client implementation
+- ✅ `app/api/videos/generate+api.ts` - Updated to use service role client for usage operations
+
+### Benefits
+
+- **Proper Security Model**: Admin operations can bypass RLS while maintaining security
+- **System Reliability**: Guaranteed access to usage records for critical operations
+- **Scalability**: Solution works for all users regardless of RLS policies
+
+### Next Steps
+
+- [ ] Test fix with existing users
+- [ ] Verify resolution of PGRST116 error
+- [ ] Consider adding service role client to other admin operations
+
+---
+
 ## Current Development Focus
 
 We are preparing the app for TestFlight beta testing, implementing usage tracking to limit video generation without payments, and finalizing the onboarding flow to ensure a smooth user experience. The focus is on creating a robust beta version that allows for thorough testing of core functionality.

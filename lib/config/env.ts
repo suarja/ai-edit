@@ -9,6 +9,7 @@ interface EnvConfig {
   // Supabase
   SUPABASE_URL: string;
   SUPABASE_ANON_KEY: string;
+  SUPABASE_SERVICE_ROLE_KEY?: string;
 
   // Feature flags
   IS_TESTFLIGHT: boolean;
@@ -58,6 +59,9 @@ export const getEnvVar = (key: string, fallback?: string): string => {
       break;
     case 'EXPO_PUBLIC_SUPABASE_ANON_KEY':
       value = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY;
+      break;
+    case 'SUPABASE_SERVICE_ROLE_KEY':
+      value = process.env.SUPABASE_SERVICE_ROLE_KEY;
       break;
     case 'EXPO_PUBLIC_IS_TESTFLIGHT':
       value = process.env.EXPO_PUBLIC_IS_TESTFLIGHT;
@@ -118,6 +122,9 @@ export const getRequiredEnvVar = (key: string): string => {
       break;
     case 'EXPO_PUBLIC_SUPABASE_ANON_KEY':
       value = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY;
+      break;
+    case 'SUPABASE_SERVICE_ROLE_KEY':
+      value = process.env.SUPABASE_SERVICE_ROLE_KEY;
       break;
     case 'EXPO_PUBLIC_IS_TESTFLIGHT':
       value = process.env.EXPO_PUBLIC_IS_TESTFLIGHT;
@@ -245,6 +252,7 @@ export const env: EnvConfig = {
   // Required variables
   SUPABASE_URL: getRequiredEnvVar('EXPO_PUBLIC_SUPABASE_URL'),
   SUPABASE_ANON_KEY: getRequiredEnvVar('EXPO_PUBLIC_SUPABASE_ANON_KEY'),
+  SUPABASE_SERVICE_ROLE_KEY: getEnvVar('SUPABASE_SERVICE_ROLE_KEY'),
 
   // Feature flags with defaults
   IS_TESTFLIGHT: getBooleanEnvVar('EXPO_PUBLIC_IS_TESTFLIGHT', false),
@@ -280,6 +288,11 @@ export const logEnvironmentStatus = (): void => {
     );
     console.log(
       `- Supabase Anon Key: ${env.SUPABASE_ANON_KEY ? '✅ Set' : '❌ Missing'}`
+    );
+    console.log(
+      `- Supabase Service Role Key: ${
+        env.SUPABASE_SERVICE_ROLE_KEY ? '✅ Set' : '❌ Missing'
+      }`
     );
     console.log(`- Server URL: ${env.SERVER_URL}`);
 
