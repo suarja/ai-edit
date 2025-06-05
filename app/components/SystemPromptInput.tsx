@@ -26,7 +26,7 @@ const SystemPromptInput: React.FC<SystemPromptInputProps> = ({
         placeholderTextColor="#666"
         value={systemPrompt}
         onChangeText={onSystemPromptChange}
-        maxLength={500}
+        maxLength={1500}
       />
       <View style={styles.inputFooter}>
         <Text style={styles.charCount}>{systemPrompt.length}/500</Text>

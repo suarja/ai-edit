@@ -31,7 +31,7 @@ const PromptInput: React.FC<PromptInputProps> = ({
   title = 'Description',
   description = 'Décrivez ce que vous souhaitez créer',
   placeholder = 'Soyez aussi précis que possible...',
-  maxLength = 500,
+  maxLength = 5000,
   numberOfLines = 4,
   outputLanguage,
 }) => {
@@ -113,6 +113,7 @@ const PromptInput: React.FC<PromptInputProps> = ({
         numberOfLines={numberOfLines}
         placeholder={placeholder}
         placeholderTextColor="#666"
+        autoFocus={true}
         value={prompt}
         onChangeText={onPromptChange}
         maxLength={maxLength}

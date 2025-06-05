@@ -29,10 +29,8 @@ export async function POST(request: Request) {
       return authError;
     }
 
-    console.log('🔐 User authenticated:', user.id);
-
     // Step 2: Check usage limits
-    console.log('📊 Checking usage limits for user:', user.id);
+    console.log('📊 Checking usage limits for user:');
     const { data: usage, error: usageError } = await supabase
       .from('user_usage')
       .select('videos_generated, videos_limit, next_reset_date')
