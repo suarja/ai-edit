@@ -155,7 +155,7 @@ export default function useVideoRequest() {
   };
 
   const validateRequest = () => {
-    if (!prompt || !prompt.trim()) {
+    if (!prompt || typeof prompt !== 'string' || !prompt.trim()) {
       Alert.alert(
         'Description manquante',
         'Veuillez entrer une description de la vidéo que vous souhaitez créer.',
@@ -226,8 +226,11 @@ export default function useVideoRequest() {
         : customEditorialProfile;
 
       const requestPayload = {
-        prompt: prompt ? prompt.trim() : '',
-        systemPrompt: systemPrompt ? systemPrompt.trim() : '',
+        prompt: prompt && typeof prompt === 'string' ? prompt.trim() : '',
+        systemPrompt:
+          systemPrompt && typeof systemPrompt === 'string'
+            ? systemPrompt.trim()
+            : '',
         selectedVideos: selectedVideoData,
         voiceId: voiceClone?.elevenlabs_voice_id || DEFAULT_VOICE_ID,
         editorialProfile: profileData,

@@ -37,7 +37,10 @@ export default function RequestVideoScreen() {
 
   // Compute if submit button should be disabled
   const isSubmitDisabled =
-    !videoRequest.prompt.trim() || videoRequest.selectedVideos.length === 0;
+    !videoRequest.prompt ||
+    typeof videoRequest.prompt !== 'string' ||
+    !videoRequest.prompt.trim() ||
+    videoRequest.selectedVideos.length === 0;
 
   if (videoRequest.loading) {
     return (
