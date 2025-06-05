@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -6,36 +6,34 @@ import {
   TouchableOpacity,
   Alert,
   Platform,
+  Share,
+  Linking,
 } from 'react-native';
 import {
   Download,
-  Share2,
+  Share as ShareIcon,
   ExternalLink,
-  Trash2,
+  Trash,
   Edit3,
+  Play,
+  MoreHorizontal,
 } from 'lucide-react-native';
 import * as FileSystem from 'expo-file-system';
 import * as Sharing from 'expo-sharing';
 import * as MediaLibrary from 'expo-media-library';
-import * as Linking from 'expo-linking';
-import { Share } from 'react-native';
-import {
-  VideoType,
-  getVideoUrl,
-  isGeneratedVideo,
-  isUploadedVideo,
-} from '@/types/video';
+import { AnyVideoType, getVideoUrl } from '@/types/video';
 
-type VideoActionButtonsProps = {
-  video: VideoType | null;
+interface VideoActionButtonsProps {
+  video: AnyVideoType | null;
   layout?: 'row' | 'column';
-  onDelete?: () => void;
-  onEdit?: () => void;
-  onShare?: () => void;
   showEdit?: boolean;
   showDelete?: boolean;
-  showCopyLink?: boolean;
-};
+  onEdit?: () => void;
+  onDelete?: () => void;
+  onShare?: () => void;
+  onDownload?: () => void;
+  onPlay?: () => void;
+}
 
 export default function VideoActionButtons({
   video,
@@ -186,7 +184,7 @@ export default function VideoActionButtons({
       </TouchableOpacity>
 
       <TouchableOpacity style={styles.secondaryButton} onPress={handleShare}>
-        <Share2 size={20} color="#007AFF" />
+        <ShareIcon size={20} color="#007AFF" />
         <Text style={styles.secondaryButtonText}>Share</Text>
       </TouchableOpacity>
 
@@ -209,7 +207,7 @@ export default function VideoActionButtons({
 
       {showDelete && onDelete && (
         <TouchableOpacity style={styles.dangerButton} onPress={onDelete}>
-          <Trash2 size={20} color="#fff" />
+          <Trash size={20} color="#fff" />
           <Text style={styles.dangerButtonText}>Delete</Text>
         </TouchableOpacity>
       )}

@@ -1,12 +1,12 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { Clock, Tag, AlertCircle } from 'lucide-react-native';
-import { VideoType, isGeneratedVideo, isUploadedVideo } from '@/types/video';
+import { AnyVideoType } from '@/types/video';
 
-type VideoDetailsProps = {
-  video: VideoType | null;
-  error?: string | null;
-};
+interface VideoDetailsProps {
+  video: AnyVideoType | null;
+  error: string | null;
+}
 
 export default function VideoDetails({ video, error }: VideoDetailsProps) {
   if (!video) return null;
@@ -57,16 +57,10 @@ export default function VideoDetails({ video, error }: VideoDetailsProps) {
   return (
     <View style={styles.container}>
       {/* Video title */}
-      <Text style={styles.title}>
-        {isUploadedVideo(video)
-          ? video.title || 'Untitled video'
-          : isGeneratedVideo(video) && video.script?.raw_prompt
-          ? video.script.raw_prompt
-          : 'Untitled video'}
-      </Text>
+      <Text style={styles.title}>{video.title || 'Untitled video'}</Text>
 
       {/* Status indicator for generated videos */}
-      {isGeneratedVideo(video) && (
+      {video.render_status && (
         <View style={styles.statusContainer}>
           <Text
             style={[
@@ -86,7 +80,7 @@ export default function VideoDetails({ video, error }: VideoDetailsProps) {
       )}
 
       {/* Description for uploaded videos */}
-      {isUploadedVideo(video) && video.description && (
+      {video.description && (
         <Text style={styles.description}>{video.description}</Text>
       )}
 
@@ -96,11 +90,7 @@ export default function VideoDetails({ video, error }: VideoDetailsProps) {
         <View style={styles.metaItem}>
           <Clock size={16} color="#888" />
           <Text style={styles.metaText}>
-            {isUploadedVideo(video)
-              ? formatDuration(video.duration_seconds)
-              : formatDuration(
-                  isGeneratedVideo(video) ? video.render_duration : 0
-                )}
+            {formatDuration(video.duration_seconds)}
           </Text>
         </View>
 
@@ -114,7 +104,7 @@ export default function VideoDetails({ video, error }: VideoDetailsProps) {
       </View>
 
       {/* Tags for uploaded videos */}
-      {isUploadedVideo(video) && video.tags && video.tags.length > 0 && (
+      {video.tags && video.tags.length > 0 && (
         <View style={styles.tagsSection}>
           <View style={styles.tagHeader}>
             <Tag size={16} color="#888" />
@@ -131,20 +121,17 @@ export default function VideoDetails({ video, error }: VideoDetailsProps) {
       )}
 
       {/* Error message for generated videos with errors */}
-      {isGeneratedVideo(video) &&
-        video.render_status === 'error' &&
-        video.render_error && (
-          <View style={styles.errorBox}>
-            <AlertCircle size={24} color="#EF4444" />
-            <Text style={styles.errorMessageText}>
-              {video.render_error ||
-                'An error occurred during video processing'}
-            </Text>
-          </View>
-        )}
+      {video.render_status === 'error' && video.render_error && (
+        <View style={styles.errorBox}>
+          <AlertCircle size={24} color="#EF4444" />
+          <Text style={styles.errorMessageText}>
+            {video.render_error || 'An error occurred during video processing'}
+          </Text>
+        </View>
+      )}
 
       {/* Script for generated videos */}
-      {isGeneratedVideo(video) && video.script?.generated_script && (
+      {video.script?.generated_script && (
         <View style={styles.scriptSection}>
           <Text style={styles.sectionTitle}>Generated Script</Text>
           <View style={styles.scriptContainer}>

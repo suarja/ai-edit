@@ -11,10 +11,15 @@ import {
 } from 'react-native';
 import { router } from 'expo-router';
 import { supabase } from '@/lib/supabase';
-import { CircleAlert as AlertCircle, Sparkles } from 'lucide-react-native';
+import {
+  CircleAlert as AlertCircle,
+  Sparkles,
+  Plus,
+} from 'lucide-react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import GeneratedVideoCard from '@/components/GeneratedVideoCard';
 import EmptyGeneratedVideos from '@/components/EmptyGeneratedVideos';
+import VideoHeader from '@/components/VideoHeader';
 import { env } from '@/lib/config/env';
 
 type VideoRequest = {
@@ -57,10 +62,7 @@ export default function GeneratedVideosScreen() {
           render_url,
           render_id,
           created_at,
-          script:script_id (
-            id,
-            raw_prompt
-          )
+         script_id
         `
         )
         .eq('user_id', user.id)
@@ -216,9 +218,23 @@ export default function GeneratedVideosScreen() {
     router.push('/(tabs)/request-video');
   };
 
+  const getTitle = () => {
+    return 'Vidéos Générées';
+  };
+
+  const getSubtitle = () => {
+    if (videos.length === 0) {
+      return 'Aucune vidéo pour le moment';
+    }
+    return `${videos.length} vidéo${videos.length > 1 ? 's' : ''} créée${
+      videos.length > 1 ? 's' : ''
+    }`;
+  };
+
   if (loading) {
     return (
       <SafeAreaView style={styles.container} edges={['top']}>
+        <VideoHeader title="Vidéos Générées" />
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#007AFF" />
           <Text style={styles.loadingText}>Chargement des vidéos...</Text>
@@ -229,23 +245,14 @@ export default function GeneratedVideosScreen() {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      <View style={styles.header}>
-        <View style={styles.headerContent}>
-          <View>
-            <Text style={styles.title}>Vidéos Générées</Text>
-            <Text style={styles.subtitle}>
-              {videos.length > 0
-                ? `${videos.length} vidéo${videos.length > 1 ? 's' : ''} créée${
-                    videos.length > 1 ? 's' : ''
-                  }`
-                : 'Aucune vidéo pour le moment'}
-            </Text>
-          </View>
-          <View style={styles.headerIcon}>
-            <Sparkles size={24} color="#007AFF" />
-          </View>
-        </View>
-      </View>
+      <VideoHeader
+        title={getTitle()}
+        subtitle={getSubtitle()}
+        rightButton={{
+          icon: <Plus size={20} color="#fff" />,
+          onPress: handleCreateVideo,
+        }}
+      />
 
       {error && (
         <View style={styles.errorContainer}>
@@ -289,36 +296,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#000',
-  },
-  header: {
-    paddingTop: 16,
-    paddingHorizontal: 20,
-    paddingBottom: 20,
-    borderBottomWidth: 1,
-    borderBottomColor: '#333',
-  },
-  headerContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  headerIcon: {
-    backgroundColor: 'rgba(0, 122, 255, 0.1)',
-    borderRadius: 12,
-    width: 48,
-    height: 48,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: '#fff',
-  },
-  subtitle: {
-    fontSize: 16,
-    color: '#888',
-    marginTop: 4,
   },
   loadingContainer: {
     flex: 1,

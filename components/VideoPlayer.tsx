@@ -7,11 +7,11 @@ import {
   Text,
 } from 'react-native';
 import { useVideoPlayer, VideoView } from 'expo-video';
-import { VideoType, getVideoUrl } from '@/types/video';
+import { AnyVideoType, getVideoUrl } from '@/types/video';
 import { Volume2, VolumeX } from 'lucide-react-native';
 
 type VideoPlayerProps = {
-  video: VideoType | null;
+  video: AnyVideoType | null;
   style?: object;
   showControls?: boolean;
   autoPlay?: boolean;

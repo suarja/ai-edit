@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { View, StyleSheet, ActivityIndicator, Image, Text } from 'react-native';
+import { View, StyleSheet, ActivityIndicator, Text } from 'react-native';
 import { useLocalSearchParams } from 'expo-router';
 import { supabase } from '@/lib/supabase';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { GeneratedVideoType, VideoType } from '@/types/video';
+import { AnyVideoType, GeneratedVideoType } from '@/types/video';
+import { RefreshCcw } from 'lucide-react-native';
 import VideoPlayer from '@/components/VideoPlayer';
-import VideoDetailHeader from '@/components/VideoDetailHeader';
+import VideoHeader from '@/components/VideoHeader';
 import VideoDetails from '@/components/VideoDetails';
 import VideoActionButtons from '@/components/VideoActionButtons';
 import { env } from '@/lib/config/env';
@@ -14,7 +15,7 @@ export default function GeneratedVideoDetailScreen() {
   const { id } = useLocalSearchParams();
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [video, setVideo] = useState<VideoType | null>(null);
+  const [video, setVideo] = useState<GeneratedVideoType | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -42,7 +43,7 @@ export default function GeneratedVideoDetailScreen() {
 
       if (videoError) throw videoError;
 
-      // Format the video to match our VideoType
+      // Format the video to match our GeneratedVideoType
       const formattedVideo: GeneratedVideoType = {
         id: videoRequest.id,
         type: 'generated',
@@ -53,10 +54,10 @@ export default function GeneratedVideoDetailScreen() {
       };
 
       // Set the video details
-      setVideoDetails(videoRequest as any);
+      setVideo(formattedVideo);
 
       // If the video is still rendering, check the current status
-      if ((videoRequest as any).render_status === 'rendering') {
+      if (videoRequest.render_status === 'rendering') {
         checkVideoStatus();
       }
     } catch (err) {
@@ -83,13 +84,13 @@ export default function GeneratedVideoDetailScreen() {
 
       // Update video details if status changed
       if (
-        data.render_status !== (video as GeneratedVideoType).render_status ||
-        data.render_url !== (video as GeneratedVideoType).render_url
+        data.render_status !== video.render_status ||
+        data.render_url !== video.render_url
       ) {
         setVideo((prev) => {
           if (!prev) return null;
           return {
-            ...(prev as GeneratedVideoType),
+            ...prev,
             render_status: data.render_status,
             render_url: data.render_url,
           };
@@ -118,9 +119,7 @@ export default function GeneratedVideoDetailScreen() {
   const renderThumbnail = () => {
     if (!video) return null;
 
-    const generatedVideo = video as GeneratedVideoType;
-    if (generatedVideo.render_status === 'rendering') {
-      // If render_snapshot_url is not available, show a loading indicator
+    if (video.render_status === 'rendering') {
       return (
         <View style={styles.thumbnailContainer}>
           <View style={styles.thumbnailOverlay}>
@@ -135,10 +134,32 @@ export default function GeneratedVideoDetailScreen() {
     return null;
   };
 
+  const getVideoTitle = () => {
+    if (!video) return 'Video Details';
+
+    switch (video.render_status) {
+      case 'rendering':
+        return 'Processing Video';
+      case 'done':
+        return 'Video Ready';
+      case 'error':
+        return 'Video Error';
+      default:
+        return 'Video Details';
+    }
+  };
+
+  const getVideoSubtitle = () => {
+    if (!video) return undefined;
+
+    const date = new Date(video.created_at).toLocaleDateString();
+    return `Created ${date}`;
+  };
+
   if (loading) {
     return (
       <SafeAreaView style={styles.container} edges={['top']}>
-        <VideoDetailHeader title="Video Details" />
+        <VideoHeader title="Video Details" />
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#007AFF" />
         </View>
@@ -148,14 +169,19 @@ export default function GeneratedVideoDetailScreen() {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      <VideoDetailHeader
-        title="Video Details"
-        onRefresh={handleRefresh}
+      <VideoHeader
+        title={getVideoTitle()}
+        subtitle={getVideoSubtitle()}
+        rightButton={{
+          icon: <RefreshCcw size={20} color="#fff" />,
+          onPress: handleRefresh,
+          loading: refreshing,
+        }}
         refreshing={refreshing}
       />
 
       <View style={styles.content}>
-        {video && (video as GeneratedVideoType).render_status === 'done' ? (
+        {video && video.render_status === 'done' ? (
           <VideoPlayer video={video} />
         ) : (
           renderThumbnail()
@@ -191,10 +217,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     overflow: 'hidden',
   },
-  thumbnail: {
-    width: '100%',
-    height: '100%',
-  },
   thumbnailOverlay: {
     position: 'absolute',
     width: '100%',
@@ -202,11 +224,13 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
     justifyContent: 'center',
     alignItems: 'center',
+    paddingHorizontal: 20,
   },
   processingText: {
     color: '#fff',
     fontSize: 16,
     fontWeight: 'bold',
     marginTop: 20,
+    textAlign: 'center',
   },
 });

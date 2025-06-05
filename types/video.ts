@@ -13,6 +13,19 @@ export interface VideoType {
   processing_status?: 'pending' | 'processing' | 'completed' | 'failed';
 }
 
+export interface GeneratedVideoType {
+  id: string;
+  type: 'generated';
+  created_at: string;
+  render_status: 'queued' | 'rendering' | 'done' | 'error';
+  render_url: string | null;
+  script: string;
+  title?: string;
+  description?: string;
+}
+
+export type AnyVideoType = VideoType | GeneratedVideoType;
+
 export interface CaptionConfiguration {
   presetId: string;
   placement: 'top' | 'bottom' | 'center';
@@ -65,6 +78,18 @@ export interface VideoGenerationError extends Error {
   context?: Record<string, any>;
   retryable: boolean;
   userMessage: string;
+}
+
+// Helper functions
+export function getVideoUrl(video: AnyVideoType): string | null {
+  if ('upload_url' in video) {
+    // Regular VideoType
+    return video.upload_url;
+  } else if ('render_url' in video) {
+    // GeneratedVideoType
+    return video.render_url;
+  }
+  return null;
 }
 
 // Type guards for runtime validation
