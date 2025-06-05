@@ -1,8 +1,10 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, ActivityIndicator, Alert } from 'react-native';
 import { router } from 'expo-router';
 import { supabase } from '@/lib/supabase';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { Save } from 'lucide-react-native';
+import SettingsHeader from '@/components/SettingsHeader';
 import EditorialProfileForm from '@/components/EditorialProfileForm';
 
 type EditorialProfile = {
@@ -114,15 +116,18 @@ export default function EditorialScreen() {
     router.back();
   };
 
+  // Check if profile has any changes from default
+  const hasChanges =
+    profile.persona_description !== '' ||
+    profile.tone_of_voice !== '' ||
+    profile.audience !== '' ||
+    profile.style_notes !== '';
+
   if (loading) {
     return (
-      <SafeAreaView
-        style={{ flex: 1, backgroundColor: '#000' }}
-        edges={['top']}
-      >
-        <View
-          style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}
-        >
+      <SafeAreaView style={styles.container} edges={['top']}>
+        <SettingsHeader title="Profil Éditorial" />
+        <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#007AFF" />
         </View>
       </SafeAreaView>
@@ -130,13 +135,34 @@ export default function EditorialScreen() {
   }
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: '#000' }} edges={['top']}>
+    <SafeAreaView style={styles.container} edges={['top']}>
+      <SettingsHeader
+        title="Profil Éditorial"
+        rightButton={{
+          icon: <Save size={20} color="#fff" />,
+          onPress: () => handleSave(profile),
+          disabled: !hasChanges || saving,
+          loading: saving,
+        }}
+      />
       <EditorialProfileForm
         profile={profile}
-        onSave={handleSave}
+        onSave={setProfile}
         onCancel={handleCancel}
         saving={saving}
       />
     </SafeAreaView>
   );
 }
+
+const styles = {
+  container: {
+    flex: 1,
+    backgroundColor: '#000',
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center' as const,
+    alignItems: 'center' as const,
+  },
+};

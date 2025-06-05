@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -22,6 +22,7 @@ import * as DocumentPicker from 'expo-document-picker';
 import { supabase } from '@/lib/supabase';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import SettingsHeader from '@/components/SettingsHeader';
 import { env } from '@/lib/config/env';
 
 type VoiceClone = {
@@ -264,9 +265,17 @@ export default function VoiceCloneScreen() {
     }
   };
 
+  const handleCancel = () => {
+    setIsCreating(false);
+    setName('');
+    setRecordings([]);
+    setError(null);
+  };
+
   if (isLoading) {
     return (
       <SafeAreaView style={styles.container} edges={['top']}>
+        <SettingsHeader title="Clone Vocal" />
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#007AFF" />
         </View>
@@ -277,9 +286,7 @@ export default function VoiceCloneScreen() {
   if (!isCreating && !existingVoice) {
     return (
       <SafeAreaView style={styles.container} edges={['top']}>
-        <View style={styles.header}>
-          <Text style={styles.title}>Clone Vocal</Text>
-        </View>
+        <SettingsHeader title="Clone Vocal" />
         <View style={styles.emptyStateContainer}>
           <View style={styles.emptyState}>
             <Text style={styles.emptyStateText}>Aucun clone vocal trouvé</Text>
@@ -302,9 +309,7 @@ export default function VoiceCloneScreen() {
   if (existingVoice && !isCreating) {
     return (
       <SafeAreaView style={styles.container} edges={['top']}>
-        <View style={styles.header}>
-          <Text style={styles.title}>Votre Clone Vocal</Text>
-        </View>
+        <SettingsHeader title="Votre Clone Vocal" />
         <View style={styles.voiceContainer}>
           <View style={styles.voiceHeader}>
             <View style={styles.voiceInfo}>
@@ -345,10 +350,19 @@ export default function VoiceCloneScreen() {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      <View style={styles.header}>
-        <Text style={styles.title}>Créer un Clone Vocal</Text>
-      </View>
-
+      <SettingsHeader
+        title="Créer un Clone Vocal"
+        rightButton={
+          name && recordings.length > 0
+            ? {
+                icon: <Send size={20} color="#fff" />,
+                onPress: handleSubmit,
+                disabled: isSubmitting,
+                loading: isSubmitting,
+              }
+            : undefined
+        }
+      />
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
@@ -420,41 +434,17 @@ export default function VoiceCloneScreen() {
               <Text style={styles.buttonText}>Importer</Text>
             </TouchableOpacity>
           </View>
+
+          {isCreating && (
+            <TouchableOpacity
+              style={styles.cancelButton}
+              onPress={handleCancel}
+            >
+              <Text style={styles.buttonText}>Annuler</Text>
+            </TouchableOpacity>
+          )}
         </View>
       </ScrollView>
-
-      <View style={styles.footer}>
-        <TouchableOpacity
-          style={styles.cancelButton}
-          onPress={() => {
-            setIsCreating(false);
-            setName('');
-            setRecordings([]);
-            setError(null);
-          }}
-        >
-          <Text style={styles.buttonText}>Annuler</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={[
-            styles.submitButton,
-            (isSubmitting || !name || recordings.length === 0) &&
-              styles.submitButtonDisabled,
-          ]}
-          onPress={handleSubmit}
-          disabled={isSubmitting || !name || recordings.length === 0}
-        >
-          {isSubmitting ? (
-            <ActivityIndicator color="#fff" />
-          ) : (
-            <>
-              <Send size={24} color="#fff" />
-              <Text style={styles.buttonText}>Créer le Clone Vocal</Text>
-            </>
-          )}
-        </TouchableOpacity>
-      </View>
     </SafeAreaView>
   );
 }
@@ -464,22 +454,10 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#000',
   },
-  header: {
-    paddingTop: 16,
-    paddingHorizontal: 20,
-    paddingBottom: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#333',
-  },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#fff',
   },
   emptyStateContainer: {
     flex: 1,
@@ -635,14 +613,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
   },
-  footer: {
-    padding: 16,
-    backgroundColor: '#1a1a1a',
-    borderTopWidth: 1,
-    borderTopColor: '#333',
-    flexDirection: 'row',
-    gap: 12,
-  },
   cancelButton: {
     backgroundColor: '#333',
     flex: 1,
@@ -650,18 +620,5 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     padding: 16,
     borderRadius: 12,
-  },
-  submitButton: {
-    backgroundColor: '#10b981',
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: 16,
-    gap: 8,
-    flex: 2,
-    borderRadius: 12,
-  },
-  submitButtonDisabled: {
-    opacity: 0.5,
   },
 });

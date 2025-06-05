@@ -23,6 +23,7 @@ export default function TabLayout() {
           name="source-videos"
           options={{
             title: 'Sources',
+            headerShown: false,
             tabBarIcon: ({ size, color }) => (
               <Upload size={size} color={color} />
             ),
@@ -48,6 +49,7 @@ export default function TabLayout() {
           name="settings"
           options={{
             title: 'Paramètres',
+            headerShown: false,
             tabBarIcon: ({ size, color }) => (
               <Settings size={size} color={color} />
             ),
