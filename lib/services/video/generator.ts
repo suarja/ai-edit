@@ -291,7 +291,6 @@ export class VideoGeneratorService {
           script_id: scriptId,
           selected_videos: selectedVideos.map((v) => v.id),
           render_status: 'queued',
-          caption_config: captionConfig || null,
           output_language: outputLanguage || null,
           created_at: new Date().toISOString(),
         })
@@ -406,9 +405,9 @@ export class VideoGeneratorService {
     try {
       console.log('🎨 Generating video template...');
 
-      // Get the video-creatomate-agent prompt from the prompt bank
-      const promptTemplate = PromptService.fillPromptTemplate(
-        'video-creatomate-agent',
+      // Get the enhanced video-creatomate-agent-v2 prompt from the prompt bank
+      let promptTemplate = PromptService.fillPromptTemplate(
+        'video-creatomate-agent-v2',
         {
           prompt: script,
           systemPrompt:
@@ -420,7 +419,28 @@ export class VideoGeneratorService {
       );
 
       if (!promptTemplate) {
-        console.warn('⚠️ Prompt template not found, using default template');
+        console.warn(
+          '⚠️ Enhanced prompt template not found, falling back to original prompt'
+        );
+        // Fallback to the original prompt if the enhanced one isn't available
+        const fallbackTemplate = PromptService.fillPromptTemplate(
+          'video-creatomate-agent',
+          {
+            prompt: script,
+            systemPrompt:
+              'Generate a compelling video with specified caption styles',
+            editorialProfile,
+            captionConfig: captionConfig || 'Default captions',
+            outputLanguage: outputLanguage || 'fr',
+          }
+        );
+
+        if (fallbackTemplate) {
+          console.log('✅ Using fallback prompt template');
+          promptTemplate = fallbackTemplate;
+        } else {
+          console.warn('⚠️ No prompt templates found, using default template');
+        }
       }
       console.log('🔍 Prompt template:', {
         promptTemplate: JSON.stringify(promptTemplate, null, 2),
@@ -430,19 +450,47 @@ export class VideoGeneratorService {
       const captionStructure = convertCaptionConfigToCreatomate(captionConfig);
 
       // Build the template with the agent
-      const template = await this.creatomateBuilder.buildJson({
-        script,
-        selectedVideos,
-        voiceId,
-        editorialProfile,
-        captionStructure,
-        agentPrompt: promptTemplate?.system,
-      });
+      console.log('🔍 Starting template generation with builder agent...');
 
-      console.log('✅ Template generated successfully', {
-        template: JSON.stringify(template, null, 2),
-      });
-      return template;
+      try {
+        const template = await this.creatomateBuilder.buildJson({
+          script,
+          selectedVideos,
+          voiceId,
+          editorialProfile,
+          captionStructure,
+          agentPrompt: promptTemplate?.system,
+        });
+
+        // Log template dimensions to verify
+        console.log(
+          `✅ Template generated successfully with dimensions: ${template.width}x${template.height}`
+        );
+        console.log('📐 Template root properties:', {
+          output_format: template.output_format,
+          width: template.width,
+          height: template.height,
+          elements_count: template.elements?.length || 0,
+        });
+
+        return template;
+      } catch (error) {
+        console.error('❌ Template generation error:', error);
+
+        // Add more detailed error for debugging
+        const errorMessage =
+          error instanceof Error
+            ? `${error.message}${error.stack ? `\nStack: ${error.stack}` : ''}`
+            : String(error);
+
+        throw VideoValidationService.createError(
+          `Template generation failed: ${errorMessage}`,
+          'TEMPLATE_GENERATION_ERROR',
+          { originalError: error },
+          true,
+          'Failed to generate video template. Please try again.'
+        );
+      }
     } catch (error) {
       throw VideoValidationService.createError(
         'Template generation failed',

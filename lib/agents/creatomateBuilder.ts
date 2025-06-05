@@ -218,7 +218,28 @@ Génère le JSON Creatomate pour cette vidéo, en utilisant EXACTEMENT les asset
       response_format: { type: 'json_object' },
     });
 
-    return JSON.parse(completion.choices[0].message.content || '{}');
+    // Parse the response
+    let template = JSON.parse(completion.choices[0].message.content || '{}');
+
+    // Log original dimensions before enforcement
+    console.log('Original template dimensions:', {
+      width: template.width || 'not specified',
+      height: template.height || 'not specified',
+      output_format: template.output_format || 'not specified',
+    });
+
+    // Ensure the template has the correct dimensions for vertical video
+    template = {
+      ...template,
+      output_format: template.output_format || 'mp4',
+      width: 1080, // Force correct width
+      height: 1920, // Force correct height
+    };
+
+    console.log(
+      'Template dimensions enforced: 1080x1920 (vertical format required for mobile viewing)'
+    );
+    return template;
   }
 
   /**
@@ -270,12 +291,16 @@ Génère le JSON Creatomate pour cette vidéo, en utilisant EXACTEMENT les asset
       !template.height ||
       !template.elements
     ) {
-      throw new Error('Invalid template: Missing required properties');
+      throw new Error(
+        'Invalid template: Missing required properties (output_format, width, height, or elements)'
+      );
     }
 
     // Validate dimensions for TikTok format
     if (template.width !== 1080 || template.height !== 1920) {
-      throw new Error('Invalid template: Must be 1080x1920 for vertical video');
+      throw new Error(
+        `Invalid template: Must be 1080x1920 for vertical video. Current dimensions: ${template.width}x${template.height}. Please ensure that the template explicitly specifies "width": 1080, "height": 1920 in the root object. Example correct format: {"output_format": "mp4", "width": 1080, "height": 1920, "elements": [...]}`
+      );
     }
 
     // Validate scenes
