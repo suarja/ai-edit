@@ -29,7 +29,9 @@ import {
   Bug,
   Play,
   Wand as Wand2,
+  Search,
 } from 'lucide-react-native';
+import AdminUsageControl from '@/components/AdminUsageControl';
 
 type UserProfile = {
   id: string;
@@ -53,7 +55,6 @@ export default function SettingsScreen() {
   const [success, setSuccess] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [notifications, setNotifications] = useState(true);
-  const [darkMode, setDarkMode] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
   const [profile, setProfile] = useState<UserProfile>({
     id: '',
