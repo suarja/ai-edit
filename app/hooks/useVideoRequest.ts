@@ -3,6 +3,7 @@ import { Alert } from 'react-native';
 import { router } from 'expo-router';
 import { supabase } from '@/lib/supabase';
 import { VideoType, CaptionConfiguration } from '@/types/video';
+import { CaptionConfigStorage } from '@/lib/utils/caption-config-storage';
 
 // Default voice ID
 const DEFAULT_VOICE_ID = 'NFcw9p0jKu3zbmXieNPE';
@@ -24,7 +25,6 @@ const DEFAULT_EDITORIAL_PROFILE = {
 const DEFAULT_CAPTION_CONFIG: CaptionConfiguration = {
   presetId: 'karaoke',
   placement: 'bottom',
-  lines: 3,
 };
 
 type VoiceClone = {
@@ -131,6 +131,16 @@ export default function useVideoRequest() {
           style_notes:
             profile.style_notes || DEFAULT_EDITORIAL_PROFILE.style_notes,
         });
+      }
+
+      // Load saved caption configuration
+      try {
+        const savedCaptionConfig = await CaptionConfigStorage.load(user.id);
+        if (savedCaptionConfig) {
+          setCaptionConfig(savedCaptionConfig);
+        }
+      } catch (error) {
+        console.warn('Failed to load saved caption config:', error);
       }
     } catch (err) {
       console.error('Error fetching initial data:', err);

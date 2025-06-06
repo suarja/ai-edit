@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Caption Configuration Preview</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
+          sans-serif;
+        background: #000;
+        color: #fff;
+        padding: 20px;
+      }
+
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+      }
+
+      .header {
+        text-align: center;
+        margin-bottom: 30px;
+      }
+
+      .header h1 {
+        font-size: 2rem;
+        margin-bottom: 10px;
+        color: #007aff;
+      }
+
+      .header p {
+        color: #888;
+        font-size: 1.1rem;
+      }
+
+      .controls {
+        background: #111;
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 30px;
+      }
+
+      .control-group {
+        margin-bottom: 20px;
+      }
+
+      .control-group label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 600;
+        color: #ccc;
+      }
+
+      .preset-buttons {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 20px;
+      }
+
+      .preset-btn {
+        padding: 12px 20px;
+        border: 2px solid #333;
+        background: #222;
+        color: #fff;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.2s;
+        font-weight: 600;
+      }
+
+      .preset-btn:hover {
+        border-color: #007aff;
+        background: #007aff20;
+      }
+
+      .preset-btn.active {
+        border-color: #007aff;
+        background: #007aff;
+        color: #fff;
+      }
+
+      .placement-buttons {
+        display: flex;
+        gap: 10px;
+      }
+
+      .placement-btn {
+        padding: 8px 16px;
+        border: 1px solid #333;
+        background: #222;
+        color: #fff;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: all 0.2s;
+      }
+
+      .placement-btn:hover {
+        border-color: #007aff;
+      }
+
+      .placement-btn.active {
+        border-color: #007aff;
+        background: #007aff;
+      }
+
+      .preview-container {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 30px;
+        margin-bottom: 30px;
+      }
+
+      .video-preview {
+        background: #111;
+        border-radius: 12px;
+        padding: 20px;
+      }
+
+      .video-preview h3 {
+        margin-bottom: 15px;
+        color: #007aff;
+      }
+
+      .video-frame {
+        width: 100%;
+        height: 400px;
+        background: linear-gradient(135deg, #333, #555);
+        border-radius: 8px;
+        position: relative;
+        overflow: hidden;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .video-frame::before {
+        content: '📹 Video Content';
+        color: #666;
+        font-size: 1.2rem;
+      }
+
+      .caption-overlay {
+        position: absolute;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 90%;
+        text-align: center;
+        padding: 8px 16px;
+        border-radius: 12px;
+        font-weight: 700;
+        font-size: 1.2rem;
+        line-height: 1.3;
+        font-family: 'Montserrat', -apple-system, sans-serif;
+      }
+
+      .caption-overlay.top {
+        top: 10%;
+      }
+
+      .caption-overlay.center {
+        top: 50%;
+        transform: translate(-50%, -50%);
+      }
+
+      .caption-overlay.bottom {
+        bottom: 10%;
+      }
+
+      .json-output {
+        background: #111;
+        border-radius: 12px;
+        padding: 20px;
+      }
+
+      .json-output h3 {
+        margin-bottom: 15px;
+        color: #007aff;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .copy-btn {
+        padding: 6px 12px;
+        background: #007aff;
+        color: #fff;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 0.9rem;
+        transition: background 0.2s;
+      }
+
+      .copy-btn:hover {
+        background: #0056b3;
+      }
+
+      .copy-btn.copied {
+        background: #28a745;
+      }
+
+      .json-content {
+        background: #000;
+        border: 1px solid #333;
+        border-radius: 8px;
+        padding: 15px;
+        font-family: 'Monaco', 'Menlo', monospace;
+        font-size: 0.9rem;
+        line-height: 1.4;
+        overflow-x: auto;
+        white-space: pre;
+        color: #e6e6e6;
+      }
+
+      .json-highlight {
+        color: #007aff;
+      }
+
+      .instructions {
+        background: #111;
+        border-radius: 12px;
+        padding: 20px;
+        margin-top: 30px;
+      }
+
+      .instructions h3 {
+        color: #007aff;
+        margin-bottom: 15px;
+      }
+
+      .instructions ol {
+        margin-left: 20px;
+        line-height: 1.6;
+      }
+
+      .instructions li {
+        margin-bottom: 8px;
+        color: #ccc;
+      }
+
+      @media (max-width: 768px) {
+        .preview-container {
+          grid-template-columns: 1fr;
+        }
+
+        .preset-buttons {
+          flex-direction: column;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <h1>Caption Configuration Preview</h1>
+        <p>Test and copy caption configurations for Creatomate</p>
+      </div>
+
+      <div class="controls">
+        <div class="control-group">
+          <label>Caption Style</label>
+          <div class="preset-buttons">
+            <button class="preset-btn active" data-preset="karaoke">
+              Karaoke
+            </button>
+            <button class="preset-btn" data-preset="beasty">Beasty</button>
+          </div>
+        </div>
+
+        <div class="control-group">
+          <label>Placement</label>
+          <div class="placement-buttons">
+            <button class="placement-btn" data-placement="top">Top</button>
+            <button class="placement-btn" data-placement="center">
+              Center
+            </button>
+            <button class="placement-btn active" data-placement="bottom">
+              Bottom
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="preview-container">
+        <div class="video-preview">
+          <h3>Video Preview</h3>
+          <div class="video-frame">
+            <div class="caption-overlay bottom" id="captionPreview">
+              <span class="highlight">TO </span>GET STARTED
+            </div>
+          </div>
+        </div>
+
+        <div class="json-output">
+          <h3>
+            Creatomate JSON
+            <button class="copy-btn" id="copyBtn">Copy JSON</button>
+          </h3>
+          <div class="json-content" id="jsonContent"></div>
+        </div>
+      </div>
+
+      <div class="instructions">
+        <h3>How to Use</h3>
+        <ol>
+          <li>Select a caption style (Karaoke or Beasty)</li>
+          <li>Choose the placement (Top, Center, or Bottom)</li>
+          <li>Preview how the captions will look in the video frame</li>
+          <li>Copy the JSON configuration using the "Copy JSON" button</li>
+          <li>Paste the JSON into Creatomate editor to test and refine</li>
+          <li>Adjust colors, fonts, or other properties as needed</li>
+        </ol>
+      </div>
+    </div>
+
+    <script>
+      // Video presets matching the app configuration
+      const VIDEO_PRESETS = {
+        karaoke: {
+          name: 'Karaoke',
+          id: 'karaoke',
+          font_family: 'Montserrat',
+          font_weight: '700',
+          font_size: '8 vmin',
+          fill_color: '#ffffff',
+          stroke_color: '#333333',
+          stroke_width: '1.05 vmin',
+          background_color: 'rgba(216,216,216,0)',
+          background_x_padding: '26%',
+          background_y_padding: '7%',
+          background_border_radius: '28%',
+          transcript_effect: 'karaoke',
+          transcript_placement: 'animate',
+          transcript_color: '#04f827',
+          transcript_maximum_length: 25,
+          width: '90%',
+          height: '100%',
+          placement: 'bottom',
+        },
+        beasty: {
+          name: 'Beasty',
+          id: 'beasty',
+          font_family: 'Montserrat',
+          font_weight: '700',
+          font_size: '8 vmin',
+          fill_color: '#ffffff',
+          stroke_color: '#333333',
+          stroke_width: '1.05 vmin',
+          background_color: 'rgba(216,216,216,0)',
+          background_x_padding: '26%',
+          background_y_padding: '7%',
+          background_border_radius: '28%',
+          transcript_effect: 'highlight',
+          transcript_placement: 'animate',
+          transcript_color: '#FFFD03',
+          transcript_maximum_length: 25,
+          width: '90%',
+          height: '100%',
+          placement: 'bottom',
+        },
+      };
+
+      let currentPreset = 'karaoke';
+      let currentPlacement = 'bottom';
+
+      function convertCaptionConfigToCreatomate(config) {
+        if (!config || !config.presetId) {
+          return {
+            elements: [
+              {
+                id: 'caption-1',
+                name: 'Subtitles-1',
+                type: 'text',
+                track: 2,
+                time: 0,
+                width: '90%',
+                height: '100%',
+                x_alignment: '50%',
+                y_alignment: '90%',
+                font_family: 'Montserrat',
+                font_weight: '700',
+                font_size: '8 vmin',
+                background_color: 'rgba(0,0,0,0.7)',
+                background_x_padding: '26%',
+                background_y_padding: '7%',
+                background_border_radius: '28%',
+                transcript_effect: 'karaoke',
+                transcript_placement: 'animate',
+                transcript_maximum_length: 25,
+                transcript_color: '#04f827',
+                fill_color: '#ffffff',
+                stroke_color: '#333333',
+                stroke_width: '1.05 vmin',
+              },
+            ],
+          };
+        }
+
+        const preset = VIDEO_PRESETS[config.presetId];
+        if (!preset) {
+          throw new Error(`Preset with ID ${config.presetId} not found`);
+        }
+
+        const placement = config.placement || preset.placement;
+
+        let y_alignment = '90%';
+        if (placement === 'top') {
+          y_alignment = '10%';
+        } else if (placement === 'center') {
+          y_alignment = '50%';
+        }
+
+        return {
+          elements: [
+            {
+              id: 'caption-1',
+              name: 'Subtitles-1',
+              type: 'text',
+              track: 2,
+              time: 0,
+              width: preset.width,
+              height: preset.height,
+              x_alignment: '50%',
+              y_alignment: y_alignment,
+              font_family: preset.font_family,
+              font_weight: preset.font_weight,
+              font_size: preset.font_size,
+              background_color: preset.background_color,
+              background_x_padding: preset.background_x_padding,
+              background_y_padding: preset.background_y_padding,
+              background_border_radius: preset.background_border_radius,
+              transcript_effect: preset.transcript_effect,
+              transcript_placement: preset.transcript_placement,
+              transcript_maximum_length: preset.transcript_maximum_length,
+              transcript_color: preset.transcript_color,
+              fill_color: preset.fill_color,
+              stroke_color: preset.stroke_color,
+              stroke_width: preset.stroke_width,
+            },
+          ],
+        };
+      }
+
+      function updatePreview() {
+        const preset = VIDEO_PRESETS[currentPreset];
+        const captionPreview = document.getElementById('captionPreview');
+
+        // Update caption preview styles
+        captionPreview.className = `caption-overlay ${currentPlacement}`;
+        captionPreview.style.fontFamily = preset.font_family;
+        captionPreview.style.fontWeight = preset.font_weight;
+        captionPreview.style.color = preset.fill_color;
+        captionPreview.style.backgroundColor = preset.background_color;
+        captionPreview.style.border = `${preset.stroke_width} solid ${preset.stroke_color}`;
+
+        // Update caption content based on effect
+        if (preset.transcript_effect === 'karaoke') {
+          captionPreview.innerHTML = `<span class="highlight" style="color: ${preset.transcript_color}">TO </span>GET STARTED`;
+        } else if (preset.transcript_effect === 'highlight') {
+          captionPreview.innerHTML = `CHOOSE A <span class="highlight" style="color: ${preset.transcript_color}">STYLE</span>`;
+        }
+
+        // Generate and display JSON
+        const config = {
+          presetId: currentPreset,
+          placement: currentPlacement,
+        };
+
+        const json = convertCaptionConfigToCreatomate(config);
+        const jsonContent = document.getElementById('jsonContent');
+        jsonContent.textContent = JSON.stringify(json, null, 2);
+      }
+
+      function setupEventListeners() {
+        // Preset buttons
+        document.querySelectorAll('.preset-btn').forEach((btn) => {
+          btn.addEventListener('click', (e) => {
+            document
+              .querySelectorAll('.preset-btn')
+              .forEach((b) => b.classList.remove('active'));
+            e.target.classList.add('active');
+            currentPreset = e.target.dataset.preset;
+            updatePreview();
+          });
+        });
+
+        // Placement buttons
+        document.querySelectorAll('.placement-btn').forEach((btn) => {
+          btn.addEventListener('click', (e) => {
+            document
+              .querySelectorAll('.placement-btn')
+              .forEach((b) => b.classList.remove('active'));
+            e.target.classList.add('active');
+            currentPlacement = e.target.dataset.placement;
+            updatePreview();
+          });
+        });
+
+        // Copy button
+        document
+          .getElementById('copyBtn')
+          .addEventListener('click', async () => {
+            const jsonContent =
+              document.getElementById('jsonContent').textContent;
+            const copyBtn = document.getElementById('copyBtn');
+
+            try {
+              await navigator.clipboard.writeText(jsonContent);
+              copyBtn.textContent = 'Copied!';
+              copyBtn.classList.add('copied');
+
+              setTimeout(() => {
+                copyBtn.textContent = 'Copy JSON';
+                copyBtn.classList.remove('copied');
+              }, 2000);
+            } catch (err) {
+              console.error('Failed to copy:', err);
+              // Fallback for older browsers
+              const textArea = document.createElement('textarea');
+              textArea.value = jsonContent;
+              document.body.appendChild(textArea);
+              textArea.select();
+              document.execCommand('copy');
+              document.body.removeChild(textArea);
+
+              copyBtn.textContent = 'Copied!';
+              copyBtn.classList.add('copied');
+
+              setTimeout(() => {
+                copyBtn.textContent = 'Copy JSON';
+                copyBtn.classList.remove('copied');
+              }, 2000);
+            }
+          });
+      }
+
+      // Initialize
+      document.addEventListener('DOMContentLoaded', () => {
+        setupEventListeners();
+        updatePreview();
+      });
+    </script>
+  </body>
+</html>

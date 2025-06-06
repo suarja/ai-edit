@@ -15,30 +15,28 @@ export function convertCaptionConfigToCreatomate(
       elements: [
         {
           id: 'caption-1',
-          name: 'Subtitle-2',
+          name: 'Subtitles-1',
           type: 'text',
           track: 2,
           time: 0,
-          duration: null,
-          x: '50%',
-          y: '90%',
-          width: '86.66%',
+          width: '90%',
           height: '100%',
+          x_alignment: '50%',
+          y_alignment: '90%',
           font_family: 'Montserrat',
           font_weight: '700',
-          font_size: '40px',
-          text_transform: 'uppercase',
-          fill_color: '#FFFFFF',
-          stroke_color: '#000000',
-          stroke_width: '8px',
-          shadow_color: '#000000',
-          shadow_blur: '2px',
-          shadow_x: '2px',
-          shadow_y: '2px',
+          font_size: '8 vmin',
+          background_color: 'rgba(0,0,0,0.7)',
+          background_x_padding: '26%',
+          background_y_padding: '7%',
+          background_border_radius: '28%',
           transcript_effect: 'karaoke',
-          transcript_placement: 'bottom',
-          transcript_maximum_length: 14,
-          highlight_color: '#04f827',
+          transcript_placement: 'animate',
+          transcript_maximum_length: 25,
+          transcript_color: '#04f827',
+          fill_color: '#ffffff',
+          stroke_color: '#333333',
+          stroke_width: '1.05 vmin',
         },
       ],
     };
@@ -53,42 +51,40 @@ export function convertCaptionConfigToCreatomate(
   // Use config values or fallback to preset values
   const placement = config.placement || preset.placement;
 
-  // Map placement to y position
-  let yPosition = '90%'; // Default bottom
+  // Map placement to y_alignment
+  let y_alignment = '90%'; // Default bottom
   if (placement === 'top') {
-    yPosition = '10%';
+    y_alignment = '10%';
   } else if (placement === 'center') {
-    yPosition = '50%';
+    y_alignment = '50%';
   }
 
   return {
     elements: [
       {
         id: 'caption-1',
-        name: 'Subtitle-2',
+        name: 'Subtitles-1',
         type: 'text',
         track: 2,
         time: 0,
-        duration: null,
-        x: '50%',
-        y: yPosition,
-        width: '86.66%',
-        height: '100%',
-        font_family: preset.fontFamily,
-        font_weight: preset.fontWeight === 'bold' ? '700' : '400',
-        font_size: `${preset.fontSize}px`,
-        text_transform: preset.uppercase ? 'uppercase' : 'none',
-        fill_color: preset.fontColor,
-        stroke_color: preset.strokeColor,
-        stroke_width: `${preset.strokeWidth}px`,
-        shadow_color: preset.shadowColor,
-        shadow_blur: `${preset.shadowBlur}px`,
-        shadow_x: `${preset.shadowOffsetX}px`,
-        shadow_y: `${preset.shadowOffsetY}px`,
-        transcript_effect: preset.effect,
-        transcript_placement: 'animate',
-        transcript_maximum_length: preset.maxWordsPerLine,
-        highlight_color: preset.highlightColor,
+        width: preset.width,
+        height: preset.height,
+        x_alignment: '50%',
+        y_alignment: y_alignment,
+        font_family: preset.font_family,
+        font_weight: preset.font_weight,
+        font_size: preset.font_size,
+        background_color: preset.background_color,
+        background_x_padding: preset.background_x_padding,
+        background_y_padding: preset.background_y_padding,
+        background_border_radius: preset.background_border_radius,
+        transcript_effect: preset.transcript_effect,
+        transcript_placement: preset.transcript_placement,
+        transcript_maximum_length: preset.transcript_maximum_length,
+        transcript_color: preset.transcript_color,
+        fill_color: preset.fill_color,
+        stroke_color: preset.stroke_color,
+        stroke_width: preset.stroke_width,
       },
     ],
   };

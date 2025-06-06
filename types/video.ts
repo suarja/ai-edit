@@ -28,15 +28,7 @@ export type AnyVideoType = VideoType | GeneratedVideoType;
 
 export interface CaptionConfiguration {
   presetId: string;
-  placement: 'top' | 'bottom' | 'center';
-  fontFamily?: string;
-  fontSize?: number;
-  fontColor?: string;
-  backgroundColor?: string;
-  animation?: string;
-  effect?: string;
-  highlightColor?: string;
-  maxWordsPerLine?: number;
+  placement?: 'top' | 'bottom' | 'center';
 }
 
 // Enhanced types for better validation

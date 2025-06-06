@@ -370,9 +370,7 @@ export class VideoGeneratorService {
           updated_at: video.updated_at || new Date().toISOString(),
         }))
       );
-      console.log(`✅ Validated ${validatedVideos.length} videos`, {
-        validatedVideos,
-      });
+      console.log(`✅ Validated ${validatedVideos.length} videos`);
 
       return validatedVideos;
     } catch (error) {
@@ -418,37 +416,15 @@ export class VideoGeneratorService {
         }
       );
 
-      if (!promptTemplate) {
-        console.warn(
-          '⚠️ Enhanced prompt template not found, falling back to original prompt'
-        );
-        // Fallback to the original prompt if the enhanced one isn't available
-        const fallbackTemplate = PromptService.fillPromptTemplate(
-          'video-creatomate-agent',
-          {
-            prompt: script,
-            systemPrompt:
-              'Generate a compelling video with specified caption styles',
-            editorialProfile,
-            captionConfig: captionConfig || 'Default captions',
-            outputLanguage: outputLanguage || 'fr',
-          }
-        );
-
-        if (fallbackTemplate) {
-          console.log('✅ Using fallback prompt template');
-          promptTemplate = fallbackTemplate;
-        } else {
-          console.warn('⚠️ No prompt templates found, using default template');
-        }
-      }
       console.log('🔍 Prompt template:', {
         promptTemplate: JSON.stringify(promptTemplate, null, 2),
       });
 
       // Convert caption configuration to Creatomate format
       const captionStructure = convertCaptionConfigToCreatomate(captionConfig);
-
+      console.log('🔍 Caption structure:', {
+        captionStructure: JSON.stringify(captionStructure, null, 2),
+      });
       // Build the template with the agent
       console.log('🔍 Starting template generation with builder agent...');
 
@@ -473,6 +449,9 @@ export class VideoGeneratorService {
           elements_count: template.elements?.length || 0,
         });
 
+        console.log('🔍 Template:', {
+          template: JSON.stringify(template, null, 2),
+        });
         return template;
       } catch (error) {
         console.error('❌ Template generation error:', error);

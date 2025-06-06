@@ -39,7 +39,7 @@ export default function VideoSettingsScreen() {
 
       // Load from device storage using utility
       const config = await CaptionConfigStorage.load(user.id);
-      setCaptionConfig(config);
+      setCaptionConfig(config || CaptionConfigStorage.getDefault());
     } catch (err) {
       console.error('Error loading caption config:', err);
       Alert.alert('Erreur', 'Échec du chargement de la configuration');

@@ -110,23 +110,24 @@ const VideoSettingsSection: React.FC<VideoSettingsSectionProps> = ({
                 style={[
                   styles.previewText,
                   {
-                    fontFamily: preset.fontFamily || 'System',
+                    fontFamily: preset.font_family || 'System',
                     fontSize: 16,
-                    fontWeight: preset.fontWeight === 'bold' ? '700' : '400',
-                    color: preset.fontColor,
-                    textTransform: preset.uppercase ? 'uppercase' : 'none',
+                    fontWeight: (preset.font_weight || '400') as any,
+                    color: preset.fill_color,
                   },
                 ]}
               >
-                {preset.effect === 'karaoke' ? (
+                {preset.transcript_effect === 'karaoke' ? (
                   <Text>
-                    <Text style={{ color: preset.highlightColor }}>TO </Text>
+                    <Text style={{ color: preset.transcript_color }}>TO </Text>
                     <Text>GET STARTED</Text>
                   </Text>
-                ) : preset.effect === 'highlight' ? (
+                ) : preset.transcript_effect === 'highlight' ? (
                   <Text>
                     CHOOSE A{' '}
-                    <Text style={{ color: preset.highlightColor }}>STYLE</Text>
+                    <Text style={{ color: preset.transcript_color }}>
+                      STYLE
+                    </Text>
                   </Text>
                 ) : (
                   'CAPTION STYLE'

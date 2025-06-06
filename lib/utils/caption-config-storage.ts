@@ -66,7 +66,6 @@ export class CaptionConfigStorage {
     return {
       presetId: 'karaoke', // Default preset
       placement: 'bottom',
-      lines: 3,
     };
   }
 }
