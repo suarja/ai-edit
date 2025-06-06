@@ -32,7 +32,21 @@ type VideoRequest = {
   script?: {
     id: string;
     raw_prompt: string;
+    generated_script: string;
+    output_language: string;
   };
+};
+
+// Transform VideoRequest to match expected VideoCard format
+type DisplayVideo = {
+  id: string;
+  title: string;
+  description?: string;
+  created_at: string;
+  render_status: 'queued' | 'rendering' | 'done' | 'error';
+  render_url: string | null;
+  tags?: string[];
+  script_id: string;
 };
 
 export default function GeneratedVideosScreen() {
@@ -62,7 +76,12 @@ export default function GeneratedVideosScreen() {
           render_url,
           render_id,
           created_at,
-         script_id
+          script:scripts!inner(
+            id,
+            raw_prompt,
+            generated_script,
+            output_language
+          )
         `
         )
         .eq('user_id', user.id)
@@ -114,6 +133,42 @@ export default function GeneratedVideosScreen() {
     } catch (err) {
       console.error('Error checking video status:', err);
     }
+  };
+
+  // Transform video requests to display format
+  const transformVideoForDisplay = (video: VideoRequest): DisplayVideo => {
+    const prompt = video.script?.raw_prompt || 'Vidéo sans titre';
+
+    // Create a title from the prompt (first 50 characters)
+    const title = prompt.length > 50 ? `${prompt.slice(0, 50)}...` : prompt;
+
+    // Create a description with status and language info
+    const statusMap: Record<string, string> = {
+      queued: "En file d'attente",
+      rendering: 'En cours de génération',
+      done: 'Prêt',
+      error: 'Erreur',
+    };
+    const statusText = statusMap[video.render_status] || video.render_status;
+
+    const description = `${statusText}${
+      video.script?.output_language
+        ? ` • ${video.script.output_language.toUpperCase()}`
+        : ''
+    }`;
+
+    return {
+      id: video.id,
+      title,
+      description,
+      created_at: video.created_at,
+      render_status: video.render_status,
+      render_url: video.render_url,
+      script_id: video.script_id,
+      tags: video.script?.output_language
+        ? [video.script.output_language]
+        : undefined,
+    };
   };
 
   useEffect(() => {
@@ -280,7 +335,7 @@ export default function GeneratedVideosScreen() {
           }
           renderItem={({ item }) => (
             <GeneratedVideoCard
-              video={item}
+              video={transformVideoForDisplay(item)}
               onPress={() => handleVideoPress(item.id)}
               onDownload={() => handleDownload(item)}
               onMoreOptions={() => handleMoreOptions(item)}

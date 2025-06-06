@@ -140,3 +140,88 @@ Improve the prompt enhancement feature to better align with video generation req
 - Move to REFLECT mode for task completion analysis
 - Document learnings and improvements for future similar tasks
 - Archive task documentation with full implementation details
+
+## Additional Issue Resolved: Missing Video Titles and Descriptions
+
+### Problem Identified ✅
+
+In the generated videos pages (`app/(tabs)/videos.tsx` and `app/(tabs)/videos/[id].tsx`), videos were displaying as "Vidéo sans titre" (Untitled Video) with no description because:
+
+1. **Missing Data**: The `video_requests` table only stored `script_id`, `render_status`, `render_url`, etc., but no `title` or `description` fields
+2. **UI Expectations**: Components like `VideoCard.tsx` and `GeneratedVideoCard.tsx` expected `title` and `description` properties that weren't available
+3. **Data Relationship**: The connection between video requests and scripts wasn't being utilized to show meaningful information
+
+### Solution Implemented ✅
+
+**Approach Chosen**: Modify UI to use existing data (rather than complex pipeline refactoring)
+
+#### Key Changes:
+
+1. **Enhanced Data Fetching**: Modified video fetching to include script information using Supabase joins:
+
+   ```sql
+   script:scripts!inner(
+     id,
+     raw_prompt,
+     generated_script,
+     output_language
+   )
+   ```
+
+2. **Data Transformation**: Created `transformVideoForDisplay()` function that:
+
+   - Uses `script.raw_prompt` as the video title (truncated to 50 chars)
+   - Creates description from status + language info
+   - Generates tags from output language
+
+3. **Updated Components**:
+   - **`app/(tabs)/videos.tsx`**: Now fetches and displays script-based titles and descriptions
+   - **`app/(tabs)/videos/[id].tsx`**: Enhanced with script information and French localization
+   - **`components/GeneratedVideoCard.tsx`**: Updated to handle both old and new data formats
+
+#### Video Display Results:
+
+- **Title**: Shows actual user prompt (e.g., "Créer une vidéo sur les conseils de productivité...")
+- **Description**: Shows status + language (e.g., "Prêt • FR", "En cours de génération • EN")
+- **Processing View**: Shows prompt preview during video generation
+- **Localization**: Full French text throughout the interface
+
+#### Data Structure:
+
+```typescript
+// Before: Limited data
+{
+  id, script_id, render_status, render_url, created_at;
+}
+
+// After: Rich display data
+{
+  id,
+    title,
+    description,
+    render_status,
+    render_url,
+    created_at,
+    prompt,
+    script_content,
+    output_language;
+}
+```
+
+### Technical Implementation ✅
+
+- **Database Queries**: Enhanced with proper Supabase joins to fetch script data
+- **Type Safety**: Added new `DisplayVideo` and `EnhancedGeneratedVideoType` types
+- **Backward Compatibility**: `GeneratedVideoCard` supports both old and new data formats
+- **Error Handling**: Proper fallbacks for missing script data
+- **Performance**: Single query fetches all needed data without N+1 problems
+
+### User Experience Improvements ✅
+
+- Videos now show meaningful titles instead of "Untitled Video"
+- Status and language information clearly displayed
+- Processing videos show prompt preview for context
+- Consistent French localization throughout
+- Better visual hierarchy with status-based styling
+
+This solution provides rich video information without requiring complex database schema changes or pipeline modifications. Users can now easily identify their videos and understand their generation status.

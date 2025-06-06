@@ -17,6 +17,7 @@ import {
   Loader,
 } from 'lucide-react-native';
 
+// Support both old VideoRequest and new DisplayVideo formats
 type VideoRequest = {
   id: string;
   script_id: string;
@@ -30,8 +31,19 @@ type VideoRequest = {
   };
 };
 
+type DisplayVideo = {
+  id: string;
+  title: string;
+  description?: string;
+  created_at: string;
+  render_status: 'queued' | 'rendering' | 'done' | 'error';
+  render_url: string | null;
+  tags?: string[];
+  script_id: string;
+};
+
 type GeneratedVideoCardProps = {
-  video: VideoRequest;
+  video: VideoRequest | DisplayVideo;
   onPress: () => void;
   onDownload?: () => void;
   onMoreOptions?: () => void;
@@ -108,15 +120,35 @@ export default function GeneratedVideoCard({
     }
   };
 
-  const truncatePrompt = (
-    prompt: string | undefined,
-    maxLength: number = 120
-  ) => {
-    if (!prompt) return 'Vidéo sans description';
-    return prompt.length > maxLength
-      ? prompt.substring(0, maxLength) + '...'
-      : prompt;
+  // Helper to get the title/prompt text
+  const getVideoTitle = () => {
+    // Check if it's DisplayVideo format (has title property)
+    if ('title' in video) {
+      return video.title;
+    }
+    // Otherwise it's VideoRequest format (has script.raw_prompt)
+    return video.script?.raw_prompt || 'Vidéo sans description';
   };
+
+  // Helper to get the description text
+  const getVideoDescription = () => {
+    // Check if it's DisplayVideo format (has description property)
+    if ('description' in video) {
+      return video.description || statusConfig.description;
+    }
+    // Otherwise use status description
+    return statusConfig.description;
+  };
+
+  const truncateText = (text: string, maxLength: number = 120) => {
+    if (!text) return 'Vidéo sans description';
+    return text.length > maxLength
+      ? text.substring(0, maxLength) + '...'
+      : text;
+  };
+
+  const videoTitle = getVideoTitle();
+  const videoDescription = getVideoDescription();
 
   return (
     <TouchableOpacity
@@ -165,15 +197,13 @@ export default function GeneratedVideoCard({
             </TouchableOpacity>
           </View>
 
-          <Text style={styles.statusDescription}>
-            {statusConfig.description}
-          </Text>
+          <Text style={styles.statusDescription}>{videoDescription}</Text>
         </View>
       </View>
 
       <View style={styles.content}>
         <Text style={styles.prompt} numberOfLines={3}>
-          {truncatePrompt(video.script?.raw_prompt)}
+          {truncateText(videoTitle)}
         </Text>
 
         <View style={styles.metadata}>

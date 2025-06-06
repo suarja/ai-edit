@@ -11,11 +11,20 @@ import VideoDetails from '@/components/VideoDetails';
 import VideoActionButtons from '@/components/VideoActionButtons';
 import { env } from '@/lib/config/env';
 
+// Extended type to include script information
+type EnhancedGeneratedVideoType = GeneratedVideoType & {
+  title?: string;
+  description?: string;
+  prompt?: string;
+  script_content?: string;
+  output_language?: string;
+};
+
 export default function GeneratedVideoDetailScreen() {
   const { id } = useLocalSearchParams();
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [video, setVideo] = useState<GeneratedVideoType | null>(null);
+  const [video, setVideo] = useState<EnhancedGeneratedVideoType | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -26,7 +35,8 @@ export default function GeneratedVideoDetailScreen() {
     try {
       setError(null);
       console.log('fetching video details', id);
-      // Get video request details
+
+      // Get video request details with script information
       const { data: videoRequest, error: videoError } = await supabase
         .from('video_requests')
         .select(
@@ -35,7 +45,13 @@ export default function GeneratedVideoDetailScreen() {
           render_status,
           render_url,
           created_at,
-          script_id
+          script_id,
+          script:scripts!inner(
+            id,
+            raw_prompt,
+            generated_script,
+            output_language
+          )
           `
         )
         .eq('id', id)
@@ -43,14 +59,45 @@ export default function GeneratedVideoDetailScreen() {
 
       if (videoError) throw videoError;
 
-      // Format the video to match our GeneratedVideoType
-      const formattedVideo: GeneratedVideoType = {
+      // Extract script information
+      const script = videoRequest.script;
+      const prompt = script?.raw_prompt || '';
+
+      // Create title from prompt (first 60 characters for details page)
+      const title =
+        prompt.length > 60
+          ? `${prompt.slice(0, 60)}...`
+          : prompt || 'Vidéo sans titre';
+
+      // Create description with status and language
+      const statusMap: Record<string, string> = {
+        queued: "En file d'attente",
+        rendering: 'En cours de génération',
+        done: 'Vidéo prête',
+        error: 'Erreur de génération',
+      };
+      const statusText =
+        statusMap[videoRequest.render_status] || videoRequest.render_status;
+
+      const description = `${statusText}${
+        script?.output_language
+          ? ` • Langue: ${script.output_language.toUpperCase()}`
+          : ''
+      }`;
+
+      // Format the video to match our GeneratedVideoType with enhancements
+      const formattedVideo: EnhancedGeneratedVideoType = {
         id: videoRequest.id,
         type: 'generated',
         created_at: videoRequest.created_at,
         render_status: videoRequest.render_status,
         render_url: videoRequest.render_url,
         script: videoRequest.script_id,
+        title,
+        description,
+        prompt: script?.raw_prompt,
+        script_content: script?.generated_script,
+        output_language: script?.output_language,
       };
 
       // Set the video details
@@ -89,10 +136,28 @@ export default function GeneratedVideoDetailScreen() {
       ) {
         setVideo((prev) => {
           if (!prev) return null;
+
+          // Update status description when status changes
+          const statusMap: Record<string, string> = {
+            queued: "En file d'attente",
+            rendering: 'En cours de génération',
+            done: 'Vidéo prête',
+            error: 'Erreur de génération',
+          };
+          const statusText =
+            statusMap[data.render_status] || data.render_status;
+
+          const description = `${statusText}${
+            prev.output_language
+              ? ` • Langue: ${prev.output_language.toUpperCase()}`
+              : ''
+          }`;
+
           return {
             ...prev,
             render_status: data.render_status,
             render_url: data.render_url,
+            description,
           };
         });
       }
@@ -125,8 +190,18 @@ export default function GeneratedVideoDetailScreen() {
           <View style={styles.thumbnailOverlay}>
             <ActivityIndicator size="large" color="#007AFF" />
             <Text style={styles.processingText}>
-              Your video is being processed. This may take a few minutes.
+              Votre vidéo est en cours de traitement. Cela peut prendre quelques
+              minutes.
             </Text>
+            {video.prompt && (
+              <Text style={styles.promptText}>
+                "
+                {video.prompt.length > 80
+                  ? `${video.prompt.slice(0, 80)}...`
+                  : video.prompt}
+                "
+              </Text>
+            )}
           </View>
         </View>
       );
@@ -135,31 +210,26 @@ export default function GeneratedVideoDetailScreen() {
   };
 
   const getVideoTitle = () => {
-    if (!video) return 'Video Details';
+    if (!video) return 'Détails de la vidéo';
 
-    switch (video.render_status) {
-      case 'rendering':
-        return 'Processing Video';
-      case 'done':
-        return 'Video Ready';
-      case 'error':
-        return 'Video Error';
-      default:
-        return 'Video Details';
-    }
+    // Use the actual title generated from prompt
+    return video.title || 'Détails de la vidéo';
   };
 
   const getVideoSubtitle = () => {
     if (!video) return undefined;
 
-    const date = new Date(video.created_at).toLocaleDateString();
-    return `Created ${date}`;
+    const date = new Date(video.created_at).toLocaleDateString('fr-FR');
+    const language = video.output_language
+      ? ` • ${video.output_language.toUpperCase()}`
+      : '';
+    return `Créée le ${date}${language}`;
   };
 
   if (loading) {
     return (
       <SafeAreaView style={styles.container} edges={['top']}>
-        <VideoHeader title="Video Details" />
+        <VideoHeader title="Détails de la vidéo" />
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#007AFF" />
         </View>
@@ -232,5 +302,12 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginTop: 20,
     textAlign: 'center',
+  },
+  promptText: {
+    color: '#888',
+    fontSize: 14,
+    marginTop: 12,
+    textAlign: 'center',
+    fontStyle: 'italic',
   },
 });
