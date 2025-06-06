@@ -7,8 +7,44 @@ export class ScriptGenerator {
   private static instance: ScriptGenerator;
 
   private constructor(model: string) {
-    this.openai = createOpenAIClient();
     this.model = model;
+    this.openai = createOpenAIClient();
+  }
+
+  // Add network retry helper method
+  private async withNetworkRetry<T>(
+    operation: () => Promise<T>,
+    maxRetries: number = 3,
+    baseDelay: number = 1000
+  ): Promise<T> {
+    let lastError: any;
+
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        return await operation();
+      } catch (error: any) {
+        lastError = error;
+
+        const isRetryable =
+          error?.code === 'ENOTFOUND' ||
+          error?.code === 'ECONNREFUSED' ||
+          error?.code === 'ETIMEDOUT' ||
+          error?.code === 'ECONNRESET' ||
+          error?.status >= 500;
+
+        if (attempt === maxRetries || !isRetryable) {
+          throw error;
+        }
+
+        const delay = baseDelay * Math.pow(2, attempt - 1); // Exponential backoff
+        console.log(
+          `Script generation attempt ${attempt} failed, retrying in ${delay}ms...`
+        );
+        await new Promise((resolve) => setTimeout(resolve, delay));
+      }
+    }
+
+    throw lastError;
   }
 
   public static getInstance(model: string): ScriptGenerator {
@@ -23,15 +59,16 @@ export class ScriptGenerator {
     editorialProfile: any,
     systemPrompt: string
   ): Promise<string> {
-    try {
-      console.log('Generating script with profile:', editorialProfile);
+    return this.withNetworkRetry(async () => {
+      try {
+        console.log('Generating script with profile:', editorialProfile);
 
-      const completion = await this.openai.chat.completions.create({
-        model: this.model,
-        messages: [
-          {
-            role: 'system',
-            content: `You are a creative script-writing agent specialized in short-form video content for platforms like TikTok.
+        const completion = await this.openai.chat.completions.create({
+          model: this.model,
+          messages: [
+            {
+              role: 'system',
+              content: `You are a creative script-writing agent specialized in short-form video content for platforms like TikTok.
 
 Your task is to generate spoken-style scripts optimized for AI voice synthesis (ElevenLabs) that will be layered over silent videos.
 
@@ -72,42 +109,90 @@ AVOID:
 - Nested clauses or parentheticals
 
 Return only the final script without any additional context or formatting.`,
+            },
+            {
+              role: 'user',
+              content: `
+              System Prompt from the user:
+              ${systemPrompt}
+
+              User Prompt:
+              ${prompt}
+              `,
+            },
+          ],
+        });
+
+        const script = completion.choices[0].message.content;
+        if (!script) {
+          throw new Error('Failed to generate script: Empty response');
+        }
+
+        // Validate script length
+        const wordCount = script.split(/\s+/).length;
+        const estimatedDuration = wordCount * 0.4; // Rough estimate: 0.4 seconds per word
+
+        if (estimatedDuration < 30 || estimatedDuration > 60) {
+          console.warn(
+            `Script duration warning: Estimated ${estimatedDuration.toFixed(
+              1
+            )} seconds`
+          );
+        }
+
+        return script;
+      } catch (error: any) {
+        console.error('Error generating script:', error);
+
+        // Enhanced error reporting for debugging production issues
+        const errorInfo = {
+          name: error?.name,
+          message: error?.message,
+          code: error?.code,
+          status: error?.status,
+          response: error?.response?.data,
+          headers: error?.response?.headers,
+          config: {
+            url: error?.config?.url,
+            method: error?.config?.method,
+            timeout: error?.config?.timeout,
           },
-          {
-            role: 'user',
-            content: `
-            System Prompt from the user:
-            ${systemPrompt}
+        };
 
-            User Prompt:
-            ${prompt}
-            `,
-          },
-        ],
-      });
+        console.error(
+          'Detailed script generation error:',
+          JSON.stringify(errorInfo, null, 2)
+        );
 
-      const script = completion.choices[0].message.content;
-      if (!script) {
-        throw new Error('Failed to generate script: Empty response');
-      }
+        // Provide specific error messages based on error type
+        if (error?.code === 'ENOTFOUND' || error?.code === 'ECONNREFUSED') {
+          throw new Error(
+            'Network connection failed: Unable to reach OpenAI API. Check network connectivity.'
+          );
+        } else if (
+          error?.code === 'ETIMEDOUT' ||
+          error?.message?.includes('timeout')
+        ) {
+          throw new Error(
+            'Request timeout: OpenAI API request took too long to respond.'
+          );
+        } else if (error?.status === 429) {
+          throw new Error(
+            'Rate limit exceeded: Too many requests to OpenAI API.'
+          );
+        } else if (error?.status >= 500) {
+          throw new Error(
+            'OpenAI service unavailable: API is experiencing server issues.'
+          );
+        } else if (error?.status === 401) {
+          throw new Error('Authentication failed: Invalid OpenAI API key.');
+        }
 
-      // Validate script length
-      const wordCount = script.split(/\s+/).length;
-      const estimatedDuration = wordCount * 0.4; // Rough estimate: 0.4 seconds per word
-
-      if (estimatedDuration < 30 || estimatedDuration > 60) {
-        console.warn(
-          `Script duration warning: Estimated ${estimatedDuration.toFixed(
-            1
-          )} seconds`
+        throw new Error(
+          `Script generation failed: ${error?.message || 'Unknown error'}`
         );
       }
-
-      return script;
-    } catch (error) {
-      console.error('Error generating script:', error);
-      throw new Error(`Failed to generate script: ${error.message}`);
-    }
+    });
   }
 
   async review(script: string, editorialProfile: any): Promise<string> {
@@ -203,9 +288,11 @@ Editorial Profile:
       }
 
       return reviewedScript;
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error reviewing script:', error);
-      throw new Error(`Failed to review script: ${error.message}`);
+      throw new Error(
+        `Failed to review script: ${error?.message || 'Unknown error'}`
+      );
     }
   }
 }
