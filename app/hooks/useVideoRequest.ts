@@ -216,6 +216,18 @@ export default function useVideoRequest() {
     return true;
   };
 
+  const handleReset = () => {
+    setPrompt('');
+    setSystemPrompt('');
+    setSelectedVideos([]);
+    setShowAdvanced(false);
+    setError(null);
+    setUseEditorialProfile(true);
+    setCustomEditorialProfile(DEFAULT_EDITORIAL_PROFILE);
+    setCaptionConfig(DEFAULT_CAPTION_CONFIG);
+    setOutputLanguage(DEFAULT_LANGUAGE);
+  };
+
   const handleSubmit = async () => {
     if (!validateRequest()) return;
 
@@ -280,11 +292,8 @@ export default function useVideoRequest() {
         ]
       );
 
-      // Reset form
-      setPrompt('');
-      setSystemPrompt('');
-      setSelectedVideos([]);
-      setShowAdvanced(false);
+      // Reset form after successful submission
+      handleReset();
     } catch (err) {
       console.error('Error submitting request:', err);
       setError(err instanceof Error ? err.message : 'Failed to submit request');
@@ -319,6 +328,7 @@ export default function useVideoRequest() {
     toggleVideoSelection,
     onRefresh,
     handleSubmit,
+    handleReset,
     setCaptionConfig,
     setUseEditorialProfile,
     setCustomEditorialProfile,

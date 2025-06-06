@@ -88,6 +88,7 @@ export default function RequestVideoScreen() {
           systemPrompt={videoRequest.systemPrompt}
           onPromptChange={videoRequest.setPrompt}
           onSystemPromptChange={videoRequest.setSystemPrompt}
+          onReset={videoRequest.handleReset}
           title="Description de la Vidéo"
           description="Décrivez le type de contenu que vous souhaitez créer"
           placeholder="Ex: Créez une vidéo explicative sur les meilleures pratiques de productivité, en utilisant un ton professionnel mais accessible..."

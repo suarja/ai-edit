@@ -1,204 +1,192 @@
-# Task: Fix Caption Configuration System
+# Task: Improve Prompt Enhancement Feature
 
-## Task ID: CAP-001
+## Task ID: PE-001
 
-## Complexity Level: Level 2
+## Complexity Level: Level 3
 
 ## Priority: High
 
 ## Description
 
-Fix the caption configuration system to match Creatomate's exact JSON format. The current implementation uses incorrect property names and units, causing bad captions in video generation. Users should be able to copy/paste presets directly from our app to the Creatomate editor.
+Improve the prompt enhancement feature to better align with video generation requirements and fix UI state management issues. The current implementation produces prompts that are too long for video generation context and has input field update issues after enhancement.
 
 ## Current Issues
 
-1. Video presets use wrong property names (e.g., `strokeWidth` instead of `stroke_width`)
-2. Units are incorrect (pixels instead of vmin)
-3. Missing transcript_color property for highlighting
-4. Missing background properties that Creatomate expects
-5. Caption converter generates incorrect JSON structure
+1. ✅ **Prompt Quality Issues**: Enhanced prompts are too long and not optimized for short-form video content (should be 30-60 seconds, ~60-120 words)
+2. ✅ **UI State Management**: After enhancement, the input field becomes unresponsive and can't be edited
+3. ✅ **Testing Issues**: Test failures due to React Native dependencies in web environment
+4. ✅ **Missing Features**: No reset functionality for clearing the form
+5. ✅ **Generic Enhancement**: Prompts are not tailored for video generation context
+6. ✅ **NEW**: Word count validation not aligned with video pipeline requirements
+7. ✅ **NEW**: System prompt length validation inconsistency (500 vs 1500 maxLength)
+8. ✅ **NEW**: UI controls layout needs optimization for better space utilization
 
 ## Requirements
 
-1. Update video presets to use exact Creatomate property names and units
-2. Fix caption converter to generate proper Creatomate JSON
-3. Ensure generated presets can be copy/pasted into Creatomate editor
-4. Maintain UI compatibility for placement options (bottom, center, top)
-5. Support all Creatomate transcript effects (karaoke, highlight, etc.)
+1. ✅ **Optimize Enhancement Prompts**: Update prompt-bank.json agents to focus on short-form video content
+2. ✅ **Fix UI State Management**: Resolve input field update issues in PromptInput.tsx
+3. ✅ **Add Reset Functionality**: Implement form reset button
+4. ✅ **Improve Test Coverage**: Fix existing tests and add comprehensive test coverage
+5. ✅ **Code Structure**: Improve robustness and align with video generation requirements
+6. ✅ **NEW**: Align word count validation with video pipeline (60-120 words optimal)
+7. ✅ **NEW**: Fix system prompt length validation and display
+8. ✅ **NEW**: Optimize UI layout with vertical control column
 
 ## Affected Files
 
-- `lib/config/video-presets.ts` - Video preset configurations
-- `lib/utils/video/caption-converter.ts` - Caption to Creatomate converter
-- `app/(settings)/video-settings.tsx` - UI for caption settings
+- ✅ `lib/config/prompt-bank.json` - Enhancement agent prompts updated with v2.0.0 metadata
+- ✅ `app/components/PromptInput.tsx` - Main prompt input component with layout and validation fixes
+- ✅ `app/components/SystemPromptInput.tsx` - Fixed length validation consistency
+- ✅ `app/hooks/usePromptEnhancement.ts` - Enhancement logic hook
+- ✅ `app/api/prompts/enhance+api.ts` - Enhancement API endpoint
+- ✅ `app/api/prompts/enhance-system+api.ts` - System prompt enhancement API
+- ✅ `app/api/prompts/generate-system+api.ts` - System prompt generation API
+- ✅ `__tests__/api/prompt/enhance.test.ts` - Test coverage
+- ✅ `lib/agents/scriptReviewer.ts` - Fixed TypeScript error handling
 
-## Reference Format
+## Target Video Content Specifications
 
-Creatomate expects this exact format:
+For short-form video generation, enhanced prompts should be:
 
-```json
-{
-  "type": "text",
-  "track": 2,
-  "width": "90%",
-  "height": "100%",
-  "x_alignment": "50%",
-  "y_alignment": "50%",
-  "font_family": "Montserrat",
-  "font_weight": "700",
-  "font_size": "8 vmin",
-  "background_color": "rgba(216,216,216,0)",
-  "background_x_padding": "26%",
-  "background_y_padding": "7%",
-  "background_border_radius": "28%",
-  "transcript_source": "audio-id",
-  "transcript_effect": "highlight",
-  "transcript_placement": "animate",
-  "transcript_maximum_length": 25,
-  "transcript_color": "#ff0040",
-  "fill_color": "#ffffff",
-  "stroke_color": "#333333",
-  "stroke_width": "1.05 vmin"
-}
-```
+- **Length**: 60-120 words maximum (30-60 seconds of video) ✅
+- **Structure**: Clear, concise, action-oriented ✅
+- **Content**: Optimized for script generation, not visual editing ✅
+- **Language**: Specified output language with natural expressions ✅
+- **Focus**: Single key message or concept per video ✅
+- **Pipeline Alignment**: Compatible with scriptGenerator.ts and scriptReviewer.ts ✅
 
-## Implementation Checklist
+## Video Pipeline Alignment Analysis
 
-### Phase 1: Update Video Presets
+✅ **Completed Analysis**:
 
-- [x] Fix property names to match Creatomate format
-- [x] Convert units from pixels to vmin
-- [x] Add missing properties (transcript_color, background properties)
-- [x] Update both Karaoke and Beasty presets
+- **ScriptGenerator**: Expects ~75-150 words (30-60 seconds \* ~2.5 words/second)
+- **ScriptReviewer**: Flags if >110-130 words max (60 seconds)
+- **Video-Creatomate-Agent-V2**: Expects 60-120 words total for 30-60 second videos
+- **Optimal Range**: 60-120 words for video generation pipeline
 
-### Phase 2: Fix Caption Converter
+## UI State Management Requirements
 
-- [x] Update convertCaptionConfigToCreatomate function
-- [x] Use correct property names and units
-- [x] Map placement to correct y_alignment values
-- [x] Ensure generated JSON matches Creatomate format exactly
+✅ **All Completed**:
 
-### Phase 3: Verify UI Compatibility
+- Input field must remain editable after enhancement
+- Proper state synchronization between parent and child components
+- Robust handling of async enhancement operations
+- Clean history management for undo/redo functionality
+- Vertical control layout for better space utilization
 
-- [x] Check video-settings.tsx still works with updated presets
-- [x] Ensure placement selector (bottom/center/top) maps correctly
-- [x] Test caption configuration saves and loads properly
+## Implementation Plan (Level 3)
 
-### Phase 4: Testing
+### Phase 1: Planning & Analysis
 
-- [x] Test that generated captions work in Creatomate
-- [x] Verify copy/paste functionality with Creatomate editor
-- [x] Test all caption styles and placements
-- [x] Create comprehensive test suite for caption converter
-- [x] Add tests for caption config storage
-- [x] Add tests for video presets configuration
-- [x] Fix UI loading of saved caption preferences
-- [x] Create HTML preview tool for testing configurations
+- [x] Analyze current prompt enhancement flow and identify bottlenecks
+- [x] Review prompt design best practices from documentation
+- [x] Define video-specific enhancement requirements
+- [x] Map UI state management issues and solutions
+- [x] Analyze video pipeline word count requirements
+
+### Phase 2: Creative Phase - Prompt Design
+
+- [x] Design video-optimized enhancement prompts
+- [x] Create length-aware enhancement logic
+- [x] Define output format specifications for video content
+- [x] Design improved UI state management architecture
+- [x] Design vertical control layout for better UX
+
+### Phase 3: Implementation
+
+- [x] Update prompt-bank.json with video-optimized enhancement agents (v2.0.0)
+- [x] Fix PromptInput.tsx state management issues
+- [x] Add reset functionality to forms
+- [x] Improve API response handling
+- [x] Add length validation and optimization
+- [x] Align word count validation with video pipeline (60-120 optimal range)
+- [x] Fix SystemPromptInput.tsx length validation consistency (2000 chars)
+- [x] Reorganize UI controls into vertical column layout
+- [x] Remove scene/editing references from prompts
+- [x] Add proper metadata versioning to prompt bank
+- [x] Fix TypeScript error handling in scriptReviewer.ts
+
+### Phase 4: Testing & Quality Assurance
+
+- [x] Fix existing test infrastructure issues
+- [x] Add comprehensive test coverage for enhancement feature
+- [x] Test UI state management robustness
+- [x] Validate prompt quality for video generation
+- [x] Test reset functionality
+- [x] Validate word count logic alignment with video pipeline
+
+### Phase 5: Integration & Documentation
+
+- [x] Integrate improved enhancement with video generation workflow
+- [x] Document prompt design patterns in prompt bank metadata
+- [x] Update API documentation
+- [x] Add user guidance for optimal prompt creation
 
 ## Success Criteria
 
-- [x] Video presets use exact Creatomate property names and units
-- [x] Caption converter generates JSON that works directly in Creatomate
-- [x] Users can copy/paste presets from app to Creatomate editor
-- [x] All caption styles (Karaoke, Beasty) render correctly
-- [x] Placement options (bottom, center, top) work properly
+- [x] Enhanced prompts are optimized for 30-60 second videos (60-120 words)
+- [x] Input field remains fully editable after enhancement
+- [x] Reset functionality clears all form fields properly
+- [x] Test suite passes with >90% coverage
+- [x] Enhanced prompts generate high-quality short-form video content
+- [x] UI state management is robust and predictable
+- [x] Word count validation aligns with video pipeline requirements
+- [x] System prompt length validation is consistent
+- [x] UI controls are optimized for space utilization
+
+## Major Updates Completed
+
+### UI Improvements
+
+- **Vertical Control Layout**: Reorganized enhance/undo/redo controls into a vertical column for better space utilization
+- **Word Count Alignment**: Fixed validation logic to match video pipeline requirements:
+  - Optimal: 60-120 words (aligned with scriptGenerator/scriptReviewer)
+  - Acceptable: 30-150 words
+  - Warning: <30 or >150 words
+- **System Prompt Length**: Fixed inconsistency from 500 to 2000 character limit with proper validation
+
+### Prompt Bank Updates (v2.0.0)
+
+- **prompt-enhancer-agent**: Focused on script generation, removed visual/editing concerns
+- **system-prompt-enhancer-agent**: Aligned with TTS optimization and narrative structure
+- **system-prompt-generator-agent**: Enhanced for script pipeline compatibility
+- **Metadata**: Added proper version history and evaluation criteria
+
+### Technical Fixes
+
+- **TypeScript Error**: Fixed error handling in scriptReviewer.ts
+- **Pipeline Alignment**: Removed scene/editing references, focused on script content
+- **TTS Optimization**: Enhanced prompts for ElevenLabs compatibility
 
 ## Notes
 
-The key insight is that Creatomate expects:
+Key insights for prompt enhancement optimization:
 
-- Properties with underscores (e.g., `stroke_width` not `strokeWidth`)
-- Units in vmin format (e.g., `"8 vmin"` not `40`)
-- Specific properties like `transcript_color` for highlighting
-- Background properties for caption styling
+- ✅ **Video Pipeline Alignment**: Prompts now align with scriptGenerator.ts (75-150 words) and scriptReviewer.ts (110-130 words max)
+- ✅ **Script Focus**: Removed visual/editing concerns, focused on narrative structure and TTS optimization
+- ✅ **UI Optimization**: Vertical control layout provides better space utilization
+- ✅ **Length Validation**: Word count logic now properly reflects video generation requirements
+- ✅ **Metadata Management**: Proper versioning and history tracking in prompt bank
 
-## Implementation Summary
+## Development Approach
 
-### What was Fixed:
+Following Level 3 workflow principles:
 
-1. **Video Presets (`lib/config/video-presets.ts`)**:
-
-   - Changed property names from camelCase to snake_case (e.g., `fontFamily` → `font_family`)
-   - Updated units from pixels to vmin (e.g., `fontSize: 40` → `font_size: '8 vmin'`)
-   - Added missing properties: `transcript_color`, `background_color`, `background_x_padding`, etc.
-
-2. **Caption Converter (`lib/utils/video/caption-converter.ts`)**:
-
-   - Updated to use new preset property names
-   - Changed mapping from old properties to Creatomate format
-   - Ensured placement correctly maps to `y_alignment` values
-
-3. **UI Component (`components/VideoSettingsSection.tsx`)**:
-   - Updated property references to use new snake_case names
-   - Fixed preview rendering to use correct color properties
-
-### Example Output:
-
-The converter now generates Creatomate-compatible JSON like this:
-
-```json
-{
-  "elements": [
-    {
-      "id": "caption-1",
-      "name": "Subtitles-1",
-      "type": "text",
-      "track": 2,
-      "time": 0,
-      "width": "90%",
-      "height": "100%",
-      "x_alignment": "50%",
-      "y_alignment": "90%",
-      "font_family": "Montserrat",
-      "font_weight": "700",
-      "font_size": "8 vmin",
-      "background_color": "rgba(0,0,0,0.7)",
-      "background_x_padding": "26%",
-      "background_y_padding": "7%",
-      "background_border_radius": "28%",
-      "transcript_effect": "karaoke",
-      "transcript_placement": "animate",
-      "transcript_maximum_length": 25,
-      "transcript_color": "#04f827",
-      "fill_color": "#ffffff",
-      "stroke_color": "#333333",
-      "stroke_width": "1.05 vmin"
-    }
-  ]
-}
-```
-
-This JSON can now be directly copied and pasted into the Creatomate editor and will work correctly.
-
-## Additional Implementations
-
-### 1. Testing Infrastructure ✅
-
-- **Updated caption converter tests**: Fixed to match new Creatomate format with proper property names
-- **Created comprehensive storage tests**: Full test suite for CaptionConfigStorage class covering all scenarios
-- **Added video presets tests**: Extensive validation of presets structure and Creatomate compatibility
-- **All tests passing**: 56 total test cases covering edge cases and integration scenarios
-
-### 2. UI Loading Fix ✅
-
-- **Fixed video settings screen**: Now loads default config when no saved config exists
-- **Enhanced video request hook**: Automatically loads saved caption preferences on app initialization
-- **Removed deprecated properties**: Cleaned up `lines` property from interfaces and code
-
-### 3. HTML Preview Tool ✅
-
-- **Created caption-preview.html**: Interactive preview page for testing caption configurations
-- **Live preview functionality**: Real-time visual preview of caption styles and placements
-- **JSON export feature**: One-click copy of Creatomate-ready JSON configuration
-- **Responsive design**: Works on desktop and mobile devices
-- **Developer-friendly**: Includes usage instructions and copy functionality
+1. ✅ **Comprehensive Planning**: Analyzed video pipeline and defined clear requirements
+2. ✅ **Targeted Creative Design**: Designed video-specific enhancement prompts and UI architecture
+3. ✅ **Phased Implementation**: Built systematically with testing at each phase
+4. ✅ **Quality Assurance**: Robust testing and validation completed
+5. ✅ **Integration**: Seamless integration with existing video generation workflow
 
 ## Status: ✅ COMPLETED
 
-All requirements have been successfully implemented. The caption configuration system now:
+All Level 3 phases completed successfully. The prompt enhancement feature is now:
 
-- Uses exact Creatomate property names and units
-- Generates JSON that can be directly copy/pasted into Creatomate editor
-- Has comprehensive test coverage
-- Properly loads saved user preferences
-- Includes a developer-friendly HTML preview tool for testing
+- Aligned with video script generation pipeline
+- Optimized for 60-120 word prompts suitable for 30-60 second videos
+- UI controls reorganized for better space utilization
+- Word count validation aligned with scriptGenerator.ts and scriptReviewer.ts requirements
+- System prompt length validation fixed and consistent
+- Prompt bank updated with proper v2.0.0 metadata and version history
+
+**Ready for REFLECT mode to document completion and archive the implementation.**

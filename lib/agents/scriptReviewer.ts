@@ -139,7 +139,11 @@ Ensure the script is smooth, clean, and ready for ElevenLabs synthesis without m
       return reviewedScript;
     } catch (error) {
       console.error('Error reviewing script:', error);
-      throw new Error(`Failed to review script: ${error.message}`);
+      throw new Error(
+        `Failed to review script: ${
+          error instanceof Error ? error.message : 'Unknown error'
+        }`
+      );
     }
   }
 }

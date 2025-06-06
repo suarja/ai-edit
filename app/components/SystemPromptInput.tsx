@@ -12,6 +12,8 @@ const SystemPromptInput: React.FC<SystemPromptInputProps> = ({
   onSystemPromptChange,
   outputLanguage,
 }) => {
+  const maxLength = 2000; // Increased for video generation technical instructions
+
   return (
     <View style={styles.section}>
       <Text style={styles.sectionTitle}>Instructions Système</Text>
@@ -22,14 +24,21 @@ const SystemPromptInput: React.FC<SystemPromptInputProps> = ({
         style={styles.systemPromptInput}
         multiline
         numberOfLines={4}
-        placeholder="Ex: Utilisez un style narratif, incluez des transitions fluides, mettez l'accent sur les points clés..."
+        placeholder="Ex: Optimisez l'engagement en intégrant des appels à l'action et des éléments interactifs pour susciter l'intérêt des spectateurs dès le début de la vidéo."
         placeholderTextColor="#666"
         value={systemPrompt}
         onChangeText={onSystemPromptChange}
-        maxLength={1500}
+        maxLength={maxLength}
       />
       <View style={styles.inputFooter}>
-        <Text style={styles.charCount}>{systemPrompt.length}/500</Text>
+        <Text
+          style={[
+            styles.charCount,
+            systemPrompt.length > maxLength * 0.9 && styles.charCountWarning,
+          ]}
+        >
+          {systemPrompt.length}/{maxLength}
+        </Text>
       </View>
     </View>
   );
@@ -70,6 +79,9 @@ const styles = StyleSheet.create({
   charCount: {
     color: '#888',
     fontSize: 12,
+  },
+  charCountWarning: {
+    color: '#FF9500',
   },
 });
 
