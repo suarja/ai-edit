@@ -644,24 +644,29 @@ export default function SettingsScreen() {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Compte</Text>
 
+          {/* TODO: Implement API Keys functionality
           <TouchableOpacity style={styles.settingItem}>
             <View style={styles.settingInfo}>
               <Key size={24} color="#fff" />
               <Text style={styles.settingText}>Clés API</Text>
             </View>
           </TouchableOpacity>
+          */}
 
+          {/* TODO: Implement Privacy settings
           <TouchableOpacity style={styles.settingItem}>
             <View style={styles.settingInfo}>
               <Shield size={24} color="#fff" />
               <Text style={styles.settingText}>Confidentialité</Text>
             </View>
           </TouchableOpacity>
+          */}
         </View>
 
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Préférences</Text>
 
+          {/* TODO: Implement Push Notifications functionality
           <View style={styles.settingItem}>
             <View style={styles.settingInfo}>
               <Bell size={24} color="#fff" />
@@ -674,7 +679,9 @@ export default function SettingsScreen() {
               onValueChange={setNotifications}
             />
           </View>
+          */}
 
+          {/* TODO: Implement Language selection
           <View style={styles.settingItem}>
             <View style={styles.settingInfo}>
               <Globe size={24} color="#fff" />
@@ -682,17 +689,20 @@ export default function SettingsScreen() {
             </View>
             <Text style={styles.settingValue}>Français</Text>
           </View>
+          */}
         </View>
 
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Support</Text>
 
+          {/* TODO: Implement Help Center functionality
           <TouchableOpacity style={styles.settingItem}>
             <View style={styles.settingInfo}>
               <HelpCircle size={24} color="#fff" />
               <Text style={styles.settingText}>Centre d'Aide</Text>
             </View>
           </TouchableOpacity>
+          */}
         </View>
 
         {profile.role === 'admin' && adminSection}
@@ -705,10 +715,10 @@ export default function SettingsScreen() {
           disabled={loading}
         >
           {loading ? (
-            <ActivityIndicator color="#fff" />
+            <ActivityIndicator color="#666" />
           ) : (
             <>
-              <LogOut size={24} color="#fff" />
+              <LogOut size={20} color="#666" />
               <Text style={styles.logoutButtonText}>Déconnexion</Text>
             </>
           )}
@@ -866,7 +876,9 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   logoutButton: {
-    backgroundColor: '#ef4444',
+    backgroundColor: 'transparent',
+    borderWidth: 1,
+    borderColor: '#333',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
@@ -880,9 +892,9 @@ const styles = StyleSheet.create({
     opacity: 0.7,
   },
   logoutButtonText: {
-    color: '#fff',
+    color: '#666',
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   debugContainer: {
     backgroundColor: '#1a1a1a',
