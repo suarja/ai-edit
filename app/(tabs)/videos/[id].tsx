@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, StyleSheet, ActivityIndicator, Text } from 'react-native';
-import { useLocalSearchParams } from 'expo-router';
+import { useLocalSearchParams, router } from 'expo-router';
 import { supabase } from '@/lib/supabase';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { AnyVideoType, GeneratedVideoType } from '@/types/video';
@@ -180,6 +180,11 @@ export default function GeneratedVideoDetailScreen() {
     // Let the VideoActionButtons component handle this
   };
 
+  const handleBackToVideos = () => {
+    // Navigate specifically to the videos list page
+    router.push('/(tabs)/videos');
+  };
+
   // Render thumbnail for rendering videos
   const renderThumbnail = () => {
     if (!video) return null;
@@ -242,6 +247,7 @@ export default function GeneratedVideoDetailScreen() {
       <VideoHeader
         title={getVideoTitle()}
         subtitle={getVideoSubtitle()}
+        onBack={handleBackToVideos}
         rightButton={{
           icon: <RefreshCcw size={20} color="#fff" />,
           onPress: handleRefresh,

@@ -303,6 +303,7 @@ export default function GeneratedVideosScreen() {
       <VideoHeader
         title={getTitle()}
         subtitle={getSubtitle()}
+        onBack={undefined} // Disable back button for main tab page
         rightButton={{
           icon: <Plus size={20} color="#fff" />,
           onPress: handleCreateVideo,

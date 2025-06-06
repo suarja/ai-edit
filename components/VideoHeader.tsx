@@ -12,7 +12,7 @@ import { ArrowLeft } from 'lucide-react-native';
 interface VideoHeaderProps {
   title: string;
   subtitle?: string;
-  onBack?: () => void;
+  onBack?: (() => void) | undefined;
   rightButton?: {
     icon: React.ReactNode;
     onPress: () => void;
@@ -37,11 +37,17 @@ export default function VideoHeader({
     }
   };
 
+  const showBackButton = onBack !== undefined;
+
   return (
     <View style={styles.header}>
-      <TouchableOpacity style={styles.backButton} onPress={handleBack}>
-        <ArrowLeft size={24} color="#007AFF" />
-      </TouchableOpacity>
+      {showBackButton ? (
+        <TouchableOpacity style={styles.backButton} onPress={handleBack}>
+          <ArrowLeft size={24} color="#007AFF" />
+        </TouchableOpacity>
+      ) : (
+        <View style={styles.backButtonPlaceholder} />
+      )}
 
       <View style={styles.titleContainer}>
         <Text style={styles.title}>{title}</Text>
@@ -84,6 +90,10 @@ const styles = StyleSheet.create({
   backButton: {
     padding: 8,
     marginLeft: -8,
+  },
+  backButtonPlaceholder: {
+    width: 40,
+    height: 40,
   },
   titleContainer: {
     flex: 1,
