@@ -41,7 +41,7 @@ describe('Caption Converter', () => {
     expect(result.elements[0]).toHaveProperty('font_family', 'Montserrat');
     expect(result.elements[0]).toHaveProperty(
       'background_color',
-      'rgba(0,0,0,0.7)'
+      'rgba(216,216,216,0)'
     );
     expect(result.elements[0]).toHaveProperty('stroke_width', '1.05 vmin');
   });

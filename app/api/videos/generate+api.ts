@@ -80,6 +80,8 @@ export async function POST(request: Request) {
       );
     }
 
+    console.log('🔍 Request body:', requestBody);
+
     // Step 4: Validate request body
     const validationResult =
       VideoValidationService.validateRequest(requestBody);

@@ -99,7 +99,7 @@ export class VideoValidationService {
         errors.push(...languageErrors);
       }
 
-      if (body.voiceId) {
+      if (body.voiceId !== undefined) {
         const voiceErrors = this.validateVoiceId(body.voiceId);
         errors.push(...voiceErrors);
       }

@@ -103,9 +103,9 @@ export function isValidCaptionConfig(
     typeof config === 'object' &&
     config !== null &&
     typeof config.presetId === 'string' &&
-    ['top', 'bottom', 'center'].includes(config.placement) &&
-    typeof config.lines === 'number' &&
-    config.lines > 0
+    config.presetId.trim().length > 0 &&
+    (config.placement === undefined ||
+      ['top', 'bottom', 'center'].includes(config.placement))
   );
 }
 

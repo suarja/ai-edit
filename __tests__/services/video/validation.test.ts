@@ -38,7 +38,6 @@ describe('VideoValidationService', () => {
     validCaptionConfig = {
       presetId: 'karaoke',
       placement: 'bottom' as const,
-      lines: 3,
     };
 
     validPayload = {
@@ -196,7 +195,7 @@ describe('VideoValidationService', () => {
     });
 
     test('should fail validation for invalid caption config', () => {
-      const invalidConfig = { presetId: 'test' }; // Missing required fields
+      const invalidConfig = { presetId: '' }; // Empty presetId should fail
       const invalidPayload = { ...validPayload, captionConfig: invalidConfig };
 
       const result = VideoValidationService.validateRequest(invalidPayload);
