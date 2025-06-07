@@ -13,6 +13,8 @@ import { openSettings } from 'expo-linking';
 import { Video as VideoIcon } from 'lucide-react-native';
 import { MediaType } from 'expo-image-picker';
 import { env } from '@/lib/config/env';
+import { API_ENDPOINTS, API_HEADERS } from '@/lib/config/api';
+import { supabase } from '@/lib/supabase';
 
 type VideoUploaderProps = {
   onUploadComplete?: (videoData: { videoId: string; url: string }) => void;
@@ -93,24 +95,18 @@ export default function VideoUploader({
           console.log('Getting presigned URL from S3...');
           setUploadStatus("Génération de l'URL de téléchargement...");
 
+          const session = await supabase.auth.getSession();
           // Get presigned URL from Supabase function using the correct URL format
-          const presignedResponse = await fetch(
-            `${getSupabaseFunctionUrl(
-              env.SUPABASE_URL
-            )}/generate-presigned-url`,
-            {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-                Authorization: `Bearer ${env.SUPABASE_ANON_KEY}`,
-                'x-client-platform': isWeb ? 'web' : 'mobile',
-              },
-              body: JSON.stringify({
-                fileName,
-                fileType,
-              }),
-            }
-          );
+          const presignedResponse = await fetch(API_ENDPOINTS.S3_UPLOAD(), {
+            method: 'POST',
+            headers: API_HEADERS.USER_AUTH(
+              session.data.session?.access_token ?? ''
+            ),
+            body: JSON.stringify({
+              fileName,
+              fileType,
+            }),
+          });
 
           if (!presignedResponse.ok) {
             throw new Error(
@@ -119,9 +115,7 @@ export default function VideoUploader({
           }
 
           const {
-            presignedUrl,
-            publicUrl,
-            fileName: s3FileName,
+            data: { presignedUrl, publicUrl, fileName: s3FileName },
           } = await presignedResponse.json();
           console.log('Got presigned URL:', {
             presignedUrl,
