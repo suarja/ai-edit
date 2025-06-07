@@ -1,6 +1,7 @@
 import { useState, useRef } from 'react';
 import { supabase } from '@/lib/supabase';
 import { Alert } from 'react-native';
+import { API_ENDPOINTS, API_HEADERS } from '@/lib/config/api';
 
 /**
  * Custom hook to handle prompt enhancement with API integration
@@ -183,16 +184,17 @@ export function usePromptEnhancement() {
 
       // Save original prompt to history
       saveToHistory(prompt);
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
 
       console.log(
         '📤 Sending enhancement request to API with language:',
         outputLanguage
       );
-      const response = await fetch('/api/prompts/enhance', {
+      const response = await fetch(API_ENDPOINTS.PROMPTS_ENHANCE(), {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: API_HEADERS.USER_AUTH(session?.access_token ?? ''),
         body: JSON.stringify({
           userInput: prompt,
           outputLanguage: outputLanguage,
@@ -266,13 +268,14 @@ export function usePromptEnhancement() {
         );
         return systemPrompt || '';
       }
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
 
       console.log('📤 Sending system prompt enhancement request');
-      const response = await fetch('/api/prompts/enhance-system', {
+      const response = await fetch(API_ENDPOINTS.PROMPTS_ENHANCE_SYSTEM(), {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: API_HEADERS.USER_AUTH(session?.access_token ?? ''),
         body: JSON.stringify({
           userInput: systemPrompt,
           mainPrompt: mainPrompt,
@@ -330,12 +333,14 @@ export function usePromptEnhancement() {
         return '';
       }
 
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+
       console.log('📤 Sending system prompt generation request');
-      const response = await fetch('/api/prompts/generate-system', {
+      const response = await fetch(API_ENDPOINTS.PROMPTS_GENERATE_SYSTEM(), {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: API_HEADERS.USER_AUTH(session?.access_token ?? ''),
         body: JSON.stringify({
           mainPrompt: mainPrompt,
           outputLanguage: outputLanguage,

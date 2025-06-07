@@ -12,6 +12,7 @@ import {
 import { VideoGenerationResult, ValidatedVideo } from '@/types/video';
 import { PromptService } from '@/lib/services/prompts';
 import { convertCaptionConfigToCreatomate } from '@/lib/utils/video/caption-converter';
+import { API_ENDPOINTS, API_HEADERS } from '@/lib/config/api';
 
 /**
  * Enhanced video generation service with better error handling and performance
@@ -546,17 +547,11 @@ export class VideoGeneratorService {
         }),
       };
 
-      const renderResponse = await fetch(
-        'https://api.creatomate.com/v1/renders',
-        {
-          method: 'POST',
-          headers: {
-            Authorization: `Bearer ${process.env.CREATOMATE_API_KEY}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(renderPayload),
-        }
-      );
+      const renderResponse = await fetch(API_ENDPOINTS.CREATOMATE_RENDER(), {
+        method: 'POST',
+        headers: API_HEADERS.CREATOMATE_AUTH,
+        body: JSON.stringify(renderPayload),
+      });
 
       if (!renderResponse.ok) {
         const errorData = await renderResponse.json().catch(() => ({}));

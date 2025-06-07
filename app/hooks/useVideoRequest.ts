@@ -4,6 +4,7 @@ import { router } from 'expo-router';
 import { supabase } from '@/lib/supabase';
 import { VideoType, CaptionConfiguration } from '@/types/video';
 import { CaptionConfigStorage } from '@/lib/utils/caption-config-storage';
+import { API_ENDPOINTS, API_HEADERS } from '@/lib/config/api';
 
 // Default voice ID
 const DEFAULT_VOICE_ID = 'NFcw9p0jKu3zbmXieNPE';
@@ -264,12 +265,9 @@ export default function useVideoRequest() {
         data: { session },
       } = await supabase.auth.getSession();
       console.log('Auth token:', session?.access_token);
-      const response = await fetch('/api/videos/generate', {
+      const response = await fetch(API_ENDPOINTS.VIDEO_GENERATE(), {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${session?.access_token}`,
-        },
+        headers: API_HEADERS.USER_AUTH(session?.access_token ?? ''),
         body: JSON.stringify(requestPayload),
       });
 

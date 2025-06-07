@@ -10,6 +10,7 @@ import VideoHeader from '@/components/VideoHeader';
 import VideoDetails from '@/components/VideoDetails';
 import VideoActionButtons from '@/components/VideoActionButtons';
 import { env } from '@/lib/config/env';
+import { API_ENDPOINTS } from '@/lib/config/api';
 
 // Extended type to include script information
 type EnhancedGeneratedVideoType = GeneratedVideoType & {
@@ -77,27 +78,32 @@ export default function GeneratedVideoDetailScreen() {
         error: 'Erreur de génération',
       };
       const statusText =
-        statusMap[videoRequest.render_status] || videoRequest.render_status;
+        statusMap[videoRequest.render_status as string] ||
+        videoRequest.render_status;
 
       const description = `${statusText}${
         script?.output_language
-          ? ` • Langue: ${script.output_language.toUpperCase()}`
+          ? ` • Langue: ${script.output_language?.toUpperCase()}`
           : ''
       }`;
 
       // Format the video to match our GeneratedVideoType with enhancements
       const formattedVideo: EnhancedGeneratedVideoType = {
-        id: videoRequest.id,
+        id: videoRequest.id as string,
         type: 'generated',
-        created_at: videoRequest.created_at,
-        render_status: videoRequest.render_status,
-        render_url: videoRequest.render_url,
-        script: videoRequest.script_id,
+        created_at: videoRequest.created_at as string,
+        render_status: videoRequest.render_status as
+          | 'queued'
+          | 'rendering'
+          | 'done'
+          | 'error',
+        render_url: videoRequest.render_url as string | null,
+        script: videoRequest.script_id as string,
         title,
         description,
-        prompt: script?.raw_prompt,
-        script_content: script?.generated_script,
-        output_language: script?.output_language,
+        prompt: script?.raw_prompt as string,
+        script_content: script?.generated_script as string,
+        output_language: script?.output_language as string,
       };
 
       // Set the video details
@@ -120,7 +126,9 @@ export default function GeneratedVideoDetailScreen() {
     if (!video) return;
 
     try {
-      const response = await fetch(`${env.SERVER_URL}/api/videos/status/${id}`);
+      const response = await fetch(
+        API_ENDPOINTS.VIDEO_STATUS(video.id as string)
+      );
 
       if (!response.ok) {
         console.error('Status check failed:', await response.text());
@@ -200,11 +208,11 @@ export default function GeneratedVideoDetailScreen() {
             </Text>
             {video.prompt && (
               <Text style={styles.promptText}>
-                "
+                &quot;
                 {video.prompt.length > 80
                   ? `${video.prompt.slice(0, 80)}...`
                   : video.prompt}
-                "
+                &quot;
               </Text>
             )}
           </View>

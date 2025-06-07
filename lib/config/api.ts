@@ -102,6 +102,10 @@ const getCurrentConfig = () => API_CONFIGS[CURRENT_API_ENVIRONMENT];
  * API Endpoints - Use these throughout the app instead of hardcoded URLs
  */
 export const API_ENDPOINTS = {
+  CREATOMATE_RENDER: () => {
+    return 'https://api.creatomate.com/v1/renders';
+  },
+
   // Video generation endpoints
   VIDEO_GENERATE: () => {
     const config = getCurrentConfig();
@@ -173,6 +177,10 @@ export const API_HEADERS = {
     'Content-Type': 'application/json',
     Authorization: `Bearer ${token}`,
   }),
+
+  CREATOMATE_AUTH: {
+    Authorization: `Bearer ${process.env.CREATOMATE_API_KEY}`,
+  },
 };
 
 /**
