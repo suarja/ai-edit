@@ -138,13 +138,7 @@ export default function VideoUploader({
           const uploadResponse = await fetch(presignedUrl, {
             method: 'PUT',
             body: blob,
-            headers: {
-              'Content-Type': fileType,
-              ...(isWeb && {
-                Authorization: `Bearer ${env.SUPABASE_ANON_KEY}`,
-                'x-client-platform': 'web',
-              }),
-            },
+            headers: API_HEADERS.SUPABASE_AUTH,
           });
 
           if (!uploadResponse.ok) {

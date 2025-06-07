@@ -24,6 +24,7 @@ import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import SettingsHeader from '@/components/SettingsHeader';
 import { env } from '@/lib/config/env';
+import { API_ENDPOINTS, API_HEADERS } from '@/lib/config/api';
 
 type VoiceClone = {
   id: string;
@@ -89,7 +90,7 @@ export default function VoiceCloneScreen() {
         throw fetchError;
       }
 
-      setExistingVoice(voice);
+      setExistingVoice(voice as unknown as VoiceClone);
     } catch (err) {
       console.error('Failed to fetch voice:', err);
       setError('Échec du chargement des données vocales');
@@ -224,13 +225,10 @@ export default function VoiceCloneScreen() {
       }
 
       const response = await fetch(
-        `${env.SUPABASE_URL}/functions/v1/create-voice-clone`,
+        API_ENDPOINTS.SUPABASE_CREATE_VOICE_CLONE(),
         {
           method: 'POST',
-          headers: {
-            Authorization: `Bearer ${env.SUPABASE_ANON_KEY}`,
-            'Content-Type': 'application/json',
-          },
+          headers: API_HEADERS.SUPABASE_AUTH,
           body: JSON.stringify({
             name,
             recordings: recordings.map((r) => ({
