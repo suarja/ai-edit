@@ -1,12 +1,11 @@
-import { Database } from '@/types/supabase';
 import { createClient } from '@supabase/supabase-js';
 
 class SupabaseClient {
-  private static instance: ReturnType<typeof createClient<Database>>;
+  private static instance: ReturnType<typeof createClient>;
 
   private constructor() {}
 
-  public static getInstance(): ReturnType<typeof createClient<Database>> {
+  public static getInstance(): ReturnType<typeof createClient> {
     if (!SupabaseClient.instance) {
       if (typeof window !== 'undefined') {
         const { supabaseBrowserClient } = require('./browser-client');
