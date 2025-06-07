@@ -21,6 +21,7 @@ import GeneratedVideoCard from '@/components/GeneratedVideoCard';
 import EmptyGeneratedVideos from '@/components/EmptyGeneratedVideos';
 import VideoHeader from '@/components/VideoHeader';
 import { env } from '@/lib/config/env';
+import { API_ENDPOINTS } from '@/lib/config/api';
 
 type VideoRequest = {
   id: string;
@@ -88,16 +89,17 @@ export default function GeneratedVideosScreen() {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setVideos(data || []);
+      setVideos(data as unknown as VideoRequest[]);
 
       // Check status for rendering videos
       const renderingVideos =
-        data?.filter((v: VideoRequest) => v.render_status === 'rendering') ||
-        [];
+        (data as unknown as VideoRequest[])?.filter(
+          (v: VideoRequest) => v.render_status === 'rendering'
+        ) || [];
 
       for (const video of renderingVideos) {
         console.log('checking video status', video.id);
-        await checkVideoStatus(video.id);
+        await checkVideoStatus(video.id as string);
       }
     } catch (err) {
       console.error('Error fetching videos:', err);
@@ -111,7 +113,7 @@ export default function GeneratedVideosScreen() {
   const checkVideoStatus = async (videoId: string) => {
     try {
       const response = await fetch(
-        `${env.SERVER_URL}/api/videos/status/${videoId}`
+        API_ENDPOINTS.VIDEO_STATUS(videoId)
       );
 
       if (!response.ok) {

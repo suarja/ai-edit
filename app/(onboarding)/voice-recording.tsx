@@ -26,6 +26,7 @@ import { supabase } from '@/lib/supabase';
 import { useOnboarding } from '@/components/providers/OnboardingProvider';
 import { ProgressBar } from '@/components/onboarding/ProgressBar';
 import { env } from '@/lib/config/env';
+import { API_ENDPOINTS, API_HEADERS } from '@/lib/config/api';
 
 const MAX_RECORDING_DURATION = 120000; // 2 minutes in milliseconds
 const MIN_RECORDING_DURATION = 3000; // 3 seconds in milliseconds
@@ -263,16 +264,11 @@ export default function VoiceRecordingScreen() {
 
       setProgress("Transcription de l'audio...");
 
-      const result = await fetch(
-        `${env.SUPABASE_URL}/functions/v1/process-onboarding`,
-        {
-          method: 'POST',
-          headers: {
-            Authorization: `Bearer ${env.SUPABASE_ANON_KEY}`,
-          },
-          body: formData,
-        }
-      );
+      const result = await fetch(API_ENDPOINTS.SUPABASE_PROCESS_ONBOARDING(), {
+        method: 'POST',
+        headers: API_HEADERS.SUPABASE_AUTH,
+        body: formData,
+      });
 
       if (!result.ok) {
         const errorData = await result.json();
