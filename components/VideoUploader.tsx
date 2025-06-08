@@ -6,29 +6,17 @@ import {
   StyleSheet,
   ActivityIndicator,
   Alert,
-  Platform,
 } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { openSettings } from 'expo-linking';
 import { Video as VideoIcon } from 'lucide-react-native';
 import { MediaType } from 'expo-image-picker';
-import { env } from '@/lib/config/env';
 import { API_ENDPOINTS, API_HEADERS } from '@/lib/config/api';
 import { supabase } from '@/lib/supabase';
 
 type VideoUploaderProps = {
   onUploadComplete?: (videoData: { videoId: string; url: string }) => void;
   onUploadError?: (error: Error) => void;
-};
-
-const isWeb = Platform.OS === 'web';
-
-// Helper to get the correct Supabase Functions URL
-const getSupabaseFunctionUrl = (url: string) => {
-  // Convert the base Supabase URL to the Functions URL format
-  return url
-    .replace('https://', 'https://')
-    .replace('.supabase.co', '.functions.supabase.co');
 };
 
 export default function VideoUploader({
@@ -108,6 +96,8 @@ export default function VideoUploader({
             }),
           });
 
+          console.log('Presigned response:', presignedResponse);
+
           if (!presignedResponse.ok) {
             throw new Error(
               `Failed to get upload URL: ${presignedResponse.status}`
@@ -138,7 +128,8 @@ export default function VideoUploader({
           const uploadResponse = await fetch(presignedUrl, {
             method: 'PUT',
             body: blob,
-            headers: API_HEADERS.SUPABASE_AUTH,
+            // No custom headers needed - let browser set correct Content-Type
+            // S3 presigned URLs handle authentication automatically
           });
 
           if (!uploadResponse.ok) {
