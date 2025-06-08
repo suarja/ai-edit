@@ -49,7 +49,7 @@ export default function VideoSettingsScreen() {
   };
 
   const handleSave = async () => {
-    if (!captionConfig || !captionConfig.presetId) {
+    if (!captionConfig || !captionConfig.presetId || !captionConfig.highlightColor) {
       Alert.alert('Erreur', 'Veuillez sélectionner un style de sous-titres');
       return;
     }

@@ -95,7 +95,7 @@ export default function useVideoRequest() {
         .order('created_at', { ascending: false });
 
       if (videosError) throw videosError;
-      setSourceVideos(videos || []);
+      setSourceVideos(videos as unknown as VideoType[]);
       console.log('Fetched videos:', videos?.length || 0);
 
       // Fetch voice clone
@@ -106,7 +106,7 @@ export default function useVideoRequest() {
         .single();
 
       if (voiceError && voiceError.code !== 'PGRST116') throw voiceError;
-      setVoiceClone(voice);
+      setVoiceClone(voice as unknown as VoiceClone);
       console.log('Voice clone status:', voice?.status || 'none');
 
       // Fetch editorial profile
@@ -117,27 +117,32 @@ export default function useVideoRequest() {
         .single();
 
       if (profileError && profileError.code !== 'PGRST116') throw profileError;
-      setEditorialProfile(profile);
+      setEditorialProfile(profile as unknown as EditorialProfile);
       console.log('Editorial profile found:', !!profile);
 
       // If we have an editorial profile, use it as the base for custom profile
       if (profile) {
         setCustomEditorialProfile({
           persona_description:
-            profile.persona_description ||
+            (profile.persona_description as string) ||
             DEFAULT_EDITORIAL_PROFILE.persona_description,
           tone_of_voice:
-            profile.tone_of_voice || DEFAULT_EDITORIAL_PROFILE.tone_of_voice,
-          audience: profile.audience || DEFAULT_EDITORIAL_PROFILE.audience,
+            (profile.tone_of_voice as string) ||
+            DEFAULT_EDITORIAL_PROFILE.tone_of_voice,
+          audience:
+            (profile.audience as string) || DEFAULT_EDITORIAL_PROFILE.audience,
           style_notes:
-            profile.style_notes || DEFAULT_EDITORIAL_PROFILE.style_notes,
+            (profile.style_notes as string) ||
+            DEFAULT_EDITORIAL_PROFILE.style_notes,
         });
       }
 
       // Load saved caption configuration
       try {
         const savedCaptionConfig = await CaptionConfigStorage.load(user.id);
+        console.log('Saved caption config:', savedCaptionConfig);
         if (savedCaptionConfig) {
+          console.log('Setting caption config:', savedCaptionConfig);
           setCaptionConfig(savedCaptionConfig);
         }
       } catch (error) {
@@ -196,7 +201,9 @@ export default function useVideoRequest() {
       return false;
     }
 
-    if (!captionConfig.presetId) {
+    console.log('Caption config:', captionConfig);
+
+    if (!captionConfig.presetId || !captionConfig.highlightColor) {
       Alert.alert(
         'Style de sous-titres manquant',
         'Veuillez sélectionner un style de sous-titres pour votre vidéo.',
@@ -236,6 +243,19 @@ export default function useVideoRequest() {
       setSubmitting(true);
       setError(null);
 
+      // Fetch caption config
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) {
+        router.replace('/(auth)/sign-in');
+        return;
+      }
+      const savedCaptionConfig = await CaptionConfigStorage.load(user.id);
+      console.log('Saved caption config:', savedCaptionConfig);
+      setCaptionConfig(savedCaptionConfig as CaptionConfiguration);
+      if (validateRequest()) return;
+
       console.log('Preparing request payload...');
 
       // Get storage paths for selected videos
@@ -261,10 +281,10 @@ export default function useVideoRequest() {
         outputLanguage: outputLanguage,
       };
 
+      console.log('Request payload:', JSON.stringify(requestPayload, null, 2));
       const {
         data: { session },
       } = await supabase.auth.getSession();
-      console.log('Auth token:', session?.access_token);
       const response = await fetch(API_ENDPOINTS.VIDEO_GENERATE(), {
         method: 'POST',
         headers: API_HEADERS.USER_AUTH(session?.access_token ?? ''),
@@ -274,6 +294,7 @@ export default function useVideoRequest() {
       const result = await response.json();
 
       if (!response.ok) {
+        console.log('Error:', JSON.stringify(result, null, 2));
         throw new Error(result.error || 'Failed to generate video');
       }
 

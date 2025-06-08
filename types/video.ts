@@ -23,12 +23,14 @@ export interface GeneratedVideoType {
   title?: string;
   description?: string;
 }
+export type HexColor = `#${string}`;
 
 export type AnyVideoType = VideoType | GeneratedVideoType;
 
 export interface CaptionConfiguration {
   presetId: string;
-  placement?: 'top' | 'bottom' | 'center';
+  placement: 'top' | 'bottom' | 'center';
+  highlightColor: HexColor;
 }
 
 // Enhanced types for better validation

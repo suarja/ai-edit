@@ -9,6 +9,7 @@ import {
 } from 'react-native';
 import { CaptionConfiguration } from '@/types/video';
 import { VIDEO_PRESETS } from '@/lib/config/video-presets';
+import { CaptionConfigStorage } from '@/lib/utils/caption-config-storage';
 
 type VideoSettingsSectionProps = {
   captionConfig: CaptionConfiguration | null;
@@ -28,13 +29,16 @@ const VideoSettingsSection: React.FC<VideoSettingsSectionProps> = ({
       onCaptionConfigChange({
         presetId,
         placement: 'bottom',
+        highlightColor: '#04f827',
       });
       return;
     }
 
+    console.log('Caption config:', captionConfig);
     onCaptionConfigChange({
       ...captionConfig,
       presetId,
+      highlightColor: CaptionConfigStorage.getPreset(presetId).highlightColor,
     });
   };
 
@@ -45,6 +49,7 @@ const VideoSettingsSection: React.FC<VideoSettingsSectionProps> = ({
       onCaptionConfigChange({
         presetId: VIDEO_PRESETS[0].id,
         placement,
+        highlightColor: captionConfig?.highlightColor || '#04f827',
       });
       return;
     }

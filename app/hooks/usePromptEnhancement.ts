@@ -214,7 +214,7 @@ export function usePromptEnhancement() {
       console.log('📥 Received API response:', result);
 
       // Fix: Extract enhancedPrompt from the nested data structure
-      const enhancedPrompt = result.data?.enhancedPrompt || prompt;
+      const enhancedPrompt = result.enhancedPrompt || prompt;
       console.log('✅ Final enhanced prompt:', enhancedPrompt);
 
       // Save the enhanced prompt to history as well
@@ -296,7 +296,7 @@ export function usePromptEnhancement() {
       console.log('📥 Received API response for system prompt:', result);
 
       // Fix: Extract enhancedPrompt from the nested data structure
-      const enhancedSystemPrompt = result.data?.enhancedPrompt || systemPrompt;
+      const enhancedSystemPrompt = result.enhancedPrompt || systemPrompt;
       console.log('✅ Extracted enhanced system prompt:', enhancedSystemPrompt);
 
       return enhancedSystemPrompt; // Return original if enhanced is undefined
@@ -363,7 +363,7 @@ export function usePromptEnhancement() {
       );
 
       // Fix: Extract generatedPrompt from the nested data structure
-      const generatedPrompt = result.data?.generatedPrompt || '';
+      const generatedPrompt = result.generatedPrompt || '';
       console.log('✅ Extracted system prompt:', generatedPrompt);
 
       return generatedPrompt; // Return empty string if generated is undefined

@@ -1,5 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { CaptionConfiguration } from '@/types/video';
+import { CaptionConfiguration, HexColor } from '@/types/video';
+import { VIDEO_PRESETS } from '../config/video-presets';
 
 const CAPTION_CONFIG_KEY = 'caption_configuration';
 
@@ -20,6 +21,7 @@ export class CaptionConfigStorage {
   static async load(userId: string): Promise<CaptionConfiguration | null> {
     try {
       const storedConfig = await AsyncStorage.getItem(this.getKey(userId));
+      console.log('Stored config:', storedConfig);
       if (storedConfig) {
         return JSON.parse(storedConfig);
       }
@@ -38,6 +40,7 @@ export class CaptionConfigStorage {
     config: CaptionConfiguration
   ): Promise<boolean> {
     try {
+      console.log('Saving caption config:', config);
       await AsyncStorage.setItem(this.getKey(userId), JSON.stringify(config));
       return true;
     } catch (error) {
@@ -66,6 +69,19 @@ export class CaptionConfigStorage {
     return {
       presetId: 'karaoke', // Default preset
       placement: 'bottom',
+      highlightColor: '#04f827',
+    };
+  }
+
+  static getPreset(presetId: string): CaptionConfiguration {
+    const preset = VIDEO_PRESETS.find((preset) => preset.id === presetId);
+    if (!preset) {
+      return this.getDefault();
+    }
+    return {
+      presetId: preset.id,
+      placement: preset.placement as 'top' | 'bottom' | 'center',
+      highlightColor: preset.transcript_color as HexColor,
     };
   }
 }
