@@ -13,12 +13,12 @@ import { Save } from 'lucide-react-native';
 import { supabase } from '@/lib/supabase';
 import VideoSettingsSection from '@/components/VideoSettingsSection';
 import SettingsHeader from '@/components/SettingsHeader';
-import { CaptionConfiguration } from '@/types/video';
+import { EnhancedCaptionConfiguration } from '@/types/video';
 import { CaptionConfigStorage } from '@/lib/utils/caption-config-storage';
 
 export default function VideoSettingsScreen() {
   const [captionConfig, setCaptionConfig] =
-    useState<CaptionConfiguration | null>(null);
+    useState<EnhancedCaptionConfiguration | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
@@ -37,20 +37,35 @@ export default function VideoSettingsScreen() {
         return;
       }
 
-      // Load from device storage using utility
-      const config = await CaptionConfigStorage.load(user.id);
-      setCaptionConfig(config || CaptionConfigStorage.getDefault());
+      // Load configuration using the enhanced getOrDefault method
+      // This ensures we always have a working configuration
+      const config = await CaptionConfigStorage.getOrDefault(user.id);
+      setCaptionConfig(config);
     } catch (err) {
       console.error('Error loading caption config:', err);
       Alert.alert('Erreur', 'Échec du chargement de la configuration');
+      // Fallback to default config if loading fails
+      setCaptionConfig(CaptionConfigStorage.getDefault());
     } finally {
       setLoading(false);
     }
   };
 
   const handleSave = async () => {
-    if (!captionConfig || !captionConfig.presetId || !captionConfig.highlightColor) {
-      Alert.alert('Erreur', 'Veuillez sélectionner un style de sous-titres');
+    if (!captionConfig) {
+      Alert.alert('Erreur', 'Configuration invalide');
+      return;
+    }
+
+    // Enhanced validation - check if essential properties are present when enabled
+    if (
+      captionConfig.enabled &&
+      (!captionConfig.presetId || !captionConfig.transcriptColor)
+    ) {
+      Alert.alert(
+        'Erreur',
+        'Veuillez configurer un style de sous-titres complet'
+      );
       return;
     }
 
@@ -66,7 +81,7 @@ export default function VideoSettingsScreen() {
         return;
       }
 
-      // Save to device storage using utility
+      // Save the enhanced configuration
       const success = await CaptionConfigStorage.save(user.id, captionConfig);
 
       if (success) {
@@ -87,6 +102,12 @@ export default function VideoSettingsScreen() {
     }
   };
 
+  // Check if configuration is valid for saving
+  const canSave =
+    captionConfig &&
+    (!captionConfig.enabled || // If disabled, can always save
+      (captionConfig.presetId && captionConfig.transcriptColor)); // If enabled, need essential properties
+
   if (loading) {
     return (
       <SafeAreaView style={styles.container} edges={['top']}>
@@ -106,7 +127,7 @@ export default function VideoSettingsScreen() {
         rightButton={{
           icon: <Save size={20} color="#fff" />,
           onPress: handleSave,
-          disabled: !captionConfig?.presetId,
+          disabled: !canSave,
           loading: saving,
         }}
       />

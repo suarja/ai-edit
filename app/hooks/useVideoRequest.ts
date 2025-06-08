@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Alert } from 'react-native';
 import { router } from 'expo-router';
 import { supabase } from '@/lib/supabase';
-import { VideoType, CaptionConfiguration } from '@/types/video';
+import { VideoType, EnhancedCaptionConfiguration } from '@/types/video';
 import { CaptionConfigStorage } from '@/lib/utils/caption-config-storage';
 import { API_ENDPOINTS, API_HEADERS } from '@/lib/config/api';
 
@@ -22,11 +22,8 @@ const DEFAULT_EDITORIAL_PROFILE = {
     'Explications claires avec des exemples pratiques, maintenant un équilibre entre informatif et engageant',
 };
 
-// Default caption configuration
-const DEFAULT_CAPTION_CONFIG: CaptionConfiguration = {
-  presetId: 'karaoke',
-  placement: 'bottom',
-};
+// Default enhanced caption configuration
+const DEFAULT_CAPTION_CONFIG = CaptionConfigStorage.getDefault();
 
 type VoiceClone = {
   id: string;
@@ -65,9 +62,8 @@ export default function useVideoRequest() {
   const [useEditorialProfile, setUseEditorialProfile] = useState(true);
   const [customEditorialProfile, setCustomEditorialProfile] =
     useState<CustomEditorialProfile>(DEFAULT_EDITORIAL_PROFILE);
-  const [captionConfig, setCaptionConfig] = useState<CaptionConfiguration>(
-    DEFAULT_CAPTION_CONFIG
-  );
+  const [captionConfig, setCaptionConfig] =
+    useState<EnhancedCaptionConfiguration>(DEFAULT_CAPTION_CONFIG);
   // Add language state with French as default
   const [outputLanguage, setOutputLanguage] =
     useState<string>(DEFAULT_LANGUAGE);
@@ -139,14 +135,15 @@ export default function useVideoRequest() {
 
       // Load saved caption configuration
       try {
-        const savedCaptionConfig = await CaptionConfigStorage.load(user.id);
-        console.log('Saved caption config:', savedCaptionConfig);
-        if (savedCaptionConfig) {
-          console.log('Setting caption config:', savedCaptionConfig);
-          setCaptionConfig(savedCaptionConfig);
-        }
+        const savedCaptionConfig = await CaptionConfigStorage.getOrDefault(
+          user.id
+        );
+        console.log('Loaded caption config:', savedCaptionConfig);
+        setCaptionConfig(savedCaptionConfig);
       } catch (error) {
         console.warn('Failed to load saved caption config:', error);
+        // Fallback to default if loading fails
+        setCaptionConfig(CaptionConfigStorage.getDefault());
       }
     } catch (err) {
       console.error('Error fetching initial data:', err);
@@ -201,12 +198,16 @@ export default function useVideoRequest() {
       return false;
     }
 
-    console.log('Caption config:', captionConfig);
+    console.log('Caption config validation:', captionConfig);
 
-    if (!captionConfig.presetId || !captionConfig.highlightColor) {
+    // Enhanced validation: only check if captions are enabled and missing required fields
+    if (
+      captionConfig.enabled &&
+      (!captionConfig.presetId || !captionConfig.transcriptColor)
+    ) {
       Alert.alert(
-        'Style de sous-titres manquant',
-        'Veuillez sélectionner un style de sous-titres pour votre vidéo.',
+        'Configuration des sous-titres incomplète',
+        'Veuillez configurer complètement vos sous-titres ou les désactiver.',
         [{ text: 'OK' }]
       );
       return false;
@@ -243,7 +244,7 @@ export default function useVideoRequest() {
       setSubmitting(true);
       setError(null);
 
-      // Fetch caption config
+      // Get current user
       const {
         data: { user },
       } = await supabase.auth.getUser();
@@ -251,8 +252,11 @@ export default function useVideoRequest() {
         router.replace('/(auth)/sign-in');
         return;
       }
-      const savedCaptionConfig = await CaptionConfigStorage.load(user.id);
-      setCaptionConfig(savedCaptionConfig as CaptionConfiguration);
+
+      // Get latest caption config to ensure we have the most recent settings
+      const currentCaptionConfig = await CaptionConfigStorage.getOrDefault(
+        user.id
+      );
 
       console.log('Preparing request payload...');
 
@@ -275,7 +279,7 @@ export default function useVideoRequest() {
         selectedVideos: selectedVideoData,
         voiceId: voiceClone?.elevenlabs_voice_id || DEFAULT_VOICE_ID,
         editorialProfile: profileData,
-        captionConfig: captionConfig,
+        captionConfig: currentCaptionConfig, // Use fresh config
         outputLanguage: outputLanguage,
       };
 

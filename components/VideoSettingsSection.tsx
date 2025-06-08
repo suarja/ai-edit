@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -6,14 +6,17 @@ import {
   TouchableOpacity,
   ScrollView,
   useWindowDimensions,
+  Switch,
+  Modal,
 } from 'react-native';
-import { CaptionConfiguration } from '@/types/video';
+import { ChevronDown, ChevronUp, Palette, Sparkles } from 'lucide-react-native';
+import { EnhancedCaptionConfiguration, TranscriptEffect } from '@/types/video';
 import { VIDEO_PRESETS } from '@/lib/config/video-presets';
 import { CaptionConfigStorage } from '@/lib/utils/caption-config-storage';
 
 type VideoSettingsSectionProps = {
-  captionConfig: CaptionConfiguration | null;
-  onCaptionConfigChange: (config: CaptionConfiguration) => void;
+  captionConfig: EnhancedCaptionConfiguration | null;
+  onCaptionConfigChange: (config: EnhancedCaptionConfiguration) => void;
 };
 
 const VideoSettingsSection: React.FC<VideoSettingsSectionProps> = ({
@@ -21,231 +24,432 @@ const VideoSettingsSection: React.FC<VideoSettingsSectionProps> = ({
   onCaptionConfigChange,
 }) => {
   const { width } = useWindowDimensions();
-  const cardWidth = width * 0.8;
 
-  const handlePresetSelect = (presetId: string) => {
-    // If no caption config exists yet, create one with defaults
-    if (!captionConfig) {
+  // UI state
+  const [showColorPicker, setShowColorPicker] = useState(false);
+
+  // Ensure we have a valid config object to work with
+  const currentConfig = captionConfig || CaptionConfigStorage.getDefault();
+
+  // Predefined color options for quick selection
+  const colorOptions = [
+    '#04f827', // Karaoke green
+    '#FFFD03', // Beasty yellow
+    '#ffffff', // White
+    '#ff4081', // Pink
+    '#00bcd4', // Cyan
+    '#9c27b0', // Purple
+    '#ff5722', // Orange
+    '#2196f3', // Blue
+  ];
+
+  const effectOptions: {
+    id: TranscriptEffect;
+    name: string;
+    description: string;
+  }[] = [
+    { id: 'karaoke', name: 'Karaoké', description: 'Progression mot par mot' },
+    {
+      id: 'highlight',
+      name: 'Surbrillance',
+      description: 'Surligne les mots actifs',
+    },
+    { id: 'fade', name: 'Fondu', description: 'Apparition en fondu' },
+    { id: 'bounce', name: 'Rebond', description: 'Effet de rebond dynamique' },
+    { id: 'slide', name: 'Glissement', description: 'Glissement des mots' },
+    { id: 'enlarge', name: 'Agrandissement', description: 'Zoom progressif' },
+  ];
+
+  // Quick preset combinations for popular styles
+  const quickPresets = [
+    {
+      id: 'karaoke-green',
+      name: 'Karaoké Classique',
+      icon: '🎤',
+      description: 'Vert avec progression mot par mot',
+      config: {
+        transcriptColor: '#04f827' as `#${string}`,
+        transcriptEffect: 'karaoke' as TranscriptEffect,
+        placement: 'bottom' as const,
+      },
+    },
+    {
+      id: 'highlight-yellow',
+      name: 'Surbrillance Tendance',
+      icon: '✨',
+      description: 'Jaune avec surlignage des mots',
+      config: {
+        transcriptColor: '#FFFD03' as `#${string}`,
+        transcriptEffect: 'highlight' as TranscriptEffect,
+        placement: 'bottom' as const,
+      },
+    },
+    {
+      id: 'fade-white',
+      name: 'Élégant Blanc',
+      icon: '🤍',
+      description: 'Blanc avec apparition en fondu',
+      config: {
+        transcriptColor: '#ffffff' as `#${string}`,
+        transcriptEffect: 'fade' as TranscriptEffect,
+        placement: 'center' as const,
+      },
+    },
+  ];
+
+  const handleToggleChange = (enabled: boolean) => {
+    if (enabled) {
+      // When enabling, ensure we have a complete config
+      const enabledConfig: EnhancedCaptionConfiguration = {
+        enabled: true,
+        presetId: currentConfig.presetId || 'karaoke',
+        placement: currentConfig.placement || 'bottom',
+        transcriptColor: currentConfig.transcriptColor || '#04f827',
+        transcriptEffect: currentConfig.transcriptEffect || 'karaoke',
+      };
+      onCaptionConfigChange(enabledConfig);
+    } else {
+      // When disabling, just set enabled to false but keep other settings
       onCaptionConfigChange({
-        presetId,
-        placement: 'bottom',
-        highlightColor: '#04f827',
+        ...currentConfig,
+        enabled: false,
       });
-      return;
     }
+  };
 
-    console.log('Caption config:', captionConfig);
-    onCaptionConfigChange({
-      ...captionConfig,
-      presetId,
-      highlightColor: CaptionConfigStorage.getPreset(presetId).highlightColor,
-    });
+  const handleQuickPresetSelect = (preset: (typeof quickPresets)[0]) => {
+    const updatedConfig: EnhancedCaptionConfiguration = {
+      ...currentConfig,
+      enabled: true,
+      presetId: preset.id, // Use preset ID for tracking
+      ...preset.config,
+    };
+
+    onCaptionConfigChange(updatedConfig);
   };
 
   const handlePlacementChange = (placement: 'top' | 'center' | 'bottom') => {
-    // Ensure we have a preset ID before updating
-    if (!captionConfig || !captionConfig.presetId) {
-      // Select first preset if none is selected
-      onCaptionConfigChange({
-        presetId: VIDEO_PRESETS[0].id,
-        placement,
-        highlightColor: captionConfig?.highlightColor || '#04f827',
-      });
-      return;
-    }
-
     onCaptionConfigChange({
-      ...captionConfig,
+      ...currentConfig,
+      enabled: true,
+      presetId: 'custom', // Mark as custom when user changes individual settings
       placement,
     });
   };
 
-  // const handleLinesChange = (lines: 1 | 3) => {
-  //   // Ensure we have a preset ID before updating
-  //   if (!captionConfig || !captionConfig.presetId) {
-  //     // Select first preset if none is selected
-  //     onCaptionConfigChange({
-  //       presetId: VIDEO_PRESETS[0].id,
-  //       lines,
-  //     });
-  //     return;
-  //   }
+  const handleColorChange = (color: string) => {
+    onCaptionConfigChange({
+      ...currentConfig,
+      enabled: true,
+      presetId: 'custom', // Mark as custom
+      transcriptColor: color as `#${string}`,
+    });
+    setShowColorPicker(false);
+  };
 
-  //   onCaptionConfigChange({
-  //     ...captionConfig,
-  //     lines,
-  //   });
-  // };
+  const handleEffectChange = (effect: TranscriptEffect) => {
+    onCaptionConfigChange({
+      ...currentConfig,
+      enabled: true,
+      presetId: 'custom', // Mark as custom
+      transcriptEffect: effect,
+    });
+  };
 
-  // Find the selected preset
-  const selectedPreset = VIDEO_PRESETS.find(
-    (preset) => preset.id === captionConfig?.presetId
+  // Check if current config matches any quick preset
+  const isCustomConfig = !quickPresets.some(
+    (preset) =>
+      preset.id === currentConfig.presetId ||
+      (preset.config.transcriptColor === currentConfig.transcriptColor &&
+        preset.config.transcriptEffect === currentConfig.transcriptEffect &&
+        preset.config.placement === currentConfig.placement)
   );
+
+  const renderEffectPreview = () => {
+    const effect = currentConfig.transcriptEffect || 'karaoke';
+    const color = currentConfig.transcriptColor || '#04f827';
+
+    switch (effect) {
+      case 'karaoke':
+        return (
+          <View style={styles.previewContainer}>
+            <Text style={[styles.previewText, { color: '#888' }]}>
+              CRÉER UNE{' '}
+            </Text>
+            <Text style={[styles.previewText, { color }]}>VIDÉO </Text>
+            <Text style={[styles.previewText, { color: '#888' }]}>
+              PARFAITE
+            </Text>
+          </View>
+        );
+      case 'highlight':
+        return (
+          <View style={styles.previewContainer}>
+            <Text style={[styles.previewText]}>CRÉER UNE </Text>
+            <Text
+              style={[
+                styles.previewText,
+                { backgroundColor: color, color: '#000', paddingHorizontal: 4 },
+              ]}
+            >
+              VIDÉO
+            </Text>
+            <Text style={[styles.previewText]}> PARFAITE</Text>
+          </View>
+        );
+      case 'fade':
+        return (
+          <View style={styles.previewContainer}>
+            <Text style={[styles.previewText, { color, opacity: 0.6 }]}>
+              CRÉER UNE VIDÉO
+            </Text>
+          </View>
+        );
+      case 'bounce':
+        return (
+          <View style={styles.previewContainer}>
+            <Text
+              style={[
+                styles.previewText,
+                { color, transform: [{ scale: 1.1 }] },
+              ]}
+            >
+              CRÉER UNE VIDÉO!
+            </Text>
+          </View>
+        );
+      case 'slide':
+        return (
+          <View style={styles.previewContainer}>
+            <Text style={[styles.previewText, { color }]}>
+              CRÉER UNE VIDÉO →
+            </Text>
+          </View>
+        );
+      case 'enlarge':
+        return (
+          <View style={styles.previewContainer}>
+            <Text
+              style={[
+                styles.previewText,
+                { color, fontSize: 18, fontWeight: 'bold' },
+              ]}
+            >
+              CRÉER UNE VIDÉO
+            </Text>
+          </View>
+        );
+      default:
+        return (
+          <View style={styles.previewContainer}>
+            <Text style={[styles.previewText, { color }]}>CRÉER UNE VIDÉO</Text>
+          </View>
+        );
+    }
+  };
 
   return (
     <View style={styles.container}>
-      <Text style={styles.sectionTitle}>Style des Sous-titres</Text>
-      <Text style={styles.sectionDescription}>
-        Choisissez un style pour vos sous-titres
-      </Text>
+      {/* Main Toggle */}
+      <View style={styles.toggleSection}>
+        <View style={styles.toggleContent}>
+          <View>
+            <Text style={styles.sectionTitle}>Sous-titres</Text>
+            <Text style={styles.sectionDescription}>
+              {currentConfig.enabled
+                ? 'Personnalisez le style de vos sous-titres'
+                : 'Activez les sous-titres pour votre vidéo'}
+            </Text>
+          </View>
+          <Switch
+            value={currentConfig.enabled}
+            onValueChange={handleToggleChange}
+            trackColor={{ false: '#333', true: '#007AFF' }}
+            thumbColor={currentConfig.enabled ? '#fff' : '#888'}
+            ios_backgroundColor="#333"
+          />
+        </View>
+      </View>
 
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.presetScroll}
-        snapToInterval={cardWidth + 16}
-        decelerationRate="fast"
-      >
-        {VIDEO_PRESETS.map((preset) => (
-          <TouchableOpacity
-            key={preset.id}
-            style={[
-              styles.presetCard,
-              { width: cardWidth },
-              captionConfig?.presetId === preset.id &&
-                styles.selectedPresetCard,
-            ]}
-            onPress={() => handlePresetSelect(preset.id)}
-          >
-            <View style={styles.presetHeader}>
-              <Text style={styles.presetName}>{preset.name}</Text>
-            </View>
-            <View style={styles.presetPreview}>
-              <Text
-                style={[
-                  styles.previewText,
-                  {
-                    fontFamily: preset.font_family || 'System',
-                    fontSize: 16,
-                    fontWeight: (preset.font_weight || '400') as any,
-                    color: preset.fill_color,
-                  },
-                ]}
-              >
-                {preset.transcript_effect === 'karaoke' ? (
-                  <Text>
-                    <Text style={{ color: preset.transcript_color }}>TO </Text>
-                    <Text>GET STARTED</Text>
+      {/* Caption Configuration (shown when enabled) */}
+      {currentConfig.enabled && (
+        <View style={styles.configContent}>
+          {/* Quick Presets */}
+          <View style={styles.section}>
+            <Text style={styles.sectionLabel}>Styles populaires</Text>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.presetsContainer}
+            >
+              {quickPresets.map((preset) => (
+                <TouchableOpacity
+                  key={preset.id}
+                  style={[
+                    styles.quickPresetCard,
+                    currentConfig.presetId === preset.id &&
+                      styles.selectedQuickPreset,
+                  ]}
+                  onPress={() => handleQuickPresetSelect(preset)}
+                >
+                  <Text style={styles.presetIcon}>{preset.icon}</Text>
+                  <Text style={styles.presetName}>{preset.name}</Text>
+                  <Text style={styles.presetDescription}>
+                    {preset.description}
                   </Text>
-                ) : preset.transcript_effect === 'highlight' ? (
-                  <Text>
-                    CHOOSE A{' '}
-                    <Text style={{ color: preset.transcript_color }}>
-                      STYLE
-                    </Text>
-                  </Text>
-                ) : (
-                  'CAPTION STYLE'
-                )}
-              </Text>
-            </View>
-          </TouchableOpacity>
-        ))}
-      </ScrollView>
+                </TouchableOpacity>
+              ))}
 
-      {captionConfig && captionConfig.presetId && (
-        <>
-          <View style={styles.optionSection}>
-            <Text style={styles.optionTitle}>Position</Text>
-            <View style={styles.optionButtons}>
-              <TouchableOpacity
-                style={[
-                  styles.optionButton,
-                  captionConfig.placement === 'top' &&
-                    styles.selectedOptionButton,
-                ]}
-                onPress={() => handlePlacementChange('top')}
-              >
-                <Text
-                  style={[
-                    styles.optionButtonText,
-                    captionConfig.placement === 'top' &&
-                      styles.selectedOptionButtonText,
-                  ]}
-                >
-                  Haut
-                </Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[
-                  styles.optionButton,
-                  captionConfig.placement === 'center' &&
-                    styles.selectedOptionButton,
-                ]}
-                onPress={() => handlePlacementChange('center')}
-              >
-                <Text
-                  style={[
-                    styles.optionButtonText,
-                    captionConfig.placement === 'center' &&
-                      styles.selectedOptionButtonText,
-                  ]}
-                >
-                  Milieu
-                </Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[
-                  styles.optionButton,
-                  captionConfig.placement === 'bottom' &&
-                    styles.selectedOptionButton,
-                ]}
-                onPress={() => handlePlacementChange('bottom')}
-              >
-                <Text
-                  style={[
-                    styles.optionButtonText,
-                    captionConfig.placement === 'bottom' &&
-                      styles.selectedOptionButtonText,
-                  ]}
-                >
-                  Bas
-                </Text>
-              </TouchableOpacity>
-            </View>
+              {/* Custom indicator */}
+              {isCustomConfig && (
+                <View style={[styles.quickPresetCard, styles.customPresetCard]}>
+                  <Sparkles size={20} color="#007AFF" />
+                  <Text style={styles.presetName}>Personnalisé</Text>
+                  <Text style={styles.presetDescription}>
+                    Configuration sur mesure
+                  </Text>
+                </View>
+              )}
+            </ScrollView>
           </View>
 
-          {/*    <View style={styles.optionSection}>
-            <Text style={styles.optionTitle}>Lignes</Text>
-            <View style={styles.optionButtons}>
+          {/* Live Preview */}
+          <View style={styles.section}>
+            <Text style={styles.sectionLabel}>Aperçu</Text>
+            <View style={styles.previewBox}>{renderEffectPreview()}</View>
+          </View>
+
+          {/* Main Controls */}
+          <View style={styles.section}>
+            <Text style={styles.sectionLabel}>Personnalisation</Text>
+
+            {/* Effect Selector */}
+            <View style={styles.controlGroup}>
+              <Text style={styles.controlLabel}>Effet d&apos;animation</Text>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                <View style={styles.effectButtons}>
+                  {effectOptions.map((effect) => (
+                    <TouchableOpacity
+                      key={effect.id}
+                      style={[
+                        styles.effectButton,
+                        currentConfig.transcriptEffect === effect.id &&
+                          styles.selectedEffectButton,
+                      ]}
+                      onPress={() => handleEffectChange(effect.id)}
+                    >
+                      <Text
+                        style={[
+                          styles.effectButtonText,
+                          currentConfig.transcriptEffect === effect.id &&
+                            styles.selectedEffectButtonText,
+                        ]}
+                      >
+                        {effect.name}
+                      </Text>
+                      <Text
+                        style={[
+                          styles.effectDescription,
+                          currentConfig.transcriptEffect === effect.id &&
+                            styles.selectedEffectDescription,
+                        ]}
+                      >
+                        {effect.description}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              </ScrollView>
+            </View>
+
+            {/* Color Picker */}
+            <View style={styles.controlGroup}>
+              <Text style={styles.controlLabel}>Couleur du texte</Text>
               <TouchableOpacity
-                style={[
-                  styles.optionButton,
-                  captionConfig.lines === 3 && styles.selectedOptionButton,
-                ]}
-                onPress={() => handleLinesChange(3)}
+                style={styles.colorButton}
+                onPress={() => setShowColorPicker(true)}
               >
-                <Text
+                <View
                   style={[
-                    styles.optionButtonText,
-                    captionConfig.lines === 3 &&
-                      styles.selectedOptionButtonText,
+                    styles.colorPreview,
+                    {
+                      backgroundColor:
+                        currentConfig.transcriptColor || '#04f827',
+                    },
                   ]}
-                >
-                  Trois lignes
+                />
+                <Text style={styles.colorButtonText}>
+                  {currentConfig.transcriptColor || '#04f827'}
                 </Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[
-                  styles.optionButton,
-                  captionConfig.lines === 1 && styles.selectedOptionButton,
-                ]}
-                onPress={() => handleLinesChange(1)}
-              >
-                <Text
-                  style={[
-                    styles.optionButtonText,
-                    captionConfig.lines === 1 &&
-                      styles.selectedOptionButtonText,
-                  ]}
-                >
-                  Une ligne
-                </Text>
+                <Palette size={16} color="#888" />
               </TouchableOpacity>
             </View>
-          </View> */}
-        </>
+
+            {/* Position Controls */}
+            <View style={styles.controlGroup}>
+              <Text style={styles.controlLabel}>Position</Text>
+              <View style={styles.positionButtons}>
+                {(['top', 'center', 'bottom'] as const).map((position) => (
+                  <TouchableOpacity
+                    key={position}
+                    style={[
+                      styles.positionButton,
+                      currentConfig.placement === position &&
+                        styles.selectedPositionButton,
+                    ]}
+                    onPress={() => handlePlacementChange(position)}
+                  >
+                    <Text
+                      style={[
+                        styles.positionButtonText,
+                        currentConfig.placement === position &&
+                          styles.selectedPositionButtonText,
+                      ]}
+                    >
+                      {position === 'top'
+                        ? 'Haut'
+                        : position === 'center'
+                        ? 'Milieu'
+                        : 'Bas'}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </View>
+          </View>
+        </View>
       )}
+
+      {/* Color Picker Modal */}
+      <Modal
+        visible={showColorPicker}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setShowColorPicker(false)}
+      >
+        <TouchableOpacity
+          style={styles.modalOverlay}
+          onPress={() => setShowColorPicker(false)}
+        >
+          <View style={styles.colorPickerModal}>
+            <Text style={styles.colorPickerTitle}>Choisir une couleur</Text>
+            <View style={styles.colorGrid}>
+              {colorOptions.map((color) => (
+                <TouchableOpacity
+                  key={color}
+                  style={[
+                    styles.colorOption,
+                    { backgroundColor: color },
+                    currentConfig.transcriptColor === color &&
+                      styles.selectedColorOption,
+                  ]}
+                  onPress={() => handleColorChange(color)}
+                />
+              ))}
+            </View>
+          </View>
+        </TouchableOpacity>
+      </Modal>
     </View>
   );
 };
@@ -253,6 +457,14 @@ const VideoSettingsSection: React.FC<VideoSettingsSectionProps> = ({
 const styles = StyleSheet.create({
   container: {
     marginBottom: 32,
+  },
+  toggleSection: {
+    marginBottom: 20,
+  },
+  toggleContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
   },
   sectionTitle: {
     fontSize: 20,
@@ -263,77 +475,216 @@ const styles = StyleSheet.create({
   sectionDescription: {
     fontSize: 15,
     color: '#888',
-    marginBottom: 16,
     lineHeight: 22,
   },
-  presetScroll: {
-    paddingHorizontal: 0,
-    paddingBottom: 8,
-    gap: 16,
+  configContent: {
+    gap: 24,
   },
-  presetCard: {
+  section: {
+    gap: 12,
+  },
+  sectionLabel: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#fff',
+  },
+
+  // Quick Presets
+  presetsContainer: {
+    gap: 12,
+    paddingHorizontal: 4,
+  },
+  quickPresetCard: {
     backgroundColor: '#1a1a1a',
-    borderRadius: 16,
-    overflow: 'hidden',
+    borderRadius: 12,
+    padding: 16,
+    width: 140,
+    alignItems: 'center',
     borderWidth: 2,
     borderColor: 'transparent',
+    gap: 8,
   },
-  selectedPresetCard: {
+  selectedQuickPreset: {
     borderColor: '#007AFF',
+    backgroundColor: 'rgba(0, 122, 255, 0.1)',
   },
-  presetHeader: {
-    padding: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#333',
+  customPresetCard: {
+    borderColor: '#007AFF',
+    backgroundColor: 'rgba(0, 122, 255, 0.1)',
+  },
+  presetIcon: {
+    fontSize: 24,
   },
   presetName: {
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: '600',
     color: '#fff',
-  },
-  presetPreview: {
-    padding: 24,
-    alignItems: 'center',
-    justifyContent: 'center',
-    height: 100,
-  },
-  previewText: {
     textAlign: 'center',
   },
-  optionSection: {
-    marginTop: 24,
+  presetDescription: {
+    fontSize: 11,
+    color: '#888',
+    textAlign: 'center',
+    lineHeight: 14,
   },
-  optionTitle: {
+
+  // Preview
+  previewBox: {
+    backgroundColor: '#1a1a1a',
+    borderRadius: 12,
+    padding: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: 80,
+  },
+  previewContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flexWrap: 'wrap',
+    justifyContent: 'center',
+  },
+  previewText: {
     fontSize: 16,
     fontWeight: '600',
     color: '#fff',
-    marginBottom: 12,
   },
-  optionButtons: {
+
+  // Controls
+  controlGroup: {
+    gap: 8,
+  },
+  controlLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#fff',
+  },
+
+  // Effect Buttons
+  effectButtons: {
+    flexDirection: 'row',
+    gap: 8,
+    paddingHorizontal: 4,
+  },
+  effectButton: {
+    backgroundColor: '#1a1a1a',
+    borderRadius: 8,
+    padding: 12,
+    minWidth: 100,
+    borderWidth: 1,
+    borderColor: '#333',
+  },
+  selectedEffectButton: {
+    backgroundColor: '#007AFF',
+    borderColor: '#007AFF',
+  },
+  effectButtonText: {
+    color: '#fff',
+    fontSize: 12,
+    fontWeight: '600',
+    textAlign: 'center',
+  },
+  selectedEffectButtonText: {
+    color: '#fff',
+  },
+  effectDescription: {
+    color: '#888',
+    fontSize: 10,
+    textAlign: 'center',
+    marginTop: 2,
+  },
+  selectedEffectDescription: {
+    color: 'rgba(255, 255, 255, 0.8)',
+  },
+
+  // Color Button
+  colorButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#1a1a1a',
+    borderRadius: 8,
+    padding: 12,
+    gap: 12,
+    borderWidth: 1,
+    borderColor: '#333',
+  },
+  colorPreview: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: '#555',
+  },
+  colorButtonText: {
+    color: '#fff',
+    fontSize: 14,
+    flex: 1,
+  },
+
+  // Position Buttons
+  positionButtons: {
     flexDirection: 'row',
     gap: 8,
   },
-  optionButton: {
+  positionButton: {
     flex: 1,
     backgroundColor: '#1a1a1a',
-    borderRadius: 16,
-    padding: 16,
+    borderRadius: 8,
+    padding: 12,
     alignItems: 'center',
     borderWidth: 1,
     borderColor: '#333',
   },
-  selectedOptionButton: {
+  selectedPositionButton: {
     backgroundColor: '#007AFF',
     borderColor: '#007AFF',
   },
-  optionButtonText: {
+  positionButtonText: {
     color: '#fff',
-    fontSize: 14,
+    fontSize: 12,
     fontWeight: '500',
   },
-  selectedOptionButtonText: {
+  selectedPositionButtonText: {
     color: '#fff',
     fontWeight: '600',
+  },
+
+  // Color Picker Modal
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  colorPickerModal: {
+    backgroundColor: '#1a1a1a',
+    borderRadius: 16,
+    padding: 24,
+    margin: 20,
+    width: '80%',
+  },
+  colorPickerTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#fff',
+    textAlign: 'center',
+    marginBottom: 20,
+  },
+  colorGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 12,
+    justifyContent: 'center',
+  },
+  colorOption: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    borderWidth: 2,
+    borderColor: '#333',
+  },
+  selectedColorOption: {
+    borderColor: '#007AFF',
+    borderWidth: 3,
   },
 });
 
