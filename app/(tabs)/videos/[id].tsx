@@ -12,6 +12,24 @@ import VideoActionButtons from '@/components/VideoActionButtons';
 import { env } from '@/lib/config/env';
 import { API_ENDPOINTS } from '@/lib/config/api';
 
+// Script type for proper TypeScript support
+type ScriptData = {
+  id: string;
+  raw_prompt: string;
+  generated_script: string;
+  output_language: string;
+};
+
+// Video request type with proper script relation
+type VideoRequestWithScript = {
+  id: string;
+  render_status: 'queued' | 'rendering' | 'done' | 'error';
+  render_url: string | null;
+  created_at: string;
+  script_id: string;
+  script: ScriptData;
+};
+
 // Extended type to include script information
 type EnhancedGeneratedVideoType = GeneratedVideoType & {
   title?: string;
@@ -58,10 +76,27 @@ export default function GeneratedVideoDetailScreen() {
         .eq('id', id)
         .single();
 
-      if (videoError) throw videoError;
+      if (videoError) {
+        console.error('Supabase error:', videoError);
+        throw videoError;
+      }
 
-      // Extract script information
-      const script = videoRequest.script;
+      if (!videoRequest) {
+        throw new Error('Video not found');
+      }
+
+      // Check if script data is properly loaded
+      if (!videoRequest.script || typeof videoRequest.script !== 'object') {
+        console.error('Script data not loaded properly:', videoRequest);
+        throw new Error('Script information could not be loaded');
+      }
+
+      // Type assertion after validation
+      const typedVideoRequest =
+        videoRequest as unknown as VideoRequestWithScript;
+
+      // Extract script information with additional safety checks
+      const script = typedVideoRequest.script;
       const prompt = script?.raw_prompt || '';
 
       // Create title from prompt (first 60 characters for details page)
@@ -78,8 +113,8 @@ export default function GeneratedVideoDetailScreen() {
         error: 'Erreur de génération',
       };
       const statusText =
-        statusMap[videoRequest.render_status as string] ||
-        videoRequest.render_status;
+        statusMap[typedVideoRequest.render_status] ||
+        typedVideoRequest.render_status;
 
       const description = `${statusText}${
         script?.output_language
@@ -89,28 +124,24 @@ export default function GeneratedVideoDetailScreen() {
 
       // Format the video to match our GeneratedVideoType with enhancements
       const formattedVideo: EnhancedGeneratedVideoType = {
-        id: videoRequest.id as string,
+        id: typedVideoRequest.id as string,
         type: 'generated',
-        created_at: videoRequest.created_at as string,
-        render_status: videoRequest.render_status as
-          | 'queued'
-          | 'rendering'
-          | 'done'
-          | 'error',
-        render_url: videoRequest.render_url as string | null,
-        script: videoRequest.script_id as string,
+        created_at: typedVideoRequest.created_at as string,
+        render_status: typedVideoRequest.render_status,
+        render_url: typedVideoRequest.render_url,
+        script: typedVideoRequest.script_id as string,
         title,
         description,
-        prompt: script?.raw_prompt as string,
-        script_content: script?.generated_script as string,
-        output_language: script?.output_language as string,
+        prompt: script?.raw_prompt,
+        script_content: script?.generated_script,
+        output_language: script?.output_language,
       };
 
       // Set the video details
       setVideo(formattedVideo);
 
       // If the video is still rendering, check the current status
-      if (videoRequest.render_status === 'rendering') {
+      if (typedVideoRequest.render_status === 'rendering') {
         checkVideoStatus();
       }
     } catch (err) {
@@ -182,10 +213,6 @@ export default function GeneratedVideoDetailScreen() {
   const handleRefresh = () => {
     setRefreshing(true);
     fetchVideoDetails();
-  };
-
-  const handleShare = async () => {
-    // Let the VideoActionButtons component handle this
   };
 
   const handleBackToVideos = () => {
@@ -273,7 +300,7 @@ export default function GeneratedVideoDetailScreen() {
 
         <VideoDetails video={video} error={error} />
 
-        <VideoActionButtons video={video} layout="row" onShare={handleShare} />
+        <VideoActionButtons video={video} layout="row" showCopyLink={true} />
       </View>
     </SafeAreaView>
   );

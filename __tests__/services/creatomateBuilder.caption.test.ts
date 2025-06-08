@@ -356,6 +356,73 @@ describe('CreatomateBuilder - Caption Fixing', () => {
         });
       });
     });
+
+    test('should remove conflicting old format properties', () => {
+      // Create a template with conflicting old properties
+      const templateWithConflicts = {
+        width: 1080,
+        height: 1920,
+        elements: [
+          {
+            id: 'scene-1',
+            type: 'composition',
+            track: 1,
+            elements: [
+              {
+                id: 'caption-1',
+                name: 'Subtitle-1',
+                type: 'text',
+                track: 2,
+                // Old conflicting properties that should be removed
+                x: '50%',
+                y: '80%',
+                highlight_color: '#OLD_COLOR',
+                shadow_x: '2px',
+                shadow_y: '2px',
+                shadow_blur: '2px',
+                shadow_color: '#000000',
+                text_transform: 'uppercase',
+                // Properties that should be preserved
+                transcript_source: 'voice-scene-1',
+                font_size: '40px',
+              },
+            ],
+          },
+        ],
+        output_format: 'mp4',
+      };
+
+      const userCaptionConfig = {
+        presetId: 'karaoke',
+        placement: 'top' as const,
+        highlightColor: '#NEW_COLOR',
+      };
+
+      const fixCaptions = (creatomateBuilder as any).fixCaptions.bind(
+        creatomateBuilder
+      );
+      fixCaptions(templateWithConflicts, userCaptionConfig);
+
+      const captionElement = templateWithConflicts.elements[0].elements[0];
+
+      // Verify conflicting properties are removed
+      expect(captionElement.x).toBeUndefined();
+      expect(captionElement.y).toBeUndefined();
+      expect(captionElement.highlight_color).toBeUndefined();
+      expect(captionElement.shadow_x).toBeUndefined();
+      expect(captionElement.shadow_y).toBeUndefined();
+      expect(captionElement.shadow_blur).toBeUndefined();
+      expect(captionElement.shadow_color).toBeUndefined();
+      expect(captionElement.text_transform).toBeUndefined();
+
+      // Verify correct new properties are set
+      expect(captionElement.x_alignment).toBe('50%');
+      expect(captionElement.y_alignment).toBe('10%'); // top placement
+      expect(captionElement.transcript_color).toBe('#NEW_COLOR');
+
+      // Verify preserved properties remain
+      expect(captionElement.transcript_source).toBe('voice-scene-1');
+    });
   });
 
   describe('integration with buildJson', () => {

@@ -17,6 +17,7 @@ import {
   Edit3,
   Play,
   MoreHorizontal,
+  Loader,
 } from 'lucide-react-native';
 import * as FileSystem from 'expo-file-system';
 import * as Sharing from 'expo-sharing';
@@ -33,6 +34,7 @@ interface VideoActionButtonsProps {
   onShare?: () => void;
   onDownload?: () => void;
   onPlay?: () => void;
+  showCopyLink?: boolean;
 }
 
 export default function VideoActionButtons({
@@ -45,24 +47,35 @@ export default function VideoActionButtons({
   showDelete = false,
   showCopyLink = false,
 }: VideoActionButtonsProps) {
+  const [isDownloading, setIsDownloading] = useState(false);
+  const [downloadProgress, setDownloadProgress] = useState(0);
+  const [isSharing, setIsSharing] = useState(false);
+
   if (!video) return null;
 
   const videoUrl = getVideoUrl(video);
 
   const handleDownload = async () => {
     if (!videoUrl) {
-      Alert.alert('Error', 'Video URL is not available');
+      Alert.alert('Erreur', 'URL de la vidéo non disponible');
       return;
     }
 
+    if (isDownloading) {
+      return; // Prevent multiple downloads
+    }
+
     try {
+      setIsDownloading(true);
+      setDownloadProgress(0);
+
       // Request permissions first (for Android)
       if (Platform.OS === 'android') {
         const { status } = await MediaLibrary.requestPermissionsAsync();
         if (status !== 'granted') {
           Alert.alert(
-            'Permission Denied',
-            'Cannot save video without permission'
+            'Permission refusée',
+            'Impossible de sauvegarder la vidéo sans permission'
           );
           return;
         }
@@ -72,7 +85,7 @@ export default function VideoActionButtons({
       const fileName = videoUrl.split('/').pop() || `video-${Date.now()}.mp4`;
       const fileUri = `${FileSystem.documentDirectory}${fileName}`;
 
-      // Show download progress
+      // Create download with progress tracking
       const downloadResumable = FileSystem.createDownloadResumable(
         videoUrl,
         fileUri,
@@ -81,11 +94,9 @@ export default function VideoActionButtons({
           const progress =
             downloadProgress.totalBytesWritten /
             downloadProgress.totalBytesExpectedToWrite;
-          console.log(`Download progress: ${progress * 100}%`);
+          setDownloadProgress(Math.round(progress * 100));
         }
       );
-
-      Alert.alert('Download', 'Video download has started');
 
       const result = await downloadResumable.downloadAsync();
 
@@ -95,10 +106,14 @@ export default function VideoActionButtons({
           const canShare = await Sharing.isAvailableAsync();
           if (canShare) {
             await Sharing.shareAsync(result.uri);
+            Alert.alert(
+              'Succès',
+              'Vidéo téléchargée et prête à être sauvegardée'
+            );
           } else {
             Alert.alert(
-              'Download Complete',
-              `Video downloaded successfully to: ${result.uri}`
+              'Téléchargement terminé',
+              `Vidéo téléchargée avec succès`
             );
           }
         } else if (Platform.OS === 'android') {
@@ -107,11 +122,11 @@ export default function VideoActionButtons({
           await MediaLibrary.createAlbumAsync('Videos', asset, false);
 
           Alert.alert(
-            'Download Complete',
-            'Video downloaded and saved to your gallery',
+            'Téléchargement terminé',
+            'Vidéo téléchargée et sauvegardée dans votre galerie',
             [
               {
-                text: 'Open',
+                text: 'Ouvrir',
                 onPress: () =>
                   FileSystem.getContentUriAsync(result.uri).then(
                     (contentUri) => {
@@ -125,31 +140,41 @@ export default function VideoActionButtons({
         } else {
           // Web or other platforms
           Alert.alert(
-            'Download Complete',
-            `Video downloaded successfully to: ${result.uri}`
+            'Téléchargement terminé',
+            `Vidéo téléchargée avec succès`
           );
         }
       }
     } catch (error) {
       console.error('Error downloading video:', error);
-      Alert.alert('Error', 'Failed to download video');
+      Alert.alert('Erreur', 'Échec du téléchargement de la vidéo');
+    } finally {
+      setIsDownloading(false);
+      setDownloadProgress(0);
     }
   };
 
   const handleShare = async () => {
     if (!videoUrl) return;
 
+    if (isSharing) {
+      return; // Prevent multiple share dialogs
+    }
+
     try {
-      if (onShare) {
-        onShare();
-      } else {
-        await Share.share({
-          message: `Check out my video: ${videoUrl}`,
-          url: videoUrl, // iOS only
-        });
-      }
+      setIsSharing(true);
+
+      // Always handle sharing directly to avoid conflicts
+      await Share.share({
+        message: `Regardez ma vidéo: ${videoUrl}`,
+        url: videoUrl, // iOS only
+        title: 'Ma vidéo générée',
+      });
     } catch (err) {
       console.error('Error sharing video:', err);
+      Alert.alert('Erreur', 'Impossible de partager la vidéo');
+    } finally {
+      setIsSharing(false);
     }
   };
 
@@ -159,34 +184,74 @@ export default function VideoActionButtons({
     try {
       if (typeof navigator !== 'undefined' && navigator.clipboard) {
         await navigator.clipboard.writeText(videoUrl);
-        Alert.alert('Success', 'URL copied to clipboard');
+        Alert.alert('Succès', 'URL copiée dans le presse-papiers');
       } else {
-        Alert.alert('Video URL', videoUrl, [
-          { text: 'Close', style: 'cancel' },
+        Alert.alert('URL de la vidéo', videoUrl, [
+          { text: 'Fermer', style: 'cancel' },
           {
-            text: 'Open',
+            text: 'Ouvrir',
             onPress: () => Linking.openURL(videoUrl),
           },
         ]);
       }
     } catch (error) {
-      Alert.alert('Error', 'Unable to copy URL');
+      Alert.alert('Erreur', "Impossible de copier l'URL");
     }
+  };
+
+  const renderDownloadButton = () => {
+    if (isDownloading) {
+      return (
+        <TouchableOpacity
+          style={[styles.primaryButton, styles.downloadingButton]}
+          disabled
+        >
+          <Loader size={20} color="#fff" />
+          <Text style={styles.primaryButtonText}>
+            {downloadProgress > 0
+              ? `Téléchargement ${downloadProgress}%`
+              : 'Téléchargement...'}
+          </Text>
+        </TouchableOpacity>
+      );
+    }
+
+    return (
+      <TouchableOpacity style={styles.primaryButton} onPress={handleDownload}>
+        <Download size={20} color="#fff" />
+        <Text style={styles.primaryButtonText}>Télécharger</Text>
+      </TouchableOpacity>
+    );
+  };
+
+  const renderShareButton = () => {
+    if (isSharing) {
+      return (
+        <TouchableOpacity
+          style={[styles.secondaryButton, styles.sharingButton]}
+          disabled
+        >
+          <Loader size={20} color="#007AFF" />
+          <Text style={styles.secondaryButtonText}>Partage...</Text>
+        </TouchableOpacity>
+      );
+    }
+
+    return (
+      <TouchableOpacity style={styles.secondaryButton} onPress={handleShare}>
+        <ShareIcon size={20} color="#007AFF" />
+        <Text style={styles.secondaryButtonText}>Partager</Text>
+      </TouchableOpacity>
+    );
   };
 
   return (
     <View
       style={layout === 'column' ? styles.columnContainer : styles.rowContainer}
     >
-      <TouchableOpacity style={styles.primaryButton} onPress={handleDownload}>
-        <Download size={20} color="#fff" />
-        <Text style={styles.primaryButtonText}>Download</Text>
-      </TouchableOpacity>
+      {renderDownloadButton()}
 
-      <TouchableOpacity style={styles.secondaryButton} onPress={handleShare}>
-        <ShareIcon size={20} color="#007AFF" />
-        <Text style={styles.secondaryButtonText}>Share</Text>
-      </TouchableOpacity>
+      {renderShareButton()}
 
       {showCopyLink && (
         <TouchableOpacity
@@ -194,21 +259,21 @@ export default function VideoActionButtons({
           onPress={handleCopyLink}
         >
           <ExternalLink size={20} color="#007AFF" />
-          <Text style={styles.secondaryButtonText}>Copy Link</Text>
+          <Text style={styles.secondaryButtonText}>Copier le lien</Text>
         </TouchableOpacity>
       )}
 
       {showEdit && onEdit && (
         <TouchableOpacity style={styles.secondaryButton} onPress={onEdit}>
           <Edit3 size={20} color="#007AFF" />
-          <Text style={styles.secondaryButtonText}>Edit</Text>
+          <Text style={styles.secondaryButtonText}>Modifier</Text>
         </TouchableOpacity>
       )}
 
       {showDelete && onDelete && (
         <TouchableOpacity style={styles.dangerButton} onPress={onDelete}>
           <Trash size={20} color="#fff" />
-          <Text style={styles.dangerButtonText}>Delete</Text>
+          <Text style={styles.dangerButtonText}>Supprimer</Text>
         </TouchableOpacity>
       )}
     </View>
@@ -242,6 +307,10 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
   },
+  downloadingButton: {
+    backgroundColor: '#4A90E2',
+    opacity: 0.8,
+  },
   secondaryButton: {
     backgroundColor: 'transparent',
     borderWidth: 1,
@@ -257,6 +326,10 @@ const styles = StyleSheet.create({
     color: '#007AFF',
     fontSize: 16,
     fontWeight: '600',
+  },
+  sharingButton: {
+    borderColor: '#4A90E2',
+    opacity: 0.8,
   },
   dangerButton: {
     backgroundColor: '#ef4444',
