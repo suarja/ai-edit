@@ -27,6 +27,25 @@ export type HexColor = `#${string}`;
 
 export type AnyVideoType = VideoType | GeneratedVideoType;
 
+// Enhanced transcript effects supported by Creatomate
+export type TranscriptEffect =
+  | 'karaoke'
+  | 'highlight'
+  | 'fade'
+  | 'bounce'
+  | 'slide'
+  | 'enlarge';
+
+// Enhanced caption configuration interface
+export interface EnhancedCaptionConfiguration {
+  enabled: boolean; // NEW: Toggle control for enabling/disabling captions
+  presetId?: string; // Existing: Preset identifier (karaoke, beasty, etc.)
+  placement: 'top' | 'center' | 'bottom'; // Enhanced: renamed 'middle' to 'center' for consistency
+  transcriptColor?: HexColor; // NEW: Custom color override for transcript_color
+  transcriptEffect?: TranscriptEffect; // NEW: Custom effect override for transcript_effect
+}
+
+// Legacy interface for backward compatibility
 export interface CaptionConfiguration {
   presetId: string;
   placement: 'top' | 'bottom' | 'center';
@@ -48,7 +67,7 @@ export interface VideoGenerationRequest {
   selectedVideos: VideoType[];
   editorialProfile: EditorialProfile;
   voiceId: string;
-  captionConfig?: CaptionConfiguration;
+  captionConfig?: EnhancedCaptionConfiguration; // Updated to use enhanced configuration
   outputLanguage: string;
 }
 
@@ -98,6 +117,27 @@ export function isValidVideo(video: any): video is VideoType {
   );
 }
 
+// Enhanced caption config validation
+export function isValidEnhancedCaptionConfig(
+  config: any
+): config is EnhancedCaptionConfiguration {
+  return (
+    typeof config === 'object' &&
+    config !== null &&
+    typeof config.enabled === 'boolean' &&
+    (config.presetId === undefined || typeof config.presetId === 'string') &&
+    ['top', 'center', 'bottom'].includes(config.placement) &&
+    (config.transcriptColor === undefined ||
+      (typeof config.transcriptColor === 'string' &&
+        config.transcriptColor.startsWith('#'))) &&
+    (config.transcriptEffect === undefined ||
+      ['karaoke', 'highlight', 'fade', 'bounce', 'slide', 'enlarge'].includes(
+        config.transcriptEffect
+      ))
+  );
+}
+
+// Legacy caption config validation for backward compatibility
 export function isValidCaptionConfig(
   config: any
 ): config is CaptionConfiguration {
@@ -123,3 +163,26 @@ export function isValidEditorialProfile(
     typeof profile.style_notes === 'string'
   );
 }
+
+// Utility function to migrate legacy caption config to enhanced format
+export function migrateLegacyConfig(
+  oldConfig: CaptionConfiguration
+): EnhancedCaptionConfiguration {
+  return {
+    enabled: true, // Default enabled for existing configurations
+    presetId: oldConfig.presetId,
+    placement:
+      oldConfig.placement === 'middle' ? 'center' : oldConfig.placement,
+    transcriptColor: oldConfig.highlightColor, // Rename highlightColor to transcriptColor
+    transcriptEffect: 'karaoke', // Default effect for migrated configs
+  };
+}
+
+// Default configuration
+export const DEFAULT_CAPTION_CONFIG: EnhancedCaptionConfiguration = {
+  enabled: true,
+  presetId: 'karaoke',
+  placement: 'bottom',
+  transcriptColor: '#04f827',
+  transcriptEffect: 'karaoke',
+};

@@ -372,3 +372,226 @@ npm run lint -- components/VideoUploader.tsx
 - ✅ No TypeScript or syntax errors from our fix
 - ⚠️ Minor warning about unused `uploadProgress` variable (pre-existing, not related to our fix)
 - ✅ Code change successfully validated by project linter
+
+# Task: Enhanced Caption System with Toggle Controls and Advanced Settings
+
+## Task ID: CS-001
+
+## Complexity Level: Level 3
+
+## Priority: High
+
+## Description
+
+Enhance the caption system to provide better user experience with default configurations, toggle controls, and advanced caption customization options. Address current issues where users get error popups requiring manual subtitle selection and refresh cycles.
+
+## Current Issues Identified
+
+1. 🔍 **Default Configuration Missing**: Users get error popup "need to select subtitles" when generating videos without manually setting caption config first
+2. 🔍 **Caption Config Not Applied**: User-configured caption settings aren't being properly applied during video rendering
+3. 🔍 **No Toggle to Disable Captions**: Users cannot completely disable captions - they're always generated
+4. 🔍 **Limited User Controls**: Only basic preset selection available - no direct control over:
+   - Font color (transcript_color)
+   - Transcript effects (highlight, karaoke, fade, bounce, slide, enlarge)
+   - Position control (y-axis)
+
+## Requirements Analysis
+
+### Core Requirements:
+
+- [x] Default caption configuration that works without manual setup
+- [ ] Toggle button to completely enable/disable captions
+- [ ] Enhanced user controls for:
+  - Font color selection
+  - Transcript effect selection (highlight, karaoke, fade, bounce, slide, enlarge)
+  - Position control (y-axis alignment)
+- [ ] Post-processing step to disable captions when toggle is off
+- [ ] Maintain compatibility with existing caption post-processing system
+- [ ] Comprehensive test coverage for new functionality
+
+### Technical Constraints:
+
+- [ ] Must preserve existing video.fit and caption fixing pipeline in creatomateBuilder.ts
+- [ ] Must maintain TDD approach with test-first development
+- [ ] Must reuse caption post-processing architecture similar to video.fit fix
+- [ ] UI changes must be compatible with VideoSettingsSection.tsx
+
+## Component Analysis
+
+### Affected Components:
+
+- **VideoSettingsSection.tsx**
+  - Changes needed: Add toggle control, font color picker, effect selector
+  - Dependencies: CaptionConfiguration type updates, new UI controls
+- **types/video.ts**
+  - Changes needed: Expand CaptionConfiguration interface with new properties
+  - Dependencies: Align with Creatomate format requirements
+- **server/src/services/creatomateBuilder.ts**
+  - Changes needed: Add caption disable functionality in post-processing
+  - Dependencies: Enhanced fixCaptions method, new disable logic
+- **server/src/utils/video/preset-converter.ts**
+
+  - Changes needed: Support new caption properties and effects
+  - Dependencies: Extended preset configuration handling
+
+- **lib/config/video-presets.ts**
+
+  - Changes needed: Expand presets with more effect options
+  - Dependencies: Support for all Creatomate transcript effects
+
+- **lib/utils/caption-config-storage.ts**
+  - Changes needed: Handle new configuration properties and defaults
+  - Dependencies: Backward compatibility with existing stored configs
+
+## Creative Phase Requirements
+
+### UI/UX Design ✨
+
+**Required**: Yes - Need to design:
+
+- Toggle switch for caption enable/disable
+- Color picker interface for transcript_color
+- Effect selector dropdown/buttons
+- Enhanced position controls
+- Integration with existing VideoSettingsSection layout
+
+### Architecture Design 🏗️
+
+**Required**: Yes - Need to design:
+
+- Caption disabling post-processing workflow
+- Enhanced CaptionConfiguration type structure
+- Default configuration strategy
+- Test architecture for new functionality
+
+### Algorithm Design ⚙️
+
+**Required**: No - Logic is straightforward extension of existing patterns
+
+## Implementation Strategy
+
+### Phase 1: Type System and Configuration Updates
+
+1. [ ] Expand CaptionConfiguration interface in types/video.ts
+2. [ ] Update video-presets.ts with additional effects
+3. [ ] Enhance preset-converter.ts to handle new properties
+4. [ ] Update caption-config-storage.ts with default handling
+
+### Phase 2: UI Enhancement
+
+1. [ ] Add toggle control to VideoSettingsSection.tsx
+2. [ ] Implement color picker for transcript_color
+3. [ ] Add effect selector for transcript effects
+4. [ ] Enhance position controls
+
+### Phase 3: Backend Processing Enhancement
+
+1. [ ] Add caption disable functionality to creatomateBuilder.ts
+2. [ ] Enhance fixCaptions method with new properties
+3. [ ] Implement post-processing caption removal when disabled
+
+### Phase 4: Testing and Integration
+
+1. [ ] Create comprehensive test suite for new functionality
+2. [ ] Update existing tests for expanded functionality
+3. [ ] Integration testing for complete workflow
+
+## Dependencies
+
+- **Technical**: Existing caption post-processing in creatomateBuilder.ts
+- **Data**: CaptionConfiguration storage and retrieval system
+- **UI**: VideoSettingsSection component architecture
+
+## Challenges & Mitigations
+
+- **Challenge**: Maintaining backward compatibility with existing caption configs
+
+  - **Mitigation**: Implement graceful fallbacks and migration logic
+
+- **Challenge**: Ensuring default configuration works without user setup
+
+  - **Mitigation**: Implement smart defaults in CaptionConfigStorage utility
+
+- **Challenge**: UI complexity with additional controls
+  - **Mitigation**: Progressive disclosure and grouped controls
+
+## Creative Phase Components
+
+- [x] UI/UX Design for enhanced caption controls ✅
+  - **Document**: `memory-bank/creative-caption-uiux.md`
+  - **Decision**: Progressive disclosure design with toggle, advanced controls, and default configuration
+- [x] Architecture Design for caption disable workflow ✅
+  - **Document**: `memory-bank/creative-caption-architecture.md`
+  - **Decision**: Single post-processing pipeline with enhanced caption configuration and disable functionality
+
+## Status: CREATIVE Phase ✅ COMPLETED
+
+**Creative Decisions Made**:
+
+- **UI Design**: Progressive disclosure with toggle control, color picker, effect selector
+- **Architecture**: Enhanced post-processing pipeline with default configuration and caption disable
+- **Type System**: Extended CaptionConfiguration with enabled toggle and custom properties
+- **Migration Strategy**: Backward compatibility with existing configurations
+
+**Current Phase**: IMPLEMENT Mode - Building the enhanced caption system
+
+## Phase 1: Backend Implementation ✅ COMPLETED
+
+### Type System Enhancement
+
+- [x] **Enhanced CaptionConfiguration interface** (`types/video.ts`)
+  - Added `enabled` boolean toggle
+  - Added `transcriptColor` and `transcriptEffect` properties
+  - Added migration utilities for backward compatibility
+  - Added validation functions
+
+### Video Presets Extension
+
+- [x] **Extended VIDEO_PRESETS** (`lib/config/video-presets.ts`)
+  - Added fade, bounce, slide, enlarge effects
+  - Each preset has distinct colors and effects
+
+### Storage Enhancement
+
+- [x] **Enhanced CaptionConfigStorage** (`lib/utils/caption-config-storage.ts`)
+  - Smart defaults with `getOrDefault()` method
+  - Automatic migration from legacy configs
+  - Validation and sanitization utilities
+  - Support for all new properties
+
+### Preset Converter Update
+
+- [x] **Enhanced preset converter** (`server/src/utils/video/preset-converter.ts`)
+  - Support for enhanced configuration format
+  - Legacy config migration
+  - Custom override handling for colors and effects
+  - All new transcript effects supported
+
+### CreatomateBuilder Enhancement
+
+- [x] **Enhanced post-processing pipeline** (`server/src/services/creatomateBuilder.ts`)
+  - New `handleCaptionConfiguration()` method
+  - `disableCaptions()` functionality to remove subtitle elements
+  - Default configuration when none provided
+  - Integration with existing video.fit fixes
+
+### Comprehensive Test Suite
+
+- [x] **Enhanced caption tests** (`__tests__/services/creatomateBuilder.enhanced-caption.test.ts`)
+  - 15 comprehensive test cases covering:
+    - Default configuration behavior
+    - Caption toggle functionality
+    - Enhanced controls (color, effect, placement)
+    - Backward compatibility
+    - Error handling
+    - Integration with existing pipeline
+
+## Phase 2: Frontend Implementation (IN PROGRESS)
+
+### Current Status: Backend ✅ Complete, Frontend 🔄 Next
+
+**Next Steps**:
+
+1. Enhance VideoSettingsSection.tsx with toggle and advanced controls
+2. Update useVideoRequest hook to handle enhanced configuration
+3. Update video-settings.tsx screen
