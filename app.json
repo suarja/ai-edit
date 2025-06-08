@@ -48,7 +48,7 @@
       [
         "expo-router",
         {
-          "origin": "https://dmljncjaomvhdichnuxm.supabase.co"
+          "origin": "https://nodejs-production-a774.up.railway.app"
         }
       ],
       [

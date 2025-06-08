@@ -57,6 +57,7 @@ export default function GeneratedVideosScreen() {
   const [refreshing, setRefreshing] = useState(false);
 
   const fetchVideos = async () => {
+    console.log('fetching videos');
     try {
       const {
         data: { user },
@@ -66,7 +67,6 @@ export default function GeneratedVideosScreen() {
         return;
       }
 
-      console.log('videos page');
       const { data, error } = await supabase
         .from('video_requests')
         .select(
@@ -112,16 +112,23 @@ export default function GeneratedVideosScreen() {
 
   const checkVideoStatus = async (videoId: string) => {
     try {
-      const response = await fetch(
-        API_ENDPOINTS.VIDEO_STATUS(videoId)
-      );
+      const session = await supabase.auth.getSession();
+      const url = API_ENDPOINTS.VIDEO_STATUS(videoId);
+      console.log('url', url);
+      const response = await fetch(url, {
+        headers: {
+          Authorization: `Bearer ${session.data.session?.access_token}`,
+        },
+      });
 
       if (!response.ok) {
         console.error('Status check failed:', await response.text());
         throw new Error('Failed to check status');
       }
 
-      const data: VideoRequest = await response.json();
+      const data: VideoRequest = (await response.json()).data;
+
+      console.log('data', data);
 
       // Update video in state if status changed
       setVideos((prev) =>

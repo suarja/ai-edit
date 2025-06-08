@@ -15,7 +15,7 @@
       "env": {
         "EXPO_PUBLIC_IS_TESTFLIGHT": "false",
         "EXPO_PUBLIC_ENVIRONMENT": "development",
-        "EXPO_PUBLIC_SERVER_URL": "http://localhost:8081",
+        "EXPO_PUBLIC_SERVER_URL": "https://nodejs-production-a774.up.railway.app",
         "EXPO_PUBLIC_SUPABASE_URL": "https://dmljncjaomvhdichnuxm.supabase.co",
         "EXPO_PUBLIC_SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRtbGpuY2phb212aGRpY2hudXhtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDgxODcyOTgsImV4cCI6MjA2Mzc2MzI5OH0.cnyouJA--VhckmQBbyQQv-PaRoiCeNM-_QJQ2aTwSNo"
       },
@@ -29,7 +29,7 @@
       "env": {
         "EXPO_PUBLIC_IS_TESTFLIGHT": "true",
         "EXPO_PUBLIC_ENVIRONMENT": "preview",
-        "EXPO_PUBLIC_SERVER_URL": "https://ai-edit.expo.app",
+        "EXPO_PUBLIC_SERVER_URL": "https://nodejs-production-a774.up.railway.app",
         "EXPO_PUBLIC_SUPABASE_URL": "https://dmljncjaomvhdichnuxm.supabase.co",
         "EXPO_PUBLIC_SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRtbGpuY2phb212aGRpY2hudXhtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDgxODcyOTgsImV4cCI6MjA2Mzc2MzI5OH0.cnyouJA--VhckmQBbyQQv-PaRoiCeNM-_QJQ2aTwSNo"
       },
@@ -43,7 +43,7 @@
       "env": {
         "EXPO_PUBLIC_IS_TESTFLIGHT": "true",
         "EXPO_PUBLIC_ENVIRONMENT": "production",
-        "EXPO_PUBLIC_SERVER_URL": "https://ai-edit.expo.app",
+        "EXPO_PUBLIC_SERVER_URL": "https://nodejs-production-a774.up.railway.app",
         "EXPO_PUBLIC_SUPABASE_URL": "https://dmljncjaomvhdichnuxm.supabase.co",
         "EXPO_PUBLIC_SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRtbGpuY2phb212aGRpY2hudXhtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDgxODcyOTgsImV4cCI6MjA2Mzc2MzI5OH0.cnyouJA--VhckmQBbyQQv-PaRoiCeNM-_QJQ2aTwSNo"
       },

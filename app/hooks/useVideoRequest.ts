@@ -252,9 +252,7 @@ export default function useVideoRequest() {
         return;
       }
       const savedCaptionConfig = await CaptionConfigStorage.load(user.id);
-      console.log('Saved caption config:', savedCaptionConfig);
       setCaptionConfig(savedCaptionConfig as CaptionConfiguration);
-      if (validateRequest()) return;
 
       console.log('Preparing request payload...');
 
