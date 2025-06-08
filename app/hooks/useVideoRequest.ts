@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Alert } from 'react-native';
 import { router } from 'expo-router';
 import { supabase } from '@/lib/supabase';
-import { VideoType, EnhancedCaptionConfiguration } from '@/types/video';
+import { VideoType, CaptionConfiguration } from '@/types/video';
 import { CaptionConfigStorage } from '@/lib/utils/caption-config-storage';
 import { API_ENDPOINTS, API_HEADERS } from '@/lib/config/api';
 
@@ -62,8 +62,9 @@ export default function useVideoRequest() {
   const [useEditorialProfile, setUseEditorialProfile] = useState(true);
   const [customEditorialProfile, setCustomEditorialProfile] =
     useState<CustomEditorialProfile>(DEFAULT_EDITORIAL_PROFILE);
-  const [captionConfig, setCaptionConfig] =
-    useState<EnhancedCaptionConfiguration>(DEFAULT_CAPTION_CONFIG);
+  const [captionConfig, setCaptionConfig] = useState<CaptionConfiguration>(
+    DEFAULT_CAPTION_CONFIG
+  );
   // Add language state with French as default
   const [outputLanguage, setOutputLanguage] =
     useState<string>(DEFAULT_LANGUAGE);
@@ -168,6 +169,7 @@ export default function useVideoRequest() {
   };
 
   const validateRequest = () => {
+    return false;
     if (!prompt || typeof prompt !== 'string' || !prompt.trim()) {
       Alert.alert(
         'Description manquante',
@@ -238,8 +240,6 @@ export default function useVideoRequest() {
   };
 
   const handleSubmit = async () => {
-    if (!validateRequest()) return;
-
     try {
       setSubmitting(true);
       setError(null);
@@ -257,8 +257,10 @@ export default function useVideoRequest() {
       const currentCaptionConfig = await CaptionConfigStorage.getOrDefault(
         user.id
       );
+      console.log('Current caption config:', currentCaptionConfig);
 
       console.log('Preparing request payload...');
+      if (!validateRequest()) return;
 
       // Get storage paths for selected videos
       const selectedVideoData = sourceVideos.filter((video) =>

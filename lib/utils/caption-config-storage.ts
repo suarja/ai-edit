@@ -1,10 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
-  EnhancedCaptionConfiguration,
   CaptionConfiguration,
-  DEFAULT_CAPTION_CONFIG,
-  migrateLegacyConfig,
-  isValidEnhancedCaptionConfig,
   isValidCaptionConfig,
   TranscriptEffect,
 } from '@/types/video';
@@ -12,15 +8,22 @@ import { VIDEO_PRESETS } from '@/lib/config/video-presets';
 
 export class CaptionConfigStorage {
   private static readonly STORAGE_KEY_PREFIX = 'caption_config_';
-  private static readonly LEGACY_STORAGE_KEY_PREFIX = 'caption_config_';
 
   /**
-   * Load enhanced caption configuration for a user
-   * Includes automatic migration from legacy format
+   * Default caption configuration
    */
-  static async load(
-    userId: string
-  ): Promise<EnhancedCaptionConfiguration | null> {
+  private static readonly DEFAULT_CONFIG: CaptionConfiguration = {
+    enabled: true,
+    presetId: 'karaoke',
+    placement: 'bottom',
+    transcriptColor: '#04f827',
+    transcriptEffect: 'karaoke',
+  };
+
+  /**
+   * Load caption configuration for a user
+   */
+  static async load(userId: string): Promise<CaptionConfiguration | null> {
     try {
       const key = `${this.STORAGE_KEY_PREFIX}${userId}`;
       const stored = await AsyncStorage.getItem(key);
@@ -28,19 +31,9 @@ export class CaptionConfigStorage {
       if (stored) {
         const parsed = JSON.parse(stored);
 
-        // Check if it's already in enhanced format
-        if (isValidEnhancedCaptionConfig(parsed)) {
-          return parsed;
-        }
-
-        // Check if it's a legacy format that needs migration
+        // Validate the configuration
         if (isValidCaptionConfig(parsed)) {
-          console.log('Migrating legacy caption config to enhanced format');
-          const migrated = migrateLegacyConfig(parsed);
-
-          // Save the migrated config
-          await this.save(userId, migrated);
-          return migrated;
+          return parsed;
         }
 
         console.warn(
@@ -56,18 +49,18 @@ export class CaptionConfigStorage {
   }
 
   /**
-   * Save enhanced caption configuration for a user
+   * Save caption configuration for a user
    */
   static async save(
     userId: string,
-    config: EnhancedCaptionConfiguration
+    config: CaptionConfiguration
   ): Promise<boolean> {
     try {
       const key = `${this.STORAGE_KEY_PREFIX}${userId}`;
 
       // Validate config before saving
-      if (!isValidEnhancedCaptionConfig(config)) {
-        console.error('Invalid enhanced caption config, cannot save');
+      if (!isValidCaptionConfig(config)) {
+        console.error('Invalid caption config, cannot save');
         return false;
       }
 
@@ -80,19 +73,17 @@ export class CaptionConfigStorage {
   }
 
   /**
-   * Get default enhanced caption configuration
+   * Get default caption configuration
    */
-  static getDefault(): EnhancedCaptionConfiguration {
-    return { ...DEFAULT_CAPTION_CONFIG };
+  static getDefault(): CaptionConfiguration {
+    return { ...this.DEFAULT_CONFIG };
   }
 
   /**
    * Smart default that ensures captions work without user setup
    * Loads user config if available, otherwise returns smart defaults
    */
-  static async getOrDefault(
-    userId: string
-  ): Promise<EnhancedCaptionConfiguration> {
+  static async getOrDefault(userId: string): Promise<CaptionConfiguration> {
     const stored = await this.load(userId);
     return stored || this.getDefault();
   }
@@ -126,24 +117,19 @@ export class CaptionConfigStorage {
   /**
    * Validate and sanitize a caption configuration
    */
-  static validateAndSanitize(config: any): EnhancedCaptionConfiguration {
+  static validateAndSanitize(config: any): CaptionConfiguration {
     // If config is null/undefined, return default
     if (!config) {
       return this.getDefault();
     }
 
-    // If it's already a valid enhanced config, return as-is
-    if (isValidEnhancedCaptionConfig(config)) {
+    // If it's already a valid config, return as-is
+    if (isValidCaptionConfig(config)) {
       return config;
     }
 
-    // If it's a legacy config, migrate it
-    if (isValidCaptionConfig(config)) {
-      return migrateLegacyConfig(config);
-    }
-
     // Otherwise, sanitize the config with fallbacks
-    const sanitized: EnhancedCaptionConfiguration = {
+    const sanitized: CaptionConfiguration = {
       enabled: Boolean(config.enabled ?? true),
       presetId:
         typeof config.presetId === 'string' &&
@@ -201,18 +187,21 @@ export class CaptionConfigStorage {
    */
   static createCustomConfig(
     basePresetId: string = 'karaoke',
-    overrides: Partial<EnhancedCaptionConfiguration> = {}
-  ): EnhancedCaptionConfiguration {
+    overrides: Partial<CaptionConfiguration> = {}
+  ): CaptionConfiguration {
     const basePreset = this.getPreset(basePresetId);
 
-    return {
-      enabled: overrides.enabled ?? true,
+    const baseConfig: CaptionConfiguration = {
+      enabled: true,
       presetId: basePresetId,
-      placement: overrides.placement ?? 'bottom',
-      transcriptColor: overrides.transcriptColor ?? basePreset.transcript_color,
-      transcriptEffect:
-        overrides.transcriptEffect ??
-        (basePreset.transcript_effect as TranscriptEffect),
+      placement: 'bottom',
+      transcriptColor: basePreset.transcript_color as `#${string}`,
+      transcriptEffect: basePreset.transcript_effect as TranscriptEffect,
+    };
+
+    return {
+      ...baseConfig,
+      ...overrides,
     };
   }
 }

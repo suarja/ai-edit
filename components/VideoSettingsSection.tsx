@@ -10,13 +10,13 @@ import {
   Modal,
 } from 'react-native';
 import { ChevronDown, ChevronUp, Palette, Sparkles } from 'lucide-react-native';
-import { EnhancedCaptionConfiguration, TranscriptEffect } from '@/types/video';
+import { CaptionConfiguration, TranscriptEffect } from '@/types/video';
 import { VIDEO_PRESETS } from '@/lib/config/video-presets';
 import { CaptionConfigStorage } from '@/lib/utils/caption-config-storage';
 
 type VideoSettingsSectionProps = {
-  captionConfig: EnhancedCaptionConfiguration | null;
-  onCaptionConfigChange: (config: EnhancedCaptionConfiguration) => void;
+  captionConfig: CaptionConfiguration | null;
+  onCaptionConfigChange: (config: CaptionConfiguration) => void;
 };
 
 const VideoSettingsSection: React.FC<VideoSettingsSectionProps> = ({
@@ -100,7 +100,7 @@ const VideoSettingsSection: React.FC<VideoSettingsSectionProps> = ({
   const handleToggleChange = (enabled: boolean) => {
     if (enabled) {
       // When enabling, ensure we have a complete config
-      const enabledConfig: EnhancedCaptionConfiguration = {
+      const enabledConfig: CaptionConfiguration = {
         enabled: true,
         presetId: currentConfig.presetId || 'karaoke',
         placement: currentConfig.placement || 'bottom',
@@ -118,7 +118,7 @@ const VideoSettingsSection: React.FC<VideoSettingsSectionProps> = ({
   };
 
   const handleQuickPresetSelect = (preset: (typeof quickPresets)[0]) => {
-    const updatedConfig: EnhancedCaptionConfiguration = {
+    const updatedConfig: CaptionConfiguration = {
       ...currentConfig,
       enabled: true,
       presetId: preset.id, // Use preset ID for tracking

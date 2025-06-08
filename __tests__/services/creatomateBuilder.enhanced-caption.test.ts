@@ -320,23 +320,24 @@ describe('CreatomateBuilder - Enhanced Caption System', () => {
     });
   });
 
-  describe('Backward Compatibility', () => {
-    test('should work with existing caption configurations', () => {
+  describe('Configuration Support', () => {
+    test('should work with standard caption configurations', () => {
       const handleCaptionConfiguration = (
         creatomateBuilder as any
       ).handleCaptionConfiguration.bind(creatomateBuilder);
 
-      // Legacy format configuration
-      const legacyConfig = {
+      // Standard format configuration
+      const config = {
+        enabled: true,
         presetId: 'beasty',
         placement: 'bottom',
-        highlightColor: '#FFFD03',
+        transcriptColor: '#FFFD03',
       };
 
-      handleCaptionConfiguration(errorTemplate, legacyConfig);
+      handleCaptionConfiguration(errorTemplate, config);
 
       // Should work and apply the configuration
-      let foundLegacySubtitle = false;
+      let foundSubtitle = false;
       errorTemplate.elements.forEach((scene: any) => {
         scene.elements.forEach((element: any) => {
           if (
@@ -344,31 +345,32 @@ describe('CreatomateBuilder - Enhanced Caption System', () => {
             element.name &&
             element.name.toLowerCase().includes('subtitle')
           ) {
-            foundLegacySubtitle = true;
+            foundSubtitle = true;
             expect(element.transcript_color).toBe('#FFFD03');
             expect(element.y_alignment).toBe('90%'); // bottom
           }
         });
       });
 
-      expect(foundLegacySubtitle).toBe(true);
+      expect(foundSubtitle).toBe(true);
     });
 
-    test('should migrate middle placement to center', () => {
+    test('should support center placement', () => {
       const handleCaptionConfiguration = (
         creatomateBuilder as any
       ).handleCaptionConfiguration.bind(creatomateBuilder);
 
-      // Legacy format with 'middle' placement
-      const legacyConfig = {
+      // Configuration with center placement
+      const config = {
+        enabled: true,
         presetId: 'karaoke',
-        placement: 'middle', // Legacy value
-        highlightColor: '#04f827',
+        placement: 'center',
+        transcriptColor: '#04f827',
       };
 
-      handleCaptionConfiguration(errorTemplate, legacyConfig);
+      handleCaptionConfiguration(errorTemplate, config);
 
-      // Should convert 'middle' to 'center' (50%)
+      // Should apply center placement (50%)
       errorTemplate.elements.forEach((scene: any) => {
         scene.elements.forEach((element: any) => {
           if (
@@ -376,7 +378,7 @@ describe('CreatomateBuilder - Enhanced Caption System', () => {
             element.name &&
             element.name.toLowerCase().includes('subtitle')
           ) {
-            expect(element.y_alignment).toBe('50%'); // center/middle position
+            expect(element.y_alignment).toBe('50%'); // center position
           }
         });
       });

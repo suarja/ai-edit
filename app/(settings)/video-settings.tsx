@@ -13,12 +13,12 @@ import { Save } from 'lucide-react-native';
 import { supabase } from '@/lib/supabase';
 import VideoSettingsSection from '@/components/VideoSettingsSection';
 import SettingsHeader from '@/components/SettingsHeader';
-import { EnhancedCaptionConfiguration } from '@/types/video';
+import { CaptionConfiguration } from '@/types/video';
 import { CaptionConfigStorage } from '@/lib/utils/caption-config-storage';
 
 export default function VideoSettingsScreen() {
   const [captionConfig, setCaptionConfig] =
-    useState<EnhancedCaptionConfiguration | null>(null);
+    useState<CaptionConfiguration | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 

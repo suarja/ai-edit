@@ -1,3 +1,27 @@
+import { z } from 'zod';
+
+// Type definitions for color constraints
+export type HexColor = `#${string}`;
+
+// Enhanced transcript effects supported by Creatomate
+export type TranscriptEffect =
+  | 'karaoke'
+  | 'highlight'
+  | 'fade'
+  | 'bounce'
+  | 'slide'
+  | 'enlarge';
+
+// Caption configuration interface (simplified, no legacy support)
+export interface CaptionConfiguration {
+  enabled: boolean; // Toggle control for enabling/disabling captions
+  presetId?: string; // Preset identifier (karaoke, beasty, etc.)
+  placement: 'top' | 'center' | 'bottom'; // Position on screen
+  transcriptColor?: HexColor; // Custom color override for transcript_color
+  transcriptEffect?: TranscriptEffect; // Custom effect override for transcript_effect
+}
+
+// Video type definitions
 export interface VideoType {
   id: string;
   title: string;
@@ -13,62 +37,42 @@ export interface VideoType {
   processing_status?: 'pending' | 'processing' | 'completed' | 'failed';
 }
 
-export interface GeneratedVideoType {
-  id: string;
-  type: 'generated';
-  created_at: string;
-  render_status: 'queued' | 'rendering' | 'done' | 'error';
-  render_url: string | null;
-  script: string;
-  title?: string;
-  description?: string;
-}
-export type HexColor = `#${string}`;
-
-export type AnyVideoType = VideoType | GeneratedVideoType;
-
-// Enhanced transcript effects supported by Creatomate
-export type TranscriptEffect =
-  | 'karaoke'
-  | 'highlight'
-  | 'fade'
-  | 'bounce'
-  | 'slide'
-  | 'enlarge';
-
-// Enhanced caption configuration interface
-export interface EnhancedCaptionConfiguration {
-  enabled: boolean; // NEW: Toggle control for enabling/disabling captions
-  presetId?: string; // Existing: Preset identifier (karaoke, beasty, etc.)
-  placement: 'top' | 'center' | 'bottom'; // Enhanced: renamed 'middle' to 'center' for consistency
-  transcriptColor?: HexColor; // NEW: Custom color override for transcript_color
-  transcriptEffect?: TranscriptEffect; // NEW: Custom effect override for transcript_effect
+export interface VideoWithRelated extends VideoType {
+  related_videos?: VideoType[];
 }
 
-// Legacy interface for backward compatibility
-export interface CaptionConfiguration {
-  presetId: string;
-  placement: 'top' | 'bottom' | 'center';
-  highlightColor: HexColor;
+export interface VideoAnalytics {
+  views: number;
+  likes: number;
+  shares: number;
+  watch_time_minutes: number;
+  engagement_rate: number;
 }
 
-// Enhanced types for better validation
-export interface ValidatedVideo {
-  id: string;
-  url: string;
-  title: string;
-  description: string;
-  tags: string[];
-}
-
-export interface VideoGenerationRequest {
+export interface GeneratedVideo extends VideoType {
   prompt: string;
-  systemPrompt: string;
-  selectedVideos: VideoType[];
-  editorialProfile: EditorialProfile;
-  voiceId: string;
-  captionConfig?: EnhancedCaptionConfiguration; // Updated to use enhanced configuration
-  outputLanguage: string;
+  system_prompt?: string;
+  render_id: string;
+  video_url?: string;
+  script?: string;
+  status: 'queued' | 'processing' | 'completed' | 'failed';
+  error_message?: string;
+  analytics?: VideoAnalytics;
+}
+
+export interface VideoRequest {
+  id: string;
+  prompt: string;
+  system_prompt: string;
+  selected_videos: VideoType[];
+  editorial_profile?: EditorialProfile;
+  voice_id?: string;
+  caption_config?: CaptionConfiguration;
+  output_language: string;
+  status: 'queued' | 'processing' | 'completed' | 'failed';
+  created_at: string;
+  updated_at: string;
+  user_id: string;
 }
 
 export interface EditorialProfile {
@@ -76,113 +80,87 @@ export interface EditorialProfile {
   tone_of_voice: string;
   audience: string;
   style_notes: string;
+  examples?: string;
 }
 
-export interface VideoGenerationResult {
-  requestId: string;
-  scriptId: string;
-  renderId: string;
-  status: 'queued' | 'processing' | 'completed' | 'failed';
-  estimatedCompletionTime?: Date;
-}
+// Language options
+export type Language =
+  | 'en'
+  | 'fr'
+  | 'es'
+  | 'de'
+  | 'it'
+  | 'pt'
+  | 'ru'
+  | 'ja'
+  | 'ko'
+  | 'zh';
 
-export interface VideoGenerationError extends Error {
-  code: string;
-  context?: Record<string, any>;
-  retryable: boolean;
-  userMessage: string;
-}
+export const LANGUAGES: Record<Language, string> = {
+  en: 'English',
+  fr: 'Français',
+  es: 'Español',
+  de: 'Deutsch',
+  it: 'Italiano',
+  pt: 'Português',
+  ru: 'Русский',
+  ja: '日本語',
+  ko: '한국어',
+  zh: '中文',
+};
 
-// Helper functions
-export function getVideoUrl(video: AnyVideoType): string | null {
-  if ('upload_url' in video) {
-    // Regular VideoType
-    return video.upload_url;
-  } else if ('render_url' in video) {
-    // GeneratedVideoType
-    return video.render_url;
-  }
-  return null;
-}
+// Validation schemas
+export const videoSchema = z.object({
+  id: z.string(),
+  title: z.string(),
+  description: z.string(),
+  upload_url: z.string().url(),
+  tags: z.array(z.string()),
+  user_id: z.string(),
+  created_at: z.string(),
+  updated_at: z.string(),
+  duration: z.number().optional(),
+  thumbnail_url: z.string().url().optional(),
+  file_size: z.number().optional(),
+  processing_status: z
+    .enum(['pending', 'processing', 'completed', 'failed'])
+    .optional(),
+});
 
-// Type guards for runtime validation
-export function isValidVideo(video: any): video is VideoType {
-  return (
-    typeof video === 'object' &&
-    video !== null &&
-    typeof video.id === 'string' &&
-    typeof video.upload_url === 'string' &&
-    typeof video.title === 'string' &&
-    Array.isArray(video.tags)
-  );
-}
+export const captionConfigSchema = z.object({
+  enabled: z.boolean(),
+  presetId: z.string().optional(),
+  placement: z.enum(['top', 'center', 'bottom']),
+  transcriptColor: z
+    .string()
+    .regex(/^#[0-9a-fA-F]{6}$/)
+    .optional(),
+  transcriptEffect: z
+    .enum(['karaoke', 'highlight', 'fade', 'bounce', 'slide', 'enlarge'])
+    .optional(),
+});
 
-// Enhanced caption config validation
-export function isValidEnhancedCaptionConfig(
+export const editorialProfileSchema = z.object({
+  persona_description: z.string().min(1),
+  tone_of_voice: z.string().min(1),
+  audience: z.string().min(1),
+  style_notes: z.string().min(1),
+  examples: z.string().optional(),
+});
+
+// Type guards
+export const isValidVideo = (video: any): video is VideoType => {
+  return videoSchema.safeParse(video).success;
+};
+
+export const isValidCaptionConfig = (
   config: any
-): config is EnhancedCaptionConfiguration {
-  return (
-    typeof config === 'object' &&
-    config !== null &&
-    typeof config.enabled === 'boolean' &&
-    (config.presetId === undefined || typeof config.presetId === 'string') &&
-    ['top', 'center', 'bottom'].includes(config.placement) &&
-    (config.transcriptColor === undefined ||
-      (typeof config.transcriptColor === 'string' &&
-        config.transcriptColor.startsWith('#'))) &&
-    (config.transcriptEffect === undefined ||
-      ['karaoke', 'highlight', 'fade', 'bounce', 'slide', 'enlarge'].includes(
-        config.transcriptEffect
-      ))
-  );
-}
+): config is CaptionConfiguration => {
+  return captionConfigSchema.safeParse(config).success;
+};
 
-// Legacy caption config validation for backward compatibility
-export function isValidCaptionConfig(
-  config: any
-): config is CaptionConfiguration {
-  return (
-    typeof config === 'object' &&
-    config !== null &&
-    typeof config.presetId === 'string' &&
-    config.presetId.trim().length > 0 &&
-    (config.placement === undefined ||
-      ['top', 'bottom', 'center'].includes(config.placement))
-  );
-}
-
-export function isValidEditorialProfile(
+export const isValidEditorialProfile = (
   profile: any
-): profile is EditorialProfile {
-  return (
-    typeof profile === 'object' &&
-    profile !== null &&
-    typeof profile.persona_description === 'string' &&
-    typeof profile.tone_of_voice === 'string' &&
-    typeof profile.audience === 'string' &&
-    typeof profile.style_notes === 'string'
-  );
-}
-
-// Utility function to migrate legacy caption config to enhanced format
-export function migrateLegacyConfig(
-  oldConfig: CaptionConfiguration
-): EnhancedCaptionConfiguration {
-  return {
-    enabled: true, // Default enabled for existing configurations
-    presetId: oldConfig.presetId,
-    placement:
-      oldConfig.placement === 'middle' ? 'center' : oldConfig.placement,
-    transcriptColor: oldConfig.highlightColor, // Rename highlightColor to transcriptColor
-    transcriptEffect: 'karaoke', // Default effect for migrated configs
-  };
-}
-
-// Default configuration
-export const DEFAULT_CAPTION_CONFIG: EnhancedCaptionConfiguration = {
-  enabled: true,
-  presetId: 'karaoke',
-  placement: 'bottom',
-  transcriptColor: '#04f827',
-  transcriptEffect: 'karaoke',
+): profile is EditorialProfile => {
+  return editorialProfileSchema.safeParse(profile).success;
 };
