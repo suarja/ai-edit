@@ -90,11 +90,6 @@ export async function POST(request: Request) {
       updateData = {
         render_status: 'done',
         render_url: webhookData.url,
-        render_snapshot_url: webhookData.snapshot_url,
-        render_duration: webhookData.duration,
-        render_width: webhookData.width,
-        render_height: webhookData.height,
-        updated_at: new Date().toISOString(),
       };
       console.log(
         `Render succeeded for request ${requestId}, URL: ${webhookData.url}`
@@ -103,7 +98,6 @@ export async function POST(request: Request) {
       updateData = {
         render_status: 'error',
         render_error: webhookData.error || 'Unknown error',
-        updated_at: new Date().toISOString(),
       };
       console.log(
         `Render failed for request ${requestId}: ${
@@ -134,10 +128,9 @@ export async function POST(request: Request) {
       );
     }
 
-    // Log the activity
-    await supabase
-      .from('logs')
-      .insert({
+    // Log the activity (optional, non-blocking)
+    try {
+      await supabase.from('logs').insert({
         user_id: userId,
         action: `render_${webhookData.status}`,
         metadata: {
@@ -149,11 +142,11 @@ export async function POST(request: Request) {
           duration: webhookData.duration,
           size: webhookData.file_size,
         },
-      })
-      .catch((error) => {
-        console.error('Error logging activity:', error);
-        // Non-critical error, don't return an error response
+        created_at: new Date().toISOString(),
       });
+    } catch (logError) {
+      console.warn('⚠️ Error logging activity:', logError);
+    }
 
     return Response.json({
       success: true,
