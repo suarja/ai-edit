@@ -32,6 +32,7 @@ export interface VideoType {
   created_at: string;
   updated_at: string;
   duration?: number;
+  duration_seconds?: number;
   thumbnail_url?: string;
   file_size?: number;
   processing_status?: 'pending' | 'processing' | 'completed' | 'failed';
@@ -59,6 +60,34 @@ export interface GeneratedVideo extends VideoType {
   error_message?: string;
   analytics?: VideoAnalytics;
 }
+
+// Enhanced generated video type for the video details page
+export interface EnhancedGeneratedVideoType {
+  id: string;
+  type: 'generated';
+  title?: string;
+  description?: string;
+  prompt?: string;
+  script_content?: string;
+  output_language?: string;
+  created_at: string;
+  render_status: 'queued' | 'rendering' | 'done' | 'error';
+  render_url: string | null;
+  render_error?: string;
+  script?: {
+    id: string;
+    generated_script: string;
+    raw_prompt: string;
+    output_language: string;
+  };
+  duration_seconds?: number;
+}
+
+// Union type for any video type
+export type AnyVideoType =
+  | VideoType
+  | GeneratedVideo
+  | EnhancedGeneratedVideoType;
 
 export interface VideoRequest {
   id: string;
@@ -108,6 +137,20 @@ export const LANGUAGES: Record<Language, string> = {
   ko: '한국어',
   zh: '中文',
 };
+
+// Utility function to get video URL from any video type
+export function getVideoUrl(video: AnyVideoType): string | null {
+  if ('upload_url' in video && video.upload_url) {
+    return video.upload_url;
+  }
+  if ('render_url' in video && video.render_url) {
+    return video.render_url;
+  }
+  if ('video_url' in video && video.video_url) {
+    return video.video_url;
+  }
+  return null;
+}
 
 // Validation schemas
 export const videoSchema = z.object({

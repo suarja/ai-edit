@@ -7,8 +7,8 @@ import {
   Text,
 } from 'react-native';
 import { useVideoPlayer, VideoView } from 'expo-video';
-import { AnyVideoType, getVideoUrl } from '@/types/video';
 import { Volume2, VolumeX } from 'lucide-react-native';
+import { AnyVideoType, getVideoUrl } from '@/types/video';
 
 type VideoPlayerProps = {
   video: AnyVideoType | null;
@@ -36,7 +36,6 @@ export default function VideoPlayer({
     videoUrl ? { uri: videoUrl } : null,
     (player) => {
       player.muted = isMuted;
-      player.shouldPlay = autoPlay;
     }
   );
 
@@ -70,8 +69,6 @@ export default function VideoPlayer({
         style={[styles.container, style]}
         contentFit="contain"
         nativeControls={showControls}
-        onFirstFrameRender={() => onLoad?.()}
-        onError={() => onError?.()}
       />
 
       <TouchableOpacity style={styles.muteButton} onPress={toggleMute}>

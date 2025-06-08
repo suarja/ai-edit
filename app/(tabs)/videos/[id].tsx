@@ -3,14 +3,13 @@ import { View, StyleSheet, ActivityIndicator, Text } from 'react-native';
 import { useLocalSearchParams, router } from 'expo-router';
 import { supabase } from '@/lib/supabase';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { AnyVideoType, GeneratedVideoType } from '@/types/video';
 import { RefreshCcw } from 'lucide-react-native';
 import VideoPlayer from '@/components/VideoPlayer';
 import VideoHeader from '@/components/VideoHeader';
 import VideoDetails from '@/components/VideoDetails';
 import VideoActionButtons from '@/components/VideoActionButtons';
-import { env } from '@/lib/config/env';
 import { API_ENDPOINTS } from '@/lib/config/api';
+import { EnhancedGeneratedVideoType } from '@/types/video';
 
 // Script type for proper TypeScript support
 type ScriptData = {
@@ -28,15 +27,6 @@ type VideoRequestWithScript = {
   created_at: string;
   script_id: string;
   script: ScriptData;
-};
-
-// Extended type to include script information
-type EnhancedGeneratedVideoType = GeneratedVideoType & {
-  title?: string;
-  description?: string;
-  prompt?: string;
-  script_content?: string;
-  output_language?: string;
 };
 
 export default function GeneratedVideoDetailScreen() {
@@ -129,7 +119,7 @@ export default function GeneratedVideoDetailScreen() {
         created_at: typedVideoRequest.created_at as string,
         render_status: typedVideoRequest.render_status,
         render_url: typedVideoRequest.render_url,
-        script: typedVideoRequest.script_id as string,
+        script: typedVideoRequest.script,
         title,
         description,
         prompt: script?.raw_prompt,

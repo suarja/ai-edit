@@ -169,7 +169,6 @@ export default function useVideoRequest() {
   };
 
   const validateRequest = () => {
-    return false;
     if (!prompt || typeof prompt !== 'string' || !prompt.trim()) {
       Alert.alert(
         'Description manquante',
@@ -240,6 +239,8 @@ export default function useVideoRequest() {
   };
 
   const handleSubmit = async () => {
+    if (!validateRequest()) return;
+
     try {
       setSubmitting(true);
       setError(null);
@@ -260,7 +261,6 @@ export default function useVideoRequest() {
       console.log('Current caption config:', currentCaptionConfig);
 
       console.log('Preparing request payload...');
-      if (!validateRequest()) return;
 
       // Get storage paths for selected videos
       const selectedVideoData = sourceVideos.filter((video) =>

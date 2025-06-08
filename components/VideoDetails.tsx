@@ -9,8 +9,6 @@ interface VideoDetailsProps {
 }
 
 export default function VideoDetails({ video, error }: VideoDetailsProps) {
-  if (!video) return null;
-
   const formatDuration = (seconds: number | null | undefined) => {
     if (!seconds) return '0:00';
     const minutes = Math.floor(seconds / 60);
@@ -54,13 +52,21 @@ export default function VideoDetails({ video, error }: VideoDetailsProps) {
     );
   }
 
+  if (!video) {
+    return (
+      <View style={styles.container}>
+        <Text style={styles.title}>Aucune vidéo trouvée</Text>
+      </View>
+    );
+  }
+
   return (
     <View style={styles.container}>
       {/* Video title */}
       <Text style={styles.title}>{video.title || 'Untitled video'}</Text>
 
       {/* Status indicator for generated videos */}
-      {video.render_status && (
+      {'render_status' in video && video.render_status && (
         <View style={styles.statusContainer}>
           <Text
             style={[
@@ -90,7 +96,10 @@ export default function VideoDetails({ video, error }: VideoDetailsProps) {
         <View style={styles.metaItem}>
           <Clock size={16} color="#888" />
           <Text style={styles.metaText}>
-            {formatDuration(video.duration_seconds)}
+            {formatDuration(
+              video.duration_seconds ||
+                ('duration' in video ? video.duration : undefined)
+            )}
           </Text>
         </View>
 
@@ -104,7 +113,7 @@ export default function VideoDetails({ video, error }: VideoDetailsProps) {
       </View>
 
       {/* Tags for uploaded videos */}
-      {video.tags && video.tags.length > 0 && (
+      {'tags' in video && video.tags && video.tags.length > 0 && (
         <View style={styles.tagsSection}>
           <View style={styles.tagHeader}>
             <Tag size={16} color="#888" />
@@ -121,26 +130,33 @@ export default function VideoDetails({ video, error }: VideoDetailsProps) {
       )}
 
       {/* Error message for generated videos with errors */}
-      {video.render_status === 'error' && video.render_error && (
-        <View style={styles.errorBox}>
-          <AlertCircle size={24} color="#EF4444" />
-          <Text style={styles.errorMessageText}>
-            {video.render_error || 'An error occurred during video processing'}
-          </Text>
-        </View>
-      )}
-
-      {/* Script for generated videos */}
-      {video.script?.generated_script && (
-        <View style={styles.scriptSection}>
-          <Text style={styles.sectionTitle}>Generated Script</Text>
-          <View style={styles.scriptContainer}>
-            <Text style={styles.scriptText}>
-              {video.script.generated_script}
+      {'render_status' in video &&
+        video.render_status === 'error' &&
+        'render_error' in video &&
+        video.render_error && (
+          <View style={styles.errorBox}>
+            <AlertCircle size={24} color="#EF4444" />
+            <Text style={styles.errorMessageText}>
+              {video.render_error ||
+                'An error occurred during video processing'}
             </Text>
           </View>
-        </View>
-      )}
+        )}
+
+      {/* Script for generated videos */}
+      {'script' in video &&
+        video.script &&
+        typeof video.script === 'object' &&
+        video.script.generated_script && (
+          <View style={styles.scriptSection}>
+            <Text style={styles.sectionTitle}>Generated Script</Text>
+            <View style={styles.scriptContainer}>
+              <Text style={styles.scriptText}>
+                {video.script.generated_script}
+              </Text>
+            </View>
+          </View>
+        )}
     </View>
   );
 }
