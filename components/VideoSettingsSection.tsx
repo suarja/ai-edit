@@ -5,13 +5,11 @@ import {
   StyleSheet,
   TouchableOpacity,
   ScrollView,
-  useWindowDimensions,
   Switch,
   Modal,
 } from 'react-native';
-import { ChevronDown, ChevronUp, Palette, Sparkles } from 'lucide-react-native';
+import { Palette, Sparkles } from 'lucide-react-native';
 import { CaptionConfiguration, TranscriptEffect } from '@/types/video';
-import { VIDEO_PRESETS } from '@/lib/config/video-presets';
 import { CaptionConfigStorage } from '@/lib/utils/caption-config-storage';
 
 type VideoSettingsSectionProps = {
@@ -23,8 +21,6 @@ const VideoSettingsSection: React.FC<VideoSettingsSectionProps> = ({
   captionConfig,
   onCaptionConfigChange,
 }) => {
-  const { width } = useWindowDimensions();
-
   // UI state
   const [showColorPicker, setShowColorPicker] = useState(false);
 
