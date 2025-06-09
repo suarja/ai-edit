@@ -75,7 +75,14 @@ describe('Video Presets Configuration', () => {
         });
 
         it('should have valid transcript properties', () => {
-          expect(['karaoke', 'highlight']).toContain(preset.transcript_effect);
+          expect([
+            'karaoke',
+            'highlight',
+            'fade',
+            'bounce',
+            'slide',
+            'enlarge',
+          ]).toContain(preset.transcript_effect);
           expect(preset.transcript_placement).toBe('animate');
           expect(typeof preset.transcript_maximum_length).toBe('number');
           expect(preset.transcript_maximum_length).toBeGreaterThan(0);
@@ -117,6 +124,15 @@ describe('Video Presets Configuration', () => {
       expect(beastyPreset?.transcript_color).toBe('#FFFD03');
     });
 
+    it('highlight-yellow preset should have correct transcript effect', () => {
+      const highlightYellowPreset = VIDEO_PRESETS.find(
+        (preset) => preset.id === 'highlight-yellow'
+      );
+      expect(highlightYellowPreset).toBeDefined();
+      expect(highlightYellowPreset?.transcript_effect).toBe('highlight');
+      expect(highlightYellowPreset?.transcript_color).toBe('#FFE500');
+    });
+
     it('all presets should use Montserrat font', () => {
       VIDEO_PRESETS.forEach((preset) => {
         expect(preset.font_family).toBe('Montserrat');
@@ -144,7 +160,7 @@ describe('Video Presets Configuration', () => {
 
     it('all presets should have consistent background properties', () => {
       VIDEO_PRESETS.forEach((preset) => {
-        expect(preset.background_color).toBe('rgba(0,0,0,0.7)');
+        expect(preset.background_color).toBe('rgba(216,216,216,0)');
         expect(preset.background_x_padding).toBe('26%');
         expect(preset.background_y_padding).toBe('7%');
         expect(preset.background_border_radius).toBe('28%');
