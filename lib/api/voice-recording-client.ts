@@ -441,11 +441,42 @@ export async function getVoiceSampleAudioUrl(
   voiceId: string,
   sampleId: string
 ): Promise<string> {
-  const {
-    data: { session },
-  } = await supabase.auth.getSession();
-  const userToken = session?.access_token;
+  try {
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+    const userToken = session?.access_token;
 
-  // URL qui passera par notre serveur pour l'authentification ElevenLabs
-  return `${API_ENDPOINTS.VOICE_CLONE()}/samples/${voiceId}/${sampleId}/audio?token=${userToken}`;
+    console.log(`🔗 Demande URL audio pour échantillon: ${sampleId}`);
+
+    // Demander une URL temporaire avec auth propre
+    const response = await fetch(
+      `${API_ENDPOINTS.VOICE_CLONE()}/samples/${voiceId}/${sampleId}/audio-url`,
+      {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${userToken}`,
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error(`Failed to get audio URL: ${response.statusText}`);
+    }
+
+    const result = await response.json();
+    if (!result.success || !result.audioUrl) {
+      throw new Error(`Invalid response: ${result.error || 'No audio URL'}`);
+    }
+
+    console.log(`✅ URL audio obtenue, expire dans ${result.expiresIn}s`);
+    return result.audioUrl;
+  } catch (error: any) {
+    console.error('❌ Échec obtention URL audio:', error);
+    throw createVoiceRecordingError(
+      error,
+      VOICE_RECORDING_ERROR_CODES.BACKEND_ERROR
+    );
+  }
 }
