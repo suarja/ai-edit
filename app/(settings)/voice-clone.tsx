@@ -44,11 +44,12 @@ type VoiceClone = {
 };
 
 type ElevenLabsSample = {
-  sample_id: string;
-  file_name: string;
-  mime_type: string;
-  size_bytes: number;
+  sampleId: string;
+  fileName: string;
+  mimeType: string;
+  sizeBytes: number;
   hash: string;
+  durationSecs: number;
 };
 
 export default function VoiceCloneScreen() {
@@ -117,6 +118,10 @@ export default function VoiceCloneScreen() {
       console.log(`🔍 Chargement échantillons pour voix: ${voiceId}`);
 
       const samples = await getVoiceSamples(voiceId);
+      console.log(
+        `🔍 Debug échantillons reçus:`,
+        JSON.stringify(samples, null, 2)
+      );
       setVoiceSamples(samples);
 
       console.log(`✅ ${samples.length} échantillons chargés`);
@@ -136,13 +141,13 @@ export default function VoiceCloneScreen() {
 
       if (!existingVoice) return;
 
+      console.log(`🔊 Lecture échantillon: ${sampleId}`);
+
       // Obtenir l'URL de l'échantillon depuis notre serveur
       const audioUrl = await getVoiceSampleAudioUrl(
         existingVoice.elevenlabs_voice_id,
         sampleId
       );
-
-      console.log(`🔊 Lecture échantillon: ${sampleId}`);
 
       const { sound: newSound } = await Audio.Sound.createAsync(
         { uri: audioUrl },
@@ -196,14 +201,20 @@ export default function VoiceCloneScreen() {
     if (sound) {
       try {
         await sound.stopAsync();
-        await sound.unloadAsync();
-        setSound(null);
-        setPlayingIndex(null);
-        setError(null);
       } catch (err) {
-        console.error('Failed to stop sound', err);
-        setError("Échec de l'arrêt de la lecture");
+        console.log('Stop failed, continuing with unload:', err);
       }
+
+      try {
+        await sound.unloadAsync();
+      } catch (err) {
+        console.log('Unload failed:', err);
+      }
+
+      // Always reset state even if stop/unload failed
+      setSound(null);
+      setPlayingIndex(null);
+      setError(null);
     }
   };
 
@@ -402,33 +413,38 @@ export default function VoiceCloneScreen() {
 
               {voiceSamples.length > 0 ? (
                 <View style={styles.samplesList}>
-                  {voiceSamples.map((sample, index) => (
-                    <View key={sample.sample_id} style={styles.sampleItem}>
-                      <View style={styles.sampleInfo}>
-                        <Text style={styles.sampleName}>
-                          {sample.file_name || `Échantillon ${index + 1}`}
-                        </Text>
-                        <Text style={styles.sampleSize}>
-                          {(sample.size_bytes / 1024).toFixed(1)} KB
-                        </Text>
+                  {voiceSamples.map((sample, index) => {
+                    const sampleId = sample.sampleId;
+                    const fileName =
+                      sample.fileName || `Échantillon ${index + 1}`;
+                    const fileSize = sample.sizeBytes;
+
+                    return (
+                      <View key={sampleId} style={styles.sampleItem}>
+                        <View style={styles.sampleInfo}>
+                          <Text style={styles.sampleName}>{fileName}</Text>
+                          <Text style={styles.sampleSize}>
+                            {(fileSize / 1024).toFixed(1)} KB
+                          </Text>
+                        </View>
+                        <TouchableOpacity
+                          onPress={() =>
+                            playingIndex === index
+                              ? stopSound()
+                              : playVoiceSample(sampleId, index)
+                          }
+                          style={styles.controlButton}
+                          disabled={loadingSamples || !sampleId}
+                        >
+                          {playingIndex === index ? (
+                            <Square size={20} color="#fff" />
+                          ) : (
+                            <Play size={20} color="#fff" />
+                          )}
+                        </TouchableOpacity>
                       </View>
-                      <TouchableOpacity
-                        onPress={() =>
-                          playingIndex === index
-                            ? stopSound()
-                            : playVoiceSample(sample.sample_id, index)
-                        }
-                        style={styles.controlButton}
-                        disabled={loadingSamples}
-                      >
-                        {playingIndex === index ? (
-                          <Square size={20} color="#fff" />
-                        ) : (
-                          <Play size={20} color="#fff" />
-                        )}
-                      </TouchableOpacity>
-                    </View>
-                  ))}
+                    );
+                  })}
                 </View>
               ) : (
                 <View style={styles.noSamplesContainer}>
