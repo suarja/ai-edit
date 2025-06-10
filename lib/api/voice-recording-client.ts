@@ -170,11 +170,15 @@ export async function submitOnboardingRecording(
       `✅ Fichier validé - taille: ${size} bytes, type: ${blob.type}`
     );
 
-    // 3. Préparer les données pour l'API avec le VRAI blob
+    // 3. Préparer les données pour l'API avec le format React Native
     const formData = new FormData();
 
-    // Utiliser le blob validé au lieu d'un objet
-    formData.append('file', blob, data.fileName);
+    // Format React Native FormData - utiliser l'URI et les métadonnées
+    formData.append('file', {
+      uri: data.uri,
+      type: blob.type || 'audio/m4a',
+      name: data.fileName,
+    } as any);
     formData.append('userId', user.id);
 
     if (data.surveyData) {
@@ -265,11 +269,11 @@ export async function submitVoiceClone(
     formData.append('name', data.name);
     formData.append('userId', user.id);
 
-    // 4. Ajouter chaque fichier audio - APPROCHE SIMPLE
+    // 4. Ajouter chaque fichier audio - FORMAT REACT NATIVE
     for (let i = 0; i < data.recordings.length; i++) {
       const recording = data.recordings[i];
 
-      // Lire le fichier original
+      // Valider que le fichier existe et a une taille
       const response = await fetch(recording.uri);
       const blob = await response.blob();
 
@@ -291,11 +295,15 @@ export async function submitVoiceClone(
         .replace(/[^a-z0-9.-]/g, '');
 
       console.log(
-        `📁 Envoi ORIGINAL vers ElevenLabs: ${cleanFileName}, taille: ${blob.size}, type: ${blob.type}`
+        `📁 Envoi vers serveur: ${cleanFileName}, taille: ${blob.size}, type: ${blob.type}`
       );
 
-      // Envoyer le blob ORIGINAL sans modification pour éviter corruption
-      formData.append('files', blob, cleanFileName);
+      // Format React Native FormData - utiliser l'URI et les métadonnées
+      formData.append('files', {
+        uri: recording.uri,
+        type: blob.type || 'audio/m4a',
+        name: cleanFileName,
+      } as any);
     }
 
     console.log(
