@@ -16,6 +16,7 @@ import {
   Plus,
   Send,
   CircleStop as StopCircle,
+  Volume2,
 } from 'lucide-react-native';
 import * as DocumentPicker from 'expo-document-picker';
 import { Audio } from 'expo-av';
@@ -28,7 +29,11 @@ import {
   VoiceRecordingResult,
   VoiceRecordingError,
 } from '@/types/voice-recording';
-import { submitVoiceClone } from '@/lib/api/voice-recording-client';
+import {
+  submitVoiceClone,
+  getVoiceSamples,
+  getVoiceSampleAudioUrl,
+} from '@/lib/api/voice-recording-client';
 
 type VoiceClone = {
   id: string;
@@ -38,10 +43,20 @@ type VoiceClone = {
   created_at: string;
 };
 
+type ElevenLabsSample = {
+  sample_id: string;
+  file_name: string;
+  mime_type: string;
+  size_bytes: number;
+  hash: string;
+};
+
 export default function VoiceCloneScreen() {
   const router = useRouter();
   const [isCreating, setIsCreating] = useState(false);
   const [existingVoice, setExistingVoice] = useState<VoiceClone | null>(null);
+  const [voiceSamples, setVoiceSamples] = useState<ElevenLabsSample[]>([]);
+  const [loadingSamples, setLoadingSamples] = useState(false);
   const [name, setName] = useState('');
   const [recordings, setRecordings] = useState<{ uri: string; name: string }[]>(
     []
@@ -83,11 +98,70 @@ export default function VoiceCloneScreen() {
       }
 
       setExistingVoice(voice as unknown as VoiceClone);
+
+      // Si on a une voix, charger ses échantillons depuis ElevenLabs
+      if (voice && voice.elevenlabs_voice_id) {
+        await loadVoiceSamples(voice.elevenlabs_voice_id as string);
+      }
     } catch (err) {
       console.error('Failed to fetch voice:', err);
       setError('Échec du chargement des données vocales');
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const loadVoiceSamples = async (voiceId: string) => {
+    try {
+      setLoadingSamples(true);
+      console.log(`🔍 Chargement échantillons pour voix: ${voiceId}`);
+
+      const samples = await getVoiceSamples(voiceId);
+      setVoiceSamples(samples);
+
+      console.log(`✅ ${samples.length} échantillons chargés`);
+    } catch (err: any) {
+      console.error('Failed to load voice samples:', err);
+      setError('Échec du chargement des échantillons vocaux');
+    } finally {
+      setLoadingSamples(false);
+    }
+  };
+
+  const playVoiceSample = async (sampleId: string, index: number) => {
+    try {
+      if (sound) {
+        await sound.unloadAsync();
+      }
+
+      if (!existingVoice) return;
+
+      // Obtenir l'URL de l'échantillon depuis notre serveur
+      const audioUrl = await getVoiceSampleAudioUrl(
+        existingVoice.elevenlabs_voice_id,
+        sampleId
+      );
+
+      console.log(`🔊 Lecture échantillon: ${sampleId}`);
+
+      const { sound: newSound } = await Audio.Sound.createAsync(
+        { uri: audioUrl },
+        { shouldPlay: true },
+        (status) => {
+          if (!status.isLoaded) return;
+          if (status.didJustFinish) {
+            setPlayingIndex(null);
+          }
+        }
+      );
+
+      setSound(newSound);
+      setPlayingIndex(index);
+      setError(null);
+    } catch (err) {
+      console.error('Failed to play voice sample', err);
+      setPlayingIndex(null);
+      setError("Échec de la lecture de l'échantillon vocal");
     }
   };
 
@@ -294,40 +368,80 @@ export default function VoiceCloneScreen() {
     return (
       <SafeAreaView style={styles.container} edges={['top']}>
         <SettingsHeader title="Votre Clone Vocal" />
-        <View style={styles.voiceContainer}>
-          <View style={styles.voiceHeader}>
-            <View style={styles.voiceInfo}>
-              <Text style={styles.voiceId}>
-                ID de voix : {existingVoice.elevenlabs_voice_id}
-              </Text>
-              <Text style={styles.voiceStatus}>
-                Statut : {existingVoice.status}
-              </Text>
+        <ScrollView style={styles.scrollView}>
+          <View style={styles.voiceContainer}>
+            <View style={styles.voiceHeader}>
+              <View style={styles.voiceHeaderIcon}>
+                <Volume2 size={32} color="#10b981" />
+              </View>
+              <View style={styles.voiceInfo}>
+                <Text style={styles.voiceName}>Clone Vocal Actif</Text>
+                <Text style={styles.voiceStatus}>
+                  Statut :{' '}
+                  {existingVoice.status === 'ready' ? 'Prêt' : 'En traitement'}
+                </Text>
+                <Text style={styles.voiceId}>
+                  ID : {existingVoice.elevenlabs_voice_id.substring(0, 8)}...
+                </Text>
+              </View>
+            </View>
+
+            {error && (
+              <View style={styles.errorContainer}>
+                <Text style={styles.errorText}>{error}</Text>
+              </View>
+            )}
+
+            <View style={styles.sampleFiles}>
+              <View style={styles.sampleHeader}>
+                <Text style={styles.sampleTitle}>Échantillons Vocaux</Text>
+                {loadingSamples && (
+                  <ActivityIndicator size="small" color="#007AFF" />
+                )}
+              </View>
+
+              {voiceSamples.length > 0 ? (
+                <View style={styles.samplesList}>
+                  {voiceSamples.map((sample, index) => (
+                    <View key={sample.sample_id} style={styles.sampleItem}>
+                      <View style={styles.sampleInfo}>
+                        <Text style={styles.sampleName}>
+                          {sample.file_name || `Échantillon ${index + 1}`}
+                        </Text>
+                        <Text style={styles.sampleSize}>
+                          {(sample.size_bytes / 1024).toFixed(1)} KB
+                        </Text>
+                      </View>
+                      <TouchableOpacity
+                        onPress={() =>
+                          playingIndex === index
+                            ? stopSound()
+                            : playVoiceSample(sample.sample_id, index)
+                        }
+                        style={styles.controlButton}
+                        disabled={loadingSamples}
+                      >
+                        {playingIndex === index ? (
+                          <Square size={20} color="#fff" />
+                        ) : (
+                          <Play size={20} color="#fff" />
+                        )}
+                      </TouchableOpacity>
+                    </View>
+                  ))}
+                </View>
+              ) : (
+                <View style={styles.noSamplesContainer}>
+                  <Text style={styles.noSamplesText}>
+                    {loadingSamples
+                      ? 'Chargement des échantillons...'
+                      : 'Aucun échantillon disponible'}
+                  </Text>
+                </View>
+              )}
             </View>
           </View>
-          <View style={styles.sampleFiles}>
-            <Text style={styles.sampleTitle}>Enregistrements</Text>
-            {existingVoice.sample_files.map((file, index) => (
-              <View key={index} style={styles.recordingItem}>
-                <Text style={styles.recordingName}>{file.name}</Text>
-                <TouchableOpacity
-                  onPress={() =>
-                    playingIndex === index
-                      ? stopSound()
-                      : playSound(file.uri, index)
-                  }
-                  style={styles.controlButton}
-                >
-                  {playingIndex === index ? (
-                    <Square size={20} color="#fff" />
-                  ) : (
-                    <Play size={20} color="#fff" />
-                  )}
-                </TouchableOpacity>
-              </View>
-            ))}
-          </View>
-        </View>
+        </ScrollView>
       </SafeAreaView>
     );
   }
@@ -708,5 +822,56 @@ const styles = StyleSheet.create({
     color: '#007AFF',
     fontSize: 14,
     fontWeight: '500',
+  },
+  voiceHeaderIcon: {
+    marginRight: 16,
+  },
+  voiceName: {
+    color: '#fff',
+    fontSize: 18,
+    fontWeight: '600',
+    marginBottom: 4,
+  },
+  sampleHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 12,
+  },
+  samplesList: {
+    gap: 8,
+  },
+  sampleItem: {
+    backgroundColor: '#2a2a2a',
+    borderRadius: 12,
+    padding: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  sampleInfo: {
+    flex: 1,
+    marginRight: 12,
+  },
+  sampleName: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '500',
+    marginBottom: 4,
+  },
+  sampleSize: {
+    color: '#888',
+    fontSize: 12,
+  },
+  noSamplesContainer: {
+    backgroundColor: '#2a2a2a',
+    borderRadius: 12,
+    padding: 20,
+    alignItems: 'center',
+  },
+  noSamplesText: {
+    color: '#888',
+    fontSize: 14,
+    textAlign: 'center',
   },
 });

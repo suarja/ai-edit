@@ -380,3 +380,72 @@ export async function testVoiceAPIConnectivity(): Promise<boolean> {
 
 // Export error creation helper for use in components
 export { createVoiceRecordingError };
+
+// Nouvelle fonction pour récupérer les échantillons de voix depuis ElevenLabs
+export async function getVoiceSamples(voiceId: string): Promise<any[]> {
+  try {
+    console.log(`🔍 Récupération échantillons pour voix: ${voiceId}`);
+
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+    const userToken = session?.access_token;
+
+    // Appel à notre serveur qui va faire l'appel ElevenLabs
+    const response = await fetch(
+      `${API_ENDPOINTS.VOICE_CLONE()}/samples/${voiceId}`,
+      {
+        method: 'GET',
+        headers: {
+          Authorization: `Bearer ${userToken}`,
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('❌ Erreur récupération échantillons:', {
+        status: response.status,
+        errorText,
+      });
+      throw new Error(
+        `Erreur serveur (${response.status}): ${
+          errorText || response.statusText
+        }`
+      );
+    }
+
+    const result = await response.json();
+    if (!result || !result.success) {
+      throw new Error(
+        `Réponse invalide: ${result?.error || 'Erreur inconnue'}`
+      );
+    }
+
+    console.log(
+      `✅ Échantillons récupérés: ${result.samples?.length || 0} échantillons`
+    );
+    return result.samples || [];
+  } catch (error: any) {
+    console.error('❌ Échec récupération échantillons:', error);
+    throw createVoiceRecordingError(
+      error,
+      VOICE_RECORDING_ERROR_CODES.BACKEND_ERROR
+    );
+  }
+}
+
+// Fonction pour obtenir l'URL d'un échantillon audio spécifique
+export async function getVoiceSampleAudioUrl(
+  voiceId: string,
+  sampleId: string
+): Promise<string> {
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
+  const userToken = session?.access_token;
+
+  // URL qui passera par notre serveur pour l'authentification ElevenLabs
+  return `${API_ENDPOINTS.VOICE_CLONE()}/samples/${voiceId}/${sampleId}/audio?token=${userToken}`;
+}
