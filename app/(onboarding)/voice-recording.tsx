@@ -10,170 +10,36 @@ import { useOnboardingSteps } from '@/components/onboarding/OnboardingSteps';
  * Users can also skip the recording step, in which case a default profile will be created
  * based on their survey answers.
  */
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   TouchableOpacity,
-  ActivityIndicator,
   Alert,
+  ActivityIndicator,
 } from 'react-native';
-import { Mic, CircleStop as StopCircle, ArrowRight } from 'lucide-react-native';
+import { ArrowRight, Square } from 'lucide-react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Audio } from 'expo-av';
 import { supabase } from '@/lib/supabase';
 import { useOnboarding } from '@/components/providers/OnboardingProvider';
 import { ProgressBar } from '@/components/onboarding/ProgressBar';
-import { env } from '@/lib/config/env';
-import { API_ENDPOINTS, API_HEADERS } from '@/lib/config/api';
-
-const MAX_RECORDING_DURATION = 120000; // 2 minutes in milliseconds
-const MIN_RECORDING_DURATION = 3000; // 3 seconds in milliseconds
+import { VoiceRecordingUI } from '@/components/voice/VoiceRecordingUI';
+import {
+  VoiceRecordingResult,
+  VoiceRecordingError,
+} from '@/types/voice-recording';
+import { submitOnboardingRecording } from '@/lib/api/voice-recording-client';
+import { Audio } from 'expo-av';
 
 export default function VoiceRecordingScreen() {
   const onboardingSteps = useOnboardingSteps();
   const { nextStep, previousStep, markStepCompleted, surveyAnswers } =
     useOnboarding();
-  const [isRecording, setIsRecording] = useState(false);
-  const [recording, setRecording] = useState<Audio.Recording | null>(null);
-  const [processing, setProcessing] = useState(false);
+  const [isCompleted, setIsCompleted] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [progress, setProgress] = useState<string>('');
-  const [recordingDuration, setRecordingDuration] = useState(0);
-  const [isCompleted, setIsCompleted] = useState(false);
-  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
-
-  // Cleanup recording on unmount
-  useEffect(() => {
-    return () => {
-      if (recording) {
-        recording.stopAndUnloadAsync();
-      }
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
-      }
-    };
-  }, [recording]);
-
-  // Monitor recording duration
-  useEffect(() => {
-    if (isRecording) {
-      const startTime = Date.now();
-      intervalRef.current = setInterval(() => {
-        const duration = Date.now() - startTime;
-        setRecordingDuration(duration);
-
-        if (duration >= MAX_RECORDING_DURATION) {
-          stopRecording();
-        }
-      }, 100);
-    } else if (intervalRef.current) {
-      clearInterval(intervalRef.current);
-    }
-
-    return () => {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
-      }
-    };
-  }, [isRecording]);
-
-  const formatDuration = (ms: number) => {
-    const seconds = Math.floor(ms / 1000);
-    const minutes = Math.floor(seconds / 60);
-    const remainingSeconds = seconds % 60;
-    return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
-  };
-
-  const startRecording = async () => {
-    try {
-      setError(null);
-
-      // Request permissions
-      const { granted } = await Audio.requestPermissionsAsync();
-      if (!granted) {
-        setError(
-          "Autorisation d'enregistrement refusée. Veuillez l'activer dans les paramètres."
-        );
-        return;
-      }
-
-      await Audio.setAudioModeAsync({
-        allowsRecordingIOS: true,
-        playsInSilentModeIOS: true,
-      });
-
-      const { recording } = await Audio.Recording.createAsync(
-        Audio.RecordingOptionsPresets.HIGH_QUALITY,
-        (status) => console.log('Recording status:', status),
-        100
-      );
-
-      setRecording(recording);
-      setIsRecording(true);
-      setRecordingDuration(0);
-    } catch (err: any) {
-      console.error('Failed to start recording', err);
-      setError(
-        "Échec de la démarrage de l'enregistrement. " + (err?.message || '')
-      );
-    }
-  };
-
-  const stopRecording = async () => {
-    if (!recording) return;
-
-    try {
-      // Only process if we have recorded for at least 3 seconds
-      if (recordingDuration < MIN_RECORDING_DURATION) {
-        setError(
-          "L'enregistrement est trop court. Veuillez enregistrer pendant au moins 3 secondes."
-        );
-        await recording.stopAndUnloadAsync();
-        setRecording(null);
-        setIsRecording(false);
-        return;
-      }
-
-      await recording.stopAndUnloadAsync();
-      const uri = recording.getURI();
-
-      if (!uri) {
-        throw new Error("Impossible d'obtenir l'URI d'enregistrement");
-      }
-
-      // Get recording status to verify we have data
-      const status = await recording.getStatusAsync();
-      console.log('Recording status after stop:', status);
-
-      // Verify file exists and has content
-      try {
-        const response = await fetch(uri);
-        const blob = await response.blob();
-
-        if (blob.size === 0) {
-          throw new Error("L'enregistrement est vide");
-        }
-
-        console.log('Recording file size:', blob.size);
-        await processRecording(uri);
-      } catch (fetchErr: any) {
-        console.error('Error verifying recording file:', fetchErr);
-        setError(
-          "Impossible de vérifier l'enregistrement. Veuillez réessayer."
-        );
-      }
-
-      setRecording(null);
-      setIsRecording(false);
-    } catch (err: any) {
-      console.error('Failed to stop recording', err);
-      setError("Échec de l'arrêt de l'enregistrement. " + (err?.message || ''));
-      setIsRecording(false);
-      setRecording(null);
-    }
-  };
 
   // Function to save survey data without audio processing
   const saveSurveyData = async (): Promise<boolean> => {
@@ -220,9 +86,15 @@ export default function VoiceRecordingScreen() {
     }
   };
 
-  const processRecording = async (uri: string) => {
+  const handleRecordingComplete = async (result: VoiceRecordingResult) => {
+    // Protection contre les soumissions multiples
+    if (isProcessing || isCompleted) {
+      console.log('⚠️ Soumission déjà en cours ou complétée, ignorer');
+      return;
+    }
+
     try {
-      setProcessing(true);
+      setIsProcessing(true);
       setError(null);
       setProgress("Préparation de l'audio...");
 
@@ -231,51 +103,20 @@ export default function VoiceRecordingScreen() {
       } = await supabase.auth.getUser();
       if (!user) throw new Error('Non authentifié');
 
-      const response = await fetch(uri);
-      const blob = await response.blob();
-
-      if (blob.size > 10 * 1024 * 1024) {
-        throw new Error(
-          "L'enregistrement est trop volumineux. Veuillez essayer un message plus court."
-        );
-      }
-
-      const formData = new FormData();
-      formData.append('file', {
-        uri,
-        type: 'audio/x-m4a',
-        name: 'recording.m4a',
-      } as any);
-      formData.append('userId', user.id);
-
-      // Format survey answers for database storage
-      // These will be saved to the onboarding_survey table
-      formData.append(
-        'survey_data',
-        JSON.stringify({
-          user_id: user.id,
+      // Submit the recording with survey data
+      await submitOnboardingRecording({
+        uri: result.uri,
+        name: result.fileName,
+        duration: result.duration,
+        fileName: result.fileName,
+        surveyData: {
           content_goals: surveyAnswers.content_goals || null,
           pain_points: surveyAnswers.pain_points || null,
           content_style: surveyAnswers.content_style || null,
           platform_focus: surveyAnswers.platform_focus || null,
           content_frequency: surveyAnswers.content_frequency || null,
-        })
-      );
-
-      setProgress("Transcription de l'audio...");
-
-      const result = await fetch(API_ENDPOINTS.SUPABASE_PROCESS_ONBOARDING(), {
-        method: 'POST',
-        headers: API_HEADERS.SUPABASE_AUTH,
-        body: formData,
+        },
       });
-
-      if (!result.ok) {
-        const errorData = await result.json();
-        throw new Error(
-          errorData.error || "Échec du traitement de l'enregistrement"
-        );
-      }
 
       setProgress('Configuration de votre profil...');
       await new Promise((resolve) => setTimeout(resolve, 1000));
@@ -301,14 +142,19 @@ export default function VoiceRecordingScreen() {
           },
           {
             text: 'Réessayer',
-            onPress: () => startRecording(),
+            onPress: () => setError(null),
           },
         ]
       );
     } finally {
-      setProcessing(false);
+      setIsProcessing(false);
       setProgress('');
     }
+  };
+
+  const handleRecordingError = (error: VoiceRecordingError) => {
+    console.error('Recording error:', error);
+    setError(error.message);
   };
 
   const handleContinue = () => {
@@ -316,8 +162,14 @@ export default function VoiceRecordingScreen() {
   };
 
   const handleSkip = async () => {
+    // Protection contre les soumissions multiples
+    if (isProcessing || isCompleted) {
+      console.log('⚠️ Skip déjà en cours ou complété, ignorer');
+      return;
+    }
+
     try {
-      setProcessing(true);
+      setIsProcessing(true);
       setProgress('Préparation de votre profil...');
 
       // Save survey data even when skipping audio recording
@@ -364,7 +216,7 @@ export default function VoiceRecordingScreen() {
       console.error('Error during skip handling:', err);
       // Continue despite errors - we don't want to block the user
     } finally {
-      setProcessing(false);
+      setIsProcessing(false);
       setProgress('');
       markStepCompleted('voice-recording');
 
@@ -397,82 +249,52 @@ export default function VoiceRecordingScreen() {
           </View>
         )}
 
-        <View style={styles.instructions}>
-          <Text style={styles.instructionTitle}>Configuration rapide</Text>
-          <Text style={styles.instructionText}>
-            Enregistrez une brève présentation à propos de :
-          </Text>
-          <View style={styles.bulletPoints}>
-            <Text style={styles.bulletPoint}>
-              • Votre style de contenu et sujets
-            </Text>
-            <Text style={styles.bulletPoint}>• Votre audience cible</Text>
-            <Text style={styles.bulletPoint}>• Votre ton de voix préféré</Text>
-          </View>
-          <Text style={styles.note}>
-            Nous l'utiliserons pour créer un clone vocal IA naturel
-          </Text>
-          <Text style={styles.timeLimit}>
-            Durée d'enregistrement: minimum 3 secondes, maximum 2 minutes
-          </Text>
-        </View>
-
-        {isRecording && (
-          <View style={styles.durationContainer}>
-            <Text style={styles.durationText}>
-              Enregistrement : {formatDuration(recordingDuration)}
+        {(isProcessing || progress) && (
+          <View style={styles.progressContainer}>
+            <ActivityIndicator size="small" color="#007AFF" />
+            <Text style={styles.progressText}>
+              {progress || 'Traitement en cours...'}
             </Text>
           </View>
         )}
 
-        {processing ? (
-          <View style={styles.processingContainer}>
-            <ActivityIndicator size="large" color="#007AFF" />
-            <Text style={styles.processingText}>{progress}</Text>
-          </View>
-        ) : (
-          <TouchableOpacity
-            style={[styles.recordButton, isRecording && styles.recordingButton]}
-            onPress={isRecording ? stopRecording : startRecording}
-          >
-            {isRecording ? (
-              <>
-                <StopCircle size={32} color="#ef4444" />
-                <Text style={[styles.recordButtonText, styles.recordingText]}>
-                  Arrêter l'enregistrement
-                </Text>
-              </>
-            ) : (
-              <>
-                <Mic size={32} color="#fff" />
-                <Text style={styles.recordButtonText}>
-                  Démarrer l'enregistrement
-                </Text>
-              </>
-            )}
-          </TouchableOpacity>
-        )}
+        <VoiceRecordingUI
+          variant="onboarding"
+          config={{
+            minDuration: 3000, // 3 seconds
+            maxDuration: 120000, // 2 minutes
+            autoSubmit: true,
+          }}
+          onComplete={handleRecordingComplete}
+          onError={handleRecordingError}
+          showInstructions={true}
+          showTimer={true}
+        />
 
         {isCompleted ? (
           <TouchableOpacity
             style={styles.continueButton}
             onPress={handleContinue}
+            disabled={isProcessing}
           >
             <Text style={styles.continueButtonText}>Continuer</Text>
             <ArrowRight size={20} color="#fff" />
           </TouchableOpacity>
         ) : (
           <TouchableOpacity
-            style={styles.skipButton}
+            style={[styles.skipButton, isProcessing && styles.disabledButton]}
             onPress={handleSkip}
-            disabled={processing}
+            disabled={isProcessing}
           >
             <Text
-              style={[styles.skipButtonText, processing && styles.disabledText]}
+              style={[
+                styles.skipButtonText,
+                isProcessing && styles.disabledText,
+              ]}
             >
               Je préfère écrire à la place
             </Text>
-            <ArrowRight size={20} color={processing ? '#555' : '#888'} />
+            <ArrowRight size={20} color={isProcessing ? '#555' : '#888'} />
           </TouchableOpacity>
         )}
       </View>
@@ -517,69 +339,6 @@ const styles = StyleSheet.create({
     color: '#ef4444',
     fontSize: 14,
   },
-  instructions: {
-    backgroundColor: '#1a1a1a',
-    borderRadius: 16,
-    padding: 20,
-    gap: 12,
-  },
-  instructionTitle: {
-    fontSize: 20,
-    fontWeight: '600',
-    color: '#fff',
-    marginBottom: 8,
-  },
-  instructionText: {
-    fontSize: 16,
-    color: '#fff',
-  },
-  bulletPoints: {
-    gap: 8,
-  },
-  bulletPoint: {
-    fontSize: 16,
-    color: '#888',
-  },
-  note: {
-    fontSize: 14,
-    color: '#666',
-    fontStyle: 'italic',
-    marginTop: 8,
-  },
-  timeLimit: {
-    fontSize: 14,
-    color: '#ef4444',
-    marginTop: 8,
-  },
-  durationContainer: {
-    alignItems: 'center',
-    marginVertical: 16,
-  },
-  durationText: {
-    fontSize: 16,
-    color: '#ef4444',
-    fontWeight: '600',
-  },
-  recordButton: {
-    backgroundColor: '#007AFF',
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: 20,
-    borderRadius: 16,
-    gap: 12,
-  },
-  recordingButton: {
-    backgroundColor: '#2D1116',
-  },
-  recordButtonText: {
-    color: '#fff',
-    fontSize: 18,
-    fontWeight: '600',
-  },
-  recordingText: {
-    color: '#ef4444',
-  },
   continueButton: {
     backgroundColor: '#007AFF',
     flexDirection: 'row',
@@ -608,14 +367,55 @@ const styles = StyleSheet.create({
   disabledText: {
     color: '#555',
   },
-  processingContainer: {
+  debugContainer: {
+    backgroundColor: '#1a1a1a',
+    padding: 16,
+    borderRadius: 8,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: '#333',
+  },
+  debugTitle: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: '600',
+    marginBottom: 8,
+  },
+  debugText: {
+    color: '#888',
+    fontSize: 12,
+    marginBottom: 4,
+  },
+  emergencyButton: {
+    backgroundColor: '#ef4444',
+    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    padding: 16,
-    gap: 12,
+    padding: 12,
+    borderRadius: 8,
+    gap: 8,
+    marginTop: 8,
   },
-  processingText: {
+  emergencyButtonText: {
     color: '#fff',
-    fontSize: 16,
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  progressContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#1a1a1a',
+    padding: 16,
+    borderRadius: 12,
+    gap: 12,
+    marginBottom: 16,
+  },
+  progressText: {
+    color: '#007AFF',
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  disabledButton: {
+    opacity: 0.5,
   },
 });

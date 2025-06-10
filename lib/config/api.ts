@@ -26,6 +26,7 @@ const API_CONFIGS = {
     promptsEnhanceSystem: '/api/prompts/enhance-system',
     promptsGenerateSystem: '/api/prompts/generate-system',
     webhooksCreatomate: '/api/webhooks/creatomate',
+    voiceClone: '/api/voice-clone',
 
     // Supabase functions (still needed for some features)
     supabase: {
@@ -47,6 +48,7 @@ const API_CONFIGS = {
     promptsEnhanceSystem: '/api/prompts/enhance-system',
     promptsGenerateSystem: '/api/prompts/generate-system',
     webhooksCreatomate: '/api/webhooks/creatomate',
+    voiceClone: '/api/voice-clone',
 
     // Supabase functions (still needed for some features)
     supabase: {
@@ -70,6 +72,7 @@ const API_CONFIGS = {
     promptsEnhanceSystem: '/api/prompts/enhance-system',
     promptsGenerateSystem: '/api/prompts/generate-system',
     webhooksCreatomate: '/api/webhooks/creatomate',
+    voiceClone: '/api/voice-clone',
 
     // Supabase functions (still needed for some features)
     supabase: {
@@ -143,6 +146,18 @@ export const API_ENDPOINTS = {
   WEBHOOKS_CREATOMATE: () => {
     const config = getCurrentConfig();
     return config.baseUrl + config.webhooksCreatomate;
+  },
+
+  // Voice Clone (Node.js server)
+  VOICE_CLONE: () => {
+    const config = getCurrentConfig();
+    return config.baseUrl + config.voiceClone;
+  },
+
+  // Onboarding (Node.js server)
+  ONBOARDING: () => {
+    const config = getCurrentConfig();
+    return config.baseUrl + (config as any).onboarding;
   },
 
   // Supabase functions (still needed)

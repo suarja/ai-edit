@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { router } from 'expo-router';
-import { Mic as Mic2 } from 'lucide-react-native';
+import { Mic } from 'lucide-react-native';
 
 type VoiceClone = {
   id: string;
@@ -16,14 +16,26 @@ type VoiceCloneSectionProps = {
 export default function VoiceCloneSection({
   voiceClone,
 }: VoiceCloneSectionProps) {
+  const navigateToVoiceClone = () => {
+    router.push('/(settings)/voice-clone');
+  };
+
   return (
     <View style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.sectionTitle}>Clone Vocal</Text>
         {voiceClone ? (
           <View style={styles.voiceStatus}>
-            <Mic2 size={16} color="#10b981" />
-            <Text style={styles.voiceStatusText}>Prêt</Text>
+            <Mic size={16} color="#10b981" />
+            <Text style={styles.voiceStatusText}>
+              {voiceClone.status === 'ready' ? 'Prêt' : 'En traitement'}
+            </Text>
+            <TouchableOpacity
+              style={styles.manageButton}
+              onPress={navigateToVoiceClone}
+            >
+              <Text style={styles.manageButtonText}>Gérer</Text>
+            </TouchableOpacity>
           </View>
         ) : (
           <View style={styles.voiceStatus}>
@@ -32,7 +44,7 @@ export default function VoiceCloneSection({
             </Text>
             <TouchableOpacity
               style={styles.createVoiceButton}
-              onPress={() => router.push('/(tabs)/voice-clone')}
+              onPress={navigateToVoiceClone}
             >
               <Text style={styles.createVoiceText}>
                 Créer une Voix Personnalisée
@@ -41,6 +53,14 @@ export default function VoiceCloneSection({
           </View>
         )}
       </View>
+
+      {voiceClone && (
+        <View style={styles.infoContainer}>
+          <Text style={styles.infoText}>
+            Votre clone vocal est prêt à être utilisé pour vos vidéos générées.
+          </Text>
+        </View>
+      )}
     </View>
   );
 }
@@ -53,6 +73,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+    marginBottom: 8,
   },
   sectionTitle: {
     fontSize: 18,
@@ -79,5 +100,26 @@ const styles = StyleSheet.create({
     color: '#007AFF',
     fontSize: 14,
     fontWeight: '600',
+  },
+  manageButton: {
+    backgroundColor: '#1a1a1a',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 6,
+  },
+  manageButtonText: {
+    color: '#007AFF',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  infoContainer: {
+    backgroundColor: 'rgba(16, 185, 129, 0.1)',
+    borderRadius: 8,
+    padding: 12,
+    marginTop: 8,
+  },
+  infoText: {
+    color: '#10b981',
+    fontSize: 14,
   },
 });

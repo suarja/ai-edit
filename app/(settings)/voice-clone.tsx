@@ -8,23 +8,27 @@ import {
   ScrollView,
   ActivityIndicator,
 } from 'react-native';
-import { Audio } from 'expo-av';
 import {
-  Mic,
   Upload,
   Play,
   Square,
   Trash,
-  Send,
   Plus,
+  Send,
+  CircleStop as StopCircle,
 } from 'lucide-react-native';
 import * as DocumentPicker from 'expo-document-picker';
+import { Audio } from 'expo-av';
 import { supabase } from '@/lib/supabase';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import SettingsHeader from '@/components/SettingsHeader';
-import { env } from '@/lib/config/env';
-import { API_ENDPOINTS, API_HEADERS } from '@/lib/config/api';
+import { VoiceRecordingUI } from '@/components/voice/VoiceRecordingUI';
+import {
+  VoiceRecordingResult,
+  VoiceRecordingError,
+} from '@/types/voice-recording';
+import { submitVoiceClone } from '@/lib/api/voice-recording-client';
 
 type VoiceClone = {
   id: string;
@@ -42,13 +46,12 @@ export default function VoiceCloneScreen() {
   const [recordings, setRecordings] = useState<{ uri: string; name: string }[]>(
     []
   );
-  const [recording, setRecording] = useState<Audio.Recording | null>(null);
-  const [isRecording, setIsRecording] = useState(false);
   const [sound, setSound] = useState<Audio.Sound | null>(null);
   const [playingIndex, setPlayingIndex] = useState<number | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [recordingMode, setRecordingMode] = useState(false);
 
   useEffect(() => {
     fetchExistingVoice();
@@ -57,17 +60,6 @@ export default function VoiceCloneScreen() {
         sound.unloadAsync();
       }
     };
-  }, []);
-
-  useEffect(() => {
-    (async () => {
-      await Audio.requestPermissionsAsync();
-      await Audio.setAudioModeAsync({
-        allowsRecordingIOS: true,
-        playsInSilentModeIOS: true,
-        staysActiveInBackground: true,
-      });
-    })();
   }, []);
 
   const fetchExistingVoice = async () => {
@@ -96,39 +88,6 @@ export default function VoiceCloneScreen() {
       setError('Échec du chargement des données vocales');
     } finally {
       setIsLoading(false);
-    }
-  };
-
-  const startRecording = async () => {
-    try {
-      const { recording } = await Audio.Recording.createAsync(
-        Audio.RecordingOptionsPresets.HIGH_QUALITY
-      );
-      setRecording(recording);
-      setIsRecording(true);
-      setError(null);
-    } catch (err) {
-      console.error('Failed to start recording', err);
-      setError("Échec du démarrage de l'enregistrement");
-    }
-  };
-
-  const stopRecording = async () => {
-    if (!recording) return;
-
-    try {
-      await recording.stopAndUnloadAsync();
-      const uri = recording.getURI();
-      if (uri) {
-        const recordingName = `Enregistrement ${recordings.length + 1}.m4a`;
-        setRecordings((prev) => [...prev, { uri, name: recordingName }]);
-      }
-      setRecording(null);
-      setIsRecording(false);
-      setError(null);
-    } catch (err) {
-      console.error('Failed to stop recording', err);
-      setError("Échec de l'arrêt de l'enregistrement");
     }
   };
 
@@ -209,42 +168,68 @@ export default function VoiceCloneScreen() {
     }
   };
 
+  const handleRecordingComplete = async (result: VoiceRecordingResult) => {
+    // Protection contre les soumissions multiples
+    if (isSubmitting) {
+      console.log('⚠️ Soumission déjà en cours, ignorer');
+      return;
+    }
+
+    try {
+      const recordingName = `Enregistrement ${recordings.length + 1}.m4a`;
+      const newRecording = { uri: result.uri, name: recordingName };
+
+      // Si on a un nom, soumettre directement
+      if (name.trim()) {
+        setIsSubmitting(true);
+        await submitVoiceClone({
+          name: name.trim(),
+          recordings: [...recordings, newRecording],
+        });
+
+        // Succès - nettoyer et revenir à la liste
+        setName('');
+        setRecordings([]);
+        setError(null);
+        setIsCreating(false);
+        setRecordingMode(false);
+        await fetchExistingVoice();
+      } else {
+        // Pas de nom - juste ajouter à la liste
+        setRecordings((prev) => [...prev, newRecording]);
+        setRecordingMode(false);
+      }
+    } catch (err: any) {
+      console.error('Error handling recording:', err);
+      setError(err?.message || "Échec de l'enregistrement");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleRecordingError = (error: VoiceRecordingError) => {
+    console.error('Recording error:', error);
+    setError(error.message);
+  };
+
   const handleSubmit = async () => {
-    if (!name || recordings.length === 0 || isSubmitting) return;
+    // Protection contre les soumissions multiples
+    if (!name || recordings.length === 0 || isSubmitting) {
+      console.log('⚠️ Conditions non remplies ou soumission en cours');
+      return;
+    }
 
     try {
       setIsSubmitting(true);
       setError(null);
 
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (!user) {
-        router.replace('/(auth)/sign-in');
-        return;
-      }
-
-      const response = await fetch(
-        API_ENDPOINTS.SUPABASE_CREATE_VOICE_CLONE(),
-        {
-          method: 'POST',
-          headers: API_HEADERS.SUPABASE_AUTH,
-          body: JSON.stringify({
-            name,
-            recordings: recordings.map((r) => ({
-              uri: r.uri,
-              name: r.name,
-            })),
-            userId: user.id,
-          }),
-        }
-      );
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Échec de la création du clone vocal');
-      }
+      await submitVoiceClone({
+        name: name,
+        recordings: recordings.map((r) => ({
+          uri: r.uri,
+          name: r.name,
+        })),
+      });
 
       setName('');
       setRecordings([]);
@@ -265,6 +250,7 @@ export default function VoiceCloneScreen() {
 
   const handleCancel = () => {
     setIsCreating(false);
+    setRecordingMode(false);
     setName('');
     setRecordings([]);
     setError(null);
@@ -351,7 +337,7 @@ export default function VoiceCloneScreen() {
       <SettingsHeader
         title="Créer un Clone Vocal"
         rightButton={
-          name && recordings.length > 0
+          name && recordings.length > 0 && !recordingMode
             ? {
                 icon: <Send size={20} color="#fff" />,
                 onPress: handleSubmit,
@@ -372,68 +358,145 @@ export default function VoiceCloneScreen() {
             </View>
           )}
 
-          <View style={styles.inputContainer}>
-            <Text style={styles.label}>Nom de la voix</Text>
-            <TextInput
-              style={styles.input}
-              value={name}
-              onChangeText={setName}
-              placeholder="Entrez le nom de la voix"
-              placeholderTextColor="#666"
-            />
-          </View>
+          {isSubmitting && (
+            <View style={styles.progressContainer}>
+              <ActivityIndicator size="small" color="#007AFF" />
+              <Text style={styles.progressText}>
+                Création du clone vocal en cours...
+              </Text>
+            </View>
+          )}
 
-          <View style={styles.recordingsContainer}>
-            <Text style={styles.label}>Enregistrements</Text>
-            <View style={styles.recordingsList}>
-              {recordings.map((rec, index) => (
-                <View key={rec.uri} style={styles.recordingItem}>
-                  <Text style={styles.recordingName}>{rec.name}</Text>
-                  <View style={styles.recordingControls}>
-                    <TouchableOpacity
-                      onPress={() =>
-                        playingIndex === index
-                          ? stopSound()
-                          : playSound(rec.uri, index)
-                      }
-                      style={styles.controlButton}
-                    >
-                      {playingIndex === index ? (
-                        <Square size={20} color="#fff" />
-                      ) : (
-                        <Play size={20} color="#fff" />
-                      )}
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                      onPress={() => deleteRecording(index)}
-                      style={[styles.controlButton, styles.deleteButton]}
-                    >
-                      <Trash size={20} color="#fff" />
-                    </TouchableOpacity>
+          {!recordingMode && (
+            <>
+              <View style={styles.inputContainer}>
+                <Text style={styles.label}>Nom de la voix</Text>
+                <TextInput
+                  style={styles.input}
+                  value={name}
+                  onChangeText={setName}
+                  placeholder="Entrez le nom de la voix"
+                  placeholderTextColor="#666"
+                />
+              </View>
+
+              {recordings.length > 0 && (
+                <View style={styles.recordingsContainer}>
+                  <Text style={styles.label}>Enregistrements</Text>
+                  <View style={styles.recordingsList}>
+                    {recordings.map((rec, index) => (
+                      <View key={rec.uri} style={styles.recordingItem}>
+                        <Text style={styles.recordingName}>{rec.name}</Text>
+                        <View style={styles.recordingControls}>
+                          <TouchableOpacity
+                            onPress={() =>
+                              playingIndex === index
+                                ? stopSound()
+                                : playSound(rec.uri, index)
+                            }
+                            style={styles.controlButton}
+                          >
+                            {playingIndex === index ? (
+                              <Square size={20} color="#fff" />
+                            ) : (
+                              <Play size={20} color="#fff" />
+                            )}
+                          </TouchableOpacity>
+                          <TouchableOpacity
+                            onPress={() => deleteRecording(index)}
+                            style={[styles.controlButton, styles.deleteButton]}
+                          >
+                            <Trash size={20} color="#fff" />
+                          </TouchableOpacity>
+                        </View>
+                      </View>
+                    ))}
                   </View>
                 </View>
-              ))}
+              )}
+
+              <View style={styles.actionButtons}>
+                <TouchableOpacity
+                  onPress={() => setRecordingMode(true)}
+                  style={[styles.button, isSubmitting && styles.disabledButton]}
+                  disabled={isSubmitting}
+                >
+                  <Text
+                    style={[
+                      styles.buttonText,
+                      isSubmitting && styles.disabledText,
+                    ]}
+                  >
+                    Enregistrer
+                  </Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  onPress={pickAudio}
+                  style={[styles.button, isSubmitting && styles.disabledButton]}
+                  disabled={isSubmitting}
+                >
+                  <Upload size={24} color={isSubmitting ? '#666' : '#fff'} />
+                  <Text
+                    style={[
+                      styles.buttonText,
+                      isSubmitting && styles.disabledText,
+                    ]}
+                  >
+                    Importer
+                  </Text>
+                </TouchableOpacity>
+              </View>
+
+              {recordings.length > 0 && name && (
+                <TouchableOpacity
+                  style={styles.submitButton}
+                  onPress={handleSubmit}
+                  disabled={isSubmitting}
+                >
+                  {isSubmitting ? (
+                    <ActivityIndicator size="small" color="#fff" />
+                  ) : (
+                    <>
+                      <Send size={20} color="#fff" />
+                      <Text style={styles.buttonText}>Soumettre</Text>
+                    </>
+                  )}
+                </TouchableOpacity>
+              )}
+            </>
+          )}
+
+          {recordingMode && (
+            <View style={styles.recordingModeContainer}>
+              <VoiceRecordingUI
+                variant="settings"
+                config={{
+                  minDuration: 3000, // 3 seconds
+                  maxDuration: 120000, // 2 minutes
+                  autoSubmit: false,
+                }}
+                onComplete={handleRecordingComplete}
+                onError={handleRecordingError}
+                customInstructions={[
+                  'Parlez clairement dans le microphone',
+                  'Enregistrez pendant au moins 3 secondes',
+                  'Variez votre intonation pour de meilleurs résultats',
+                ]}
+                showInstructions={true}
+                showTimer={true}
+              />
+
+              <TouchableOpacity
+                style={styles.cancelButton}
+                onPress={() => setRecordingMode(false)}
+              >
+                <Text style={styles.buttonText}>Retour</Text>
+              </TouchableOpacity>
             </View>
-          </View>
+          )}
 
-          <View style={styles.actionButtons}>
-            <TouchableOpacity
-              onPress={isRecording ? stopRecording : startRecording}
-              style={[styles.button, isRecording && styles.recordingButton]}
-            >
-              <Mic size={24} color="#fff" />
-              <Text style={styles.buttonText}>
-                {isRecording ? 'Arrêter' : 'Enregistrer'}
-              </Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity onPress={pickAudio} style={styles.button}>
-              <Upload size={24} color="#fff" />
-              <Text style={styles.buttonText}>Importer</Text>
-            </TouchableOpacity>
-          </View>
-
-          {isCreating && (
+          {isCreating && !recordingMode && (
             <TouchableOpacity
               style={styles.cancelButton}
               onPress={handleCancel}
@@ -603,8 +666,14 @@ const styles = StyleSheet.create({
     gap: 8,
     flex: 1,
   },
-  recordingButton: {
-    backgroundColor: '#ef4444',
+  submitButton: {
+    backgroundColor: '#10b981',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 16,
+    borderRadius: 12,
+    gap: 8,
   },
   buttonText: {
     color: '#fff',
@@ -613,10 +682,31 @@ const styles = StyleSheet.create({
   },
   cancelButton: {
     backgroundColor: '#333',
-    flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
     padding: 16,
     borderRadius: 12,
+  },
+  recordingModeContainer: {
+    gap: 16,
+  },
+  disabledButton: {
+    opacity: 0.5,
+  },
+  disabledText: {
+    color: '#666',
+  },
+  progressContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#1a1a1a',
+    padding: 16,
+    borderRadius: 12,
+    gap: 12,
+  },
+  progressText: {
+    color: '#007AFF',
+    fontSize: 14,
+    fontWeight: '500',
   },
 });

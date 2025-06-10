@@ -1,16 +1,42 @@
-import { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
 import { router } from 'expo-router';
 import { Mic, ArrowRight } from 'lucide-react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { testVoiceAPIConnectivity } from '@/lib/api/voice-recording-client';
+import { useState, useEffect } from 'react';
 
 export default function OnboardingVoiceCloneScreen() {
+  const [isAPIReady, setIsAPIReady] = useState(true);
+  const [isChecking, setIsChecking] = useState(true);
+
+  // Check API connectivity on mount
+  useEffect(() => {
+    const checkAPI = async () => {
+      try {
+        setIsChecking(true);
+        const isReady = await testVoiceAPIConnectivity();
+        setIsAPIReady(isReady);
+      } catch (error) {
+        console.error('API check error:', error);
+        setIsAPIReady(false);
+      } finally {
+        setIsChecking(false);
+      }
+    };
+
+    checkAPI();
+  }, []);
+
   const handleCreateVoice = () => {
     router.push('/(settings)/voice-clone');
   };
 
+  const handleContinueToRecording = () => {
+    router.push('/(onboarding)/voice-recording');
+  };
+
   const handleSkip = () => {
-    router.push('/(tabs)');
+    router.push('/(tabs)/videos');
   };
 
   return (
@@ -45,10 +71,20 @@ export default function OnboardingVoiceCloneScreen() {
           <View style={styles.infoBox}>
             <Text style={styles.infoTitle}>Quick and Easy</Text>
             <Text style={styles.infoText}>
-              Just record or upload a few short audio samples, and we'll create
-              a perfect clone of your voice
+              Just record or upload a few short audio samples, and we&apos;ll
+              create a perfect clone of your voice
             </Text>
           </View>
+
+          {!isAPIReady && !isChecking && (
+            <View style={styles.warningBox}>
+              <Text style={styles.warningTitle}>Connection Issue</Text>
+              <Text style={styles.warningText}>
+                We&apos;re having trouble connecting to our voice service. You
+                can still continue, but voice cloning may not work properly.
+              </Text>
+            </View>
+          )}
         </View>
 
         <View style={styles.footer}>
@@ -56,7 +92,10 @@ export default function OnboardingVoiceCloneScreen() {
             <Text style={styles.skipButtonText}>Skip for now</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.button} onPress={handleCreateVoice}>
+          <TouchableOpacity
+            style={styles.button}
+            onPress={handleContinueToRecording}
+          >
             <Text style={styles.buttonText}>Create Voice Clone</Text>
             <ArrowRight size={24} color="#fff" />
           </TouchableOpacity>
@@ -139,6 +178,25 @@ const styles = StyleSheet.create({
   infoText: {
     fontSize: 14,
     color: '#888',
+    lineHeight: 20,
+  },
+  warningBox: {
+    backgroundColor: 'rgba(239, 68, 68, 0.1)',
+    padding: 20,
+    borderRadius: 16,
+    gap: 8,
+    borderWidth: 1,
+    borderColor: 'rgba(239, 68, 68, 0.3)',
+  },
+  warningTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#ef4444',
+  },
+  warningText: {
+    fontSize: 14,
+    color: '#ef4444',
+    opacity: 0.8,
     lineHeight: 20,
   },
   footer: {

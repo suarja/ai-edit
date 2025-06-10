@@ -2,23 +2,14 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Play, ArrowRight } from 'lucide-react-native';
-import { Audio } from 'expo-av';
 import { useOnboarding } from '@/components/providers/OnboardingProvider';
 import { ProgressBar } from '@/components/onboarding/ProgressBar';
 import { useOnboardingSteps } from '@/components/onboarding/OnboardingSteps';
 import { IMAGES } from '@/lib/constants/images';
 
-const MAX_RECORDING_DURATION = 120000; // 2 minutes in milliseconds
-
 export default function WelcomeScreen() {
   const { nextStep, markStepCompleted } = useOnboarding();
   const onboardingSteps = useOnboardingSteps();
-  const [isRecording, setIsRecording] = useState(false);
-  const [recording, setRecording] = useState<Audio.Recording | null>(null);
-  const [processing, setProcessing] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [progress, setProgress] = useState<string>('');
-  const [recordingDuration, setRecordingDuration] = useState(0);
   const [videoPlaying, setVideoPlaying] = useState(false);
 
   const handleContinue = () => {
@@ -49,7 +40,7 @@ export default function WelcomeScreen() {
         <Text style={styles.title}>Bienvenue sur votre</Text>
         <Text style={styles.title}>Studio IA</Text>
         <Text style={styles.subtitle}>
-          Créez des vidéos professionnelles avec l'IA
+          Créez des vidéos professionnelles avec l&apos;IA
         </Text>
       </View>
 
