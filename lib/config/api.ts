@@ -27,6 +27,7 @@ const API_CONFIGS = {
     promptsGenerateSystem: '/api/prompts/generate-system',
     webhooksCreatomate: '/api/webhooks/creatomate',
     voiceClone: '/api/voice-clone',
+    onboarding: '/api/onboarding',
 
     // Supabase functions (still needed for some features)
     supabase: {
@@ -49,6 +50,7 @@ const API_CONFIGS = {
     promptsGenerateSystem: '/api/prompts/generate-system',
     webhooksCreatomate: '/api/webhooks/creatomate',
     voiceClone: '/api/voice-clone',
+    onboarding: '/api/onboarding',
 
     // Supabase functions (still needed for some features)
     supabase: {
@@ -73,6 +75,7 @@ const API_CONFIGS = {
     promptsGenerateSystem: '/api/prompts/generate-system',
     webhooksCreatomate: '/api/webhooks/creatomate',
     voiceClone: '/api/voice-clone',
+    onboarding: '/api/onboarding',
 
     // Supabase functions (still needed for some features)
     supabase: {
@@ -157,7 +160,7 @@ export const API_ENDPOINTS = {
   // Onboarding (Node.js server)
   ONBOARDING: () => {
     const config = getCurrentConfig();
-    return config.baseUrl + (config as any).onboarding;
+    return config.baseUrl + config.onboarding;
   },
 
   // Supabase functions (still needed)
