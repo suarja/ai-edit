@@ -15,6 +15,7 @@ export interface AuthRedirectConfig {
   requiresAuth?: boolean;
 }
 
+// Configuration pour les redirections INTERNES de l'app
 export const AUTH_REDIRECT_CONFIGS: Record<AuthEventType, AuthRedirectConfig> =
   {
     [AuthEventType.PASSWORD_RECOVERY]: {
@@ -43,11 +44,25 @@ export const AUTH_REDIRECT_CONFIGS: Record<AuthEventType, AuthRedirectConfig> =
     },
   };
 
-export function getRedirectUrl(eventType: AuthEventType): string {
-  const baseUrl = __DEV__ ? 'exp://localhost:8081/--' : 'https://editia.app';
+// Configuration pour les URLs de CALLBACK Supabase (deep linking)
+export const SUPABASE_CALLBACK_ROUTES: Record<AuthEventType, string> = {
+  [AuthEventType.PASSWORD_RECOVERY]: '/auth/reset-password',
+  [AuthEventType.EMAIL_CONFIRMATION]: '/auth/verify',
+  [AuthEventType.SIGN_UP_SUCCESS]: '/(tabs)/source-videos',
+  [AuthEventType.SIGN_IN_SUCCESS]: '/(tabs)/source-videos',
+};
 
+// Fonction pour les URLs de callback Supabase (ce qui va dans les emails)
+export function getSupabaseCallbackUrl(eventType: AuthEventType): string {
+  const baseUrl = __DEV__ ? 'exp://localhost:8081/--' : 'https://editia.app';
+  const route = SUPABASE_CALLBACK_ROUTES[eventType];
+  return `${baseUrl}${route}`;
+}
+
+// Fonction pour les redirections internes (navigation dans l'app)
+export function getRedirectUrl(eventType: AuthEventType): string {
   const config = AUTH_REDIRECT_CONFIGS[eventType];
-  return `${baseUrl}${config.route}`;
+  return config.route;
 }
 
 export function handleAuthRedirect(
@@ -127,6 +142,7 @@ export function parseAuthCallback(url: string): {
   }
 }
 
+// Fonction pour créer les URLs de callback Supabase
 export function createAuthRedirectUrl(eventType: AuthEventType): string {
-  return getRedirectUrl(eventType);
+  return getSupabaseCallbackUrl(eventType);
 }
