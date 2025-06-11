@@ -31,9 +31,7 @@ export default function ForgotPassword() {
 
     try {
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: __DEV__
-          ? 'http://localhost:3000/auth/confirm'
-          : 'https://editia.app/auth/confirm',
+        redirectTo: __DEV__ ? 'http://localhost:3000' : 'https://editia.app',
       });
 
       if (error) {

@@ -58,8 +58,8 @@ export default function SignUp() {
         password,
         options: {
           emailRedirectTo: __DEV__
-            ? 'http://localhost:3000/auth/confirm'
-            : 'https://editia.app/auth/confirm',
+            ? 'http://localhost:3000'
+            : 'https://editia.app',
         },
       });
 
