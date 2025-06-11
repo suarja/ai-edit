@@ -10,6 +10,7 @@ import {
   Alert,
   Linking,
   Platform,
+  Share,
 } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -25,8 +26,10 @@ import {
   Clock,
   Tag,
   Save,
+  FileVideo,
 } from 'lucide-react-native';
-import { useVideoPlayer, VideoView } from 'expo-video';
+// TEMPORARILY DISABLED FOR ANDROID CRASH FIX
+// import { useVideoPlayer, VideoView } from 'expo-video';
 import { UploadedVideoType, VideoType, isUploadedVideo } from '@/types/video';
 import * as FileSystem from 'expo-file-system';
 import * as Sharing from 'expo-sharing';
@@ -142,12 +145,13 @@ export default function UploadedVideoDetailScreen() {
   const [isEditing, setIsEditing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const player = useVideoPlayer(
-    video ? { uri: video.upload_url } : null,
-    (player) => {
-      player.muted = false;
-    }
-  );
+  // TEMPORARILY DISABLED FOR ANDROID CRASH FIX
+  // const player = useVideoPlayer(
+  //   video ? { uri: video.upload_url } : null,
+  //   (player) => {
+  //     player.muted = false;
+  //   }
+  // );
 
   useEffect(() => {
     if (id) {
@@ -157,7 +161,8 @@ export default function UploadedVideoDetailScreen() {
 
   useEffect(() => {
     if (video) {
-      player.replaceAsync({ uri: video.upload_url });
+      // TEMPORARILY DISABLED FOR ANDROID CRASH FIX
+      // player.replaceAsync({ uri: video.upload_url });
     }
   }, [video]);
 
