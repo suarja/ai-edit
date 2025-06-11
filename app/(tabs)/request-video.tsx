@@ -15,7 +15,7 @@ import useVideoRequest from '@/app/hooks/useVideoRequest';
 import useConfigurationStatus from '@/app/hooks/useConfigurationStatus';
 
 // Components
-import VideoSelectionCarousel from '@/components/VideoSelectionCarousel';
+import VideoSelectionChips from '@/components/VideoSelectionChips';
 import PromptInput from '@/app/components/PromptInput';
 import SystemPromptInput from '@/app/components/SystemPromptInput';
 import ConfigurationCards from '@/app/components/ConfigurationCards';
@@ -97,11 +97,18 @@ export default function RequestVideoScreen() {
           outputLanguage={videoRequest.outputLanguage}
         />
 
-        {/* Video selection */}
-        <VideoSelectionCarousel
+        {/* Video selection - now using lightweight chips */}
+        <VideoSelectionChips
           videos={videoRequest.sourceVideos}
           selectedVideoIds={videoRequest.selectedVideos}
           onVideoToggle={videoRequest.toggleVideoSelection}
+          config={{
+            variant: 'outlined',
+            allowMultipleSelection: true,
+            showDuration: true,
+            showStatus: true,
+            showTags: false,
+          }}
         />
 
         {/* Toggle for advanced settings */}

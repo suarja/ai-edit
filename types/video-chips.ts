@@ -14,10 +14,3 @@ export interface VideoChipConfig {
   showDuration?: boolean;
   showStatus?: boolean;
 }
-
-export interface VideoSelectionChipsProps {
-  videos: any[]; // Will be typed as VideoType once we import it
-  selectedVideoIds: string[];
-  onVideoToggle: (videoId: string) => void;
-  config?: VideoChipConfig;
-}

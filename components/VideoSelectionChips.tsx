@@ -4,11 +4,19 @@ import { router } from 'expo-router';
 import { Upload, Video as VideoIcon } from 'lucide-react-native';
 import { Chips } from 'react-native-material-chips';
 
-import { VideoSelectionChipsProps, VideoChipItem } from '@/types/video-chips';
+import { VideoType } from '@/types/video';
+import { VideoChipItem, VideoChipConfig } from '@/types/video-chips';
 import {
   transformVideosToChips,
   getChipDisplayText,
 } from '@/lib/utils/video-chip-adapter';
+
+interface VideoSelectionChipsProps {
+  videos: VideoType[];
+  selectedVideoIds: string[];
+  onVideoToggle: (videoId: string) => void;
+  config?: VideoChipConfig;
+}
 
 export default function VideoSelectionChips({
   videos,

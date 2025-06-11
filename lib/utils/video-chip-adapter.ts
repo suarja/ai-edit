@@ -1,23 +1,23 @@
+import { VideoType } from '@/types/video';
 import { VideoChipItem } from '@/types/video-chips';
 
 /**
- * Transform a video object to a chip-compatible format
+ * Transform a VideoType object to a chip-compatible format
  * This reduces the data payload and prepares for chip display
  */
-export const transformVideoToChip = (video: any): VideoChipItem => {
-  // Create a readable title from various video properties
+export const transformVideoToChip = (video: VideoType): VideoChipItem => {
+  // Create a readable title from video properties
   const title =
-    video.title ||
-    video.filename ||
-    video.original_filename ||
-    `Video ${video.id?.slice(0, 8)}` ||
-    'Untitled Video';
+    video.title || `Video ${video.id?.slice(0, 8)}` || 'Untitled Video';
 
   // Format duration if available
-  const duration = video.duration ? formatDuration(video.duration) : undefined;
+  const duration =
+    video.duration || video.duration_seconds
+      ? formatDuration(video.duration || video.duration_seconds || 0)
+      : undefined;
 
   // Map processing status
-  const status = mapProcessingStatus(video.processing_status || video.status);
+  const status = mapProcessingStatus(video.processing_status);
 
   return {
     label: title,
@@ -30,9 +30,11 @@ export const transformVideoToChip = (video: any): VideoChipItem => {
 };
 
 /**
- * Transform an array of videos to chip format
+ * Transform an array of VideoType to chip format
  */
-export const transformVideosToChips = (videos: any[]): VideoChipItem[] => {
+export const transformVideosToChips = (
+  videos: VideoType[]
+): VideoChipItem[] => {
   return videos.map(transformVideoToChip);
 };
 
@@ -52,27 +54,24 @@ const formatDuration = (duration: number | string): string => {
 };
 
 /**
- * Map various processing status values to standardized status
+ * Map VideoType processing status to standardized status
  */
 const mapProcessingStatus = (
-  status: string | undefined
+  status: VideoType['processing_status']
 ): VideoChipItem['status'] => {
   if (!status) return 'processed';
 
-  const normalizedStatus = status.toLowerCase();
-
-  if (
-    normalizedStatus.includes('process') ||
-    normalizedStatus.includes('pending')
-  ) {
-    return 'processing';
+  switch (status) {
+    case 'pending':
+    case 'processing':
+      return 'processing';
+    case 'failed':
+      return 'error';
+    case 'completed':
+      return 'processed';
+    default:
+      return 'processed';
   }
-
-  if (normalizedStatus.includes('error') || normalizedStatus.includes('fail')) {
-    return 'error';
-  }
-
-  return 'processed';
 };
 
 /**
