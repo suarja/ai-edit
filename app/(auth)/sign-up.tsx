@@ -67,9 +67,18 @@ export default function SignUp() {
 
       if (signUpError) throw signUpError;
 
-      // if (data.user) {
-      //   router.replace('/(auth)/sign-in');
-      // }
+      // Si l'inscription réussit, montrer un message de confirmation
+      if (data.user) {
+        setError(null);
+        alert(
+          '✅ Inscription réussie ! Vérifiez votre email pour confirmer votre compte.'
+        );
+
+        // Optionnel : rediriger vers sign-in après un délai
+        setTimeout(() => {
+          router.replace('/(auth)/sign-in');
+        }, 2000);
+      }
 
       // if (data.user) {
       //   try {
