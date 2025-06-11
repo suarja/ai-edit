@@ -51,8 +51,9 @@ export default function VideoTagFilterSystem({
 
   // Filter videos based on selected tags
   const filteredVideos = useMemo(() => {
+    // Show NO videos when no tags are selected
     if (selectedTags.length === 0) {
-      return videos;
+      return [];
     }
 
     return videos.filter((video) => {
@@ -153,8 +154,13 @@ export default function VideoTagFilterSystem({
             <Text style={styles.emptyText}>
               {selectedTags.length > 0
                 ? 'Aucune vidéo ne correspond aux tags sélectionnés'
-                : 'Aucune vidéo disponible'}
+                : 'Sélectionnez un ou plusieurs tags pour voir les vidéos'}
             </Text>
+            {selectedTags.length === 0 && (
+              <Text style={styles.emptySubtext}>
+                👆 Choisissez vos tags ci-dessus pour filtrer les vidéos
+              </Text>
+            )}
           </View>
         ) : (
           <View style={styles.videoGrid}>
@@ -431,6 +437,12 @@ const styles = StyleSheet.create({
     color: '#888',
     fontSize: 16,
     textAlign: 'center',
+  },
+  emptySubtext: {
+    color: '#888',
+    fontSize: 12,
+    textAlign: 'center',
+    marginTop: 8,
   },
 
   // Selection Summary
