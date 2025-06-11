@@ -55,16 +55,68 @@ export default function VideoCard({
     return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
   };
 
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'completed':
+        return '#10b981'; // green
+      case 'processing':
+        return '#f59e0b'; // amber
+      case 'pending':
+        return '#6b7280'; // gray
+      case 'failed':
+        return '#ef4444'; // red
+      default:
+        return '#6b7280';
+    }
+  };
+
+  const getStatusText = (status: string) => {
+    switch (status) {
+      case 'completed':
+        return 'Prêt';
+      case 'processing':
+        return 'En cours';
+      case 'pending':
+        return 'En attente';
+      case 'failed':
+        return 'Erreur';
+      default:
+        return status;
+    }
+  };
+
   return (
     <TouchableOpacity style={styles.container} onPress={onPress}>
       <View style={styles.videoPreview}>
-        {/* TEMPORARILY DISABLED FOR ANDROID CRASH FIX - Show fallback instead */}
+        {/* Beautiful video placeholder with better design */}
         <View style={styles.videoFallback}>
-          <FileVideo size={32} color="#007AFF" />
-          <Text style={styles.fallbackText}>Video Preview</Text>
-          <Text style={styles.crashFixText}>
-            🚧 Video rendering temporarily disabled for Android crash fix
+          <View style={styles.videoIconContainer}>
+            <FileVideo size={32} color="#007AFF" />
+          </View>
+          <Text style={styles.fallbackTitle}>
+            {video.title || 'Vidéo sans titre'}
           </Text>
+          <View style={styles.videoBadges}>
+            {video.duration_seconds > 0 && (
+              <View style={styles.durationChip}>
+                <Text style={styles.durationChipText}>
+                  {formatDuration(video.duration_seconds)}
+                </Text>
+              </View>
+            )}
+            {video.processing_status && (
+              <View
+                style={[
+                  styles.statusChip,
+                  { backgroundColor: getStatusColor(video.processing_status) },
+                ]}
+              >
+                <Text style={styles.statusChipText}>
+                  {getStatusText(video.processing_status)}
+                </Text>
+              </View>
+            )}
+          </View>
         </View>
 
         {/* ORIGINAL VIDEO RENDERING CODE - TEMPORARILY DISABLED
@@ -103,14 +155,6 @@ export default function VideoCard({
               <Play size={16} color="#fff" />
             )}
           </TouchableOpacity>
-        )}
-
-        {video.duration_seconds > 0 && (
-          <View style={styles.durationBadge}>
-            <Text style={styles.durationText}>
-              {formatDuration(video.duration_seconds)}
-            </Text>
-          </View>
         )}
       </View>
 
@@ -198,15 +242,43 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  durationBadge: {
-    position: 'absolute',
-    bottom: 8,
-    right: 8,
+  videoIconContainer: {
+    backgroundColor: 'rgba(0, 122, 255, 0.1)',
+    borderRadius: 20,
+    width: 60,
+    height: 60,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 12,
+    borderWidth: 2,
+    borderColor: 'rgba(0, 122, 255, 0.3)',
+  },
+  fallbackTitle: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  videoBadges: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  durationChip: {
     backgroundColor: 'rgba(0, 0, 0, 0.7)',
     padding: 4,
     borderRadius: 4,
   },
-  durationText: {
+  durationChipText: {
+    color: '#fff',
+    fontSize: 10,
+    fontWeight: '600',
+  },
+  statusChip: {
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    padding: 4,
+    borderRadius: 4,
+  },
+  statusChipText: {
     color: '#fff',
     fontSize: 10,
     fontWeight: '600',
@@ -252,14 +324,5 @@ const styles = StyleSheet.create({
     color: '#888',
     fontSize: 12,
     flex: 1,
-  },
-  fallbackText: {
-    color: '#fff',
-    fontSize: 14,
-    fontWeight: '600',
-  },
-  crashFixText: {
-    color: '#888',
-    fontSize: 12,
   },
 });

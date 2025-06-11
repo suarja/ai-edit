@@ -119,6 +119,58 @@ export default function VideoSelectionChips({
         </Text>
       </View>
 
+      {/* Enhanced chips with better visual feedback */}
+      <View style={styles.chipsWrapper}>
+        {displayChips.map((chip, index) => {
+          const isSelected = selectedVideoIds.includes(chip.value);
+          return (
+            <TouchableOpacity
+              key={chip.value}
+              style={[
+                styles.enhancedChip,
+                isSelected && styles.enhancedChipSelected,
+              ]}
+              onPress={() => onVideoToggle(chip.value)}
+            >
+              <View style={styles.chipContent}>
+                <View
+                  style={[
+                    styles.chipIcon,
+                    isSelected && styles.chipIconSelected,
+                  ]}
+                >
+                  <Text style={styles.chipIconText}>
+                    {isSelected ? '✓' : '📹'}
+                  </Text>
+                </View>
+                <Text
+                  style={[
+                    styles.chipLabel,
+                    isSelected && styles.chipLabelSelected,
+                  ]}
+                  numberOfLines={1}
+                >
+                  {chip.label}
+                </Text>
+                {chip.status && chip.status !== 'processed' && (
+                  <View
+                    style={[
+                      styles.statusDot,
+                      {
+                        backgroundColor:
+                          chip.status === 'processing' ? '#f59e0b' : '#ef4444',
+                      },
+                    ]}
+                  />
+                )}
+              </View>
+            </TouchableOpacity>
+          );
+        })}
+      </View>
+
+      {/* 
+      Original Chips component - keeping as fallback
       <Chips
         type="filter"
         itemVariant={config.variant || 'outlined'}
@@ -129,6 +181,7 @@ export default function VideoSelectionChips({
         itemContainerStyle={styles.chipItem}
         itemLabelStyle={styles.chipLabel}
       />
+      */}
 
       {selectedVideoIds.length > 0 && (
         <View style={styles.selectionSummary}>
@@ -178,11 +231,11 @@ const styles = StyleSheet.create({
     color: '#888',
     lineHeight: 20,
   },
-  chipsContainer: {
+  chipsWrapper: {
     marginHorizontal: 4,
     marginVertical: 8,
   },
-  chipItem: {
+  enhancedChip: {
     marginRight: 8,
     marginBottom: 8,
     backgroundColor: '#1a1a1a',
@@ -192,10 +245,43 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 8,
   },
+  enhancedChipSelected: {
+    backgroundColor: '#007AFF',
+    borderColor: '#007AFF',
+  },
+  chipContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  chipIcon: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 8,
+  },
+  chipIconSelected: {
+    backgroundColor: '#fff',
+  },
+  chipIconText: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: '600',
+  },
   chipLabel: {
     color: '#fff',
     fontSize: 14,
     fontWeight: '500',
+  },
+  chipLabelSelected: {
+    color: '#fff',
+  },
+  statusDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    marginLeft: 8,
   },
   emptyState: {
     backgroundColor: '#1a1a1a',
