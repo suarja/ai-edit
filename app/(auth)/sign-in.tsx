@@ -177,6 +177,14 @@ function SignIn() {
                 </>
               )}
             </TouchableOpacity>
+
+            <Link href="/(auth)/forgot-password" asChild>
+              <TouchableOpacity style={styles.forgotPasswordButton}>
+                <Text style={styles.forgotPasswordText}>
+                  Mot de passe oublié ?
+                </Text>
+              </TouchableOpacity>
+            </Link>
           </View>
 
           <View style={styles.footer}>
@@ -310,6 +318,16 @@ const styles = StyleSheet.create({
   },
   disabledLink: {
     opacity: 0.5,
+  },
+  forgotPasswordButton: {
+    alignSelf: 'center',
+    marginTop: 16,
+    padding: 8,
+  },
+  forgotPasswordText: {
+    color: '#007AFF',
+    fontSize: 14,
+    fontWeight: '500',
   },
 });
 

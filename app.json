@@ -5,7 +5,7 @@
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icons/ios-dark.png",
-    "scheme": "ai-edit",
+    "scheme": "editia",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
