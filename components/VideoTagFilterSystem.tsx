@@ -57,9 +57,9 @@ export default function VideoTagFilterSystem({
     }
 
     return videos.filter((video) => {
-      // Show videos that have ALL selected tags (AND logic)
-      // You could change this to ANY selected tags (OR logic) if preferred
-      return selectedTags.every((selectedTag) =>
+      // Show videos that have ANY of the selected tags (OR logic)
+      // Much more practical than requiring ALL tags (AND logic)
+      return selectedTags.some((selectedTag) =>
         video.tags?.includes(selectedTag)
       );
     });
@@ -130,7 +130,7 @@ export default function VideoTagFilterSystem({
           {selectedTags.length > 0 && (
             <View style={styles.activeFilters}>
               <Text style={styles.activeFiltersText}>
-                Filtres actifs: {selectedTags.join(', ')}
+                Montrant les vidéos avec: {selectedTags.join(' OU ')}
               </Text>
               <TouchableOpacity
                 style={styles.clearFiltersButton}
