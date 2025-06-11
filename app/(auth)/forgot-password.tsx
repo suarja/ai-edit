@@ -15,6 +15,7 @@ import { Link, router } from 'expo-router';
 import { supabase } from '@/lib/supabase';
 import { Mail, ArrowLeft } from 'lucide-react-native';
 import { env } from '@/lib/config/env';
+import { AuthEventType, createAuthRedirectUrl } from '@/lib/utils/authRedirect';
 
 export default function ForgotPassword() {
   const [email, setEmail] = useState('');
@@ -31,7 +32,7 @@ export default function ForgotPassword() {
 
     try {
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: __DEV__ ? 'http://localhost:3000' : 'https://editia.app',
+        redirectTo: createAuthRedirectUrl(AuthEventType.PASSWORD_RECOVERY),
       });
 
       if (error) {

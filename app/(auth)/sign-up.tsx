@@ -15,6 +15,7 @@ import { supabase } from '@/lib/supabase';
 import { Mail, Lock, User, ArrowRight } from 'lucide-react-native';
 import { env } from '@/lib/config/env';
 import { IMAGES } from '@/lib/constants/images';
+import { AuthEventType, createAuthRedirectUrl } from '@/lib/utils/authRedirect';
 
 export default function SignUp() {
   const [email, setEmail] = useState('');
@@ -57,9 +58,9 @@ export default function SignUp() {
         email,
         password,
         options: {
-          emailRedirectTo: __DEV__
-            ? 'http://localhost:3000'
-            : 'https://editia.app',
+          emailRedirectTo: createAuthRedirectUrl(
+            AuthEventType.EMAIL_CONFIRMATION
+          ),
         },
       });
 

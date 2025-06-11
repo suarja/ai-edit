@@ -11,6 +11,10 @@ import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { initializeErrorReporting } from '@/lib/services/errorReporting';
 import { logEnvironmentStatus, validateEnvironment } from '@/lib/config/env';
 import { Alert } from 'react-native';
+import {
+  useAuthRedirect,
+  useAuthStateRedirect,
+} from '@/lib/hooks/useAuthRedirect';
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
@@ -78,6 +82,10 @@ export default function RootLayout() {
   const [isReady, setIsReady] = useState(false);
   const initializing = useRef(true);
 
+  // Initialiser les hooks de gestion des redirections d'authentification
+  useAuthRedirect();
+  useAuthStateRedirect();
+
   useEffect(() => {
     const prepareApp = async () => {
       try {
@@ -142,6 +150,22 @@ export default function RootLayout() {
           />
           <Stack.Screen name="+not-found" />
           <Stack.Screen name="index" options={{ headerShown: false }} />
+
+          {/* Auth callback screens - accessible via deep linking */}
+          <Stack.Screen
+            name="auth/reset-password"
+            options={{
+              headerShown: false,
+              presentation: 'modal',
+            }}
+          />
+          <Stack.Screen
+            name="auth/verify"
+            options={{
+              headerShown: false,
+              presentation: 'modal',
+            }}
+          />
         </Stack>
       </ThemeProvider>
     </ErrorBoundary>
