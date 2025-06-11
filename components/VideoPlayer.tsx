@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import {
   StyleSheet,
   View,
@@ -6,8 +6,7 @@ import {
   TouchableOpacity,
   Text,
 } from 'react-native';
-import { useVideoPlayer, VideoView } from 'expo-video';
-import { Volume2, VolumeX } from 'lucide-react-native';
+import { Play, Pause, Volume2, VolumeX, FileVideo } from 'lucide-react-native';
 import { AnyVideoType, getVideoUrl } from '@/types/video';
 
 type VideoPlayerProps = {
@@ -29,64 +28,85 @@ export default function VideoPlayer({
   onLoad,
   onError,
 }: VideoPlayerProps) {
-  const [isMuted, setIsMuted] = useState(true); // Start muted to avoid codec errors
+  const [isPlaying, setIsPlaying] = useState(autoPlay);
+  const [isMuted, setIsMuted] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const videoUrl = video ? getVideoUrl(video) : null;
 
-  const player = useVideoPlayer(
-    videoUrl ? { uri: videoUrl } : null,
-    (player) => {
-      player.muted = isMuted;
-    }
-  );
+  const handlePlayPause = () => {
+    setIsPlaying(!isPlaying);
+  };
 
-  useEffect(() => {
-    if (videoUrl) {
-      onLoadStart?.();
-      player.replaceAsync({ uri: videoUrl });
-    }
-  }, [videoUrl]);
-
-  useEffect(() => {
-    player.muted = isMuted;
-  }, [isMuted, player]);
-
-  const toggleMute = () => {
+  const handleMuteToggle = () => {
     setIsMuted(!isMuted);
   };
 
   if (!video || !videoUrl) {
     return (
       <View style={[styles.container, style]}>
-        <ActivityIndicator size="large" color="#007AFF" />
+        <View style={styles.videoContainer}>
+          <View style={styles.videoFallback}>
+            <FileVideo size={48} color="#007AFF" />
+            <Text style={styles.fallbackTitle}>
+              {video ? video.title : 'Video Player'}
+            </Text>
+            <Text style={styles.crashFixText}>
+              🚧 Video rendering temporarily disabled for Android crash fix
+            </Text>
+            <Text style={styles.uriText} numberOfLines={1}>
+              URI: {videoUrl}
+            </Text>
+          </View>
+        </View>
       </View>
     );
   }
 
   return (
-    <View style={styles.videoContainer}>
-      <VideoView
-        player={player}
-        style={[styles.container, style]}
-        contentFit="contain"
-        nativeControls={showControls}
-      />
+    <View style={styles.container}>
+      <View style={styles.videoContainer}>
+        <View style={styles.videoFallback}>
+          <FileVideo size={48} color="#007AFF" />
+          <Text style={styles.fallbackTitle}>
+            {video ? video.title : 'Video Player'}
+          </Text>
+          <Text style={styles.crashFixText}>
+            🚧 Video rendering temporarily disabled for Android crash fix
+          </Text>
+          <Text style={styles.uriText} numberOfLines={1}>
+            URI: {videoUrl}
+          </Text>
+        </View>
 
-      <TouchableOpacity style={styles.muteButton} onPress={toggleMute}>
-        {isMuted ? (
-          <VolumeX size={20} color="#fff" />
-        ) : (
-          <Volume2 size={20} color="#fff" />
-        )}
-      </TouchableOpacity>
+        <View style={styles.controls}>
+          <TouchableOpacity
+            style={styles.controlButton}
+            onPress={handlePlayPause}
+          >
+            {isPlaying ? (
+              <Pause size={24} color="#fff" />
+            ) : (
+              <Play size={24} color="#fff" />
+            )}
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.controlButton}
+            onPress={handleMuteToggle}
+          >
+            {isMuted ? (
+              <VolumeX size={20} color="#fff" />
+            ) : (
+              <Volume2 size={20} color="#fff" />
+            )}
+          </TouchableOpacity>
+        </View>
+      </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  videoContainer: {
-    position: 'relative',
-    width: '100%',
-  },
   container: {
     width: '100%',
     height: 240,
@@ -94,16 +114,49 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  muteButton: {
+  videoContainer: {
+    position: 'relative',
+    width: '100%',
+  },
+  videoFallback: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  fallbackTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#fff',
+    marginTop: 16,
+  },
+  crashFixText: {
+    fontSize: 14,
+    color: '#fff',
+    marginTop: 8,
+  },
+  uriText: {
+    fontSize: 14,
+    color: '#fff',
+    marginTop: 8,
+  },
+  controls: {
     position: 'absolute',
     bottom: 16,
     right: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  controlButton: {
     backgroundColor: 'rgba(0, 0, 0, 0.6)',
     width: 36,
     height: 36,
     borderRadius: 18,
     justifyContent: 'center',
     alignItems: 'center',
-    zIndex: 100,
+    marginLeft: 8,
   },
 });

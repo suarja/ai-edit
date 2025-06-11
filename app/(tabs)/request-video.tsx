@@ -97,7 +97,7 @@ export default function RequestVideoScreen() {
           outputLanguage={videoRequest.outputLanguage}
         />
 
-        {/* Video selection - now using lightweight chips */}
+        {/* Video selection - Using lightweight chips (safe from crashes) */}
         <VideoSelectionChips
           videos={videoRequest.sourceVideos}
           selectedVideoIds={videoRequest.selectedVideos}

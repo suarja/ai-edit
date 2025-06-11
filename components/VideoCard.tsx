@@ -7,7 +7,8 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { Clock, Tag, Play, Pause, FileVideo } from 'lucide-react-native';
-import { useVideoPlayer, VideoView } from 'expo-video';
+// TEMPORARILY DISABLED FOR ANDROID CRASH FIX
+// import { useVideoPlayer, VideoView } from 'expo-video';
 import { VideoType } from '@/types/video';
 
 type VideoCardProps = {
@@ -33,18 +34,19 @@ export default function VideoCard({
   onLoad,
   onError,
 }: VideoCardProps) {
-  const player = useVideoPlayer({ uri: video.upload_url }, (player) => {
-    player.muted = true;
-    player.shouldPlay = isPlaying;
-  });
+  // TEMPORARILY DISABLED FOR ANDROID CRASH FIX
+  // const player = useVideoPlayer({ uri: video.upload_url }, (player) => {
+  //   player.muted = true;
+  //   player.shouldPlay = isPlaying;
+  // });
 
-  useEffect(() => {
-    if (isPlaying) {
-      player.play();
-    } else {
-      player.pause();
-    }
-  }, [isPlaying, player]);
+  // useEffect(() => {
+  //   if (isPlaying) {
+  //     player.play();
+  //   } else {
+  //     player.pause();
+  //   }
+  // }, [isPlaying, player]);
 
   const formatDuration = (seconds: number) => {
     if (!seconds) return '0:00';
@@ -56,6 +58,16 @@ export default function VideoCard({
   return (
     <TouchableOpacity style={styles.container} onPress={onPress}>
       <View style={styles.videoPreview}>
+        {/* TEMPORARILY DISABLED FOR ANDROID CRASH FIX - Show fallback instead */}
+        <View style={styles.videoFallback}>
+          <FileVideo size={32} color="#007AFF" />
+          <Text style={styles.fallbackText}>Video Preview</Text>
+          <Text style={styles.crashFixText}>
+            🚧 Video rendering temporarily disabled for Android crash fix
+          </Text>
+        </View>
+
+        {/* ORIGINAL VIDEO RENDERING CODE - TEMPORARILY DISABLED
         {hasError ? (
           <View style={styles.videoFallback}>
             <FileVideo size={32} color="#007AFF" />
@@ -69,6 +81,7 @@ export default function VideoCard({
             onFirstFrameRender={onLoad}
           />
         )}
+        */}
 
         {isLoading && (
           <View style={styles.videoLoading}>
@@ -239,5 +252,14 @@ const styles = StyleSheet.create({
     color: '#888',
     fontSize: 12,
     flex: 1,
+  },
+  fallbackText: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  crashFixText: {
+    color: '#888',
+    fontSize: 12,
   },
 });
