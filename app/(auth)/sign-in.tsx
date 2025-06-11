@@ -114,7 +114,8 @@ function SignIn() {
   return (
     <KeyboardAvoidingView
       style={styles.container}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 100 : 0}
     >
       <ScrollView contentContainerStyle={styles.scrollContainer}>
         <View style={styles.header}>
@@ -179,7 +180,9 @@ function SignIn() {
           </View>
 
           <View style={styles.footer}>
-            <Text style={styles.footerText}>Vous n'avez pas de compte ?</Text>
+            <Text style={styles.footerText}>
+              Vous n&apos;avez pas de compte ?
+            </Text>
             <Link
               href="/(auth)/sign-up"
               asChild

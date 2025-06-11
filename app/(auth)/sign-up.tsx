@@ -52,39 +52,50 @@ export default function SignUp() {
         return;
       }
 
-      // Sign up the user
+      // Sign up the user with redirect URL
       const { error: signUpError, data } = await supabase.auth.signUp({
         email,
         password,
+        options: {
+          emailRedirectTo: __DEV__
+            ? 'http://localhost:3000/auth/confirm'
+            : 'https://editia.app/auth/confirm',
+        },
       });
+
+      console.log('Sign up response:', signUpError ? signUpError : data);
 
       if (signUpError) throw signUpError;
 
-      if (data.user) {
-        try {
-          const { error: insertError } = await supabase.from('users').insert({
-            id: data.user.id,
-            full_name: fullName,
-            role: 'user',
-          });
+      // if (data.user) {
+      //   router.replace('/(auth)/sign-in');
+      // }
 
-          if (insertError) {
-            console.error('Failed to create user record:', insertError);
-            throw new Error("Échec de l'inscription. Veuillez réessayer.");
-          }
+      // if (data.user) {
+      //   try {
+      //     const { error: insertError } = await supabase.from('users').insert({
+      //       id: data.user.id,
+      //       full_name: fullName,
+      //       role: 'user',
+      //     });
 
-          // Add a small delay before navigation to prevent UI freezing
-          setTimeout(() => {
-            if (!loading) {
-              // Double-check we're still in the sign-up process
-              router.replace('/(onboarding)/welcome');
-            }
-          }, 300);
-        } catch (dbError) {
-          console.error('Database operation error:', dbError);
-          throw dbError;
-        }
-      }
+      //     if (insertError) {
+      //       console.error('Failed to create user record:', insertError);
+      //       throw new Error("Échec de l'inscription. Veuillez réessayer.");
+      //     }
+
+      //     // Add a small delay before navigation to prevent UI freezing
+      //     setTimeout(() => {
+      //       if (!loading) {
+      //         // Double-check we're still in the sign-up process
+      //         router.replace('/(onboarding)/welcome');
+      //       }
+      //     }, 300);
+      //   } catch (dbError) {
+      //     console.error('Database operation error:', dbError);
+      //     throw dbError;
+      //   }
+      // }
     } catch (e: any) {
       console.error('Signup error:', e.message);
       setError(e.message || 'An unknown error occurred');
@@ -170,7 +181,7 @@ export default function SignUp() {
               onPress={handleSignUp}
               disabled={loading}
             >
-              <Text style={styles.buttonText}>S'inscrire</Text>
+              <Text style={styles.buttonText}>S&apos;inscrire</Text>
               <ArrowRight size={20} color="#fff" />
             </TouchableOpacity>
           </View>
