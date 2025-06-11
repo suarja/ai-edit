@@ -5567,20 +5567,20 @@ expo-asset@~11.1.5:
     "@expo/image-utils" "^0.7.4"
     expo-constants "~17.1.5"
 
-expo-av@~15.1.5:
-  version "15.1.5"
-  resolved "https://registry.yarnpkg.com/expo-av/-/expo-av-15.1.5.tgz#9102cca08a1997816d79e0e43fc397a9f40a6f6e"
-  integrity sha512-nd1B97Ix0u8IGL45jTtI66RNiRyiY9bYrS3nliugqjDF011RS03V7XpIeJdQnIh9/+P1/ei1b3vbpyifYVjmSw==
+expo-av@~15.1.6:
+  version "15.1.6"
+  resolved "https://registry.yarnpkg.com/expo-av/-/expo-av-15.1.6.tgz#f1c4a404672500feb0274144a64bb3a956e85bdd"
+  integrity sha512-5ZbeXdCmdckZHwtEV+8tRZqLlUWR96gkkUIxpyZAEvK0L+aI/BnyhDCpjnSKWwZo4ZA6lx8/su9kyFNV/mQ/sQ==
 
 expo-blur@~14.1.5:
   version "14.1.5"
   resolved "https://registry.yarnpkg.com/expo-blur/-/expo-blur-14.1.5.tgz#910712389e19286ccdc136275bf569f427aa05ef"
   integrity sha512-CCLJHxN4eoAl06ESKT3CbMasJ98WsjF9ZQEJnuxtDb9ffrYbZ+g9ru84fukjNUOTtc8A8yXE5z8NgY1l0OMrmQ==
 
-expo-camera@~16.1.7:
-  version "16.1.7"
-  resolved "https://registry.yarnpkg.com/expo-camera/-/expo-camera-16.1.7.tgz#a05140137c1be68542c2da378cbd3e3218cb5c8c"
-  integrity sha512-MhM9Owl5gz/w43ovH/mvk7I7fV+B1EsMJRXX7lGu71lfgySoDfD96U5zykt8HsngyvPpf0kqDsHjnBBfEoBO4Q==
+expo-camera@~16.1.8:
+  version "16.1.8"
+  resolved "https://registry.yarnpkg.com/expo-camera/-/expo-camera-16.1.8.tgz#6c30dfb5c982795351f1053c36f048a11869e21b"
+  integrity sha512-NpBbkUhHG6cs2TNUQBFSEtXb5j1/kTPIhiuqBcHosZG2yb/8MuM/ii4McJaqfe/6pn0YPqkH4k0Uod11DOSLmw==
   dependencies:
     invariant "^2.2.4"
 
@@ -5720,10 +5720,10 @@ expo-modules-core@2.4.0:
   dependencies:
     invariant "^2.2.4"
 
-expo-router@~5.0.2:
-  version "5.0.7"
-  resolved "https://registry.yarnpkg.com/expo-router/-/expo-router-5.0.7.tgz#032c1de9d06237664169959f7178a818d7b0e677"
-  integrity sha512-NlEgRXCKtseDuIHBp87UfkvqsuVrc0MYG+zg33dopaN6wik4RkrWWxUYdNPHub0s/7qMye6zZBY4ZCrXwd/xpA==
+expo-router@~5.1.0:
+  version "5.1.0"
+  resolved "https://registry.yarnpkg.com/expo-router/-/expo-router-5.1.0.tgz#e62899d4907d7b4c71259db2e0e1ef18170d6931"
+  integrity sha512-mnKpw35W6kKPpZm+ZxQei6HGUx2JO3znzqJZInzqrTZMgfAcHGgvP9AQFjg/Qi/Qy1CxunB9aQnqE9JPbSwbpw==
   dependencies:
     "@expo/metro-runtime" "5.0.4"
     "@expo/server" "^0.6.2"
@@ -5804,10 +5804,10 @@ expo-updates@~0.28.14:
     ignore "^5.3.1"
     resolve-from "^5.0.0"
 
-expo-video@~2.2.0:
-  version "2.2.0"
-  resolved "https://registry.yarnpkg.com/expo-video/-/expo-video-2.2.0.tgz#4bdfbb94bce81e99b8a926662e3a94a880371e6e"
-  integrity sha512-OEO/u9F9SMp3cdpnoIE9uwtDjm0GY9Ie3MGK/M670KLtH6c/yQIoa/5kSLiGCz2gf0rus/UxPBH25YsQmLXReQ==
+expo-video@~2.2.1:
+  version "2.2.1"
+  resolved "https://registry.yarnpkg.com/expo-video/-/expo-video-2.2.1.tgz#d45357ee7a7da5a87c49177587183d1c7feabc57"
+  integrity sha512-dw3h0eMLK8WpY1Tnwsgrxx3sFqXiOujmurjGdr+RFG63ZurAze/H9uuKMVl3ps/ZNuK4q/2ifIiJudoFJfwKwA==
 
 expo-web-browser@~14.1.5:
   version "14.1.6"
