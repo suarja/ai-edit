@@ -8239,7 +8239,15 @@ react-native-material-chips@^1.0.2:
   resolved "https://registry.npmjs.org/react-native-material-chips/-/react-native-material-chips-1.0.2.tgz"
   integrity sha512-DJCndiU52TJGlWBRhMFrYTcFD3iyZd+XqIQhmSCQBuuSqgDBzRZnxhdD1N/poTbWzgN6xL1cQzY0jYszSFmAfg==
 
-react-native-purchases@^8.11.4:
+react-native-purchases-ui@^8.11.4:
+  version "8.11.4"
+  resolved "https://registry.npmjs.org/react-native-purchases-ui/-/react-native-purchases-ui-8.11.4.tgz"
+  integrity sha512-HKloQ0iQO/cqY1t74sGOm+fTTiVV6TShgi076ez+z+fhKW/EfaXNpdY0JOb0f/lbYg0227N4nogglkM48qO57w==
+  dependencies:
+    "@revenuecat/purchases-typescript-internal" "13.36.0"
+    react-native-purchases "8.11.4"
+
+react-native-purchases@^8.11.4, react-native-purchases@8.11.4:
   version "8.11.4"
   resolved "https://registry.npmjs.org/react-native-purchases/-/react-native-purchases-8.11.4.tgz"
   integrity sha512-XJr1wX3OrkgD4WgmlcDY3z0IzeMLVecvFS4LckLC8Z1jWCCcZNg5c3nlzI/Lvdyo0cDv+1/PhIB/hwOzfPqtYA==

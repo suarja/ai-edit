@@ -1,11 +1,11 @@
 import { createContext, useContext, useEffect, useState } from 'react';
 import { Platform } from 'react-native';
-import Purchases, { LOG_LEVEL } from 'react-native-purchases';
+import Purchases, { LOG_LEVEL, PurchasesOffering } from 'react-native-purchases';
 import { CustomerInfo } from 'react-native-purchases';
 import React from 'react';
 import { useClerkSupabaseClient } from '@/lib/supabase-clerk';
 import { useGetUser } from '@/lib/hooks/useGetUser';
-
+import RevenueCatUI, { PAYWALL_RESULT } from 'react-native-purchases-ui';
 // Use keys from your RevenueCat API Keys
 const APIKeys = {
   apple: process.env.EXPO_PUBLIC_REVENUECAT_IOS_KEY as string,
@@ -87,12 +87,12 @@ export const RevenueCatProvider = ({ children }: any) => {
     };
 
     init();
-  }, [initAttempts]);
+  }, []);
 
   // Update user state based on previous purchases
   const updateCustomerInformation = async (customerInfo: CustomerInfo) => {
     const hasProEntitlement =
-      customerInfo?.entitlements.active['pro'] !== undefined;
+      customerInfo?.entitlements.active['Pro'] !== undefined;
     setIsPro(hasProEntitlement);
 
     // Update usage in database if pro status changed
@@ -109,9 +109,7 @@ export const RevenueCatProvider = ({ children }: any) => {
 
       const { data: usage, error } = await supabase
         .from('user_usage')
-        .select(
-          'videos_generated, videos_limit, next_reset_date, is_early_adopter'
-        )
+        .select('videos_generated, videos_limit, next_reset_date')
         .eq('user_id', user.id)
         .single();
 
@@ -121,7 +119,7 @@ export const RevenueCatProvider = ({ children }: any) => {
       }
 
       setUserUsage(usage);
-      setIsEarlyAdopter(usage.is_early_adopter || false);
+      setIsEarlyAdopter(true);
     } catch (error) {
       console.error('Error loading user usage:', error);
     }
@@ -163,16 +161,12 @@ export const RevenueCatProvider = ({ children }: any) => {
         return false;
       }
 
-      const { RevenueCatUI, PAYWALL_RESULT } = await import(
-        'react-native-purchases-ui'
-      );
-
       // Choose offering based on early adopter status
       const offering = isEarlyAdopter ? 'early_adopter' : undefined;
 
       const paywallResult = await RevenueCatUI.presentPaywall({
         displayCloseButton: true,
-        offering: offering,
+        offering: offering as unknown as PurchasesOffering,
       });
 
       switch (paywallResult) {
