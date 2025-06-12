@@ -11,7 +11,6 @@ import {
   Alert,
 } from 'react-native';
 import { router } from 'expo-router';
-import { supabase } from '@/lib/supabase';
 import {
   Video as VideoIcon,
   CircleAlert as AlertCircle,
@@ -20,7 +19,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import VideoUploader from '@/components/VideoUploader';
 import VideoCard from '@/components/VideoCard';
 import { VideoType } from '@/types/video';
-import { useClerkAuth } from '@/hooks/useClerkAuth';
+import { useClerkSupabaseClient } from '@/lib/supabase-clerk';
 
 export default function SourceVideosScreen() {
   const [videos, setVideos] = useState<VideoType[]>([]);
@@ -44,11 +43,14 @@ export default function SourceVideosScreen() {
     tags: '',
   });
 
-  const { user } = useClerkAuth();
+  // Use Clerk-authenticated Supabase client
+  const { client: supabase, user, isLoaded } = useClerkSupabaseClient();
 
   useEffect(() => {
-    fetchVideos();
-  }, []);
+    if (isLoaded && user) {
+      fetchVideos();
+    }
+  }, [isLoaded, user]);
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
@@ -58,22 +60,31 @@ export default function SourceVideosScreen() {
 
   const fetchVideos = async () => {
     try {
-      // User is guaranteed to be authenticated at layout level
       if (!user?.id) {
         console.error('No Clerk user ID found');
         setError("Erreur d'authentification");
         return;
       }
 
-      // For now, we'll need to map Clerk user ID to Supabase user_id
-      // TODO: Update database schema to use clerk_user_id
+      console.log('🔍 Fetching videos for Clerk user:', user.id);
+
+      // Use clerk_user_id field if it exists, otherwise fallback to user_id for migration
       const { data, error } = await supabase
         .from('videos')
         .select('*')
-        .eq('user_id', user.id) // This will need updating when we map Clerk IDs
+        .or(`clerk_user_id.eq.${user.id},user_id.eq.${user.id}`)
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase error:', error);
+        throw error;
+      }
+
+      console.log(
+        '✅ Videos fetched successfully:',
+        data?.length || 0,
+        'videos'
+      );
       setVideos(data || []);
     } catch (err) {
       console.error('Error fetching videos:', err);
@@ -92,8 +103,10 @@ export default function SourceVideosScreen() {
         throw new Error('User not authenticated');
       }
 
+      console.log('💾 Saving video for Clerk user:', user.id);
+
       const { error } = await supabase.from('videos').insert({
-        user_id: user.id, // This will need updating when we map Clerk IDs
+        clerk_user_id: user.id, // Use Clerk user ID
         title: '',
         description: '',
         tags: [],
@@ -102,8 +115,12 @@ export default function SourceVideosScreen() {
         duration_seconds: 0,
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase insert error:', error);
+        throw error;
+      }
 
+      console.log('✅ Video saved successfully');
       await fetchVideos();
       setEditingVideo({
         id: data.videoId,
