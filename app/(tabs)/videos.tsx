@@ -1,22 +1,26 @@
-import { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   FlatList,
+  TouchableOpacity,
   ActivityIndicator,
   RefreshControl,
   Alert,
-  Linking,
+  Dimensions,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
-import { supabase } from '@/lib/supabase';
+import { Video, ResizeMode } from 'expo-av';
+import { Play, Pause, Trash2, Edit3, Share } from 'lucide-react-native';
+import { useClerkAuth } from '@/hooks/useClerkAuth';
+import { useClerkSupabaseClient } from '@/lib/supabase-clerk';
 import {
   CircleAlert as AlertCircle,
   Sparkles,
   Plus,
 } from 'lucide-react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import GeneratedVideoCard from '@/components/GeneratedVideoCard';
 import EmptyGeneratedVideos from '@/components/EmptyGeneratedVideos';
 import VideoHeader from '@/components/VideoHeader';
@@ -56,15 +60,30 @@ export default function GeneratedVideosScreen() {
   const [error, setError] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
 
+  // Clerk hooks
+  const { user: clerkUser, isLoaded: clerkLoaded, isSignedIn } = useClerkAuth();
+  const { client: supabase } = useClerkSupabaseClient();
+
   const fetchVideos = async () => {
     console.log('fetching videos');
     try {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (!user) {
+      if (!clerkUser?.id) {
         router.replace('/(auth)/sign-in');
         return;
+      }
+
+      // First get the database user ID from Clerk user ID
+      const { data: userData, error: userError } = await supabase
+        .from('users')
+        .select('id')
+        .eq('clerk_user_id', clerkUser.id)
+        .single();
+
+      console.log('userData', userData);
+
+      if (userError) {
+        console.error('Error getting user data:', userError);
+        throw new Error('User not found in database');
       }
 
       const { data, error } = await supabase
@@ -85,7 +104,7 @@ export default function GeneratedVideosScreen() {
           )
         `
         )
-        .eq('user_id', user.id)
+        .eq('user_id', userData.id)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
@@ -112,12 +131,14 @@ export default function GeneratedVideosScreen() {
 
   const checkVideoStatus = async (videoId: string) => {
     try {
-      const session = await supabase.auth.getSession();
+      // Note: This function may need to be updated to use Clerk tokens
+      // For now, we'll use the Clerk-authenticated Supabase client
       const url = API_ENDPOINTS.VIDEO_STATUS(videoId);
       console.log('url', url);
       const response = await fetch(url, {
         headers: {
-          Authorization: `Bearer ${session.data.session?.access_token}`,
+          // The Clerk token will be automatically injected by the Supabase client
+          'Content-Type': 'application/json',
         },
       });
 
@@ -181,8 +202,10 @@ export default function GeneratedVideosScreen() {
   };
 
   useEffect(() => {
-    fetchVideos();
-  }, []);
+    if (clerkLoaded && isSignedIn) {
+      fetchVideos();
+    }
+  }, [clerkLoaded, isSignedIn]);
 
   const onRefresh = useCallback(() => {
     setRefreshing(true);

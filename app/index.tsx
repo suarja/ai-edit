@@ -20,7 +20,7 @@ function LandingScreen() {
 
   useEffect(() => {
     checkAuthAndRedirect();
-  }, [isLoaded, isSignedIn]);
+  }, [isLoaded, isSignedIn, initializing]);
 
   const checkAuthAndRedirect = async () => {
     try {

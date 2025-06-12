@@ -12,7 +12,6 @@ import {
   RefreshControl,
 } from 'react-native';
 import { router } from 'expo-router';
-import { supabase } from '@/lib/supabase';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   Bell,
@@ -32,6 +31,10 @@ import {
   Search,
 } from 'lucide-react-native';
 import AdminUsageControl from '@/components/AdminUsageControl';
+import { useClerkAuth } from '@/hooks/useClerkAuth';
+import { useClerkSupabaseClient } from '@/lib/supabase-clerk';
+import { useClerk } from '@clerk/clerk-expo';
+import { useGetUser } from '@/lib/hooks/useGetUser';
 
 type UserProfile = {
   id: string;
@@ -54,14 +57,13 @@ export default function SettingsScreen() {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
-  const [notifications, setNotifications] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
   const [profile, setProfile] = useState<UserProfile>({
     id: '',
     full_name: '',
     avatar_url: null,
     email: '',
-    role: 'admin',
+    role: 'user',
   });
   const [editedProfile, setEditedProfile] = useState<UserProfile>({
     id: '',
@@ -84,6 +86,12 @@ export default function SettingsScreen() {
   const [foundUserUsage, setFoundUserUsage] = useState<UsageInfo | null>(null);
   const [searchError, setSearchError] = useState<string | null>(null);
 
+  // Clerk hooks
+  const { client: supabase } = useClerkSupabaseClient();
+  const { signOut } = useClerk();
+
+  const { fetchUser, clerkUser, clerkLoaded, isSignedIn } = useGetUser();
+
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
     await Promise.all([fetchProfile(), fetchUserUsage()]);
@@ -91,52 +99,44 @@ export default function SettingsScreen() {
   }, []);
 
   useEffect(() => {
-    fetchProfile();
-    fetchUserUsage();
-  }, []);
-
-  const fetchProfile = async () => {
-    try {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (!user) {
+    if (clerkLoaded) {
+      if (!isSignedIn) {
         router.replace('/(auth)/sign-in');
         return;
       }
+      fetchProfile();
+      fetchUserUsage();
+    }
+  }, [clerkLoaded, isSignedIn]);
 
-      console.log('User found:', user.id);
-
-      const { data: profile, error: profileError } = await supabase
-        .from('users')
-        .select('*')
-        .eq('id', user.id)
-        .single();
-
-      if (profileError) {
-        console.error('Profile error:', profileError);
-        throw profileError;
+  const fetchProfile = async () => {
+    try {
+      const user = await fetchUser();
+      if (!user) {
+        console.log('No user found');
+        router.replace('/(auth)/sign-in');
+        return;
       }
 
       const isAdmin = profile.role === 'admin';
       console.log('isAdmin', isAdmin);
       setProfile({
         id: user.id,
-        full_name: profile.full_name,
-        avatar_url: profile.avatar_url,
-        email: user.email!,
-        role: profile.role,
+        full_name: user.full_name,
+        avatar_url: user.avatar_url,
+        email: user.email,
+        role: user.role,
       });
       setEditedProfile({
         id: user.id,
-        full_name: profile.full_name,
-        avatar_url: profile.avatar_url,
-        email: user.email!,
+        full_name: user.full_name,
+        avatar_url: user.avatar_url,
+        email: user.email,
       });
 
       // If the user is an admin, ensure they have a user_roles entry
       if (isAdmin) {
-        await ensureAdminRoleEntry(user.id);
+        await ensureAdminRoleEntry(user.id); // Use the database ID from fetchUser
       }
 
       console.log('Profile loaded successfully');
@@ -154,30 +154,20 @@ export default function SettingsScreen() {
       setUsageLoading(true);
       setUsageError(null);
 
-      // Get current user
-      const {
-        data: { user },
-        error: userError,
-      } = await supabase.auth.getUser();
-
-      if (userError) {
-        console.error('Error getting user for usage data:', userError);
-        setUsageError('Failed to authenticate user');
-        return;
-      }
-
+      // Get the database user (which includes the database ID)
+      const user = await fetchUser();
       if (!user) {
-        console.log('No user found for usage data');
+        console.log('No database user found for usage data');
         return;
       }
 
-      console.log('Fetching usage data for user:', user.id);
+      console.log('Fetching usage data for database user ID:', user.id);
 
-      // Get usage data
+      // Use the database ID directly - no need to lookup again!
       const { data: usageData, error: usageError } = await supabase
         .from('user_usage')
         .select('*')
-        .eq('user_id', user.id)
+        .eq('user_id', user.id) // Use database ID directly
         .single();
 
       if (usageError) {
@@ -186,7 +176,7 @@ export default function SettingsScreen() {
         if (usageError.code === 'PGRST116') {
           // No usage record found, create one
           console.log('No usage record found, creating one...');
-          await createUsageRecord(user.id);
+          await createUsageRecord(user.id); // Use database ID
           return;
         }
 
@@ -198,7 +188,7 @@ export default function SettingsScreen() {
       setUserUsage(usageData);
     } catch (err) {
       console.error('Error fetching usage data:', err);
-      setUsageError('An unexpected error occurred');
+      setUsageError('Failed to load usage data');
     } finally {
       setUsageLoading(false);
     }
@@ -275,13 +265,19 @@ export default function SettingsScreen() {
       setUpdating(true);
       setError(null);
 
+      // Get the database user (which includes the database ID)
+      const user = await fetchUser();
+      if (!user) {
+        throw new Error('User not found');
+      }
+
       const { error: updateError } = await supabase
         .from('users')
         .update({
           full_name: editedProfile.full_name,
           avatar_url: editedProfile.avatar_url,
         })
-        .eq('id', profile.id);
+        .eq('id', user.id); // Use database ID directly
 
       if (updateError) throw updateError;
 
@@ -319,12 +315,8 @@ export default function SettingsScreen() {
       setSuccess(false);
       setIsEditing(false);
 
-      // Sign out from Supabase
-      const { error } = await supabase.auth.signOut();
-      if (error) {
-        console.error('Logout error:', error);
-        throw error;
-      }
+      // Sign out from Clerk
+      await signOut();
 
       // Navigate to sign-in screen
       router.replace('/(auth)/sign-in');
@@ -397,7 +389,7 @@ export default function SettingsScreen() {
       >
         <View style={styles.settingInfo}>
           <Bug size={24} color="#fff" />
-          <Text style={styles.settingText}>Tester le Flux d'Accueil</Text>
+          <Text style={styles.settingText}>Tester le Flux d&apos;Accueil</Text>
         </View>
       </TouchableOpacity>
 
@@ -454,7 +446,7 @@ export default function SettingsScreen() {
 
       <View style={styles.adminContainer}>
         <Text style={styles.adminTitle}>
-          Contrôle d'Utilisation Utilisateur
+          Contrôle d&apos;Utilisation Utilisateur
         </Text>
 
         <View style={styles.searchContainer}>
