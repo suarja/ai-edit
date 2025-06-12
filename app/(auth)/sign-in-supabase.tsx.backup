@@ -5,6 +5,7 @@ import {
   StyleSheet,
   TextInput,
   TouchableOpacity,
+  Alert,
   ActivityIndicator,
   Platform,
   Image,
@@ -12,15 +13,17 @@ import {
   ScrollView,
 } from 'react-native';
 import { Link, router } from 'expo-router';
-import { useSignIn } from '@clerk/clerk-expo';
+import { supabase } from '@/lib/supabase';
 import { Mail, Lock, ArrowRight } from 'lucide-react-native';
-import { reportAuthError } from '@/lib/services/errorReporting';
+import {
+  reportAuthError,
+  reportNetworkError,
+} from '@/lib/services/errorReporting';
 import { withErrorBoundary } from '@/components/ErrorBoundary';
+import { env } from '@/lib/config/env';
 import { IMAGES } from '@/lib/constants/images';
 
 function SignIn() {
-  console.log('SignInClerk');
-  const { signIn, setActive, isLoaded } = useSignIn();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -33,73 +36,66 @@ function SignIn() {
       return;
     }
 
-    if (!isLoaded) {
-      setError('Authentication system is loading...');
-      return;
-    }
-
     try {
       setLoading(true);
       setError(null);
 
-      if (__DEV__) {
-        console.log('Signing in via Clerk...');
-      }
-
-      // Start sign-in process using Clerk
-      const signInAttempt = await signIn.create({
-        identifier: email,
-        password,
-      });
-
-      if (__DEV__) {
-        console.log('Clerk sign in status:', signInAttempt.status);
-      }
-
-      // If sign-in process is complete, set the created session as active
-      if (signInAttempt.status === 'complete') {
-        await setActive({ session: signInAttempt.createdSessionId });
-        router.replace('/(tabs)/settings');
-      } else {
-        // If the status isn't complete, check why
-        console.error(
-          'Sign in incomplete:',
-          JSON.stringify(signInAttempt, null, 2)
-        );
-        setError('Sign in process incomplete. Please try again.');
-      }
-    } catch (authError: any) {
-      console.error('Clerk sign in error:', authError);
-
-      // Report error for debugging
-      reportAuthError(authError, {
-        screen: 'SignInClerk',
-        action: 'clerk_sign_in',
-        userId: email,
-      });
-
-      // Handle different Clerk error types
-      let errorMessage = 'Authentication failed';
-      if (authError.errors && authError.errors.length > 0) {
-        const clerkError = authError.errors[0];
-        switch (clerkError.code) {
-          case 'form_identifier_not_found':
-            errorMessage =
-              'Email not found. Please check your email or sign up.';
-            break;
-          case 'form_password_incorrect':
-            errorMessage = 'Incorrect password. Please try again.';
-            break;
-          case 'form_identifier_exists':
-            errorMessage = 'This email is already registered.';
-            break;
-          default:
-            errorMessage =
-              clerkError.longMessage || clerkError.message || errorMessage;
+      try {
+        if (__DEV__) {
+          console.log('Signing in via Supabase...');
         }
-      }
+        const { error: signInError, data } =
+          await supabase.auth.signInWithPassword({
+            email,
+            password,
+          });
 
-      setError(errorMessage);
+        if (__DEV__) {
+          console.log('Sign in response:', signInError ? 'Error' : 'Success');
+        }
+
+        if (signInError) {
+          reportAuthError(signInError, {
+            screen: 'SignIn',
+            action: 'sign_in_with_password',
+            userId: email,
+          });
+          setError(signInError.message);
+          setLoading(false);
+          return;
+        }
+
+        router.replace('/(tabs)/settings');
+      } catch (authError: any) {
+        reportAuthError(authError, {
+          screen: 'SignIn',
+          action: 'sign_in_exception',
+          userId: email,
+        });
+        console.error('Sign in auth error:', authError);
+        setError(authError.message || 'Authentication failed');
+      }
+    } catch (e: any) {
+      // Handle network errors and other general errors
+      if (e.message?.includes('fetch')) {
+        reportNetworkError(e as Error, 'https://www.google.com', 'HEAD', {
+          screen: 'SignIn',
+          action: 'network_test',
+        });
+        console.error('Network test failed:', e);
+        Alert.alert(
+          'Network Error',
+          'Unable to connect to the internet. Please check your connection.'
+        );
+      } else {
+        reportAuthError(e, {
+          screen: 'SignIn',
+          action: 'general_error',
+          userId: email,
+        });
+        console.error('Sign in general error:', e);
+        setError(e.message || 'An unexpected error occurred');
+      }
     } finally {
       setLoading(false);
     }
@@ -150,7 +146,6 @@ function SignIn() {
                 onChangeText={setEmail}
                 autoCapitalize="none"
                 keyboardType="email-address"
-                editable={!loading}
               />
             </View>
 
@@ -163,7 +158,6 @@ function SignIn() {
                 value={password}
                 onChangeText={setPassword}
                 secureTextEntry
-                editable={!loading}
               />
             </View>
           </View>
@@ -172,15 +166,13 @@ function SignIn() {
             <TouchableOpacity
               style={[styles.button, loading && styles.buttonDisabled]}
               onPress={handleSignIn}
-              disabled={loading || !isLoaded}
+              disabled={loading}
             >
               {loading ? (
                 <ActivityIndicator color="#fff" />
               ) : (
                 <>
-                  <Text style={styles.buttonText}>
-                    Connexion {!isLoaded ? '(Loading...)' : ''}
-                  </Text>
+                  <Text style={styles.buttonText}>Connexion</Text>
                   <ArrowRight size={20} color="#fff" />
                 </>
               )}
@@ -208,8 +200,8 @@ function SignIn() {
               <TouchableOpacity disabled={isNavigatingToSignUp}>
                 <Text
                   style={[
-                    styles.footerLink,
-                    isNavigatingToSignUp && styles.footerLinkDisabled,
+                    styles.link,
+                    isNavigatingToSignUp && styles.disabledLink,
                   ]}
                 >
                   Inscription
@@ -233,122 +225,111 @@ const styles = StyleSheet.create({
   },
   header: {
     height: 300,
-    position: 'relative',
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: 'flex-end',
+    padding: 20,
   },
   headerImage: {
-    width: '100%',
-    height: '100%',
     position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    height: 300,
   },
   overlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0, 0, 0, 0.4)',
+    backgroundColor: 'rgba(0,0,0,0.6)',
   },
   title: {
     fontSize: 32,
     fontWeight: 'bold',
     color: '#fff',
-    textAlign: 'center',
     marginBottom: 8,
   },
   subtitle: {
     fontSize: 16,
-    color: '#fff',
-    textAlign: 'center',
-    opacity: 0.9,
-    paddingHorizontal: 20,
+    color: '#888',
+    marginBottom: 20,
   },
   contentContainer: {
     flex: 1,
-    backgroundColor: '#fff',
-    borderTopLeftRadius: 30,
-    borderTopRightRadius: 30,
-    marginTop: -30,
-    paddingTop: 40,
-    paddingHorizontal: 20,
+    padding: 20,
+    justifyContent: 'space-between',
+    minHeight: 350, // Ensure minimum height for content
   },
   formContainer: {
-    marginBottom: 30,
+    gap: 16,
   },
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#1a1a1a',
     borderRadius: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 4,
-    marginBottom: 16,
-    borderWidth: 1,
-    borderColor: '#e0e0e0',
+    padding: 16,
+    gap: 12,
   },
   input: {
     flex: 1,
+    color: '#fff',
     fontSize: 16,
-    paddingVertical: 12,
-    paddingLeft: 12,
-    color: '#333',
   },
   buttonContainer: {
-    marginBottom: 30,
+    marginTop: 24,
+    marginBottom: 24,
   },
   button: {
     backgroundColor: '#007AFF',
-    borderRadius: 12,
-    paddingVertical: 16,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 16,
+    padding: 16,
+    borderRadius: 12,
+    gap: 8,
   },
   buttonDisabled: {
-    backgroundColor: '#ccc',
+    opacity: 0.7,
   },
   buttonText: {
     color: '#fff',
     fontSize: 16,
     fontWeight: '600',
-    marginRight: 8,
-  },
-  forgotPasswordButton: {
-    alignItems: 'center',
-  },
-  forgotPasswordText: {
-    color: '#007AFF',
-    fontSize: 14,
   },
   footer: {
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    paddingBottom: 30,
+    gap: 8,
+    marginTop: 'auto',
+    paddingVertical: 16,
   },
   footerText: {
-    color: '#666',
+    color: '#888',
     fontSize: 14,
   },
-  footerLink: {
+  link: {
     color: '#007AFF',
     fontSize: 14,
     fontWeight: '600',
-    marginLeft: 4,
-  },
-  footerLinkDisabled: {
-    opacity: 0.5,
   },
   error: {
-    color: '#ff4444',
+    color: '#ef4444',
     fontSize: 14,
-    marginBottom: 16,
-    paddingHorizontal: 4,
     textAlign: 'center',
-    backgroundColor: '#fff5f5',
-    paddingVertical: 8,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: '#ffdddd',
+    marginBottom: 16,
+  },
+  disabledLink: {
+    opacity: 0.5,
+  },
+  forgotPasswordButton: {
+    alignSelf: 'center',
+    marginTop: 16,
+    padding: 8,
+  },
+  forgotPasswordText: {
+    color: '#007AFF',
+    fontSize: 14,
+    fontWeight: '500',
   },
 });
 
+// Export with error boundary
 export default withErrorBoundary(SignIn);

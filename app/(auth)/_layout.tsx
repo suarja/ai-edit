@@ -1,10 +1,14 @@
-import { Stack } from 'expo-router';
+import { Redirect, Stack } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { useClerkAuth } from '@/hooks/useClerkAuth';
 
 export default function AuthLayout() {
   const [isNavigating, setIsNavigating] = useState(false);
   const navigationTimer = useRef<NodeJS.Timeout | null>(null);
   const navigationCount = useRef(0);
+
+  // Clerk authentication state
+  const { isLoaded, isSignedIn, initializing } = useClerkAuth();
 
   // Clear timer on unmount
   useEffect(() => {
@@ -53,6 +57,18 @@ export default function AuthLayout() {
     handleStateChange();
   }, [handleStateChange]);
 
+  // Show nothing while Clerk is loading
+  if (!isLoaded || initializing) {
+    return null;
+  }
+
+  // If user is already signed in, redirect to main app
+  if (isSignedIn) {
+    console.log('🔀 User already signed in, redirecting from auth layout');
+    return <Redirect href="/(tabs)/source-videos" />;
+  }
+
+  // User is not signed in, show auth pages
   return (
     <Stack
       screenOptions={{

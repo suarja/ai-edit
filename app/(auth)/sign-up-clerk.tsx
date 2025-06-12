@@ -56,8 +56,6 @@ function SignUpClerk() {
       await signUp.create({
         emailAddress: email,
         password,
-        firstName: fullName.split(' ')[0] || fullName,
-        lastName: fullName.split(' ').slice(1).join(' ') || '',
       });
 
       // Send user an email with verification code

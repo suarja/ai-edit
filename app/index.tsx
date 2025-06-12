@@ -9,47 +9,60 @@ import {
 import { Video, Play } from 'lucide-react-native';
 import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { supabase } from '@/lib/supabase';
 import { withErrorBoundary } from '@/components/ErrorBoundary';
 import { reportAuthError } from '@/lib/services/errorReporting';
 import { IMAGES } from '@/lib/constants/images';
-import { useAuth } from '@clerk/clerk-expo';
+import { useClerkAuth } from '@/hooks/useClerkAuth';
 
 function LandingScreen() {
-  const [loading, setLoading] = useState(true);
-    const { isSignedIn } = useAuth();
-  console.log('isSignedIn', isSignedIn);
+  const [checking, setChecking] = useState(true);
+  const { isLoaded, isSignedIn, initializing } = useClerkAuth();
 
   useEffect(() => {
-    checkAuthState();
-  }, []);
+    checkAuthAndRedirect();
+  }, [isLoaded, isSignedIn]);
 
-  const checkAuthState = async () => {
+  const checkAuthAndRedirect = async () => {
     try {
+      // Wait for Clerk to be fully loaded
+      if (!isLoaded || initializing) {
+        return;
+      }
+
       if (isSignedIn) {
-        // User is already logged in, redirect to main app
+        // User is authenticated with Clerk, redirect to main app
+        console.log(
+          '✅ User authenticated with Clerk, redirecting to main app'
+        );
         router.replace('/(tabs)/source-videos');
+      } else {
+        // User is not authenticated, stay on landing screen
+        console.log('❌ User not authenticated, staying on landing screen');
+        setChecking(false);
       }
     } catch (error) {
       reportAuthError(error as Error, {
         screen: 'LandingScreen',
-        action: 'auth_check_exception',
+        action: 'clerk_auth_check_exception',
       });
-      console.error('Exception during auth check:', error);
-    } finally {
-      setLoading(false);
+      console.error('Exception during Clerk auth check:', error);
+      setChecking(false);
     }
   };
 
   const handleGetStarted = () => {
+    // Redirect to new Clerk sign-in flow
     router.push('/(auth)/sign-in-clerk');
   };
 
-  if (loading) {
+  // Show loading while Clerk is initializing or we're checking auth
+  if (!isLoaded || initializing || checking) {
     return (
       <View style={[styles.container, styles.loadingContainer]}>
         <ActivityIndicator size="large" color="#007AFF" />
-        <Text style={styles.loadingText}>Loading...</Text>
+        <Text style={styles.loadingText}>
+          {!isLoaded ? 'Loading authentication...' : 'Checking user status...'}
+        </Text>
       </View>
     );
   }
@@ -84,6 +97,21 @@ function LandingScreen() {
           <Play size={24} color="#fff" />
           <Text style={styles.buttonText}>Commencer</Text>
         </TouchableOpacity>
+
+        {/* Debug info in development */}
+        {__DEV__ && (
+          <View style={styles.debugInfo}>
+            <Text style={styles.debugText}>
+              Debug: isLoaded={isLoaded ? 'true' : 'false'}
+            </Text>
+            <Text style={styles.debugText}>
+              Debug: isSignedIn={isSignedIn ? 'true' : 'false'}
+            </Text>
+            <Text style={styles.debugText}>
+              Debug: initializing={initializing ? 'true' : 'false'}
+            </Text>
+          </View>
+        )}
       </View>
     </View>
   );
@@ -102,6 +130,7 @@ const styles = StyleSheet.create({
   loadingText: {
     color: '#888',
     fontSize: 16,
+    textAlign: 'center',
   },
   header: {
     height: 400,
@@ -164,6 +193,17 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 18,
     fontWeight: '600',
+  },
+  debugInfo: {
+    backgroundColor: '#1a1a1a',
+    padding: 12,
+    borderRadius: 8,
+    marginTop: 20,
+  },
+  debugText: {
+    color: '#888',
+    fontSize: 12,
+    fontFamily: 'monospace',
   },
 });
 
