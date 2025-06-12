@@ -190,10 +190,16 @@ export const API_HEADERS = {
     Authorization: `Bearer ${process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY}`,
   },
 
-  // For server endpoints that require user authentication
+  // For server endpoints that require user authentication (legacy Supabase)
   USER_AUTH: (token: string) => ({
     'Content-Type': 'application/json',
     Authorization: `Bearer ${token}`,
+  }),
+
+  // For server endpoints that require Clerk authentication
+  CLERK_AUTH: (clerkToken: string) => ({
+    'Content-Type': 'application/json',
+    Authorization: `Bearer ${clerkToken}`,
   }),
 
   CREATOMATE_AUTH: {

@@ -19,6 +19,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import VideoUploader from '@/components/VideoUploader';
 import VideoCard from '@/components/VideoCard';
 import { VideoType } from '@/types/video';
+import { useGetUser } from '@/lib/hooks/useGetUser';
 import { useClerkSupabaseClient } from '@/lib/supabase-clerk';
 
 export default function SourceVideosScreen() {
@@ -43,14 +44,19 @@ export default function SourceVideosScreen() {
     tags: '',
   });
 
-  // Use Clerk-authenticated Supabase client
-  const { client: supabase, user, isLoaded } = useClerkSupabaseClient();
+  // Use the same pattern as settings.tsx and videos.tsx
+  const { fetchUser, clerkUser, clerkLoaded, isSignedIn } = useGetUser();
+  const { client: supabase } = useClerkSupabaseClient();
 
   useEffect(() => {
-    if (isLoaded && user) {
+    if (clerkLoaded) {
+      if (!isSignedIn) {
+        router.replace('/(auth)/sign-in');
+        return;
+      }
       fetchVideos();
     }
-  }, [isLoaded, user]);
+  }, [clerkLoaded, isSignedIn]);
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
@@ -60,19 +66,21 @@ export default function SourceVideosScreen() {
 
   const fetchVideos = async () => {
     try {
-      if (!user?.id) {
-        console.error('No Clerk user ID found');
-        setError("Erreur d'authentification");
+      // Get the database user (which includes the database ID)
+      const user = await fetchUser();
+      if (!user) {
+        console.log('No database user found');
+        router.replace('/(auth)/sign-in');
         return;
       }
 
-      console.log('🔍 Fetching videos for Clerk user:', user.id);
+      console.log('🔍 Fetching videos for database user ID:', user.id);
 
-      // Use clerk_user_id field directly now that it exists
+      // Use the database ID directly - no need to lookup again!
       const { data, error } = await supabase
         .from('videos')
         .select('*')
-        .eq('clerk_user_id', user.id)
+        .eq('user_id', user.id) // Use database ID directly instead of clerk_user_id
         .order('created_at', { ascending: false });
 
       if (error) {
@@ -99,14 +107,16 @@ export default function SourceVideosScreen() {
     url: string;
   }) => {
     try {
-      if (!user?.id) {
+      // Get the database user (which includes the database ID)
+      const user = await fetchUser();
+      if (!user) {
         throw new Error('User not authenticated');
       }
 
-      console.log('💾 Saving video for Clerk user:', user.id);
+      console.log('💾 Saving video for database user ID:', user.id);
 
       const { error } = await supabase.from('videos').insert({
-        clerk_user_id: user.id, // Use Clerk user ID directly
+        user_id: user.id, // Use database ID directly
         title: '',
         description: '',
         tags: [],
@@ -299,7 +309,7 @@ export default function SourceVideosScreen() {
                   }}
                 >
                   <Text style={styles.skipButtonText}>
-                    Ignorer pour l'instant
+                    Ignorer pour l&apos;instant
                   </Text>
                 </TouchableOpacity>
 

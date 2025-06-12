@@ -12,7 +12,7 @@ import { openSettings } from 'expo-linking';
 import { Video as VideoIcon } from 'lucide-react-native';
 import { MediaType } from 'expo-image-picker';
 import { API_ENDPOINTS, API_HEADERS } from '@/lib/config/api';
-import { supabase } from '@/lib/supabase';
+import { useAuth } from '@clerk/clerk-expo';
 
 type VideoUploaderProps = {
   onUploadComplete?: (videoData: { videoId: string; url: string }) => void;
@@ -27,8 +27,20 @@ export default function VideoUploader({
   const [uploadStatus, setUploadStatus] = useState<string>('');
   const [uploadProgress, setUploadProgress] = useState(0);
 
+  // Use Clerk authentication instead of Supabase
+  const { getToken, isSignedIn } = useAuth();
+
   const handleSelectVideo = async () => {
     try {
+      // Check if user is signed in
+      if (!isSignedIn) {
+        Alert.alert(
+          'Authentication Required',
+          'Please sign in to upload videos'
+        );
+        return;
+      }
+
       // Show immediate feedback when user clicks
       setIsUploading(true);
       setUploadStatus('Ouverture de la galerie...');
@@ -80,16 +92,21 @@ export default function VideoUploader({
             : 'Unknown';
           setUploadStatus(`Fichier sélectionné: ${fileSizeMB}MB`);
 
-          console.log('Getting presigned URL from S3...');
+          console.log('Getting presigned URL from backend...');
           setUploadStatus("Génération de l'URL de téléchargement...");
 
-          const session = await supabase.auth.getSession();
-          // Get presigned URL from Supabase function using the correct URL format
+          // Get Clerk JWT token
+          const clerkToken = await getToken();
+          if (!clerkToken) {
+            throw new Error('Unable to get authentication token');
+          }
+
+          console.log('🔑 Got Clerk token, making request to backend...');
+
+          // Get presigned URL from backend using Clerk authentication
           const presignedResponse = await fetch(API_ENDPOINTS.S3_UPLOAD(), {
             method: 'POST',
-            headers: API_HEADERS.USER_AUTH(
-              session.data.session?.access_token ?? ''
-            ),
+            headers: API_HEADERS.CLERK_AUTH(clerkToken),
             body: JSON.stringify({
               fileName,
               fileType,
@@ -99,8 +116,10 @@ export default function VideoUploader({
           console.log('Presigned response:', presignedResponse);
 
           if (!presignedResponse.ok) {
+            const errorText = await presignedResponse.text();
+            console.error('Backend error response:', errorText);
             throw new Error(
-              `Failed to get upload URL: ${presignedResponse.status}`
+              `Failed to get upload URL: ${presignedResponse.status} - ${errorText}`
             );
           }
 
