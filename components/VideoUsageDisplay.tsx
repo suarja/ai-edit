@@ -5,6 +5,7 @@ import {
   StyleSheet,
   TouchableOpacity,
   ActivityIndicator,
+  Alert,
 } from 'react-native';
 import { Crown, Zap } from 'lucide-react-native';
 import { useRevenueCat } from '@/providers/RevenueCat';
@@ -14,12 +15,25 @@ interface VideoUsageDisplayProps {
   style?: any;
 }
 
+// Fallback prices when RevenueCat offerings can't be loaded
+const FALLBACK_PRICES = {
+  regular: '9,99€',
+  earlyAdopter: '4,99€',
+};
+
 export const VideoUsageDisplay: React.FC<VideoUsageDisplayProps> = ({
   onUpgradePress,
   style,
 }) => {
-  const { isPro, videosRemaining, userUsage, isEarlyAdopter, goPro, isReady } =
-    useRevenueCat();
+  const {
+    isPro,
+    videosRemaining,
+    userUsage,
+    isEarlyAdopter,
+    goPro,
+    isReady,
+    hasOfferingError,
+  } = useRevenueCat();
 
   if (!isReady || !userUsage) {
     return (
@@ -34,6 +48,16 @@ export const VideoUsageDisplay: React.FC<VideoUsageDisplayProps> = ({
     if (onUpgradePress) {
       onUpgradePress();
     } else {
+      // If we have offering errors, show a custom alert instead of RevenueCat UI
+      if (hasOfferingError) {
+        Alert.alert(
+          'Service temporairement indisponible',
+          'Notre service de paiement est actuellement en maintenance. Veuillez réessayer plus tard.',
+          [{ text: 'OK' }]
+        );
+        return;
+      }
+
       await goPro();
     }
   };
@@ -57,6 +81,11 @@ export const VideoUsageDisplay: React.FC<VideoUsageDisplayProps> = ({
 
   // Free user - show quota and upgrade option
   const isLimitReached = videosRemaining <= 0;
+
+  // Get appropriate price to display (use fallback if there's an offering error)
+  const priceToShow = isEarlyAdopter
+    ? FALLBACK_PRICES.earlyAdopter
+    : FALLBACK_PRICES.regular;
 
   return (
     <View style={[styles.container, style]}>
@@ -98,7 +127,9 @@ export const VideoUsageDisplay: React.FC<VideoUsageDisplayProps> = ({
       >
         <Zap size={16} color="#fff" />
         <Text style={styles.upgradeButtonText}>
-          {isEarlyAdopter ? 'Passer Pro (4,99€)' : 'Passer Pro (9,99€)'}
+          {isEarlyAdopter
+            ? `Passer Pro (${priceToShow})`
+            : `Passer Pro (${priceToShow})`}
         </Text>
         {isEarlyAdopter && (
           <View style={styles.earlyAdopterBadge}>

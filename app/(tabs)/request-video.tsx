@@ -28,7 +28,8 @@ import { VideoUsageDisplay } from '@/components/VideoUsageDisplay';
 
 export default function RequestVideoScreen() {
   // RevenueCat integration
-  const { isPro, videosRemaining, refreshUsage } = useRevenueCat();
+  const { isPro, videosRemaining, refreshUsage, isReady, userUsage } =
+    useRevenueCat();
 
   // Main state and actions from hooks
   const videoRequest = useVideoRequest();
@@ -41,7 +42,9 @@ export default function RequestVideoScreen() {
   });
 
   // Check if user can generate video (quota + other validations)
-  const canGenerateVideo = isPro || videosRemaining > 0;
+  // Default to allowing video generation if RevenueCat data isn't available yet
+  const canGenerateVideo =
+    !isReady || !userUsage || isPro || videosRemaining > 0;
 
   // Compute if submit button should be disabled
   const isSubmitDisabled =
@@ -49,8 +52,10 @@ export default function RequestVideoScreen() {
     typeof videoRequest.prompt !== 'string' ||
     !videoRequest.prompt.trim() ||
     videoRequest.selectedVideos.length === 0 ||
-    !canGenerateVideo; // Add quota check
+    (isReady && userUsage && !canGenerateVideo); // Only check quota if RevenueCat data is ready
 
+  // Show loading state for the entire screen only if video request data is loading
+  // RevenueCat loading is handled by the VideoUsageDisplay component
   if (videoRequest.loading) {
     return (
       <SafeAreaView style={styles.container} edges={['top']}>
@@ -156,8 +161,8 @@ export default function RequestVideoScreen() {
           </View>
         )}
 
-        {/* Show quota warning if limit reached */}
-        {!canGenerateVideo && (
+        {/* Show quota warning if limit reached and RevenueCat data is loaded */}
+        {isReady && userUsage && !canGenerateVideo && (
           <View style={styles.quotaWarning}>
             <Text style={styles.quotaWarningText}>
               ⚠️ Limite de vidéos atteinte. Passez Pro pour continuer à créer

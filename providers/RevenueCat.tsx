@@ -27,9 +27,16 @@ interface RevenueCatProps {
   isEarlyAdopter: boolean;
   goPro: () => Promise<boolean>;
   refreshUsage: () => Promise<void>;
+  hasOfferingError: boolean;
 }
 
 const RevenueCatContext = createContext<RevenueCatProps | null>(null);
+
+// Default pricing for fallback when offerings can't be loaded
+const DEFAULT_PRICES = {
+  regular: '9,99€',
+  earlyAdopter: '4,99€',
+};
 
 // Provide RevenueCat functions to our app
 export const RevenueCatProvider = ({ children }: any) => {
@@ -37,32 +44,50 @@ export const RevenueCatProvider = ({ children }: any) => {
   const [isPro, setIsPro] = useState(false);
   const [userUsage, setUserUsage] = useState<UserUsage | null>(null);
   const [isEarlyAdopter, setIsEarlyAdopter] = useState(false);
+  const [hasOfferingError, setHasOfferingError] = useState(false);
+  const [initAttempts, setInitAttempts] = useState(0);
+  const maxInitAttempts = 2;
 
   const { client: supabase } = useClerkSupabaseClient();
   const { fetchUser } = useGetUser();
 
   useEffect(() => {
     const init = async () => {
-      if (Platform.OS === 'android') {
-        await Purchases.configure({ apiKey: APIKeys.google });
-      } else {
-        await Purchases.configure({ apiKey: APIKeys.apple });
+      try {
+        if (Platform.OS === 'android') {
+          await Purchases.configure({ apiKey: APIKeys.google });
+        } else {
+          await Purchases.configure({ apiKey: APIKeys.apple });
+        }
+
+        // Use more logging during debug if want!
+        Purchases.setLogLevel(LOG_LEVEL.ERROR);
+
+        // Listen for customer updates
+        Purchases.addCustomerInfoUpdateListener(async (info) => {
+          updateCustomerInformation(info);
+        });
+
+        // Load initial data
+        await loadUserUsage();
+
+        setIsReady(true);
+      } catch (error) {
+        console.error('RevenueCat initialization error:', error);
+
+        // If we've tried enough times, proceed with fallback
+        if (initAttempts >= maxInitAttempts) {
+          setHasOfferingError(true);
+          setIsReady(true); // Still mark as ready so UI can render with fallbacks
+        } else {
+          // Try again (but not too many times)
+          setInitAttempts((prev) => prev + 1);
+        }
       }
-      setIsReady(true);
-
-      // Use more logging during debug if want!
-      Purchases.setLogLevel(LOG_LEVEL.ERROR);
-
-      // Listen for customer updates
-      Purchases.addCustomerInfoUpdateListener(async (info) => {
-        updateCustomerInformation(info);
-      });
-
-      // Load initial data
-      await loadUserUsage();
     };
+
     init();
-  }, []);
+  }, [initAttempts]);
 
   // Update user state based on previous purchases
   const updateCustomerInformation = async (customerInfo: CustomerInfo) => {
@@ -130,6 +155,14 @@ export const RevenueCatProvider = ({ children }: any) => {
   // Present paywall
   const goPro = async (): Promise<boolean> => {
     try {
+      // If we have offering errors, show a fallback alert instead
+      if (hasOfferingError) {
+        console.log('Using fallback purchase flow due to offering error');
+        // In a real app, you might want to show a custom alert or UI here
+        // For now, we'll just log and return false
+        return false;
+      }
+
       const { RevenueCatUI, PAYWALL_RESULT } = await import(
         'react-native-purchases-ui'
       );
@@ -145,6 +178,8 @@ export const RevenueCatProvider = ({ children }: any) => {
       switch (paywallResult) {
         case PAYWALL_RESULT.NOT_PRESENTED:
         case PAYWALL_RESULT.ERROR:
+          setHasOfferingError(true); // Mark that we had an error with offerings
+          return false;
         case PAYWALL_RESULT.CANCELLED:
           return false;
         case PAYWALL_RESULT.PURCHASED:
@@ -155,6 +190,7 @@ export const RevenueCatProvider = ({ children }: any) => {
       }
     } catch (error) {
       console.error('Paywall error:', error);
+      setHasOfferingError(true);
       return false;
     }
   };
@@ -177,11 +213,11 @@ export const RevenueCatProvider = ({ children }: any) => {
     isEarlyAdopter,
     goPro,
     refreshUsage,
+    hasOfferingError,
   };
 
-  // Return empty fragment if provider is not ready (Purchase not yet initialised)
-  if (!isReady) return <></>;
-
+  // We don't want to block rendering anymore if RevenueCat has issues
+  // Just return the provider with the current state
   return (
     <RevenueCatContext.Provider value={value}>
       {children}
