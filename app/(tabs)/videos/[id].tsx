@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, StyleSheet, ActivityIndicator, Text } from 'react-native';
 import { useLocalSearchParams, router } from 'expo-router';
-import { supabase } from '@/lib/supabase';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { RefreshCcw } from 'lucide-react-native';
 import VideoPlayer from '@/components/VideoPlayer';
@@ -10,6 +9,9 @@ import VideoDetails from '@/components/VideoDetails';
 import VideoActionButtons from '@/components/VideoActionButtons';
 import { API_ENDPOINTS } from '@/lib/config/api';
 import { EnhancedGeneratedVideoType } from '@/types/video';
+import { useGetUser } from '@/lib/hooks/useGetUser';
+import { useClerkSupabaseClient } from '@/lib/supabase-clerk';
+import { useAuth } from '@clerk/clerk-expo';
 
 // Script type for proper TypeScript support
 type ScriptData = {
@@ -36,16 +38,37 @@ export default function GeneratedVideoDetailScreen() {
   const [video, setVideo] = useState<EnhancedGeneratedVideoType | null>(null);
   const [error, setError] = useState<string | null>(null);
 
+  // Use Clerk authentication instead of direct Supabase
+  const { fetchUser, clerkUser, clerkLoaded, isSignedIn } = useGetUser();
+  const { client: supabase } = useClerkSupabaseClient();
+  const { getToken } = useAuth();
+
   useEffect(() => {
-    fetchVideoDetails();
-  }, [id]);
+    if (clerkLoaded) {
+      if (!isSignedIn) {
+        router.replace('/(auth)/sign-in');
+        return;
+      }
+      fetchVideoDetails();
+    }
+  }, [id, clerkLoaded, isSignedIn]);
 
   const fetchVideoDetails = async () => {
     try {
       setError(null);
       console.log('fetching video details', id);
 
-      // Get video request details with script information
+      // Get the database user first
+      const user = await fetchUser();
+      if (!user) {
+        console.log('No database user found');
+        router.replace('/(auth)/sign-in');
+        return;
+      }
+
+      console.log('Fetching video details for database user ID:', user.id);
+
+      // Get video request details with script information using the database user ID
       const { data: videoRequest, error: videoError } = await supabase
         .from('video_requests')
         .select(
@@ -64,6 +87,7 @@ export default function GeneratedVideoDetailScreen() {
           `
         )
         .eq('id', id)
+        .eq('user_id', user.id) // Ensure user can only access their own videos
         .single();
 
       if (videoError) {
@@ -147,8 +171,22 @@ export default function GeneratedVideoDetailScreen() {
     if (!video) return;
 
     try {
+      // Get Clerk token for API authentication
+      const clerkToken = await getToken();
+
+      if (!clerkToken) {
+        console.error('No Clerk token available for status check');
+        return;
+      }
+
       const response = await fetch(
-        API_ENDPOINTS.VIDEO_STATUS(video.id as string)
+        API_ENDPOINTS.VIDEO_STATUS(video.id as string),
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${clerkToken}`,
+          },
+        }
       );
 
       if (!response.ok) {

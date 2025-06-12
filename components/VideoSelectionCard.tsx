@@ -119,7 +119,7 @@ export default function VideoSelectionCard({
           <View style={styles.tagsContainer}>
             <Text style={styles.tagsText} numberOfLines={1}>
               {video.tags.slice(0, 2).join(', ')}
-              {video.tags.length > 2 && ` +${video.tags.length - 2}`}
+              {video.tags.length > 2 ? ` +${video.tags.length - 2}` : ''}
             </Text>
           </View>
         )}

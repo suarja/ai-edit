@@ -18,6 +18,7 @@ import GeneratedVideoCard from '@/components/GeneratedVideoCard';
 import EmptyGeneratedVideos from '@/components/EmptyGeneratedVideos';
 import VideoHeader from '@/components/VideoHeader';
 import { API_ENDPOINTS } from '@/lib/config/api';
+import { useAuth } from '@clerk/clerk-expo';
 
 type VideoRequest = {
   id: string;
@@ -55,6 +56,7 @@ export default function GeneratedVideosScreen() {
   // Use the same pattern as settings.tsx
   const { fetchUser, clerkUser, clerkLoaded, isSignedIn } = useGetUser();
   const { client: supabase } = useClerkSupabaseClient();
+  const { getToken } = useAuth();
 
   const fetchVideos = async () => {
     console.log('fetching videos');
@@ -115,14 +117,20 @@ export default function GeneratedVideosScreen() {
 
   const checkVideoStatus = async (videoId: string) => {
     try {
-      // Note: This function may need to be updated to use Clerk tokens
-      // For now, we'll use the Clerk-authenticated Supabase client
+      // Get Clerk token for API authentication
+      const clerkToken = await getToken();
+
+      if (!clerkToken) {
+        console.error('No Clerk token available for status check');
+        return;
+      }
+
       const url = API_ENDPOINTS.VIDEO_STATUS(videoId);
       console.log('url', url);
       const response = await fetch(url, {
         headers: {
-          // The Clerk token will be automatically injected by the Supabase client
           'Content-Type': 'application/json',
+          Authorization: `Bearer ${clerkToken}`,
         },
       });
 

@@ -179,7 +179,7 @@ export default function VideoCard({
               <Tag size={12} color="#888" />
               <Text style={styles.tagText} numberOfLines={1}>
                 {video.tags.slice(0, 2).join(', ')}
-                {video.tags.length > 2 && ` +${video.tags.length - 2}`}
+                {video.tags.length > 2 ? ` +${video.tags.length - 2}` : ''}
               </Text>
             </View>
           )}
