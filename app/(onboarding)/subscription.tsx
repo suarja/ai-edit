@@ -1,86 +1,41 @@
 import { useOnboardingSteps } from '@/components/onboarding/OnboardingSteps';
-import React, { useState, useEffect } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  TouchableOpacity,
-} from 'react-native';
+import React, { useEffect } from 'react';
+import { View, Text, StyleSheet, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useOnboarding } from '@/components/providers/OnboardingProvider';
 import { ProgressBar } from '@/components/onboarding/ProgressBar';
-import { SubscriptionCard } from '@/components/onboarding/SubscriptionCard';
-import { subscriptionPlans } from '@/constants/subscriptionPlans';
-import * as Haptics from 'expo-haptics';
-import { ArrowRight } from 'lucide-react-native';
 
 export default function SubscriptionScreen() {
   const onboardingSteps = useOnboardingSteps();
   const { nextStep, markStepCompleted } = useOnboarding();
-  const [selectedPlanId, setSelectedPlanId] = useState<string>(
-    subscriptionPlans.find((plan) => plan.isRecommended)?.id ||
-      subscriptionPlans[0].id
-  );
 
-  const handleSelectPlan = (planId: string) => {
-    setSelectedPlanId(planId);
+  useEffect(() => {
+    presentPaywall();
+  }, []);
 
-    // Provide haptic feedback
+  const presentPaywall = async () => {
     try {
-      Haptics.selectionAsync();
+      // Dynamic import to avoid errors if package not installed yet
+      const { default: RevenueCatUI, PAYWALL_RESULT } = await import(
+        'react-native-purchases-ui'
+      );
+
+      const paywallResult = await RevenueCatUI.presentPaywall({
+        displayCloseButton: true,
+      });
+
+      console.log('Paywall result:', paywallResult);
+
+      // Continue regardless of result (user can stay free or upgrade)
+      markStepCompleted('subscription');
+      nextStep();
     } catch (error) {
-      console.log('Haptics not available');
+      console.error('Paywall error:', error);
+      // Continue even if paywall fails
+      markStepCompleted('subscription');
+      nextStep();
     }
   };
-
-  const handleContinue = () => {
-    // In a real app, you would implement payment processing here
-    // For now, we'll just mark the step as completed and continue
-    markStepCompleted('subscription');
-
-    // Provide haptic feedback
-    try {
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-    } catch (error) {
-      console.log('Haptics not available');
-    }
-
-    nextStep();
-  };
-
-  // French translated subscription plans
-  const translatedPlans = subscriptionPlans.map((plan) => ({
-    ...plan,
-    title:
-      plan.title === 'Starter'
-        ? 'Débutant'
-        : plan.title === 'Creator'
-        ? 'Créateur'
-        : plan.title === 'Professional'
-        ? 'Professionnel'
-        : plan.title,
-    period:
-      plan.period === 'month'
-        ? 'mois'
-        : plan.period === 'year'
-        ? 'an'
-        : plan.period,
-    features: plan.features.map((feature) => ({
-      ...feature,
-      text: feature.text.includes('video')
-        ? feature.text.replace('videos', 'vidéos')
-        : feature.text.includes('templates')
-        ? feature.text.replace('templates', 'modèles')
-        : feature.text.includes('voice cloning')
-        ? feature.text.replace('voice cloning', 'clonage vocal')
-        : feature.text.includes('HD export')
-        ? feature.text.replace('HD export', 'export HD')
-        : feature.text.includes('support')
-        ? feature.text.replace('support', 'assistance')
-        : feature.text,
-    })),
-  }));
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
@@ -94,46 +49,14 @@ export default function SubscriptionScreen() {
           'processing',
           'editorial-profile',
           'features',
-          'trial-offer',
         ]}
       />
 
-      <View style={styles.header}>
-        <Text style={styles.title}>Choisissez votre forfait</Text>
-        <Text style={styles.subtitle}>
-          Sélectionnez le forfait qui correspond le mieux à vos besoins
-        </Text>
-      </View>
-
-      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        {translatedPlans.map((plan) => (
-          <SubscriptionCard
-            key={plan.id}
-            plan={plan}
-            isSelected={selectedPlanId === plan.id}
-            onSelect={() => handleSelectPlan(plan.id)}
-          />
-        ))}
-
-        <View style={styles.infoContainer}>
-          <Text style={styles.infoText}>
-            Votre abonnement sera automatiquement renouvelé. Vous pouvez annuler
-            à tout moment dans les paramètres de votre compte.
-          </Text>
-        </View>
-      </ScrollView>
-
-      <View style={styles.footer}>
-        <TouchableOpacity
-          style={styles.continueButton}
-          onPress={handleContinue}
-        >
-          <Text style={styles.continueText}>S'abonner maintenant</Text>
-          <ArrowRight size={20} color="#fff" />
-        </TouchableOpacity>
-        <Text style={styles.termsText}>
-          En vous abonnant, vous acceptez nos Conditions d'utilisation et notre
-          Politique de confidentialité
+      <View style={styles.content}>
+        <ActivityIndicator size="large" color="#007AFF" />
+        <Text style={styles.loadingText}>Chargement des forfaits...</Text>
+        <Text style={styles.subText}>
+          Découvrez nos offres pour créer plus de vidéos
         </Text>
       </View>
     </SafeAreaView>
@@ -145,61 +68,22 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#000',
   },
-  header: {
-    paddingTop: 16,
-    paddingHorizontal: 20,
-    paddingBottom: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#333',
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#fff',
-    marginBottom: 4,
-  },
-  subtitle: {
-    fontSize: 16,
-    color: '#888',
-  },
   content: {
     flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
     padding: 20,
   },
-  infoContainer: {
-    backgroundColor: '#1a1a1a',
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 16,
+  loadingText: {
+    color: '#fff',
+    fontSize: 18,
+    fontWeight: '600',
+    marginTop: 16,
   },
-  infoText: {
+  subText: {
     color: '#888',
     fontSize: 14,
-    textAlign: 'center',
-  },
-  footer: {
-    padding: 20,
-    borderTopWidth: 1,
-    borderTopColor: '#333',
-  },
-  continueButton: {
-    backgroundColor: '#007AFF',
-    borderRadius: 12,
-    padding: 16,
-    alignItems: 'center',
-    flexDirection: 'row',
-    justifyContent: 'center',
-    gap: 8,
-    marginBottom: 12,
-  },
-  continueText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  termsText: {
-    color: '#666',
-    fontSize: 12,
+    marginTop: 8,
     textAlign: 'center',
   },
 });

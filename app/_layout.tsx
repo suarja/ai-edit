@@ -15,8 +15,11 @@ import {
   useAuthRedirect,
   useAuthStateRedirect,
 } from '@/lib/hooks/useAuthRedirect';
-import { ClerkProvider } from '@clerk/clerk-expo';
+import { ClerkProvider, ClerkLoaded } from '@clerk/clerk-expo';
 import { clerkConfig } from '@/lib/config/clerk';
+import 'react-native-reanimated';
+import * as SecureStore from 'expo-secure-store';
+import { RevenueCatProvider } from '@/providers/RevenueCat';
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
@@ -79,6 +82,39 @@ export function safeNavigate(
   });
 }
 
+const tokenCache = {
+  async getToken(key: string) {
+    try {
+      const item = await SecureStore.getItemAsync(key);
+      if (item) {
+        console.log(`${key} was used 🔐 \n`);
+      } else {
+        console.log('No values stored under key: ' + key);
+      }
+      return item;
+    } catch (error) {
+      console.error('SecureStore get item error: ', error);
+      await SecureStore.deleteItemAsync(key);
+      return null;
+    }
+  },
+  async saveToken(key: string, value: string) {
+    try {
+      return SecureStore.setItemAsync(key, value);
+    } catch (err) {
+      return;
+    }
+  },
+};
+
+const publishableKey = process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY!;
+
+if (!publishableKey) {
+  throw new Error(
+    'Missing Publishable Key. Please set EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY in your .env'
+  );
+}
+
 export default function RootLayout() {
   const colorScheme = useSystemColorScheme();
   const [isReady, setIsReady] = useState(false);
@@ -135,45 +171,54 @@ export default function RootLayout() {
 
   return (
     <ErrorBoundary>
-      <ClerkProvider
-        publishableKey={clerkConfig.publishableKey}
-        tokenCache={clerkConfig.tokenCache}
-      >
-        <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-          <Stack
-            screenOptions={{
-              animation: 'slide_from_right',
-              animationDuration: 300,
-            }}
-          >
-            <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-            <Stack.Screen name="(auth)" options={{ headerShown: false }} />
-            <Stack.Screen name="(onboarding)" options={{ headerShown: false }} />
-            <Stack.Screen name="(settings)" options={{ headerShown: false }} />
-            <Stack.Screen
-              name="video-details/[id]"
-              options={{ headerShown: false }}
-            />
-            <Stack.Screen name="+not-found" />
-            <Stack.Screen name="index" options={{ headerShown: false }} />
+      <ClerkProvider tokenCache={tokenCache} publishableKey={publishableKey}>
+        <ClerkLoaded>
+          <RevenueCatProvider>
+            <ThemeProvider
+              value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}
+            >
+              <Stack
+                screenOptions={{
+                  animation: 'slide_from_right',
+                  animationDuration: 300,
+                }}
+              >
+                <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+                <Stack.Screen name="(auth)" options={{ headerShown: false }} />
+                <Stack.Screen
+                  name="(onboarding)"
+                  options={{ headerShown: false }}
+                />
+                <Stack.Screen
+                  name="(settings)"
+                  options={{ headerShown: false }}
+                />
+                <Stack.Screen
+                  name="video-details/[id]"
+                  options={{ headerShown: false }}
+                />
+                <Stack.Screen name="+not-found" />
+                <Stack.Screen name="index" options={{ headerShown: false }} />
 
-            {/* Auth callback screens - accessible via deep linking */}
-            <Stack.Screen
-              name="auth/reset-password"
-              options={{
-                headerShown: false,
-                presentation: 'modal',
-              }}
-            />
-            <Stack.Screen
-              name="auth/verify"
-              options={{
-                headerShown: false,
-                presentation: 'modal',
-              }}
-            />
-          </Stack>
-        </ThemeProvider>
+                {/* Auth callback screens - accessible via deep linking */}
+                <Stack.Screen
+                  name="auth/reset-password"
+                  options={{
+                    headerShown: false,
+                    presentation: 'modal',
+                  }}
+                />
+                <Stack.Screen
+                  name="auth/verify"
+                  options={{
+                    headerShown: false,
+                    presentation: 'modal',
+                  }}
+                />
+              </Stack>
+            </ThemeProvider>
+          </RevenueCatProvider>
+        </ClerkLoaded>
       </ClerkProvider>
     </ErrorBoundary>
   );

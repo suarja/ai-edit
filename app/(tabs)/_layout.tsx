@@ -3,6 +3,7 @@ import { Upload, Video, Settings, Plus } from 'lucide-react-native';
 import { View, ActivityIndicator, Text, StyleSheet } from 'react-native';
 import { useClerkAuth } from '@/hooks/useClerkAuth';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { RevenueCatProvider } from '@/providers/RevenueCat';
 
 export default function TabLayout() {
   const { isLoaded, isSignedIn, initializing } = useClerkAuth();
@@ -13,7 +14,9 @@ export default function TabLayout() {
       <SafeAreaView style={styles.loadingContainer}>
         <View style={styles.loadingContent}>
           <ActivityIndicator size="large" color="#007AFF" />
-          <Text style={styles.loadingText}>Vérification de l'authentification...</Text>
+          <Text style={styles.loadingText}>
+            Vérification de l&apos;authentification...
+          </Text>
         </View>
       </SafeAreaView>
     );
@@ -28,63 +31,67 @@ export default function TabLayout() {
   // User is authenticated, show tabs
   return (
     <View style={{ flex: 1, backgroundColor: '#000' }}>
-      <Tabs
-        screenOptions={{
-          headerShown: false,
-          tabBarStyle: {
-            backgroundColor: '#1a1a1a',
-            borderTopColor: '#333',
-            height: 80,
-            paddingBottom: 30,
-            paddingTop: 8,
-          },
-          tabBarActiveTintColor: '#fff',
-          tabBarInactiveTintColor: '#888',
-        }}
-      >
-        <Tabs.Screen
-          name="source-videos"
-          options={{
-            title: 'Sources',
+      <RevenueCatProvider>
+        <Tabs
+          screenOptions={{
             headerShown: false,
-            tabBarIcon: ({ size, color }) => (
-              <Upload size={size} color={color} />
-            ),
+            tabBarStyle: {
+              backgroundColor: '#1a1a1a',
+              borderTopColor: '#333',
+              height: 80,
+              paddingBottom: 30,
+              paddingTop: 8,
+            },
+            tabBarActiveTintColor: '#fff',
+            tabBarInactiveTintColor: '#888',
           }}
-        />
-        <Tabs.Screen
-          name="request-video"
-          options={{
-            title: 'Créer',
-            tabBarIcon: ({ size, color }) => <Plus size={size} color={color} />,
-          }}
-        />
-        <Tabs.Screen
-          name="videos"
-          options={{
-            title: 'Générées',
-            tabBarIcon: ({ size, color }) => (
-              <Video size={size} color={color} />
-            ),
-          }}
-        />
-        <Tabs.Screen
-          name="settings"
-          options={{
-            title: 'Paramètres',
-            headerShown: false,
-            tabBarIcon: ({ size, color }) => (
-              <Settings size={size} color={color} />
-            ),
-          }}
-        />
-        <Tabs.Screen
-          name="videos/[id]"
-          options={{
-            href: null,
-          }}
-        />
-      </Tabs>
+        >
+          <Tabs.Screen
+            name="source-videos"
+            options={{
+              title: 'Sources',
+              headerShown: false,
+              tabBarIcon: ({ size, color }) => (
+                <Upload size={size} color={color} />
+              ),
+            }}
+          />
+          <Tabs.Screen
+            name="request-video"
+            options={{
+              title: 'Créer',
+              tabBarIcon: ({ size, color }) => (
+                <Plus size={size} color={color} />
+              ),
+            }}
+          />
+          <Tabs.Screen
+            name="videos"
+            options={{
+              title: 'Générées',
+              tabBarIcon: ({ size, color }) => (
+                <Video size={size} color={color} />
+              ),
+            }}
+          />
+          <Tabs.Screen
+            name="settings"
+            options={{
+              title: 'Paramètres',
+              headerShown: false,
+              tabBarIcon: ({ size, color }) => (
+                <Settings size={size} color={color} />
+              ),
+            }}
+          />
+          <Tabs.Screen
+            name="videos/[id]"
+            options={{
+              href: null,
+            }}
+          />
+        </Tabs>
+      </RevenueCatProvider>
     </View>
   );
 }

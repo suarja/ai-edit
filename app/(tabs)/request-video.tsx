@@ -13,6 +13,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 // Custom hooks
 import useVideoRequest from '@/app/hooks/useVideoRequest';
 import useConfigurationStatus from '@/app/hooks/useConfigurationStatus';
+import { useRevenueCat } from '@/providers/RevenueCat';
 
 // Components
 import VideoTagFilterSystem from '@/components/VideoTagFilterSystem';
@@ -23,8 +24,12 @@ import SubmitButton from '@/app/components/SubmitButton';
 import ErrorDisplay from '@/app/components/ErrorDisplay';
 import AdvancedToggle from '@/app/components/AdvancedToggle';
 import LanguageSelector from '@/app/components/LanguageSelector';
+import { VideoUsageDisplay } from '@/components/VideoUsageDisplay';
 
 export default function RequestVideoScreen() {
+  // RevenueCat integration
+  const { isPro, videosRemaining, refreshUsage } = useRevenueCat();
+
   // Main state and actions from hooks
   const videoRequest = useVideoRequest();
 
@@ -35,12 +40,16 @@ export default function RequestVideoScreen() {
     captionConfig: videoRequest.captionConfig,
   });
 
+  // Check if user can generate video (quota + other validations)
+  const canGenerateVideo = isPro || videosRemaining > 0;
+
   // Compute if submit button should be disabled
   const isSubmitDisabled =
     !videoRequest.prompt ||
     typeof videoRequest.prompt !== 'string' ||
     !videoRequest.prompt.trim() ||
-    videoRequest.selectedVideos.length === 0;
+    videoRequest.selectedVideos.length === 0 ||
+    !canGenerateVideo; // Add quota check
 
   if (videoRequest.loading) {
     return (
@@ -52,6 +61,11 @@ export default function RequestVideoScreen() {
       </SafeAreaView>
     );
   }
+
+  const handleRefresh = () => {
+    videoRequest.onRefresh();
+    refreshUsage(); // Also refresh usage data
+  };
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
@@ -75,12 +89,15 @@ export default function RequestVideoScreen() {
         refreshControl={
           <RefreshControl
             refreshing={videoRequest.refreshing}
-            onRefresh={videoRequest.onRefresh}
+            onRefresh={handleRefresh}
             tintColor="#007AFF"
           />
         }
       >
         <ErrorDisplay error={videoRequest.error} />
+
+        {/* Video Usage Display - Show quota and upgrade option */}
+        <VideoUsageDisplay />
 
         {/* Main prompt input with enhancement */}
         <PromptInput
@@ -136,6 +153,16 @@ export default function RequestVideoScreen() {
               captionConfigured={configStatus.captionConfigured}
               captionConfig={videoRequest.captionConfig}
             />
+          </View>
+        )}
+
+        {/* Show quota warning if limit reached */}
+        {!canGenerateVideo && (
+          <View style={styles.quotaWarning}>
+            <Text style={styles.quotaWarningText}>
+              ⚠️ Limite de vidéos atteinte. Passez Pro pour continuer à créer
+              des vidéos !
+            </Text>
           </View>
         )}
       </ScrollView>
@@ -200,6 +227,20 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   configSection: {
-    marginBottom: 24,
+    gap: 16,
+  },
+  quotaWarning: {
+    backgroundColor: 'rgba(255, 59, 48, 0.1)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 59, 48, 0.3)',
+    borderRadius: 12,
+    padding: 16,
+    marginVertical: 8,
+  },
+  quotaWarningText: {
+    color: '#FF3B30',
+    fontSize: 14,
+    textAlign: 'center',
+    fontWeight: '500',
   },
 });
