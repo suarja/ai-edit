@@ -68,11 +68,11 @@ export default function SourceVideosScreen() {
 
       console.log('🔍 Fetching videos for Clerk user:', user.id);
 
-      // Use clerk_user_id field if it exists, otherwise fallback to user_id for migration
+      // Use clerk_user_id field directly now that it exists
       const { data, error } = await supabase
         .from('videos')
         .select('*')
-        .or(`clerk_user_id.eq.${user.id},user_id.eq.${user.id}`)
+        .eq('clerk_user_id', user.id)
         .order('created_at', { ascending: false });
 
       if (error) {
@@ -106,7 +106,7 @@ export default function SourceVideosScreen() {
       console.log('💾 Saving video for Clerk user:', user.id);
 
       const { error } = await supabase.from('videos').insert({
-        clerk_user_id: user.id, // Use Clerk user ID
+        clerk_user_id: user.id, // Use Clerk user ID directly
         title: '',
         description: '',
         tags: [],
