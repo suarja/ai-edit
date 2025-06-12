@@ -10,7 +10,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useOnboarding } from '@/components/providers/OnboardingProvider';
 import { ProgressBar } from '@/components/onboarding/ProgressBar';
-import { PenTool, Video, Sparkles, Cpu, ArrowRight } from 'lucide-react-native';
+import { Upload, Mic, User, Video, ArrowRight } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
 
 export default function FeaturesScreen() {
@@ -57,13 +57,13 @@ export default function FeaturesScreen() {
               { backgroundColor: 'rgba(0, 122, 255, 0.1)' },
             ]}
           >
-            <PenTool size={32} color="#007AFF" />
+            <Upload size={32} color="#007AFF" />
           </View>
           <View style={styles.featureTextContainer}>
-            <Text style={styles.featureTitle}>Génération de scripts IA</Text>
+            <Text style={styles.featureTitle}>Vidéos sources illimitées</Text>
             <Text style={styles.featureDescription}>
-              Générez instantanément des scripts engageants basés sur votre
-              style et vos préférences.
+              Uploadez autant de vidéos que vous voulez pour créer votre
+              bibliothèque de contenu personnel.
             </Text>
           </View>
         </View>
@@ -78,10 +78,12 @@ export default function FeaturesScreen() {
             <Video size={32} color="#ef4444" />
           </View>
           <View style={styles.featureTextContainer}>
-            <Text style={styles.featureTitle}>Montage vidéo professionnel</Text>
+            <Text style={styles.featureTitle}>
+              Génération IA de vidéos courtes
+            </Text>
             <Text style={styles.featureDescription}>
-              Transformez votre contenu avec des effets vidéo avancés, des
-              transitions et des améliorations.
+              Créez des vidéos courtes engageantes avec l&apos;IA en décrivant
+              simplement ce que vous voulez.
             </Text>
           </View>
         </View>
@@ -93,13 +95,13 @@ export default function FeaturesScreen() {
               { backgroundColor: 'rgba(76, 175, 80, 0.1)' },
             ]}
           >
-            <Sparkles size={32} color="#4CAF50" />
+            <Mic size={32} color="#4CAF50" />
           </View>
           <View style={styles.featureTextContainer}>
-            <Text style={styles.featureTitle}>Clonage vocal naturel</Text>
+            <Text style={styles.featureTitle}>Clonage vocal IA</Text>
             <Text style={styles.featureDescription}>
-              Utilisez votre propre voix dans les vidéos sans avoir à
-              enregistrer chaque script. Notre IA s'occupe du reste.
+              Utilisez votre propre voix dans vos vidéos grâce à notre
+              technologie de clonage vocal 11Labs.
             </Text>
           </View>
         </View>
@@ -111,38 +113,38 @@ export default function FeaturesScreen() {
               { backgroundColor: 'rgba(255, 193, 7, 0.1)' },
             ]}
           >
-            <Cpu size={32} color="#FFC107" />
+            <User size={32} color="#FFC107" />
           </View>
           <View style={styles.featureTextContainer}>
             <Text style={styles.featureTitle}>
-              Système de modèles intelligent
+              Profil éditorial personnalisé
             </Text>
             <Text style={styles.featureDescription}>
-              Choisissez parmi des dizaines de modèles conçus
-              professionnellement ou créez vos propres styles personnalisés.
+              L&apos;IA apprend votre style de création pour générer du contenu
+              qui vous ressemble vraiment.
             </Text>
           </View>
         </View>
 
         <View style={styles.statsContainer}>
           <Text style={styles.statsTitle}>
-            Approuvé par les créateurs du monde entier
+            La nouvelle façon de créer du contenu
           </Text>
 
           <View style={styles.stats}>
             <View style={styles.statItem}>
-              <Text style={styles.statNumber}>5M+</Text>
-              <Text style={styles.statLabel}>Vidéos créées</Text>
+              <Text style={styles.statNumber}>30</Text>
+              <Text style={styles.statLabel}>Vidéos/mois Pro</Text>
             </View>
 
             <View style={styles.statItem}>
-              <Text style={styles.statNumber}>500K+</Text>
-              <Text style={styles.statLabel}>Utilisateurs actifs</Text>
+              <Text style={styles.statNumber}>€5</Text>
+              <Text style={styles.statLabel}>Early Adopter</Text>
             </View>
 
             <View style={styles.statItem}>
-              <Text style={styles.statNumber}>4.8</Text>
-              <Text style={styles.statLabel}>Note App Store</Text>
+              <Text style={styles.statNumber}>€10</Text>
+              <Text style={styles.statLabel}>Prix régulier</Text>
             </View>
           </View>
         </View>

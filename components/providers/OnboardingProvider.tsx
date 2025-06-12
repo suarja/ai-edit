@@ -80,7 +80,8 @@ const STEP_PATHS: Record<OnboardingStep, string> = {
 };
 
 // Subscription-related steps
-const SUBSCRIPTION_STEPS: OnboardingStep[] = ['trial-offer', 'subscription'];
+const SUBSCRIPTION_STEPS: OnboardingStep[] = ['subscription'];
+const TRIAL_STEPS: OnboardingStep[] = ['trial-offer'];
 
 export const OnboardingProvider = ({
   children,
@@ -94,6 +95,9 @@ export const OnboardingProvider = ({
       SUBSCRIPTION_STEPS.includes(step) &&
       !features.enableSubscriptionScreens
     ) {
+      return false;
+    }
+    if (TRIAL_STEPS.includes(step) && !features.enableTrialOfferScreen) {
       return false;
     }
     return true;

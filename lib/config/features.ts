@@ -8,6 +8,7 @@
 interface FeatureFlags {
   // Onboarding
   enableSubscriptionScreens: boolean;
+  enableTrialOfferScreen: boolean;
   enableUsageLimits: boolean;
   disableAutoProgress: boolean;
 
@@ -17,6 +18,7 @@ interface FeatureFlags {
 // Default configuration for development
 const devFeatures: FeatureFlags = {
   enableSubscriptionScreens: true,
+  enableTrialOfferScreen: false, // Hide trial offer for now
   enableUsageLimits: false,
   disableAutoProgress: true,
 };
@@ -24,6 +26,7 @@ const devFeatures: FeatureFlags = {
 // Configuration for TestFlight beta
 const testFlightFeatures: FeatureFlags = {
   enableSubscriptionScreens: false,
+  enableTrialOfferScreen: false, // Hide trial offer for now
   enableUsageLimits: true,
   disableAutoProgress: true, // Disable auto-progression in TestFlight to give users time to review
 };
@@ -31,6 +34,7 @@ const testFlightFeatures: FeatureFlags = {
 // Configuration for production
 const productionFeatures: FeatureFlags = {
   enableSubscriptionScreens: true,
+  enableTrialOfferScreen: false, // Hide trial offer for now
   enableUsageLimits: true,
   disableAutoProgress: true,
 };
