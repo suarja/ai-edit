@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -15,13 +15,9 @@ import {
 import { Link, router } from 'expo-router';
 import { useSignUp } from '@clerk/clerk-expo';
 import { Mail, Lock, User, ArrowRight } from 'lucide-react-native';
-import { env } from '@/lib/config/env';
 import { IMAGES } from '@/lib/constants/images';
 import { withErrorBoundary } from '@/components/ErrorBoundary';
-import {
-  reportAuthError,
-  reportNetworkError,
-} from '@/lib/services/errorReporting';
+import { reportAuthError } from '@/lib/services/errorReporting';
 
 function SignUpClerk() {
   const { isLoaded, signUp, setActive } = useSignUp();
@@ -69,14 +65,13 @@ function SignUpClerk() {
 
       // Set 'pendingVerification' to true to display verification form
       setPendingVerification(true);
-      
+
       if (__DEV__) {
         console.log('Email verification sent to:', email);
       }
-
     } catch (authError: any) {
       console.error('Clerk sign up error:', authError);
-      
+
       // Report error for debugging
       reportAuthError(authError, {
         screen: 'SignUpClerk',
@@ -90,44 +85,28 @@ function SignUpClerk() {
         const clerkError = authError.errors[0];
         switch (clerkError.code) {
           case 'form_identifier_exists':
-            errorMessage = 'Cet email est déjà utilisé. Veuillez vous connecter ou utiliser un autre email.';
+            errorMessage =
+              'Cet email est déjà utilisé. Veuillez vous connecter ou utiliser un autre email.';
             break;
           case 'form_password_pwned':
-            errorMessage = 'Ce mot de passe est trop faible. Veuillez en choisir un plus sécurisé.';
+            errorMessage =
+              'Ce mot de passe est trop faible. Veuillez en choisir un plus sécurisé.';
             break;
           case 'form_password_length_too_short':
-            errorMessage = 'Le mot de passe doit contenir au moins 8 caractères.';
+            errorMessage =
+              'Le mot de passe doit contenir au moins 8 caractères.';
             break;
           case 'form_param_format_invalid':
-            errorMessage = 'Format de l\'email invalide. Veuillez vérifier votre email.';
+            errorMessage =
+              "Format de l'email invalide. Veuillez vérifier votre email.";
             break;
           default:
-            errorMessage = clerkError.longMessage || clerkError.message || errorMessage;
+            errorMessage =
+              clerkError.longMessage || clerkError.message || errorMessage;
         }
       }
-      
+
       setError(errorMessage);
-    } catch (e: any) {
-      // Handle network errors and other general errors
-      if (e.message?.includes('fetch') || e.message?.includes('network')) {
-        reportNetworkError(e as Error, 'clerk', 'POST', {
-          screen: 'SignUpClerk',
-          action: 'network_error',
-        });
-        console.error('Network error during Clerk sign up:', e);
-        Alert.alert(
-          'Network Error',
-          'Unable to connect to the authentication service. Please check your connection.'
-        );
-      } else {
-        reportAuthError(e, {
-          screen: 'SignUpClerk',
-          action: 'general_error',
-          userId: email,
-        });
-        console.error('General error during Clerk sign up:', e);
-        setError(e.message || 'An unexpected error occurred');
-      }
     } finally {
       setLoading(false);
     }
@@ -152,7 +131,7 @@ function SignUpClerk() {
       // If verification was completed, set the session to active
       if (signUpAttempt.status === 'complete') {
         await setActive({ session: signUpAttempt.createdSessionId });
-        
+
         // Success! User is signed up and verified
         Alert.alert(
           '✅ Inscription réussie !',
@@ -166,12 +145,17 @@ function SignUpClerk() {
         );
       } else {
         // If the status is not complete, check why
-        console.error('Email verification incomplete:', JSON.stringify(signUpAttempt, null, 2));
-        setError('Verification incomplete. Please check the code and try again.');
+        console.error(
+          'Email verification incomplete:',
+          JSON.stringify(signUpAttempt, null, 2)
+        );
+        setError(
+          'Verification incomplete. Please check the code and try again.'
+        );
       }
     } catch (authError: any) {
       console.error('Clerk verification error:', authError);
-      
+
       // Report error for debugging
       reportAuthError(authError, {
         screen: 'SignUpClerk',
@@ -185,16 +169,19 @@ function SignUpClerk() {
         const clerkError = authError.errors[0];
         switch (clerkError.code) {
           case 'form_code_incorrect':
-            errorMessage = 'Code de vérification incorrect. Veuillez vérifier et réessayer.';
+            errorMessage =
+              'Code de vérification incorrect. Veuillez vérifier et réessayer.';
             break;
           case 'verification_expired':
-            errorMessage = 'Le code de vérification a expiré. Veuillez en demander un nouveau.';
+            errorMessage =
+              'Le code de vérification a expiré. Veuillez en demander un nouveau.';
             break;
           default:
-            errorMessage = clerkError.longMessage || clerkError.message || errorMessage;
+            errorMessage =
+              clerkError.longMessage || clerkError.message || errorMessage;
         }
       }
-      
+
       setError(errorMessage);
     } finally {
       setLoading(false);
@@ -221,7 +208,9 @@ function SignUpClerk() {
           <View style={styles.header}>
             <Image
               source={{
-                uri: IMAGES.signUp?.header || 'https://images.pexels.com/photos/2882566/pexels-photo-2882566.jpeg',
+                uri:
+                  IMAGES.signUp?.header ||
+                  'https://images.pexels.com/photos/2882566/pexels-photo-2882566.jpeg',
               }}
               style={styles.headerImage}
             />
@@ -235,7 +224,7 @@ function SignUpClerk() {
           <View style={styles.contentContainer}>
             <View style={styles.formContainer}>
               {error && <Text style={styles.error}>{error}</Text>}
-              
+
               <View style={styles.inputContainer}>
                 <Mail size={20} color="#888" />
                 <TextInput
@@ -265,7 +254,7 @@ function SignUpClerk() {
                   </>
                 )}
               </TouchableOpacity>
-              
+
               <TouchableOpacity
                 style={styles.secondaryButton}
                 onPress={() => setPendingVerification(false)}
@@ -289,7 +278,9 @@ function SignUpClerk() {
         <View style={styles.header}>
           <Image
             source={{
-              uri: IMAGES.signUp?.header || 'https://images.pexels.com/photos/2882566/pexels-photo-2882566.jpeg',
+              uri:
+                IMAGES.signUp?.header ||
+                'https://images.pexels.com/photos/2882566/pexels-photo-2882566.jpeg',
             }}
             style={styles.headerImage}
           />
@@ -524,4 +515,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default withErrorBoundary(SignUpClerk); 
+export default withErrorBoundary(SignUpClerk);

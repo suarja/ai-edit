@@ -5,7 +5,6 @@ import {
   StyleSheet,
   TextInput,
   TouchableOpacity,
-  Alert,
   ActivityIndicator,
   Platform,
   Image,
@@ -15,15 +14,12 @@ import {
 import { Link, router } from 'expo-router';
 import { useSignIn } from '@clerk/clerk-expo';
 import { Mail, Lock, ArrowRight } from 'lucide-react-native';
-import {
-  reportAuthError,
-  reportNetworkError,
-} from '@/lib/services/errorReporting';
+import { reportAuthError } from '@/lib/services/errorReporting';
 import { withErrorBoundary } from '@/components/ErrorBoundary';
-import { env } from '@/lib/config/env';
 import { IMAGES } from '@/lib/constants/images';
 
 function SignInClerk() {
+  console.log('SignInClerk');
   const { signIn, setActive, isLoaded } = useSignIn();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -66,12 +62,15 @@ function SignInClerk() {
         router.replace('/(tabs)/settings');
       } else {
         // If the status isn't complete, check why
-        console.error('Sign in incomplete:', JSON.stringify(signInAttempt, null, 2));
+        console.error(
+          'Sign in incomplete:',
+          JSON.stringify(signInAttempt, null, 2)
+        );
         setError('Sign in process incomplete. Please try again.');
       }
     } catch (authError: any) {
       console.error('Clerk sign in error:', authError);
-      
+
       // Report error for debugging
       reportAuthError(authError, {
         screen: 'SignInClerk',
@@ -85,7 +84,8 @@ function SignInClerk() {
         const clerkError = authError.errors[0];
         switch (clerkError.code) {
           case 'form_identifier_not_found':
-            errorMessage = 'Email not found. Please check your email or sign up.';
+            errorMessage =
+              'Email not found. Please check your email or sign up.';
             break;
           case 'form_password_incorrect':
             errorMessage = 'Incorrect password. Please try again.';
@@ -94,32 +94,12 @@ function SignInClerk() {
             errorMessage = 'This email is already registered.';
             break;
           default:
-            errorMessage = clerkError.longMessage || clerkError.message || errorMessage;
+            errorMessage =
+              clerkError.longMessage || clerkError.message || errorMessage;
         }
       }
-      
+
       setError(errorMessage);
-    } catch (e: any) {
-      // Handle network errors and other general errors
-      if (e.message?.includes('fetch') || e.message?.includes('network')) {
-        reportNetworkError(e as Error, 'clerk', 'POST', {
-          screen: 'SignInClerk',
-          action: 'network_error',
-        });
-        console.error('Network error during Clerk sign in:', e);
-        Alert.alert(
-          'Network Error',
-          'Unable to connect to the authentication service. Please check your connection.'
-        );
-      } else {
-        reportAuthError(e, {
-          screen: 'SignInClerk',
-          action: 'general_error',
-          userId: email,
-        });
-        console.error('General error during Clerk sign in:', e);
-        setError(e.message || 'An unexpected error occurred');
-      }
     } finally {
       setLoading(false);
     }
@@ -371,4 +351,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default withErrorBoundary(SignInClerk); 
+export default withErrorBoundary(SignInClerk);
