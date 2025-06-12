@@ -2,7 +2,7 @@ import { Stack, useRouter } from 'expo-router';
 import { useEffect, useState, useRef } from 'react';
 import { View, ActivityIndicator, Text, StyleSheet } from 'react-native';
 import { OnboardingProvider } from '@/components/providers/OnboardingProvider';
-import { supabase } from '@/lib/supabase';
+import { useClerkAuth } from '@/hooks/useClerkAuth';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function OnboardingLayout() {
@@ -11,6 +11,9 @@ export default function OnboardingLayout() {
   const [isRedirecting, setIsRedirecting] = useState(false);
   const router = useRouter();
   const redirectTimeoutRef = useRef<number | null>(null);
+  
+  // Use Clerk authentication state
+  const { isLoaded, isSignedIn, initializing } = useClerkAuth();
 
   // Clear timeout on unmount
   useEffect(() => {
@@ -24,51 +27,42 @@ export default function OnboardingLayout() {
   useEffect(() => {
     const checkAuthState = async () => {
       try {
-        setLoading(true);
+        // Wait for Clerk to be fully loaded
+        if (!isLoaded || initializing) {
+          return;
+        }
 
         // Check if already redirecting to prevent multiple redirects
         if (isRedirecting) {
           return;
         }
 
-        const { data, error } = await supabase.auth.getSession();
-
-        if (error) {
-          console.error('Auth error:', error);
-          setError(`Authentication error: ${error.message}`);
-          // Don't redirect during onboarding to prevent loops
-          setLoading(false);
+        if (!isSignedIn) {
+          console.log('No Clerk session found during onboarding');
+          setError('You must be signed in to access onboarding');
+          // Redirect to sign-in if not authenticated
+          handleRedirect('/(auth)/sign-in', 'not authenticated');
           return;
         }
 
-        if (!data.session) {
-          console.log('No session found, but allowing onboarding to continue');
-          // Allow onboarding to continue even without session
-          setLoading(false);
-          return;
-        }
-
+        console.log('✅ Clerk session found, proceeding with onboarding');
         setLoading(false);
       } catch (err) {
-        console.error('Error checking auth state:', err);
+        console.error('Error checking Clerk auth state:', err);
         setError('An unexpected error occurred while checking authentication');
-        // Don't redirect to prevent loops
         setLoading(false);
       }
     };
 
-    // Only run auth check once on mount, not when isRedirecting changes
-    if (!isRedirecting) {
-      checkAuthState();
-    }
-  }, []); // Remove dependencies to prevent infinite loops
+    checkAuthState();
+  }, [isLoaded, isSignedIn, initializing, isRedirecting]);
 
   // Handle redirect with state tracking
   const handleRedirect = (path: string, reason: string) => {
     if (isRedirecting) return;
 
     setIsRedirecting(true);
-    console.log(`Redirecting to ${path} (reason: ${reason})`);
+    console.log(`🔀 Redirecting to ${path} (reason: ${reason})`);
 
     // Clear any existing timeouts
     if (redirectTimeoutRef.current) {
@@ -81,7 +75,8 @@ export default function OnboardingLayout() {
     }, 100);
   };
 
-  if (loading) {
+  // Show loading while Clerk is initializing or we're checking auth
+  if (!isLoaded || initializing || loading) {
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.loadingContainer}>
@@ -92,7 +87,9 @@ export default function OnboardingLayout() {
             <Text style={styles.loadingText}>
               {isRedirecting
                 ? 'Redirection en cours...'
-                : 'Chargement de votre session...'}
+                : !isLoaded
+                ? 'Chargement de l\'authentification...'
+                : 'Vérification de votre session...'}
             </Text>
           )}
 

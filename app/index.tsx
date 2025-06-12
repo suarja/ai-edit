@@ -56,7 +56,7 @@ function LandingScreen() {
   };
 
   // Show loading while Clerk is initializing or we're checking auth
-  if (!isLoaded || initializing || checking) {
+  if ((!isLoaded || initializing || checking) && !isSignedIn) {
     return (
       <View style={[styles.container, styles.loadingContainer]}>
         <ActivityIndicator size="large" color="#007AFF" />

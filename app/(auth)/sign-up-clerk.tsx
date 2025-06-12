@@ -137,7 +137,7 @@ function SignUpClerk() {
           [
             {
               text: 'Continuer',
-              onPress: () => router.replace('/(onboarding)/welcome'),
+              onPress: () => router.replace('/(tabs)/source-videos'),
             },
           ]
         );
