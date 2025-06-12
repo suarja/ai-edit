@@ -13,9 +13,12 @@ import { supabase } from '@/lib/supabase';
 import { withErrorBoundary } from '@/components/ErrorBoundary';
 import { reportAuthError } from '@/lib/services/errorReporting';
 import { IMAGES } from '@/lib/constants/images';
+import { useAuth } from '@clerk/clerk-expo';
 
 function LandingScreen() {
   const [loading, setLoading] = useState(true);
+    const { isSignedIn } = useAuth();
+  console.log('isSignedIn', isSignedIn);
 
   useEffect(() => {
     checkAuthState();
@@ -23,20 +26,7 @@ function LandingScreen() {
 
   const checkAuthState = async () => {
     try {
-      const {
-        data: { session },
-        error,
-      } = await supabase.auth.getSession();
-
-      if (error) {
-        reportAuthError(error, {
-          screen: 'LandingScreen',
-          action: 'check_auth_state',
-        });
-        console.error('Auth state check error:', error);
-      }
-
-      if (session) {
+      if (isSignedIn) {
         // User is already logged in, redirect to main app
         router.replace('/(tabs)/source-videos');
       }
@@ -52,7 +42,7 @@ function LandingScreen() {
   };
 
   const handleGetStarted = () => {
-    router.push('/(auth)/sign-in');
+    router.push('/(auth)/sign-in-clerk');
   };
 
   if (loading) {
@@ -76,7 +66,7 @@ function LandingScreen() {
         <View style={styles.overlay} />
         <Text style={styles.title}>Créez des Vidéos Incroyables</Text>
         <Text style={styles.subtitle}>
-          Transformez votre contenu en vidéos captivantes avec l'IA
+          Transformez votre contenu en vidéos captivantes avec l&apos;IA
         </Text>
       </View>
 
@@ -86,7 +76,7 @@ function LandingScreen() {
           <Text style={styles.featureTitle}>Génération Vidéo Intelligente</Text>
           <Text style={styles.featureText}>
             Transformez vos idées en vidéos professionnelles en quelques minutes
-            grâce à l'IA avancée
+            grâce à l&apos;IA avancée
           </Text>
         </View>
 
