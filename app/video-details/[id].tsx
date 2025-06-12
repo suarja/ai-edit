@@ -14,7 +14,8 @@ import {
 } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { supabase } from '@/lib/supabase';
+import { useGetUser } from '@/lib/hooks/useGetUser';
+import { useClerkSupabaseClient } from '@/lib/supabase-clerk';
 import {
   ArrowLeft,
   Edit3,
@@ -122,7 +123,7 @@ function VideoEditForm({
                   description: form.description.trim(),
                   tags: form.tags
                     .split(',')
-                    .map((tag) => tag.trim())
+                    .map((tag: string) => tag.trim())
                     .filter(Boolean),
                 });
               }
@@ -145,6 +146,10 @@ export default function UploadedVideoDetailScreen() {
   const [isEditing, setIsEditing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Use Clerk authentication instead of Supabase
+  const { fetchUser, clerkUser, clerkLoaded, isSignedIn } = useGetUser();
+  const { client: supabase } = useClerkSupabaseClient();
+
   // TEMPORARILY DISABLED FOR ANDROID CRASH FIX
   // const player = useVideoPlayer(
   //   video ? { uri: video.upload_url } : null,
@@ -154,10 +159,16 @@ export default function UploadedVideoDetailScreen() {
   // );
 
   useEffect(() => {
-    if (id) {
-      fetchVideoDetails();
+    if (clerkLoaded) {
+      if (!isSignedIn) {
+        router.replace('/(auth)/sign-in');
+        return;
+      }
+      if (id) {
+        fetchVideoDetails();
+      }
     }
-  }, [id]);
+  }, [id, clerkLoaded, isSignedIn]);
 
   useEffect(() => {
     if (video) {
@@ -169,19 +180,22 @@ export default function UploadedVideoDetailScreen() {
   const fetchVideoDetails = async () => {
     try {
       setError(null);
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
+
+      // Get the database user (which includes the database ID)
+      const user = await fetchUser();
       if (!user) {
+        console.log('No database user found');
         router.replace('/(auth)/sign-in');
         return;
       }
+
+      console.log('🔍 Fetching video details for database user ID:', user.id);
 
       const { data, error: fetchError } = await supabase
         .from('videos')
         .select('*')
         .eq('id', id)
-        .eq('user_id', user.id)
+        .eq('user_id', user.id) // Use database ID directly
         .single();
 
       if (fetchError) throw fetchError;
@@ -201,6 +215,7 @@ export default function UploadedVideoDetailScreen() {
       };
 
       setVideo(formattedVideo);
+      console.log('✅ Video details fetched successfully');
     } catch (error) {
       console.error('Error fetching video:', error);
       setError('Unable to load video details');
@@ -241,6 +256,7 @@ export default function UploadedVideoDetailScreen() {
 
       setIsEditing(false);
       Alert.alert('Success', 'Video updated successfully');
+      console.log('✅ Video metadata updated successfully');
     } catch (error) {
       console.error('Error updating video:', error);
       Alert.alert('Error', 'Failed to update video');
@@ -266,6 +282,7 @@ export default function UploadedVideoDetailScreen() {
               if (deleteError) throw deleteError;
 
               Alert.alert('Success', 'Video deleted successfully');
+              console.log('✅ Video deleted successfully');
               router.back();
             } catch (error) {
               console.error('Error deleting video:', error);

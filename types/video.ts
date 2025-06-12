@@ -83,11 +83,26 @@ export interface EnhancedGeneratedVideoType {
   duration_seconds?: number;
 }
 
+// Uploaded video type for the video details page
+export interface UploadedVideoType {
+  id: string;
+  type: 'uploaded';
+  title: string;
+  description: string;
+  tags: string[];
+  upload_url: string;
+  duration_seconds: number;
+  created_at: string;
+  storage_path?: string;
+  user_id: string;
+}
+
 // Union type for any video type
 export type AnyVideoType =
   | VideoType
   | GeneratedVideo
-  | EnhancedGeneratedVideoType;
+  | EnhancedGeneratedVideoType
+  | UploadedVideoType;
 
 export interface VideoRequest {
   id: string;
@@ -206,4 +221,9 @@ export const isValidEditorialProfile = (
   profile: any
 ): profile is EditorialProfile => {
   return editorialProfileSchema.safeParse(profile).success;
+};
+
+// Type guard for uploaded videos
+export const isUploadedVideo = (video: any): video is UploadedVideoType => {
+  return video && video.type === 'uploaded';
 };

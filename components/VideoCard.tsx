@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React from 'react';
 import {
   View,
   Text,
@@ -30,9 +30,6 @@ export default function VideoCard({
   hasError,
   onPress,
   onPlayToggle,
-  onLoadStart,
-  onLoad,
-  onError,
 }: VideoCardProps) {
   // TEMPORARILY DISABLED FOR ANDROID CRASH FIX
   // const player = useVideoPlayer({ uri: video.upload_url }, (player) => {
@@ -97,7 +94,7 @@ export default function VideoCard({
             {video.title || 'Vidéo sans titre'}
           </Text>
           <View style={styles.videoBadges}>
-            {video.duration_seconds > 0 && (
+            {video.duration_seconds && video.duration_seconds > 0 && (
               <View style={styles.durationChip}>
                 <Text style={styles.durationChipText}>
                   {formatDuration(video.duration_seconds)}
