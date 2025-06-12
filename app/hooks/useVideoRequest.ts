@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
 import { Alert } from 'react-native';
 import { router } from 'expo-router';
-import { supabase } from '@/lib/supabase';
+import { useAuth } from '@clerk/clerk-expo';
+import { useGetUser } from '@/lib/hooks/useGetUser';
+import { useClerkSupabaseClient } from '@/lib/supabase-clerk';
 import { VideoType, CaptionConfiguration } from '@/types/video';
 import { CaptionConfigStorage } from '@/lib/utils/caption-config-storage';
-import { API_ENDPOINTS, API_HEADERS } from '@/lib/config/api';
+import { API_ENDPOINTS } from '@/lib/config/api';
 
 // Default voice ID
 const DEFAULT_VOICE_ID = 'NFcw9p0jKu3zbmXieNPE';
@@ -47,6 +49,11 @@ type CustomEditorialProfile = {
 };
 
 export default function useVideoRequest() {
+  // Clerk authentication
+  const { getToken } = useAuth();
+  const { fetchUser, clerkLoaded, isSignedIn } = useGetUser();
+  const { client: supabase } = useClerkSupabaseClient();
+
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -70,21 +77,30 @@ export default function useVideoRequest() {
     useState<string>(DEFAULT_LANGUAGE);
 
   useEffect(() => {
-    fetchInitialData();
-  }, []);
+    if (clerkLoaded) {
+      if (!isSignedIn) {
+        router.replace('/(auth)/sign-in');
+        return;
+      }
+      fetchInitialData();
+    }
+  }, [clerkLoaded, isSignedIn]);
 
   const fetchInitialData = async () => {
     try {
       console.log('Fetching initial data...');
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
+
+      // Get the database user (which includes the database ID)
+      const user = await fetchUser();
       if (!user) {
+        console.log('No database user found');
         router.replace('/(auth)/sign-in');
         return;
       }
 
-      // Fetch source videos
+      console.log('🔍 Fetching data for database user ID:', user.id);
+
+      // Fetch source videos using database ID
       const { data: videos, error: videosError } = await supabase
         .from('videos')
         .select('*')
@@ -95,7 +111,7 @@ export default function useVideoRequest() {
       setSourceVideos(videos as unknown as VideoType[]);
       console.log('Fetched videos:', videos?.length || 0);
 
-      // Fetch voice clone
+      // Fetch voice clone using database ID
       const { data: voice, error: voiceError } = await supabase
         .from('voice_clones')
         .select('id, elevenlabs_voice_id, status')
@@ -106,7 +122,7 @@ export default function useVideoRequest() {
       setVoiceClone(voice as unknown as VoiceClone);
       console.log('Voice clone status:', voice?.status || 'none');
 
-      // Fetch editorial profile
+      // Fetch editorial profile using database ID
       const { data: profile, error: profileError } = await supabase
         .from('editorial_profiles')
         .select('id, persona_description, tone_of_voice, audience, style_notes')
@@ -134,7 +150,7 @@ export default function useVideoRequest() {
         });
       }
 
-      // Load saved caption configuration
+      // Load saved caption configuration using database ID
       try {
         const savedCaptionConfig = await CaptionConfigStorage.getOrDefault(
           user.id
@@ -245,11 +261,10 @@ export default function useVideoRequest() {
       setSubmitting(true);
       setError(null);
 
-      // Get current user
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
+      // Get the database user
+      const user = await fetchUser();
       if (!user) {
+        console.log('No database user found');
         router.replace('/(auth)/sign-in');
         return;
       }
@@ -286,12 +301,20 @@ export default function useVideoRequest() {
       };
 
       console.log('Request payload:', JSON.stringify(requestPayload, null, 2));
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
+
+      // Get Clerk token for API authentication
+      const clerkToken = await getToken();
+      if (!clerkToken) {
+        throw new Error('No authentication token available');
+      }
+
+      console.log('🔑 Got Clerk token, making request to backend...');
       const response = await fetch(API_ENDPOINTS.VIDEO_GENERATE(), {
         method: 'POST',
-        headers: API_HEADERS.USER_AUTH(session?.access_token ?? ''),
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${clerkToken}`,
+        },
         body: JSON.stringify(requestPayload),
       });
 

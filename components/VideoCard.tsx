@@ -31,6 +31,16 @@ export default function VideoCard({
   onPress,
   onPlayToggle,
 }: VideoCardProps) {
+  // Debug: Log video data to help diagnose the text rendering issue
+  React.useEffect(() => {
+    if (video?.tags && !Array.isArray(video.tags)) {
+      console.warn(
+        '🚨 VideoCard: video.tags is not an array:',
+        video.tags,
+        typeof video.tags
+      );
+    }
+  }, [video]);
   // TEMPORARILY DISABLED FOR ANDROID CRASH FIX
   // const player = useVideoPlayer({ uri: video.upload_url }, (player) => {
   //   player.muted = true;
@@ -91,7 +101,9 @@ export default function VideoCard({
             <FileVideo size={32} color="#007AFF" />
           </View>
           <Text style={styles.fallbackTitle}>
-            {video.title || 'Vidéo sans titre'}
+            {video.title && typeof video.title === 'string'
+              ? video.title
+              : 'Vidéo sans titre'}
           </Text>
           <View style={styles.videoBadges}>
             {video.duration_seconds && video.duration_seconds > 0 && (
@@ -101,7 +113,7 @@ export default function VideoCard({
                 </Text>
               </View>
             )}
-            {video.processing_status && (
+            {video.processing_status ? (
               <View
                 style={[
                   styles.statusChip,
@@ -112,7 +124,7 @@ export default function VideoCard({
                   {getStatusText(video.processing_status)}
                 </Text>
               </View>
-            )}
+            ) : null}
           </View>
         </View>
 
@@ -157,32 +169,39 @@ export default function VideoCard({
 
       <View style={styles.videoInfo}>
         <Text style={styles.videoTitle} numberOfLines={2}>
-          {video.title || 'Vidéo sans titre'}
+          {video.title && typeof video.title === 'string'
+            ? video.title
+            : 'Vidéo sans titre'}
         </Text>
 
-        {video.description && (
+        {video.description && video.description.trim() ? (
           <Text style={styles.videoDescription} numberOfLines={2}>
             {video.description}
           </Text>
-        )}
+        ) : null}
 
         <View style={styles.videoMeta}>
           <View style={styles.dateContainer}>
             <Clock size={12} color="#888" />
             <Text style={styles.dateText}>
-              {new Date(video.created_at).toLocaleDateString()}
+              {video.created_at
+                ? new Date(video.created_at).toLocaleDateString()
+                : 'Date inconnue'}
             </Text>
           </View>
 
-          {video.tags && video.tags.length > 0 && (
+          {video.tags && Array.isArray(video.tags) && video.tags.length > 0 ? (
             <View style={styles.tagContainer}>
               <Tag size={12} color="#888" />
               <Text style={styles.tagText} numberOfLines={1}>
-                {video.tags.slice(0, 2).join(', ')}
+                {video.tags
+                  .slice(0, 2)
+                  .filter((tag) => tag && typeof tag === 'string')
+                  .join(', ')}
                 {video.tags.length > 2 ? ` +${video.tags.length - 2}` : ''}
               </Text>
             </View>
-          )}
+          ) : null}
         </View>
       </View>
     </TouchableOpacity>

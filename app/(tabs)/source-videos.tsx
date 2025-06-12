@@ -339,20 +339,32 @@ export default function SourceVideosScreen() {
               </Text>
             </View>
           ) : (
-            videos.map((video) => (
-              <VideoCard
-                key={video.id}
-                video={video}
-                isPlaying={playingVideoId === video.id}
-                isLoading={loadingVideoIds.has(video.id)}
-                hasError={errorVideoIds.has(video.id)}
-                onPress={() => handleVideoPress(video)}
-                onPlayToggle={() => handlePlayToggle(video.id)}
-                onLoadStart={() => handleVideoLoadStart(video.id)}
-                onLoad={() => handleVideoLoad(video.id)}
-                onError={() => handleVideoError(video.id)}
-              />
-            ))
+            videos.map((video, index) => {
+              // Debug: Log video data structure to diagnose text rendering issue
+              console.log(`🔍 Video ${index} data:`, {
+                id: video.id,
+                title: video.title,
+                description: video.description,
+                tags: video.tags,
+                tagsType: typeof video.tags,
+                tagsIsArray: Array.isArray(video.tags),
+              });
+
+              return (
+                <VideoCard
+                  key={video.id}
+                  video={video}
+                  isPlaying={playingVideoId === video.id}
+                  isLoading={loadingVideoIds.has(video.id)}
+                  hasError={errorVideoIds.has(video.id)}
+                  onPress={() => handleVideoPress(video)}
+                  onPlayToggle={() => handlePlayToggle(video.id)}
+                  onLoadStart={() => handleVideoLoadStart(video.id)}
+                  onLoad={() => handleVideoLoad(video.id)}
+                  onError={() => handleVideoError(video.id)}
+                />
+              );
+            })
           )}
         </View>
       </ScrollView>
