@@ -15,6 +15,8 @@ import {
   useAuthRedirect,
   useAuthStateRedirect,
 } from '@/lib/hooks/useAuthRedirect';
+import { ClerkProvider } from '@clerk/clerk-expo';
+import { clerkConfig } from '@/lib/config/clerk';
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
@@ -133,41 +135,46 @@ export default function RootLayout() {
 
   return (
     <ErrorBoundary>
-      <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-        <Stack
-          screenOptions={{
-            animation: 'slide_from_right',
-            animationDuration: 300,
-          }}
-        >
-          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-          <Stack.Screen name="(auth)" options={{ headerShown: false }} />
-          <Stack.Screen name="(onboarding)" options={{ headerShown: false }} />
-          <Stack.Screen name="(settings)" options={{ headerShown: false }} />
-          <Stack.Screen
-            name="video-details/[id]"
-            options={{ headerShown: false }}
-          />
-          <Stack.Screen name="+not-found" />
-          <Stack.Screen name="index" options={{ headerShown: false }} />
+      <ClerkProvider
+        publishableKey={clerkConfig.publishableKey}
+        tokenCache={clerkConfig.tokenCache}
+      >
+        <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+          <Stack
+            screenOptions={{
+              animation: 'slide_from_right',
+              animationDuration: 300,
+            }}
+          >
+            <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+            <Stack.Screen name="(auth)" options={{ headerShown: false }} />
+            <Stack.Screen name="(onboarding)" options={{ headerShown: false }} />
+            <Stack.Screen name="(settings)" options={{ headerShown: false }} />
+            <Stack.Screen
+              name="video-details/[id]"
+              options={{ headerShown: false }}
+            />
+            <Stack.Screen name="+not-found" />
+            <Stack.Screen name="index" options={{ headerShown: false }} />
 
-          {/* Auth callback screens - accessible via deep linking */}
-          <Stack.Screen
-            name="auth/reset-password"
-            options={{
-              headerShown: false,
-              presentation: 'modal',
-            }}
-          />
-          <Stack.Screen
-            name="auth/verify"
-            options={{
-              headerShown: false,
-              presentation: 'modal',
-            }}
-          />
-        </Stack>
-      </ThemeProvider>
+            {/* Auth callback screens - accessible via deep linking */}
+            <Stack.Screen
+              name="auth/reset-password"
+              options={{
+                headerShown: false,
+                presentation: 'modal',
+              }}
+            />
+            <Stack.Screen
+              name="auth/verify"
+              options={{
+                headerShown: false,
+                presentation: 'modal',
+              }}
+            />
+          </Stack>
+        </ThemeProvider>
+      </ClerkProvider>
     </ErrorBoundary>
   );
 }
