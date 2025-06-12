@@ -1,8 +1,31 @@
-import { Tabs } from 'expo-router';
+import { Redirect, Tabs } from 'expo-router';
 import { Upload, Video, Settings, Plus } from 'lucide-react-native';
-import { View } from 'react-native';
+import { View, ActivityIndicator, Text, StyleSheet } from 'react-native';
+import { useClerkAuth } from '@/hooks/useClerkAuth';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function TabLayout() {
+  const { isLoaded, isSignedIn, initializing } = useClerkAuth();
+
+  // Show loading while Clerk is initializing
+  if (!isLoaded || initializing) {
+    return (
+      <SafeAreaView style={styles.loadingContainer}>
+        <View style={styles.loadingContent}>
+          <ActivityIndicator size="large" color="#007AFF" />
+          <Text style={styles.loadingText}>Vérification de l'authentification...</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  // Redirect to sign-in if not authenticated
+  if (!isSignedIn) {
+    console.log('🔀 User not signed in, redirecting from tabs to sign-in');
+    return <Redirect href="/(auth)/sign-in" />;
+  }
+
+  // User is authenticated, show tabs
   return (
     <View style={{ flex: 1, backgroundColor: '#000' }}>
       <Tabs
@@ -65,3 +88,22 @@ export default function TabLayout() {
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  loadingContainer: {
+    flex: 1,
+    backgroundColor: '#000',
+  },
+  loadingContent: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  loadingText: {
+    marginTop: 16,
+    fontSize: 16,
+    color: '#888',
+    textAlign: 'center',
+  },
+});

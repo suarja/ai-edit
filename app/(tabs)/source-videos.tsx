@@ -20,6 +20,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import VideoUploader from '@/components/VideoUploader';
 import VideoCard from '@/components/VideoCard';
 import { VideoType } from '@/types/video';
+import { useClerkAuth } from '@/hooks/useClerkAuth';
 
 export default function SourceVideosScreen() {
   const [videos, setVideos] = useState<VideoType[]>([]);
@@ -43,6 +44,8 @@ export default function SourceVideosScreen() {
     tags: '',
   });
 
+  const { user } = useClerkAuth();
+
   useEffect(() => {
     fetchVideos();
   }, []);
@@ -55,18 +58,19 @@ export default function SourceVideosScreen() {
 
   const fetchVideos = async () => {
     try {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (!user) {
-        router.replace('/(auth)/sign-in');
+      // User is guaranteed to be authenticated at layout level
+      if (!user?.id) {
+        console.error('No Clerk user ID found');
+        setError("Erreur d'authentification");
         return;
       }
 
+      // For now, we'll need to map Clerk user ID to Supabase user_id
+      // TODO: Update database schema to use clerk_user_id
       const { data, error } = await supabase
         .from('videos')
         .select('*')
-        .eq('user_id', user.id)
+        .eq('user_id', user.id) // This will need updating when we map Clerk IDs
         .order('created_at', { ascending: false });
 
       if (error) throw error;
@@ -84,13 +88,12 @@ export default function SourceVideosScreen() {
     url: string;
   }) => {
     try {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (!user) throw new Error('User not authenticated');
+      if (!user?.id) {
+        throw new Error('User not authenticated');
+      }
 
       const { error } = await supabase.from('videos').insert({
-        user_id: user.id,
+        user_id: user.id, // This will need updating when we map Clerk IDs
         title: '',
         description: '',
         tags: [],
