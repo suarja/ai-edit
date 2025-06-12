@@ -23,7 +23,8 @@ import {
 import { useOnboarding } from '@/components/providers/OnboardingProvider';
 import { ProgressBar } from '@/components/onboarding/ProgressBar';
 import { useOnboardingSteps } from '@/components/onboarding/OnboardingSteps';
-import { supabase } from '@/lib/supabase';
+import { useClerkSupabaseClient } from '@/lib/supabase-clerk';
+import { useGetUser } from '@/lib/hooks/useGetUser';
 
 type EditorialProfile = {
   id: string;
@@ -48,6 +49,9 @@ export default function EditorialProfileScreen() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  const { client: supabase } = useClerkSupabaseClient();
+  const { fetchUser } = useGetUser();
+
   useEffect(() => {
     fetchProfile();
   }, []);
@@ -55,9 +59,7 @@ export default function EditorialProfileScreen() {
   const fetchProfile = async () => {
     try {
       setLoading(true);
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
+      const user = await fetchUser();
 
       if (!user) {
         console.error('No user found during onboarding');

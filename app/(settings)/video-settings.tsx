@@ -10,17 +10,21 @@ import {
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Save } from 'lucide-react-native';
-import { supabase } from '@/lib/supabase';
 import VideoSettingsSection from '@/components/VideoSettingsSection';
 import SettingsHeader from '@/components/SettingsHeader';
 import { CaptionConfiguration } from '@/types/video';
 import { CaptionConfigStorage } from '@/lib/utils/caption-config-storage';
+import { useClerkSupabaseClient } from '@/lib/supabase-clerk';
+import { useGetUser } from '@/lib/hooks/useGetUser';
 
 export default function VideoSettingsScreen() {
   const [captionConfig, setCaptionConfig] =
     useState<CaptionConfiguration | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+
+  const { client: supabase } = useClerkSupabaseClient();
+  const { fetchUser } = useGetUser();
 
   useEffect(() => {
     fetchCaptionConfig();
@@ -29,9 +33,7 @@ export default function VideoSettingsScreen() {
   const fetchCaptionConfig = async () => {
     try {
       // Get user ID for key scoping
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
+      const user = await fetchUser();
       if (!user) {
         router.replace('/(auth)/sign-in');
         return;
@@ -73,9 +75,7 @@ export default function VideoSettingsScreen() {
       setSaving(true);
 
       // Get user ID for key scoping
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
+      const user = await fetchUser();
       if (!user) {
         router.replace('/(auth)/sign-in');
         return;

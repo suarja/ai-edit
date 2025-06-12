@@ -8,7 +8,6 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { router } from 'expo-router';
-import { supabase } from '@/lib/supabase';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   Edit,
@@ -20,6 +19,8 @@ import {
 } from 'lucide-react-native';
 import SettingsHeader from '@/components/SettingsHeader';
 import EditorialProfileForm from '@/components/EditorialProfileForm';
+import { useClerkSupabaseClient } from '@/lib/supabase-clerk';
+import { useGetUser } from '@/lib/hooks/useGetUser';
 
 type EditorialProfile = {
   id: string;
@@ -45,15 +46,16 @@ export default function EditorialScreen() {
   const [saving, setSaving] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
 
+  const { client: supabase } = useClerkSupabaseClient();
+  const { fetchUser } = useGetUser();
+
   useEffect(() => {
     fetchProfile();
   }, []);
 
   const fetchProfile = async () => {
     try {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
+      const user = await fetchUser();
       if (!user) {
         router.replace('/(auth)/sign-in');
         return;
@@ -92,9 +94,7 @@ export default function EditorialScreen() {
     try {
       setSaving(true);
 
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
+      const user = await fetchUser();
       if (!user) {
         router.replace('/(auth)/sign-in');
         return;

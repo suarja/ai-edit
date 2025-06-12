@@ -2,23 +2,26 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
-import { supabase } from '@/lib/supabase';
 import AdminUsageSettings from '@/components/AdminUsageSettings';
 import { AlertTriangle } from 'lucide-react-native';
+import { useClerkSupabaseClient } from '@/lib/supabase-clerk';
+import { useGetUser } from '@/lib/hooks/useGetUser';
 
 export default function AdminUsageSettingsPage() {
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
 
+  const { client: supabase } = useClerkSupabaseClient();
+  const { fetchUser } = useGetUser();
+
   useEffect(() => {
     async function checkAdminAccess() {
       try {
-        const { data: userData, error: userError } =
-          await supabase.auth.getUser();
+        const user = await fetchUser();
 
-        if (userError || !userData.user) {
+        if (!user) {
           // Redirect to login if not authenticated
-          router.replace('/login');
+          router.replace('/(auth)/sign-in');
           return;
         }
 
@@ -26,7 +29,7 @@ export default function AdminUsageSettingsPage() {
         const { data: roleData, error: roleError } = await supabase
           .from('user_roles')
           .select('role')
-          .eq('user_id', userData.user.id)
+          .eq('user_id', user.id)
           .eq('role', 'admin')
           .single();
 
@@ -41,7 +44,7 @@ export default function AdminUsageSettingsPage() {
     }
 
     checkAdminAccess();
-  }, []);
+  }, [fetchUser, supabase]);
 
   if (loading) {
     return (

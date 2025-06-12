@@ -20,7 +20,6 @@ import {
 } from 'lucide-react-native';
 import * as DocumentPicker from 'expo-document-picker';
 import { Audio } from 'expo-av';
-import { supabase } from '@/lib/supabase';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import SettingsHeader from '@/components/SettingsHeader';
@@ -34,6 +33,8 @@ import {
   getVoiceSamples,
   getVoiceSampleAudioUrl,
 } from '@/lib/api/voice-recording-client';
+import { useClerkSupabaseClient } from '@/lib/supabase-clerk';
+import { useGetUser } from '@/lib/hooks/useGetUser';
 
 type VoiceClone = {
   id: string;
@@ -69,6 +70,9 @@ export default function VoiceCloneScreen() {
   const [isLoading, setIsLoading] = useState(true);
   const [recordingMode, setRecordingMode] = useState(false);
 
+  const { client: supabase } = useClerkSupabaseClient();
+  const { fetchUser } = useGetUser();
+
   useEffect(() => {
     fetchExistingVoice();
     return () => {
@@ -80,9 +84,7 @@ export default function VoiceCloneScreen() {
 
   const fetchExistingVoice = async () => {
     try {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
+      const user = await fetchUser();
       if (!user) {
         router.replace('/(auth)/sign-in');
         return;

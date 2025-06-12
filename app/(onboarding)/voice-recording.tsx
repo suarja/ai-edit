@@ -21,9 +21,10 @@ import {
 } from 'react-native';
 import { ArrowRight, Square } from 'lucide-react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { supabase } from '@/lib/supabase';
 import { useOnboarding } from '@/components/providers/OnboardingProvider';
 import { ProgressBar } from '@/components/onboarding/ProgressBar';
+import { useClerkSupabaseClient } from '@/lib/supabase-clerk';
+import { useGetUser } from '@/lib/hooks/useGetUser';
 import { VoiceRecordingUI } from '@/components/voice/VoiceRecordingUI';
 import {
   VoiceRecordingResult,
@@ -41,14 +42,15 @@ export default function VoiceRecordingScreen() {
   const [error, setError] = useState<string | null>(null);
   const [progress, setProgress] = useState<string>('');
 
+  const { client: supabase } = useClerkSupabaseClient();
+  const { fetchUser } = useGetUser();
+
   // Function to save survey data without audio processing
   const saveSurveyData = async (): Promise<boolean> => {
     try {
       setProgress('Enregistrement des données du questionnaire...');
 
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
+      const user = await fetchUser();
       if (!user) {
         console.error('User not authenticated');
         return false;
@@ -98,9 +100,7 @@ export default function VoiceRecordingScreen() {
       setError(null);
       setProgress("Préparation de l'audio...");
 
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
+      const user = await fetchUser();
       if (!user) throw new Error('Non authentifié');
 
       // Submit the recording with survey data
@@ -176,9 +176,7 @@ export default function VoiceRecordingScreen() {
       await saveSurveyData();
 
       // Create a default editorial profile based on survey answers
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
+      const user = await fetchUser();
 
       if (user) {
         // Check if the user already has a profile

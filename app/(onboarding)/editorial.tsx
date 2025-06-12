@@ -9,9 +9,10 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { router } from 'expo-router';
-import { supabase } from '@/lib/supabase';
 import { Save, CircleAlert as AlertCircle, Mic } from 'lucide-react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useClerkSupabaseClient } from '@/lib/supabase-clerk';
+import { useGetUser } from '@/lib/hooks/useGetUser';
 
 export default function EditorialScreen() {
   const [loading, setLoading] = useState(true);
@@ -26,15 +27,16 @@ export default function EditorialScreen() {
   });
   const [hasVoiceClone, setHasVoiceClone] = useState(false);
 
+  const { client: supabase } = useClerkSupabaseClient();
+  const { fetchUser } = useGetUser();
+
   useEffect(() => {
     fetchProfile();
   }, []);
 
   const fetchProfile = async () => {
     try {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
+      const user = await fetchUser();
       if (!user) {
         router.replace('/(auth)/sign-in');
         return;
@@ -91,9 +93,7 @@ export default function EditorialScreen() {
       setSaving(true);
       setError(null);
 
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
+      const user = await fetchUser();
       if (!user) {
         router.replace('/(auth)/sign-in');
         return;
