@@ -202,7 +202,7 @@ function SignUp() {
         style={styles.container}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
-        <ScrollView style={styles.scrollContainer}>
+        <ScrollView contentContainerStyle={styles.scrollContainer}>
           <View style={styles.header}>
             <Image
               source={{
@@ -272,7 +272,7 @@ function SignUp() {
       style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
-      <ScrollView style={styles.scrollContainer}>
+      <ScrollView contentContainerStyle={styles.scrollContainer}>
         <View style={styles.header}>
           <Image
             source={{

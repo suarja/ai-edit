@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -10,102 +10,261 @@ import {
   KeyboardAvoidingView,
   Platform,
   Alert,
+  ActivityIndicator,
 } from 'react-native';
 import { Link, router } from 'expo-router';
-import { supabase } from '@/lib/supabase';
+import { useSignIn, useAuth } from '@clerk/clerk-expo';
 import { Mail, ArrowLeft } from 'lucide-react-native';
-import { env } from '@/lib/config/env';
-import { AuthEventType, createAuthRedirectUrl } from '@/lib/utils/authRedirect';
+import { reportAuthError } from '@/lib/services/errorReporting';
+import { withErrorBoundary } from '@/components/ErrorBoundary';
+import { IMAGES } from '@/lib/constants/images';
 
-export default function ForgotPassword() {
+function ForgotPassword() {
+  const { isSignedIn } = useAuth();
+  const { isLoaded, signIn, setActive } = useSignIn();
   const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [code, setCode] = useState('');
   const [loading, setLoading] = useState(false);
-  const [emailSent, setEmailSent] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [successfulCreation, setSuccessfulCreation] = useState(false);
+  const [secondFactor, setSecondFactor] = useState(false);
 
+  useEffect(() => {
+    if (isSignedIn) {
+      router.replace('/(tabs)/source-videos');
+    }
+  }, [isSignedIn]);
+
+  if (!isLoaded) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#007AFF" />
+        <Text style={styles.loadingText}>Loading...</Text>
+      </View>
+    );
+  }
+
+  // Send the password reset code to the user's email
   async function handleResetPassword() {
-    if (!email) {
-      Alert.alert('Erreur', 'Veuillez entrer votre adresse email');
+    if (!email.trim()) {
+      setError('Veuillez entrer votre adresse email');
+      return;
+    }
+
+    if (!isLoaded) {
+      setError('Authentication system is loading...');
       return;
     }
 
     setLoading(true);
+    setError(null);
 
     try {
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: createAuthRedirectUrl(AuthEventType.PASSWORD_RECOVERY),
+      console.log('🔑 Starting password reset for:', email);
+
+      await signIn.create({
+        strategy: 'reset_password_email_code',
+        identifier: email,
       });
 
-      if (error) {
-        throw error;
+      setSuccessfulCreation(true);
+      console.log('✅ Password reset email sent successfully');
+    } catch (authError: any) {
+      console.error('❌ Password reset error:', authError);
+
+      // Report error for debugging
+      reportAuthError(authError, {
+        screen: 'ForgotPassword',
+        action: 'clerk_reset_password_request',
+        userId: email,
+      });
+
+      // Handle different Clerk error types
+      let errorMessage = 'Une erreur est survenue';
+      if (authError.errors && authError.errors.length > 0) {
+        const clerkError = authError.errors[0];
+        switch (clerkError.code) {
+          case 'form_identifier_not_found':
+            errorMessage =
+              'Email introuvable. Veuillez vérifier votre email ou vous inscrire.';
+            break;
+          case 'form_param_format_invalid':
+            errorMessage =
+              "Format de l'email invalide. Veuillez vérifier votre email.";
+            break;
+          default:
+            errorMessage =
+              clerkError.longMessage || clerkError.message || errorMessage;
+        }
       }
 
-      setEmailSent(true);
-    } catch (error: any) {
-      Alert.alert('Erreur', error.message || 'Une erreur est survenue');
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
   }
 
-  if (emailSent) {
+  // Reset the user's password using the code and new password
+  async function handlePasswordReset() {
+    if (!code.trim() || !password.trim()) {
+      setError('Veuillez remplir tous les champs');
+      return;
+    }
+
+    if (password.length < 8) {
+      setError('Le mot de passe doit contenir au moins 8 caractères');
+      return;
+    }
+
+    if (!isLoaded) {
+      setError('Authentication system is loading...');
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
+
+    try {
+      console.log('🔑 Attempting password reset with code');
+
+      const result = await signIn.attemptFirstFactor({
+        strategy: 'reset_password_email_code',
+        code,
+        password,
+      });
+
+      // Check if 2FA is required
+      if (result.status === 'needs_second_factor') {
+        setSecondFactor(true);
+        console.log('⚠️ 2FA required for password reset');
+      } else if (result.status === 'complete') {
+        // Set the active session (user is now signed in with new password)
+        await setActive({ session: result.createdSessionId });
+
+        Alert.alert(
+          '✅ Mot de passe réinitialisé !',
+          'Votre mot de passe a été mis à jour avec succès.',
+          [
+            {
+              text: 'Continuer',
+              onPress: () => router.replace('/(tabs)/source-videos'),
+            },
+          ]
+        );
+      } else {
+        console.error('❌ Password reset incomplete:', result.status);
+        setError('Réinitialisation incomplète. Veuillez réessayer.');
+      }
+    } catch (authError: any) {
+      console.error('❌ Password reset verification error:', authError);
+
+      // Report error for debugging
+      reportAuthError(authError, {
+        screen: 'ForgotPassword',
+        action: 'clerk_reset_password_verify',
+        userId: email,
+      });
+
+      // Handle different Clerk error types
+      let errorMessage = 'Erreur de vérification';
+      if (authError.errors && authError.errors.length > 0) {
+        const clerkError = authError.errors[0];
+        switch (clerkError.code) {
+          case 'form_code_incorrect':
+            errorMessage =
+              'Code de vérification incorrect. Veuillez réessayer.';
+            break;
+          case 'verification_expired':
+            errorMessage =
+              'Le code de vérification a expiré. Veuillez en demander un nouveau.';
+            break;
+          default:
+            errorMessage =
+              clerkError.longMessage || clerkError.message || errorMessage;
+        }
+      }
+
+      setError(errorMessage);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  // If password reset email was sent successfully, show verification form
+  if (successfulCreation && !secondFactor) {
     return (
       <KeyboardAvoidingView
         style={styles.container}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
-        <ScrollView style={styles.scrollContainer}>
+        <ScrollView contentContainerStyle={styles.scrollContainer}>
           <View style={styles.header}>
+            <TouchableOpacity
+              style={styles.backButton}
+              onPress={() => setSuccessfulCreation(false)}
+            >
+              <ArrowLeft size={24} color="#fff" />
+            </TouchableOpacity>
+
             <Image
               source={{
-                uri: 'https://images.pexels.com/photos/2882566/pexels-photo-2882566.jpeg',
+                uri:
+                  IMAGES.signIn?.header ||
+                  'https://images.pexels.com/photos/2882566/pexels-photo-2882566.jpeg',
               }}
               style={styles.headerImage}
             />
             <View style={styles.overlay} />
-            <Text style={styles.title}>Email envoyé !</Text>
+            <Text style={styles.title}>Réinitialiser le mot de passe</Text>
             <Text style={styles.subtitle}>
-              Vérifiez votre boîte email pour réinitialiser votre mot de passe
+              Entrez le code reçu à {email} et votre nouveau mot de passe
             </Text>
           </View>
 
           <View style={styles.contentContainer}>
-            <View style={styles.successContainer}>
-              <View style={styles.successIcon}>
-                <Text style={styles.successEmoji}>📧</Text>
+            <View style={styles.formContainer}>
+              {error && <Text style={styles.error}>{error}</Text>}
+
+              <Text style={styles.inputLabel}>Code de vérification</Text>
+              <View style={styles.inputContainer}>
+                <Mail size={20} color="#888" />
+                <TextInput
+                  style={styles.input}
+                  placeholder="Entrez le code reçu par email"
+                  placeholderTextColor="#888"
+                  value={code}
+                  onChangeText={setCode}
+                  keyboardType="number-pad"
+                  editable={!loading}
+                />
               </View>
 
-              <Text style={styles.successTitle}>
-                Lien de réinitialisation envoyé
-              </Text>
-
-              <Text style={styles.successText}>
-                Nous avons envoyé un lien de réinitialisation à{' '}
-                <Text style={styles.emailText}>{email}</Text>
-              </Text>
-
-              <Text style={styles.instructionsText}>
-                Cliquez sur le lien dans l&apos;email pour créer un nouveau mot
-                de passe. Le lien expire dans 24 heures.
-              </Text>
+              <Text style={styles.inputLabel}>Nouveau mot de passe</Text>
+              <View style={styles.inputContainer}>
+                <Mail size={20} color="#888" />
+                <TextInput
+                  style={styles.input}
+                  placeholder="Entrez votre nouveau mot de passe"
+                  placeholderTextColor="#888"
+                  value={password}
+                  onChangeText={setPassword}
+                  secureTextEntry
+                  editable={!loading}
+                />
+              </View>
             </View>
 
-            <View style={styles.actionContainer}>
+            <View style={styles.buttonContainer}>
               <TouchableOpacity
-                style={styles.primaryButton}
-                onPress={() => router.replace('/(auth)/sign-in')}
+                style={[styles.button, loading && styles.buttonDisabled]}
+                onPress={handlePasswordReset}
+                disabled={loading || !code.trim() || !password.trim()}
               >
-                <Text style={styles.primaryButtonText}>
-                  Retour à la connexion
-                </Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={styles.secondaryButton}
-                onPress={handleResetPassword}
-                disabled={loading}
-              >
-                <Text style={styles.secondaryButtonText}>
-                  Renvoyer l&apos;email
+                <Text style={styles.buttonText}>
+                  {loading
+                    ? 'Réinitialisation...'
+                    : 'Réinitialiser le mot de passe'}
                 </Text>
               </TouchableOpacity>
             </View>
@@ -115,12 +274,39 @@ export default function ForgotPassword() {
     );
   }
 
+  // Show 2FA message if required
+  if (secondFactor) {
+    return (
+      <View style={styles.container}>
+        <View style={styles.centerContent}>
+          <Text style={styles.title}>
+            Authentification à deux facteurs requise
+          </Text>
+          <Text style={styles.subtitle}>
+            Cette fonctionnalité nécessite une authentification à deux facteurs,
+            mais cette interface ne la prend pas encore en charge.
+          </Text>
+          <TouchableOpacity
+            style={styles.button}
+            onPress={() => {
+              setSecondFactor(false);
+              setSuccessfulCreation(false);
+            }}
+          >
+            <Text style={styles.buttonText}>Retour</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    );
+  }
+
+  // Initial form to enter email
   return (
     <KeyboardAvoidingView
       style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
-      <ScrollView style={styles.scrollContainer}>
+      <ScrollView contentContainerStyle={styles.scrollContainer}>
         <View style={styles.header}>
           <TouchableOpacity
             style={styles.backButton}
@@ -131,19 +317,23 @@ export default function ForgotPassword() {
 
           <Image
             source={{
-              uri: 'https://images.pexels.com/photos/2882566/pexels-photo-2882566.jpeg',
+              uri:
+                IMAGES.signIn?.header ||
+                'https://images.pexels.com/photos/2882566/pexels-photo-2882566.jpeg',
             }}
             style={styles.headerImage}
           />
           <View style={styles.overlay} />
           <Text style={styles.title}>Mot de passe oublié ?</Text>
           <Text style={styles.subtitle}>
-            Entrez votre email pour recevoir un lien de réinitialisation
+            Entrez votre email pour recevoir un code de réinitialisation
           </Text>
         </View>
 
         <View style={styles.contentContainer}>
           <View style={styles.formContainer}>
+            {error && <Text style={styles.error}>{error}</Text>}
+
             <Text style={styles.inputLabel}>Adresse email</Text>
             <View style={styles.inputContainer}>
               <Mail size={20} color="#888" />
@@ -155,6 +345,7 @@ export default function ForgotPassword() {
                 onChangeText={setEmail}
                 autoCapitalize="none"
                 keyboardType="email-address"
+                editable={!loading}
                 autoFocus
               />
             </View>
@@ -164,13 +355,13 @@ export default function ForgotPassword() {
             <TouchableOpacity
               style={[styles.button, loading && styles.buttonDisabled]}
               onPress={handleResetPassword}
-              disabled={loading || !email}
+              disabled={loading || !email.trim()}
             >
               {loading ? (
-                <Text style={styles.buttonText}>Envoi en cours...</Text>
+                <ActivityIndicator color="#fff" />
               ) : (
                 <Text style={styles.buttonText}>
-                  Envoyer le lien de réinitialisation
+                  Envoyer le code de réinitialisation
                 </Text>
               )}
             </TouchableOpacity>
@@ -200,86 +391,110 @@ const styles = StyleSheet.create({
   scrollContainer: {
     flexGrow: 1,
   },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#000',
+  },
+  loadingText: {
+    color: '#fff',
+    fontSize: 16,
+    marginTop: 10,
+  },
+  centerContent: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+  },
   header: {
     height: 300,
-    justifyContent: 'flex-end',
-    padding: 20,
     position: 'relative',
-  },
-  backButton: {
-    position: 'absolute',
-    top: 60,
-    left: 20,
-    zIndex: 10,
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: 'rgba(0,0,0,0.3)',
     justifyContent: 'center',
     alignItems: 'center',
   },
   headerImage: {
+    width: '100%',
+    height: '100%',
     position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    height: 300,
   },
   overlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0,0,0,0.3)',
+    backgroundColor: 'rgba(0, 0, 0, 0.4)',
+  },
+  backButton: {
+    position: 'absolute',
+    top: 50,
+    left: 20,
+    zIndex: 10,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    borderRadius: 20,
+    padding: 8,
   },
   title: {
     fontSize: 32,
     fontWeight: 'bold',
     color: '#fff',
+    textAlign: 'center',
     marginBottom: 8,
   },
   subtitle: {
     fontSize: 16,
-    color: '#888',
-    marginBottom: 20,
+    color: '#fff',
+    textAlign: 'center',
+    opacity: 0.9,
+    paddingHorizontal: 20,
   },
   contentContainer: {
     flex: 1,
-    padding: 20,
-    justifyContent: 'space-between',
-    minHeight: 400,
+    backgroundColor: '#fff',
+    borderTopLeftRadius: 30,
+    borderTopRightRadius: 30,
+    marginTop: -30,
+    paddingTop: 40,
+    paddingHorizontal: 20,
+    paddingBottom: 40,
   },
   formContainer: {
-    gap: 16,
+    marginBottom: 30,
   },
   inputLabel: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#fff',
+    color: '#333',
     marginBottom: 8,
   },
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#1a1a1a',
+    backgroundColor: '#f5f5f5',
     borderRadius: 12,
-    padding: 16,
-    gap: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 4,
+    marginBottom: 20,
+    borderWidth: 1,
+    borderColor: '#e0e0e0',
   },
   input: {
     flex: 1,
-    color: '#fff',
     fontSize: 16,
+    paddingVertical: 12,
+    paddingLeft: 12,
+    color: '#333',
   },
   buttonContainer: {
-    marginTop: 24,
-    marginBottom: 24,
+    marginBottom: 30,
   },
   button: {
     backgroundColor: '#007AFF',
-    padding: 16,
     borderRadius: 12,
+    paddingVertical: 16,
     alignItems: 'center',
+    justifyContent: 'center',
   },
   buttonDisabled: {
-    opacity: 0.7,
+    backgroundColor: '#ccc',
   },
   buttonText: {
     color: '#fff',
@@ -287,88 +502,31 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   footer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
     alignItems: 'center',
-    gap: 8,
-    marginTop: 'auto',
-    paddingVertical: 16,
+    paddingBottom: 20,
   },
   footerText: {
-    color: '#888',
+    color: '#666',
     fontSize: 14,
+    marginBottom: 8,
   },
   link: {
     color: '#007AFF',
     fontSize: 14,
     fontWeight: '600',
   },
-  // Success state styles
-  successContainer: {
-    alignItems: 'center',
-    paddingVertical: 40,
-  },
-  successIcon: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: '#1a1a1a',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 24,
-  },
-  successEmoji: {
-    fontSize: 40,
-  },
-  successTitle: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#fff',
-    marginBottom: 16,
-    textAlign: 'center',
-  },
-  successText: {
-    fontSize: 16,
-    color: '#888',
-    textAlign: 'center',
-    marginBottom: 16,
-    lineHeight: 24,
-  },
-  emailText: {
-    color: '#007AFF',
-    fontWeight: '600',
-  },
-  instructionsText: {
+  error: {
+    color: '#ff4444',
     fontSize: 14,
-    color: '#666',
+    marginBottom: 16,
+    paddingHorizontal: 4,
     textAlign: 'center',
-    lineHeight: 20,
-    marginBottom: 32,
-  },
-  actionContainer: {
-    gap: 16,
-  },
-  primaryButton: {
-    backgroundColor: '#007AFF',
-    padding: 16,
-    borderRadius: 12,
-    alignItems: 'center',
-  },
-  primaryButtonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  secondaryButton: {
-    backgroundColor: 'transparent',
+    backgroundColor: '#fff5f5',
+    paddingVertical: 8,
+    borderRadius: 8,
     borderWidth: 1,
-    borderColor: '#333',
-    padding: 16,
-    borderRadius: 12,
-    alignItems: 'center',
-  },
-  secondaryButtonText: {
-    color: '#888',
-    fontSize: 16,
+    borderColor: '#ffdddd',
   },
 });
+
+export default withErrorBoundary(ForgotPassword);
