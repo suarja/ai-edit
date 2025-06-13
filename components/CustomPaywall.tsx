@@ -58,8 +58,8 @@ export const CustomPaywall: React.FC<CustomPaywallProps> = ({
     } catch (error) {
       console.error('Failed to load offerings:', error);
       Alert.alert(
-        'Error',
-        'Failed to load subscription plans. Please try again.'
+        'Erreur',
+        'Impossible de charger les forfaits. Veuillez réessayer.'
       );
     } finally {
       setLoading(false);
@@ -73,7 +73,7 @@ export const CustomPaywall: React.FC<CustomPaywallProps> = ({
       const purchaseResult = await Purchases.purchasePackage(packageToPurchase);
 
       if (purchaseResult.customerInfo.entitlements.active['Pro']) {
-        Alert.alert('Success!', 'Welcome to AI Edit Pro! 🎉');
+        Alert.alert('Succès !', 'Bienvenue dans AI Edit Pro ! 🎉');
         onPurchaseComplete?.(true);
         onClose();
       }
@@ -85,8 +85,8 @@ export const CustomPaywall: React.FC<CustomPaywallProps> = ({
       } else {
         console.error('Purchase failed:', error);
         Alert.alert(
-          'Purchase Failed',
-          'Something went wrong. Please try again.'
+          'Achat échoué',
+          "Une erreur s'est produite. Veuillez réessayer."
         );
         onPurchaseComplete?.(false);
       }
@@ -101,20 +101,20 @@ export const CustomPaywall: React.FC<CustomPaywallProps> = ({
       const restoreResult = await Purchases.restorePurchases();
 
       if (restoreResult.entitlements.active['Pro']) {
-        Alert.alert('Restored!', 'Your Pro subscription has been restored! 🎉');
+        Alert.alert('Restauré !', 'Votre abonnement Pro a été restauré ! 🎉');
         onPurchaseComplete?.(true);
         onClose();
       } else {
         Alert.alert(
-          'No Purchases Found',
-          'No active subscriptions found to restore.'
+          'Aucun achat trouvé',
+          'Aucun abonnement actif à restaurer.'
         );
       }
     } catch (error) {
       console.error('Restore failed:', error);
       Alert.alert(
-        'Restore Failed',
-        'Unable to restore purchases. Please try again.'
+        'Restauration échouée',
+        'Impossible de restaurer les achats. Veuillez réessayer.'
       );
     } finally {
       setPurchasing(false);
@@ -127,10 +127,10 @@ export const CustomPaywall: React.FC<CustomPaywallProps> = ({
 
   const getPackageDescription = (packageInfo: PurchasesPackage) => {
     const identifier = packageInfo.identifier.toLowerCase();
-    if (identifier.includes('month')) return 'per month';
-    if (identifier.includes('year')) return 'per year';
-    if (identifier.includes('week')) return 'per week';
-    return 'one-time';
+    if (identifier.includes('month')) return 'par mois';
+    if (identifier.includes('year')) return 'par an';
+    if (identifier.includes('week')) return 'par semaine';
+    return 'unique';
   };
 
   if (!visible) return null;
@@ -163,7 +163,9 @@ export const CustomPaywall: React.FC<CustomPaywallProps> = ({
             {loading ? (
               <View style={styles.loadingContainer}>
                 <ActivityIndicator size="large" color="white" />
-                <Text style={styles.loadingText}>Loading plans...</Text>
+                <Text style={styles.loadingText}>
+                  Chargement des forfaits...
+                </Text>
               </View>
             ) : (
               <>
@@ -172,9 +174,10 @@ export const CustomPaywall: React.FC<CustomPaywallProps> = ({
                   <View style={styles.iconContainer}>
                     <Ionicons name="diamond" size={60} color="white" />
                   </View>
-                  <Text style={styles.title}>Upgrade to AI Edit Pro</Text>
+                  <Text style={styles.title}>Passez à AI Edit Pro</Text>
                   <Text style={styles.subtitle}>
-                    Unlock unlimited video generation and premium features
+                    Débloquez la génération vidéo illimitée et les
+                    fonctionnalités premium
                   </Text>
                 </View>
 
@@ -182,19 +185,19 @@ export const CustomPaywall: React.FC<CustomPaywallProps> = ({
                 <View style={styles.featuresSection}>
                   <FeatureItem
                     icon="videocam"
-                    text="Generate up to 30 videos per month"
+                    text="Générez jusqu'à 30 vidéos par mois"
                   />
                   <FeatureItem
                     icon="flash"
-                    text="Priority processing & faster generation"
+                    text="Traitement prioritaire et génération plus rapide"
                   />
                   <FeatureItem
                     icon="color-palette"
-                    text="Access to premium templates & styles"
+                    text="Accès aux modèles et styles premium"
                   />
                   <FeatureItem
                     icon="headset"
-                    text="Priority customer support"
+                    text="Support client prioritaire"
                   />
                 </View>
 
@@ -248,7 +251,7 @@ export const CustomPaywall: React.FC<CustomPaywallProps> = ({
                       <ActivityIndicator color="white" />
                     ) : (
                       <Text style={styles.subscribeButtonText}>
-                        Start Pro Subscription
+                        Commencer l'abonnement Pro
                       </Text>
                     )}
                   </TouchableOpacity>
@@ -259,15 +262,15 @@ export const CustomPaywall: React.FC<CustomPaywallProps> = ({
                     disabled={purchasing}
                   >
                     <Text style={styles.restoreButtonText}>
-                      Restore Purchases
+                      Restaurer les achats
                     </Text>
                   </TouchableOpacity>
                 </View>
 
                 {/* Terms */}
                 <Text style={styles.termsText}>
-                  Subscriptions automatically renew unless cancelled. Cancel
-                  anytime in Settings.
+                  Les abonnements se renouvellent automatiquement sauf s'ils
+                  sont annulés. Annulez à tout moment dans les Réglages.
                 </Text>
               </>
             )}
