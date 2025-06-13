@@ -33,6 +33,7 @@ export const VideoUsageDisplay: React.FC<VideoUsageDisplayProps> = ({
     goPro,
     isReady,
     hasOfferingError,
+    dynamicVideosLimit,
   } = useRevenueCat();
 
   if (!isReady || !userUsage) {
@@ -71,8 +72,8 @@ export const VideoUsageDisplay: React.FC<VideoUsageDisplayProps> = ({
         <View style={styles.textContainer}>
           <Text style={styles.proTitle}>Membre Premium</Text>
           <Text style={styles.proSubtitle}>
-            {userUsage.videos_limit - userUsage.videos_generated} vidéos
-            restantes ce mois
+            {dynamicVideosLimit - userUsage.videos_generated} vidéos restantes
+            ce mois
           </Text>
         </View>
       </View>
@@ -96,8 +97,7 @@ export const VideoUsageDisplay: React.FC<VideoUsageDisplayProps> = ({
             {videosRemaining !== 1 ? 's' : ''}
           </Text>
           <Text style={styles.quotaSubtitle}>
-            {userUsage.videos_generated}/{userUsage.videos_limit} utilisées ce
-            mois
+            {userUsage.videos_generated}/{dynamicVideosLimit} utilisées ce mois
           </Text>
         </View>
 
@@ -108,7 +108,7 @@ export const VideoUsageDisplay: React.FC<VideoUsageDisplayProps> = ({
                 styles.progressFill,
                 {
                   width: `${
-                    (userUsage.videos_generated / userUsage.videos_limit) * 100
+                    (userUsage.videos_generated / dynamicVideosLimit) * 100
                   }%`,
                   backgroundColor: isLimitReached ? '#FF3B30' : '#007AFF',
                 },

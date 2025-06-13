@@ -28,8 +28,14 @@ import { VideoUsageDisplay } from '@/components/VideoUsageDisplay';
 
 export default function RequestVideoScreen() {
   // RevenueCat integration
-  const { isPro, videosRemaining, refreshUsage, isReady, userUsage } =
-    useRevenueCat();
+  const {
+    isPro,
+    videosRemaining,
+    refreshUsage,
+    isReady,
+    userUsage,
+    dynamicVideosLimit,
+  } = useRevenueCat();
 
   // Main state and actions from hooks
   const videoRequest = useVideoRequest();

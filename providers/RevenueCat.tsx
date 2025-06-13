@@ -1,11 +1,15 @@
 import { createContext, useContext, useEffect, useState } from 'react';
 import { Platform } from 'react-native';
-import Purchases, { LOG_LEVEL, PurchasesOffering } from 'react-native-purchases';
+import Purchases, {
+  LOG_LEVEL,
+  PurchasesOffering,
+} from 'react-native-purchases';
 import { CustomerInfo } from 'react-native-purchases';
 import React from 'react';
 import { useClerkSupabaseClient } from '@/lib/supabase-clerk';
 import { useGetUser } from '@/lib/hooks/useGetUser';
 import RevenueCatUI, { PAYWALL_RESULT } from 'react-native-purchases-ui';
+
 // Use keys from your RevenueCat API Keys
 const APIKeys = {
   apple: process.env.EXPO_PUBLIC_REVENUECAT_IOS_KEY as string,
@@ -28,9 +32,18 @@ interface RevenueCatProps {
   goPro: () => Promise<boolean>;
   refreshUsage: () => Promise<void>;
   hasOfferingError: boolean;
+  restorePurchases: () => Promise<boolean>;
+  currentPlan: 'free' | 'pro';
+  dynamicVideosLimit: number; // The actual limit based on subscription status
 }
 
 const RevenueCatContext = createContext<RevenueCatProps | null>(null);
+
+// Plan configuration
+const PLAN_LIMITS = {
+  free: 3,
+  pro: 30,
+} as const;
 
 // Default pricing for fallback when offerings can't be loaded
 const DEFAULT_PRICES = {
@@ -65,11 +78,11 @@ export const RevenueCatProvider = ({ children }: any) => {
 
         // Listen for customer updates
         Purchases.addCustomerInfoUpdateListener(async (info) => {
-          updateCustomerInformation(info);
+          await updateCustomerInformation(info);
         });
 
-        // Load initial data
-        await loadUserUsage();
+        // Load initial customer info and usage
+        await loadInitialData();
 
         setIsReady(true);
       } catch (error) {
@@ -87,18 +100,34 @@ export const RevenueCatProvider = ({ children }: any) => {
     };
 
     init();
-  }, []);
+  }, [initAttempts]);
+
+  // Load initial customer info and user usage
+  const loadInitialData = async () => {
+    try {
+      // Get current customer info from RevenueCat
+      const customerInfo = await Purchases.getCustomerInfo();
+      await updateCustomerInformation(customerInfo);
+
+      // Load user usage from database
+      await loadUserUsage();
+    } catch (error) {
+      console.error('Error loading initial data:', error);
+      // Still load usage even if RevenueCat fails
+      await loadUserUsage();
+    }
+  };
 
   // Update user state based on previous purchases
   const updateCustomerInformation = async (customerInfo: CustomerInfo) => {
     const hasProEntitlement =
       customerInfo?.entitlements.active['Pro'] !== undefined;
+
+    console.log('Customer info updated. Pro status:', hasProEntitlement);
     setIsPro(hasProEntitlement);
 
-    // Update usage in database if pro status changed
-    if (hasProEntitlement) {
-      await updateProStatusInDatabase(true);
-    }
+    // Sync the user's limit in database with their subscription status
+    await syncUserLimitWithSubscription(hasProEntitlement);
   };
 
   // Load user usage from Supabase
@@ -114,39 +143,82 @@ export const RevenueCatProvider = ({ children }: any) => {
         .single();
 
       if (error) {
+        if (error.code === 'PGRST116') {
+          // No usage record found, create one
+          console.log('No usage record found, creating one...');
+          await createUsageRecord(user.id);
+          return;
+        }
         console.error('Failed to load user usage:', error);
         return;
       }
 
       setUserUsage(usage);
-      setIsEarlyAdopter(true);
+      setIsEarlyAdopter(usage.is_early_adopter || true); // Default to early adopter for now
     } catch (error) {
       console.error('Error loading user usage:', error);
     }
   };
 
-  // Update pro status in database
-  const updateProStatusInDatabase = async (isProUser: boolean) => {
+  // Create initial usage record for new users
+  const createUsageRecord = async (userId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('user_usage')
+        .insert([
+          {
+            user_id: userId,
+            videos_generated: 0,
+            videos_limit: PLAN_LIMITS.free, // Start with free plan
+            is_early_adopter: true,
+            next_reset_date: new Date(
+              Date.now() + 30 * 24 * 60 * 60 * 1000
+            ).toISOString(), // 30 days from now
+          },
+        ])
+        .select('videos_generated, videos_limit, next_reset_date')
+        .single();
+
+      if (error) {
+        console.error('Failed to create usage record:', error);
+        return;
+      }
+
+      setUserUsage(data);
+    } catch (error) {
+      console.error('Error creating usage record:', error);
+    }
+  };
+
+  // Sync user's video limit with their subscription status
+  const syncUserLimitWithSubscription = async (isProUser: boolean) => {
     try {
       const user = await fetchUser();
       if (!user) return;
 
+      const newLimit = isProUser ? PLAN_LIMITS.pro : PLAN_LIMITS.free;
+
       const { error } = await supabase
         .from('user_usage')
         .update({
-          videos_limit: isProUser ? 30 : 3, // Pro gets 30, free gets 3
+          videos_limit: newLimit,
           updated_at: new Date().toISOString(),
         })
         .eq('user_id', user.id);
 
       if (error) {
-        console.error('Failed to update pro status:', error);
+        console.error('Failed to sync user limit:', error);
       } else {
+        console.log(
+          `User limit synced to: ${newLimit} videos (${
+            isProUser ? 'PRO' : 'FREE'
+          })`
+        );
         // Reload usage after update
         await loadUserUsage();
       }
     } catch (error) {
-      console.error('Error updating pro status:', error);
+      console.error('Error syncing user limit:', error);
     }
   };
 
@@ -156,8 +228,6 @@ export const RevenueCatProvider = ({ children }: any) => {
       // If we have offering errors, show a fallback alert instead
       if (hasOfferingError) {
         console.log('Using fallback purchase flow due to offering error');
-        // In a real app, you might want to show a custom alert or UI here
-        // For now, we'll just log and return false
         return false;
       }
 
@@ -172,12 +242,22 @@ export const RevenueCatProvider = ({ children }: any) => {
       switch (paywallResult) {
         case PAYWALL_RESULT.NOT_PRESENTED:
         case PAYWALL_RESULT.ERROR:
-          setHasOfferingError(true); // Mark that we had an error with offerings
+          setHasOfferingError(true);
           return false;
         case PAYWALL_RESULT.CANCELLED:
           return false;
         case PAYWALL_RESULT.PURCHASED:
         case PAYWALL_RESULT.RESTORED:
+          // Refresh customer info after successful purchase/restore
+          try {
+            const customerInfo = await Purchases.getCustomerInfo();
+            await updateCustomerInformation(customerInfo);
+          } catch (error) {
+            console.error(
+              'Error refreshing customer info after purchase:',
+              error
+            );
+          }
           return true;
         default:
           return false;
@@ -189,14 +269,32 @@ export const RevenueCatProvider = ({ children }: any) => {
     }
   };
 
+  // Restore purchases
+  const restorePurchases = async (): Promise<boolean> => {
+    try {
+      const customerInfo = await Purchases.restorePurchases();
+      await updateCustomerInformation(customerInfo);
+      return customerInfo?.entitlements.active['Pro'] !== undefined;
+    } catch (error) {
+      console.error('Error restoring purchases:', error);
+      return false;
+    }
+  };
+
   // Refresh usage data
   const refreshUsage = async () => {
     await loadUserUsage();
   };
 
-  // Calculate videos remaining
+  // Calculate current plan
+  const currentPlan = isPro ? 'pro' : 'free';
+
+  // Get dynamic video limit based on subscription status
+  const dynamicVideosLimit = isPro ? PLAN_LIMITS.pro : PLAN_LIMITS.free;
+
+  // Calculate videos remaining based on dynamic limit
   const videosRemaining = userUsage
-    ? Math.max(0, userUsage.videos_limit - userUsage.videos_generated)
+    ? Math.max(0, dynamicVideosLimit - userUsage.videos_generated)
     : 0;
 
   const value = {
@@ -208,6 +306,9 @@ export const RevenueCatProvider = ({ children }: any) => {
     goPro,
     refreshUsage,
     hasOfferingError,
+    restorePurchases,
+    currentPlan,
+    dynamicVideosLimit,
   };
 
   // We don't want to block rendering anymore if RevenueCat has issues

@@ -1,11 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, ActivityIndicator } from 'react-native';
-import { supabase } from '@/lib/supabase';
 import { BarChart3, AlertCircle } from 'lucide-react-native';
-import {
-  reportDatabaseError,
-  reportAuthError,
-} from '@/lib/services/errorReporting';
+import { useRevenueCat } from '@/providers/RevenueCat';
 
 type UsageData = {
   videos_generated: number;
@@ -21,246 +17,34 @@ export default function UsageDashboard({
   usageData,
   forceRefresh = false,
 }: UsageDashboardProps) {
-  const [loading, setLoading] = useState(usageData ? false : true);
-  const [usage, setUsage] = useState<UsageData | null>(usageData || null);
-  const [error, setError] = useState<string | null>(null);
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(!!usageData);
+  const {
+    isReady,
+    userUsage,
+    videosRemaining,
+    dynamicVideosLimit,
+    isPro,
+    refreshUsage,
+  } = useRevenueCat();
+
+  // Use RevenueCat data or prop data
+  const usage =
+    usageData ||
+    (userUsage
+      ? {
+          videos_generated: userUsage.videos_generated,
+          videos_limit: dynamicVideosLimit,
+        }
+      : null);
 
   useEffect(() => {
-    // If usageData is provided from props, use it and skip fetching
-    if (usageData) {
-      setUsage(usageData);
-      setLoading(false);
-      setError(null);
-      setIsAuthenticated(true);
-    } else {
-      // Otherwise check auth and fetch data
-      checkAuthAndFetchData();
+    // If we have forceRefresh and we're using RevenueCat data, refresh it
+    if (forceRefresh && !usageData) {
+      refreshUsage();
     }
+  }, [forceRefresh, usageData, refreshUsage]);
 
-    // Listen for auth changes if we're managing our own data
-    if (!usageData) {
-      const {
-        data: { subscription },
-      } = supabase.auth.onAuthStateChange((event, session) => {
-        if (event === 'SIGNED_OUT') {
-          setIsAuthenticated(false);
-          setUsage(null);
-          setError(null);
-          setLoading(false);
-        } else if (event === 'SIGNED_IN' && session) {
-          setIsAuthenticated(true);
-          fetchUsageData();
-        }
-      });
-
-      return () => subscription.unsubscribe();
-    }
-  }, [usageData, forceRefresh]);
-
-  // Update usage state when props change
-  useEffect(() => {
-    if (usageData) {
-      setUsage(usageData);
-      setLoading(false);
-      setIsAuthenticated(true);
-    }
-  }, [usageData]);
-
-  const checkAuthAndFetchData = async () => {
-    // Skip if we're using prop data
-    if (usageData) return;
-
-    try {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
-
-      if (session) {
-        setIsAuthenticated(true);
-        await fetchUsageData();
-      } else {
-        setIsAuthenticated(false);
-        setLoading(false);
-      }
-    } catch (error) {
-      console.error('Error checking auth state:', error);
-      setIsAuthenticated(false);
-      setLoading(false);
-    }
-  };
-
-  const fetchUsageData = async () => {
-    // Skip if we're using prop data
-    if (usageData) return;
-
-    // Don't fetch if not authenticated
-    if (!isAuthenticated) {
-      setLoading(false);
-      return;
-    }
-
-    try {
-      setLoading(true);
-      setError(null);
-      console.log('Fetching usage data...');
-
-      // Get current user
-      const { data, error } = await supabase.auth.getUser();
-      if (error) {
-        // If it's an auth session missing error, handle it gracefully
-        if (
-          error.message?.includes('session missing') ||
-          error.message?.includes('Auth session missing')
-        ) {
-          setIsAuthenticated(false);
-          setLoading(false);
-          return;
-        }
-
-        reportAuthError(error, {
-          screen: 'UsageDashboard',
-          action: 'get_user',
-        });
-        throw error;
-      }
-
-      if (!data.user) {
-        setIsAuthenticated(false);
-        setLoading(false);
-        return;
-      }
-
-      console.log('User found, checking usage data for:', data.user.id);
-
-      // Get user info to check admin status
-      const { data: userData, error: userError } = await supabase
-        .from('users')
-        .select('role')
-        .eq('id', data.user.id)
-        .single();
-
-      if (userError) {
-        console.error('Error checking user role:', userError);
-      } else {
-        console.log('User role:', userData.role);
-      }
-
-      // Check admin status in user_roles table (RLS uses this)
-      const { data: roleData, error: roleError } = await supabase
-        .from('user_roles')
-        .select('role')
-        .eq('user_id', data.user.id)
-        .eq('role', 'admin')
-        .maybeSingle();
-
-      if (roleError) {
-        console.error('Error checking user_roles entry:', roleError);
-      } else {
-        console.log('Admin entry in user_roles:', roleData ? 'Yes' : 'No');
-      }
-
-      // Get usage data
-      const { data: usageData, error: usageError } = await supabase
-        .from('user_usage')
-        .select('videos_generated, videos_limit')
-        .eq('user_id', data.user.id)
-        .single();
-
-      if (usageError) {
-        console.error('Usage data error:', usageError);
-
-        if (usageError.code === 'PGRST116') {
-          // No usage record found, create one
-          console.log('No usage record found, creating one...');
-          await createUsageRecord(data.user.id);
-          return;
-        }
-
-        // Check if it's a permission error
-        if (usageError.code === 'PGRST109') {
-          console.error(
-            'Permission error accessing user_usage table - RLS policy might be misconfigured'
-          );
-          setError('Permission error: Contact administrator');
-          setLoading(false);
-          return;
-        }
-
-        reportDatabaseError(
-          usageError,
-          'SELECT videos_generated, videos_limit FROM user_usage WHERE user_id = $1',
-          {
-            screen: 'UsageDashboard',
-            action: 'fetch_usage',
-            userId: data.user.id,
-          }
-        );
-        throw usageError;
-      }
-      console.log('Usage data retrieved:', usageData);
-
-      setUsage(usageData);
-    } catch (err: any) {
-      console.error('Error fetching usage data:', err);
-
-      // Handle auth errors gracefully
-      if (
-        err.message?.includes('session missing') ||
-        err.message?.includes('Auth session missing')
-      ) {
-        setIsAuthenticated(false);
-        setError('Please sign in to view usage data');
-      } else {
-        setError('Failed to load usage data: ' + err.message);
-      }
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const createUsageRecord = async (userId: string) => {
-    try {
-      const { data, error } = await supabase
-        .from('user_usage')
-        .insert([
-          {
-            user_id: userId,
-            videos_generated: 0,
-            videos_limit: 5, // Default limit for new users
-          },
-        ])
-        .select('videos_generated, videos_limit')
-        .single();
-
-      if (error) {
-        reportDatabaseError(
-          error,
-          'INSERT INTO user_usage (user_id, videos_generated, videos_limit) VALUES ($1, $2, $3)',
-          {
-            screen: 'UsageDashboard',
-            action: 'create_usage_record',
-            userId: userId,
-          }
-        );
-        throw error;
-      }
-
-      setUsage(data);
-    } catch (err: any) {
-      console.error('Error creating usage record:', err);
-      setError('Failed to initialize usage tracking');
-    }
-  };
-
-  // Force rendering when we have prop data, even if not authenticated internally
-  const shouldRender = isAuthenticated || !!usageData;
-
-  if (!shouldRender) {
-    return null;
-  }
-
-  if (loading) {
+  // Show loading if RevenueCat is not ready and we don't have prop data
+  if (!isReady && !usageData) {
     return (
       <View style={styles.container}>
         <View style={styles.header}>
@@ -270,21 +54,6 @@ export default function UsageDashboard({
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="small" color="#007AFF" />
           <Text style={styles.loadingText}>Loading usage data...</Text>
-        </View>
-      </View>
-    );
-  }
-
-  if (error) {
-    return (
-      <View style={styles.container}>
-        <View style={styles.header}>
-          <BarChart3 size={24} color="#007AFF" />
-          <Text style={styles.title}>Usage Dashboard</Text>
-        </View>
-        <View style={styles.errorContainer}>
-          <AlertCircle size={20} color="#ef4444" />
-          <Text style={styles.errorText}>{error}</Text>
         </View>
       </View>
     );

@@ -31,6 +31,7 @@ import {
   Search,
 } from 'lucide-react-native';
 import AdminUsageControl from '@/components/AdminUsageControl';
+import { SubscriptionManager } from '@/components/SubscriptionManager';
 import { useClerkAuth } from '@/hooks/useClerkAuth';
 import { useClerkSupabaseClient } from '@/lib/supabase-clerk';
 import { useClerk } from '@clerk/clerk-expo';
@@ -599,6 +600,9 @@ export default function SettingsScreen() {
             </TouchableOpacity>
           )}
         </View>
+
+        {/* Subscription Management */}
+        <SubscriptionManager />
 
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Création de Contenu</Text>
