@@ -8,7 +8,7 @@ import { CustomerInfo } from 'react-native-purchases';
 import React from 'react';
 import { useClerkSupabaseClient } from '@/lib/supabase-clerk';
 import { useGetUser } from '@/lib/hooks/useGetUser';
-import RevenueCatUI, { PAYWALL_RESULT } from 'react-native-purchases-ui';
+import { CustomPaywall } from '@/components/CustomPaywall';
 
 // Use keys from your RevenueCat API Keys
 const APIKeys = {
@@ -35,6 +35,8 @@ interface RevenueCatProps {
   restorePurchases: () => Promise<boolean>;
   currentPlan: 'free' | 'pro';
   dynamicVideosLimit: number; // The actual limit based on subscription status
+  showPaywall: boolean;
+  setShowPaywall: (show: boolean) => void;
 }
 
 const RevenueCatContext = createContext<RevenueCatProps | null>(null);
@@ -59,6 +61,7 @@ export const RevenueCatProvider = ({ children }: any) => {
   const [isEarlyAdopter, setIsEarlyAdopter] = useState(false);
   const [hasOfferingError, setHasOfferingError] = useState(false);
   const [initAttempts, setInitAttempts] = useState(0);
+  const [showPaywall, setShowPaywall] = useState(false);
   const maxInitAttempts = 2;
 
   const { client: supabase } = useClerkSupabaseClient();
@@ -231,41 +234,25 @@ export const RevenueCatProvider = ({ children }: any) => {
         return false;
       }
 
-      // Choose offering based on early adopter status
-      const offering = isEarlyAdopter ? 'early_adopter' : undefined;
-
-      const paywallResult = await RevenueCatUI.presentPaywall({
-        displayCloseButton: true,
-        offering: offering as unknown as PurchasesOffering,
-      });
-
-      switch (paywallResult) {
-        case PAYWALL_RESULT.NOT_PRESENTED:
-        case PAYWALL_RESULT.ERROR:
-          setHasOfferingError(true);
-          return false;
-        case PAYWALL_RESULT.CANCELLED:
-          return false;
-        case PAYWALL_RESULT.PURCHASED:
-        case PAYWALL_RESULT.RESTORED:
-          // Refresh customer info after successful purchase/restore
-          try {
-            const customerInfo = await Purchases.getCustomerInfo();
-            await updateCustomerInformation(customerInfo);
-          } catch (error) {
-            console.error(
-              'Error refreshing customer info after purchase:',
-              error
-            );
-          }
-          return true;
-        default:
-          return false;
-      }
+      // Show our custom paywall
+      setShowPaywall(true);
+      return false; // We'll handle success through the paywall callback
     } catch (error) {
       console.error('Paywall error:', error);
       setHasOfferingError(true);
       return false;
+    }
+  };
+
+  // Handle paywall purchase completion
+  const handlePurchaseComplete = async (success: boolean) => {
+    if (success) {
+      try {
+        const customerInfo = await Purchases.getCustomerInfo();
+        await updateCustomerInformation(customerInfo);
+      } catch (error) {
+        console.error('Error refreshing customer info after purchase:', error);
+      }
     }
   };
 
@@ -309,6 +296,8 @@ export const RevenueCatProvider = ({ children }: any) => {
     restorePurchases,
     currentPlan,
     dynamicVideosLimit,
+    showPaywall,
+    setShowPaywall,
   };
 
   // We don't want to block rendering anymore if RevenueCat has issues
@@ -316,6 +305,11 @@ export const RevenueCatProvider = ({ children }: any) => {
   return (
     <RevenueCatContext.Provider value={value}>
       {children}
+      <CustomPaywall
+        visible={showPaywall}
+        onClose={() => setShowPaywall(false)}
+        onPurchaseComplete={handlePurchaseComplete}
+      />
     </RevenueCatContext.Provider>
   );
 };

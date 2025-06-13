@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "AI Edit",
-    "slug": "editia",
+    "name": "Editia",
+    "slug": "ai-edit",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icons/ios-dark.png",
@@ -15,7 +15,7 @@
         "tinted": "./assets/icons/ios-tinted.png"
       },
       "supportsTablet": true,
-      "bundleIdentifier": "com.swarecito.aiedit",
+      "bundleIdentifier": "com.swarecito.editia",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false,
         "NSAppTransportSecurity": {
@@ -69,8 +69,7 @@
         }
       ],
       "expo-font",
-      "expo-video",
-      "react-native-purchases"
+      "expo-video"
     ],
     "experiments": {
       "typedRoutes": true
@@ -80,10 +79,10 @@
         "origin": "https://nodejs-production-a774.up.railway.app"
       },
       "eas": {
-        "projectId": "6001c9a3-2db8-4fbb-919e-8ddf0ed9714b"
+        "projectId": "d4703822-1789-49d1-8999-976108e28415"
       }
     },
-    "owner": "editia",
+    "owner": "swarecito",
     "runtimeVersion": {
       "policy": "appVersion"
     },
