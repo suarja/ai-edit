@@ -24,7 +24,7 @@ import SubmitButton from '@/app/components/SubmitButton';
 import ErrorDisplay from '@/app/components/ErrorDisplay';
 import AdvancedToggle from '@/app/components/AdvancedToggle';
 import LanguageSelector from '@/app/components/LanguageSelector';
-import { VideoUsageDisplay } from '@/components/VideoUsageDisplay';
+import { DiscreteUsageDisplay } from '@/components/DiscreteUsageDisplay';
 
 export default function RequestVideoScreen() {
   // RevenueCat integration
@@ -107,8 +107,8 @@ export default function RequestVideoScreen() {
       >
         <ErrorDisplay error={videoRequest.error} />
 
-        {/* Video Usage Display - Show quota and upgrade option */}
-        <VideoUsageDisplay />
+        {/* Discrete Usage Display - Show quota in a subtle way */}
+        <DiscreteUsageDisplay />
 
         {/* Main prompt input with enhancement */}
         <PromptInput

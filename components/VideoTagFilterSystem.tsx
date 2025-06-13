@@ -21,17 +21,37 @@ export default function VideoTagFilterSystem({
 }: VideoTagFilterSystemProps) {
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
 
-  // Extract all unique tags from videos
+  // Extract all unique tags from videos and add special tags
   const allTags = useMemo(() => {
     const tagSet = new Set<string>();
     videos.forEach((video) => {
       video.tags?.forEach((tag) => tagSet.add(tag));
     });
-    return Array.from(tagSet).sort();
+
+    // Create array and add special tags at the beginning
+    const regularTags = Array.from(tagSet).sort();
+    const specialTags = [];
+
+    // Add "Toutes" tag to show all videos
+    specialTags.push('Toutes');
+
+    // Add "Sans tag" only if there are videos without tags
+    const hasUntaggedVideos = videos.some(
+      (video) => !video.tags || video.tags.length === 0
+    );
+    if (hasUntaggedVideos) {
+      specialTags.push('Sans tag');
+    }
+
+    return [...specialTags, ...regularTags];
   }, [videos]);
 
   // Get tag colors for visual appeal
   const getTagColor = (tag: string, index: number) => {
+    // Special colors for special tags
+    if (tag === 'Toutes') return '#10b981';
+    if (tag === 'Sans tag') return '#6b7280';
+
     const colors = [
       '#007AFF',
       '#10b981',
@@ -57,11 +77,19 @@ export default function VideoTagFilterSystem({
     }
 
     return videos.filter((video) => {
-      // Show videos that have ANY of the selected tags (OR logic)
-      // Much more practical than requiring ALL tags (AND logic)
-      return selectedTags.some((selectedTag) =>
-        video.tags?.includes(selectedTag)
-      );
+      return selectedTags.some((selectedTag) => {
+        // Handle special tags
+        if (selectedTag === 'Toutes') {
+          return true; // Show all videos
+        }
+
+        if (selectedTag === 'Sans tag') {
+          return !video.tags || video.tags.length === 0; // Show untagged videos
+        }
+
+        // Regular tag filtering
+        return video.tags?.includes(selectedTag);
+      });
     });
   }, [videos, selectedTags]);
 
@@ -197,42 +225,48 @@ export default function VideoTagFilterSystem({
                       >
                         {video.title || 'Vidéo sans titre'}
                       </Text>
-                      {video.tags && video.tags.length > 0 && (
-                        <View style={styles.videoTagsContainer}>
-                          {video.tags.slice(0, 3).map((tag, index) => (
-                            <View
-                              key={tag}
-                              style={[
-                                styles.videoTag,
-                                {
-                                  backgroundColor:
-                                    getTagColor(tag, allTags.indexOf(tag)) +
-                                    '20',
-                                },
-                              ]}
-                            >
-                              <Text
+                      <View style={styles.videoTagsContainer}>
+                        {video.tags && video.tags.length > 0 ? (
+                          <>
+                            {video.tags.slice(0, 3).map((tag, index) => (
+                              <View
+                                key={tag}
                                 style={[
-                                  styles.videoTagText,
+                                  styles.videoTag,
                                   {
-                                    color: getTagColor(
-                                      tag,
-                                      allTags.indexOf(tag)
-                                    ),
+                                    backgroundColor:
+                                      getTagColor(tag, allTags.indexOf(tag)) +
+                                      '20',
                                   },
                                 ]}
                               >
-                                {tag}
+                                <Text
+                                  style={[
+                                    styles.videoTagText,
+                                    {
+                                      color: getTagColor(
+                                        tag,
+                                        allTags.indexOf(tag)
+                                      ),
+                                    },
+                                  ]}
+                                >
+                                  {tag}
+                                </Text>
+                              </View>
+                            ))}
+                            {video.tags.length > 3 && (
+                              <Text style={styles.moreTagsText}>
+                                +{video.tags.length - 3}
                               </Text>
-                            </View>
-                          ))}
-                          {video.tags.length > 3 && (
-                            <Text style={styles.moreTagsText}>
-                              +{video.tags.length - 3}
-                            </Text>
-                          )}
-                        </View>
-                      )}
+                            )}
+                          </>
+                        ) : (
+                          <View style={[styles.videoTag, styles.noTagsTag]}>
+                            <Text style={styles.noTagsText}>Sans tag</Text>
+                          </View>
+                        )}
+                      </View>
                     </View>
                   </View>
                 </TouchableOpacity>
@@ -421,6 +455,14 @@ const styles = StyleSheet.create({
   moreTagsText: {
     color: '#888',
     fontSize: 10,
+  },
+  noTagsTag: {
+    backgroundColor: 'rgba(107, 114, 128, 0.2)',
+  },
+  noTagsText: {
+    color: '#6b7280',
+    fontSize: 10,
+    fontWeight: '500',
   },
 
   // Empty State

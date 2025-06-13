@@ -47,27 +47,25 @@ const SubmitButton: React.FC<SubmitButtonProps> = ({
 
 const styles = StyleSheet.create({
   container: {
-    padding: 20,
-    backgroundColor: '#1a1a1a',
-    borderTopWidth: 1,
-    borderTopColor: '#333',
+    padding: 16,
+    backgroundColor: '#000',
   },
   submitButton: {
     backgroundColor: '#007AFF',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    padding: 18,
-    borderRadius: 16,
-    gap: 12,
+    padding: 14,
+    borderRadius: 12,
+    gap: 8,
     shadowColor: '#007AFF',
     shadowOffset: {
       width: 0,
-      height: 4,
+      height: 2,
     },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 8,
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 4,
   },
   submitButtonDisabled: {
     opacity: 0.5,
@@ -75,7 +73,7 @@ const styles = StyleSheet.create({
   },
   submitButtonText: {
     color: '#fff',
-    fontSize: 17,
+    fontSize: 16,
     fontWeight: '600',
   },
 });
