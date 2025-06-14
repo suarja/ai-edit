@@ -51,7 +51,17 @@
     }
   },
   "submit": {
-    "development": {},
-    "production": {}
+    "development": {
+      "ios": {
+        "appleTeamId": "2U339NWA52",
+        "ascAppId": "6746679101"
+      }
+    },
+    "production": {
+      "ios": {
+        "appleTeamId": "2U339NWA52",
+        "ascAppId": "6746679101"
+      }
+    }
   }
 }
