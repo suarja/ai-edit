@@ -15,7 +15,7 @@
         "tinted": "./assets/icons/ios-tinted.png"
       },
       "supportsTablet": true,
-      "bundleIdentifier": "com.swarecito.editia",
+      "bundleIdentifier": "com.swarecito.aiedit",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false,
         "NSAppTransportSecurity": {
