@@ -32,6 +32,8 @@ import {
 } from '@/types/voice-recording';
 import { submitOnboardingRecording } from '@/lib/api/voice-recording-client';
 import { Audio } from 'expo-av';
+import { useAuth } from '@clerk/clerk-expo';
+import { router } from 'expo-router';
 
 export default function VoiceRecordingScreen() {
   const onboardingSteps = useOnboardingSteps();
@@ -44,7 +46,7 @@ export default function VoiceRecordingScreen() {
 
   const { client: supabase } = useClerkSupabaseClient();
   const { fetchUser } = useGetUser();
-
+  const { getToken } = useAuth();
   // Function to save survey data without audio processing
   const saveSurveyData = async (): Promise<boolean> => {
     try {
@@ -102,13 +104,19 @@ export default function VoiceRecordingScreen() {
 
       const user = await fetchUser();
       if (!user) throw new Error('Non authentifié');
-
+      const token = await getToken();
+      if (!token) {
+        router.push('/(auth)/sign-in');
+        return;
+      }
       // Submit the recording with survey data
       await submitOnboardingRecording({
         uri: result.uri,
         name: result.fileName,
         duration: result.duration,
         fileName: result.fileName,
+        token,
+        user: user,
         surveyData: {
           content_goals: surveyAnswers.content_goals || null,
           pain_points: surveyAnswers.pain_points || null,

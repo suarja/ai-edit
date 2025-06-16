@@ -2,6 +2,8 @@ import { useState, useRef } from 'react';
 import { supabase } from '@/lib/supabase';
 import { Alert } from 'react-native';
 import { API_ENDPOINTS, API_HEADERS } from '@/lib/config/api';
+import { useAuth } from '@clerk/clerk-expo';
+import { router } from 'expo-router';
 
 /**
  * Custom hook to handle prompt enhancement with API integration
@@ -11,6 +13,7 @@ export function usePromptEnhancement() {
   const [enhancementError, setEnhancementError] = useState<string | null>(null);
   const [promptHistory, setPromptHistory] = useState<string[]>([]);
   const [currentHistoryIndex, setCurrentHistoryIndex] = useState(-1);
+  const { getToken, isSignedIn } = useAuth();
 
   // Debug ref to avoid stale closure in setTimeout
   const debugRef = useRef({
@@ -184,17 +187,18 @@ export function usePromptEnhancement() {
 
       // Save original prompt to history
       saveToHistory(prompt);
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
-
+      const token = await getToken();
+      if (!token) {
+        router.push('/(auth)/sign-in');
+        return '';
+      }
       console.log(
         '📤 Sending enhancement request to API with language:',
         outputLanguage
       );
       const response = await fetch(API_ENDPOINTS.PROMPTS_ENHANCE(), {
         method: 'POST',
-        headers: API_HEADERS.USER_AUTH(session?.access_token ?? ''),
+        headers: API_HEADERS.USER_AUTH(token),
         body: JSON.stringify({
           userInput: prompt,
           outputLanguage: outputLanguage,
@@ -268,14 +272,16 @@ export function usePromptEnhancement() {
         );
         return systemPrompt || '';
       }
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
+      const clerkToken = await getToken();
+      if (!clerkToken) {
+        router.push('/(auth)/sign-in');
+        return '';
+      }
 
       console.log('📤 Sending system prompt enhancement request');
       const response = await fetch(API_ENDPOINTS.PROMPTS_ENHANCE_SYSTEM(), {
         method: 'POST',
-        headers: API_HEADERS.USER_AUTH(session?.access_token ?? ''),
+        headers: API_HEADERS.USER_AUTH(clerkToken),
         body: JSON.stringify({
           userInput: systemPrompt,
           mainPrompt: mainPrompt,
@@ -333,14 +339,16 @@ export function usePromptEnhancement() {
         return '';
       }
 
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
+      const clerkToken = await getToken();
+      if (!clerkToken) {
+        router.push('/(auth)/sign-in');
+        return '';
+      }
 
       console.log('📤 Sending system prompt generation request');
       const response = await fetch(API_ENDPOINTS.PROMPTS_GENERATE_SYSTEM(), {
         method: 'POST',
-        headers: API_HEADERS.USER_AUTH(session?.access_token ?? ''),
+        headers: API_HEADERS.USER_AUTH(clerkToken),
         body: JSON.stringify({
           mainPrompt: mainPrompt,
           outputLanguage: outputLanguage,
