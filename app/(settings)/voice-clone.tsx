@@ -35,6 +35,7 @@ import {
 } from '@/lib/api/voice-recording-client';
 import { useClerkSupabaseClient } from '@/lib/supabase-clerk';
 import { useGetUser } from '@/lib/hooks/useGetUser';
+import { useAuth } from '@clerk/clerk-expo';
 
 type VoiceClone = {
   id: string;
@@ -72,6 +73,7 @@ export default function VoiceCloneScreen() {
 
   const { client: supabase } = useClerkSupabaseClient();
   const { fetchUser } = useGetUser();
+  const { getToken } = useAuth();
 
   useEffect(() => {
     fetchExistingVoice();
@@ -119,7 +121,12 @@ export default function VoiceCloneScreen() {
       setLoadingSamples(true);
       console.log(`🔍 Chargement échantillons pour voix: ${voiceId}`);
 
-      const samples = await getVoiceSamples(voiceId);
+      const token = await getToken();
+      if (!token) {
+        router.push('/(auth)/sign-in');
+        return;
+      }
+      const samples = await getVoiceSamples(voiceId, { token });
       console.log(
         `🔍 Debug échantillons reçus:`,
         JSON.stringify(samples, null, 2)
@@ -144,11 +151,16 @@ export default function VoiceCloneScreen() {
       if (!existingVoice) return;
 
       console.log(`🔊 Lecture échantillon: ${sampleId}`);
-
+      const token = await getToken();
+      if (!token) {
+        router.push('/(auth)/sign-in');
+        return;
+      }
       // Obtenir l'URL de l'échantillon depuis notre serveur
       const audioUrl = await getVoiceSampleAudioUrl(
         existingVoice.elevenlabs_voice_id,
-        sampleId
+        sampleId,
+        { token }
       );
 
       const { sound: newSound } = await Audio.Sound.createAsync(
@@ -265,6 +277,12 @@ export default function VoiceCloneScreen() {
     try {
       const recordingName = `Enregistrement ${recordings.length + 1}.m4a`;
       const newRecording = { uri: result.uri, name: recordingName };
+      const user = await fetchUser();
+      const token = await getToken();
+      if (!token || !user) {
+        router.push('/(auth)/sign-in');
+        return;
+      }
 
       // Si on a un nom, soumettre directement
       if (name.trim()) {
@@ -272,6 +290,8 @@ export default function VoiceCloneScreen() {
         await submitVoiceClone({
           name: name.trim(),
           recordings: [...recordings, newRecording],
+          token,
+          user,
         });
 
         // Succès - nettoyer et revenir à la liste
@@ -309,13 +329,20 @@ export default function VoiceCloneScreen() {
     try {
       setIsSubmitting(true);
       setError(null);
-
+      const user = await fetchUser();
+      const token = await getToken();
+      if (!token || !user) {
+        router.push('/(auth)/sign-in');
+        return;
+      }
       await submitVoiceClone({
         name: name,
         recordings: recordings.map((r) => ({
           uri: r.uri,
           name: r.name,
         })),
+        user: user,
+        token: token,
       });
 
       setName('');

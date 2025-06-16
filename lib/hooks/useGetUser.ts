@@ -1,7 +1,7 @@
 import { useClerkAuth } from '@/hooks/useClerkAuth';
 import { useClerkSupabaseClient } from '../supabase-clerk';
 
-type DatabaseUser = {
+export type DatabaseUser = {
   id: string; // Database UUID
   email: string;
   full_name: string | null;

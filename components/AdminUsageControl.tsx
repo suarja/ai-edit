@@ -10,6 +10,8 @@ import {
 } from 'react-native';
 import { supabase } from '@/lib/supabase';
 import { User, Shield } from 'lucide-react-native';
+import { useGetUser } from '@/lib/hooks/useGetUser';
+import { router } from 'expo-router';
 
 type AdminUsageControlProps = {
   userId: string;
@@ -24,7 +26,7 @@ export default function AdminUsageControl({
 }: AdminUsageControlProps) {
   const [newLimit, setNewLimit] = useState(currentLimit.toString());
   const [loading, setLoading] = useState(false);
-
+  const { user } = useGetUser();
   const updateLimit = async () => {
     try {
       setLoading(true);
@@ -41,16 +43,15 @@ export default function AdminUsageControl({
       console.log(`Updating limit for user ${userId} to ${limitValue}`);
 
       // First, check if current user has admin privileges in user_roles
-      const { data: authData } = await supabase.auth.getUser();
 
-      if (!authData.user) {
-        throw new Error('Not authenticated');
+      if (!user) {
+        router.push('/(auth)/sign-in');
       }
 
       const { data: adminRole, error: roleError } = await supabase
         .from('user_roles')
         .select('id')
-        .eq('user_id', authData.user.id)
+        .eq('user_id', user.id)
         .eq('role', 'admin')
         .maybeSingle();
 

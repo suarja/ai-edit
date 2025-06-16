@@ -6,6 +6,7 @@ import {
   VOICE_RECORDING_ERROR_CODES,
   errorTaxonomy,
 } from '@/types/voice-recording';
+import { DatabaseUser } from '../hooks/useGetUser';
 
 interface VoiceRecordingSubmissionData {
   uri: string;
@@ -16,11 +17,15 @@ interface VoiceRecordingSubmissionData {
 
 interface OnboardingSubmissionData extends VoiceRecordingSubmissionData {
   surveyData?: Record<string, any>;
+  user: DatabaseUser;
+  token: string;
 }
 
 interface VoiceCloneSubmissionData {
   name: string;
   recordings: { uri: string; name: string }[];
+  user: DatabaseUser;
+  token: string;
 }
 
 // Fonction simple pour créer des erreurs utilisateur-friendly
@@ -118,38 +123,6 @@ async function validateAudioFile(
   }
 }
 
-// Obtenir l'utilisateur authentifié
-async function getAuthenticatedUser() {
-  try {
-    const {
-      data: { user },
-      error,
-    } = await supabase.auth.getUser();
-
-    if (error) {
-      throw createVoiceRecordingError(
-        { message: `Erreur d'authentification: ${error.message}` },
-        VOICE_RECORDING_ERROR_CODES.AUTHENTICATION_ERROR
-      );
-    }
-
-    if (!user) {
-      throw createVoiceRecordingError(
-        { message: 'Utilisateur non authentifié' },
-        VOICE_RECORDING_ERROR_CODES.AUTHENTICATION_ERROR
-      );
-    }
-
-    return user;
-  } catch (error: any) {
-    console.error("❌ Vérification d'authentification échouée:", error);
-    throw createVoiceRecordingError(
-      error,
-      VOICE_RECORDING_ERROR_CODES.AUTHENTICATION_ERROR
-    );
-  }
-}
-
 // FONCTION SIMPLIFIÉE pour l'onboarding
 export async function submitOnboardingRecording(
   data: OnboardingSubmissionData
@@ -161,7 +134,7 @@ export async function submitOnboardingRecording(
     });
 
     // 1. Vérifier l'authentification
-    const user = await getAuthenticatedUser();
+    const user = data.user;
 
     // 2. Valider le fichier et obtenir le blob
     const { blob, size } = await validateAudioFile(data.uri, data.fileName);
@@ -194,10 +167,7 @@ export async function submitOnboardingRecording(
     console.log(`📡 Appel API onboarding: ${API_ENDPOINTS.ONBOARDING()}`);
 
     // 4. Appel API vers le serveur Node.js
-    const {
-      data: { session },
-    } = await supabase.auth.getSession();
-    const userToken = session?.access_token;
+    const userToken = data.token;
 
     const response = await fetch(API_ENDPOINTS.ONBOARDING(), {
       method: 'POST',
@@ -257,7 +227,7 @@ export async function submitVoiceClone(
     });
 
     // 1. Vérifier l'authentification
-    const user = await getAuthenticatedUser();
+    const user = data.user;
 
     // 2. Valider les fichiers
     for (const recording of data.recordings) {
@@ -312,10 +282,7 @@ export async function submitVoiceClone(
     );
 
     // 5. Appel API avec FormData vers le serveur Node.js
-    const {
-      data: { session },
-    } = await supabase.auth.getSession();
-    const userToken = session?.access_token;
+    const userToken = data.token;
 
     const response = await fetch(API_ENDPOINTS.VOICE_CLONE(), {
       method: 'POST',
@@ -382,14 +349,14 @@ export async function testVoiceAPIConnectivity(): Promise<boolean> {
 export { createVoiceRecordingError };
 
 // Nouvelle fonction pour récupérer les échantillons de voix depuis ElevenLabs
-export async function getVoiceSamples(voiceId: string): Promise<any[]> {
+export async function getVoiceSamples(
+  voiceId: string,
+  data: { token: string }
+): Promise<any[]> {
   try {
     console.log(`🔍 Récupération échantillons pour voix: ${voiceId}`);
 
-    const {
-      data: { session },
-    } = await supabase.auth.getSession();
-    const userToken = session?.access_token;
+    const userToken = data.token;
 
     // Appel à notre serveur qui va faire l'appel ElevenLabs
     const response = await fetch(
@@ -439,13 +406,11 @@ export async function getVoiceSamples(voiceId: string): Promise<any[]> {
 // Fonction pour obtenir l'URL d'un échantillon audio spécifique
 export async function getVoiceSampleAudioUrl(
   voiceId: string,
-  sampleId: string
+  sampleId: string,
+  data: { token: string }
 ): Promise<string> {
   try {
-    const {
-      data: { session },
-    } = await supabase.auth.getSession();
-    const userToken = session?.access_token;
+    const userToken = data.token;
 
     console.log(`🔗 Demande URL audio pour échantillon: ${sampleId}`);
 

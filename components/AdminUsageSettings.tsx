@@ -12,6 +12,8 @@ import {
 import { supabase } from '@/lib/supabase';
 import { Shield, CheckCircle, XCircle, User } from 'lucide-react-native';
 import { env } from '@/lib/config/env';
+import { useGetUser } from '@/lib/hooks/useGetUser';
+import { router } from 'expo-router';
 
 export default function AdminUsageSettings() {
   const [email, setEmail] = useState('');
@@ -22,7 +24,7 @@ export default function AdminUsageSettings() {
     message: string;
     userData?: any;
   } | null>(null);
-
+  const { fetchUser } = useGetUser();
   const findUser = async () => {
     if (!email.trim()) {
       Alert.alert('Error', 'Please enter a valid email address');
@@ -34,11 +36,16 @@ export default function AdminUsageSettings() {
       setResult(null);
 
       // First verify that the current user is an admin
-      const { data: currentUser } = await supabase.auth.getUser();
+      const user = await fetchUser();
+      if (!user) {
+        router.push('/(auth)/sign-in');
+        return;
+      }
+
       const { data: adminCheck, error: adminError } = await supabase
         .from('user_roles')
         .select('role')
-        .eq('user_id', currentUser.user?.id)
+        .eq('user_id', user.id)
         .eq('role', 'admin')
         .single();
 

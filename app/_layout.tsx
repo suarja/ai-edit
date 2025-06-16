@@ -11,10 +11,7 @@ import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { initializeErrorReporting } from '@/lib/services/errorReporting';
 import { logEnvironmentStatus, validateEnvironment } from '@/lib/config/env';
 import { Alert } from 'react-native';
-import {
-  useAuthRedirect,
-  useAuthStateRedirect,
-} from '@/lib/hooks/useAuthRedirect';
+
 import { ClerkProvider, ClerkLoaded } from '@clerk/clerk-expo';
 import { clerkConfig } from '@/lib/config/clerk';
 import 'react-native-reanimated';
@@ -119,10 +116,6 @@ export default function RootLayout() {
   const colorScheme = useSystemColorScheme();
   const [isReady, setIsReady] = useState(false);
   const initializing = useRef(true);
-
-  // Initialiser les hooks de gestion des redirections d'authentification
-  useAuthRedirect();
-  useAuthStateRedirect();
 
   useEffect(() => {
     const prepareApp = async () => {
