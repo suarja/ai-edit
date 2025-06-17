@@ -14,6 +14,7 @@ import { router } from 'expo-router';
 import {
   Video as VideoIcon,
   CircleAlert as AlertCircle,
+  Crown,
 } from 'lucide-react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import VideoUploader from '@/components/VideoUploader';
@@ -21,6 +22,7 @@ import VideoCard from '@/components/VideoCard';
 import { VideoType } from '@/types/video';
 import { useGetUser } from '@/lib/hooks/useGetUser';
 import { useClerkSupabaseClient } from '@/lib/supabase-clerk';
+import { useRevenueCat } from '@/providers/RevenueCat';
 
 export default function SourceVideosScreen() {
   const [videos, setVideos] = useState<VideoType[]>([]);
@@ -43,10 +45,24 @@ export default function SourceVideosScreen() {
     description: '',
     tags: '',
   });
+  const [savingMetadata, setSavingMetadata] = useState(false);
 
   // Use the same pattern as settings.tsx and videos.tsx
   const { fetchUser, clerkUser, clerkLoaded, isSignedIn } = useGetUser();
   const { client: supabase } = useClerkSupabaseClient();
+  
+  // Get subscription info for free tier limits
+  const { isPro, isReady: revenueCatReady } = useRevenueCat();
+
+  // Constants for free tier limits
+  const FREE_TIER_SOURCE_VIDEOS_LIMIT = 5;
+
+  // Reset error when user interacts with the app
+  const clearError = useCallback(() => {
+    if (error) {
+      setError(null);
+    }
+  }, [error]);
 
   useEffect(() => {
     if (clerkLoaded) {
@@ -60,9 +76,10 @@ export default function SourceVideosScreen() {
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
+    clearError(); // Clear any previous errors
     await fetchVideos();
     setRefreshing(false);
-  }, []);
+  }, [clearError]);
 
   const fetchVideos = async () => {
     try {
@@ -107,6 +124,16 @@ export default function SourceVideosScreen() {
     url: string;
   }) => {
     try {
+      clearError(); // Clear any previous errors
+
+      // Check free tier limit before saving
+      if (!isPro && videos.length >= FREE_TIER_SOURCE_VIDEOS_LIMIT) {
+        setError(
+          `Limite atteinte : ${FREE_TIER_SOURCE_VIDEOS_LIMIT} vidéos maximum pour le plan gratuit. Passez Pro pour uploader plus de vidéos.`
+        );
+        return;
+      }
+
       // Get the database user (which includes the database ID)
       const user = await fetchUser();
       if (!user) {
@@ -140,7 +167,7 @@ export default function SourceVideosScreen() {
       });
     } catch (error) {
       console.error('Error saving video data:', error);
-      setError('Failed to save video information');
+      setError('Échec de la sauvegarde des informations de la vidéo');
     }
   };
 
@@ -150,6 +177,9 @@ export default function SourceVideosScreen() {
 
   const updateVideoMetadata = async () => {
     if (!editingVideo.id || !editingVideo.title) return;
+
+    setSavingMetadata(true);
+    clearError(); // Clear any previous errors
 
     try {
       const { error: updateError } = await supabase
@@ -174,22 +204,23 @@ export default function SourceVideosScreen() {
       });
       await fetchVideos();
 
-      Alert.alert(
-        'Succès',
-        'Les métadonnées de la vidéo ont été mises à jour avec succès.'
-      );
+      // No more success alert - user sees the updated video in the list
     } catch (err) {
       console.error('Error updating video:', err);
-      setError('Failed to update video metadata');
+      setError('Échec de la mise à jour des métadonnées');
+    } finally {
+      setSavingMetadata(false);
     }
   };
 
   const handleVideoPress = (video: VideoType) => {
+    clearError(); // Clear errors on interaction
     setPlayingVideoId(null); // Stop any playing video
     router.push(`/video-details/${video.id}`);
   };
 
   const handlePlayToggle = (videoId: string) => {
+    clearError(); // Clear errors on interaction
     if (playingVideoId === videoId) {
       setPlayingVideoId(null);
     } else {
@@ -218,6 +249,9 @@ export default function SourceVideosScreen() {
     setErrorVideoIds((prev) => new Set(prev).add(videoId));
   };
 
+  // Check if user can upload more videos
+  const canUploadMore = isPro || videos.length < FREE_TIER_SOURCE_VIDEOS_LIMIT;
+
   if (loading) {
     return (
       <SafeAreaView style={styles.container} edges={['top']}>
@@ -232,6 +266,11 @@ export default function SourceVideosScreen() {
     <SafeAreaView style={styles.container} edges={['top']}>
       <View style={styles.header}>
         <Text style={styles.title}>Vidéos Sources</Text>
+        {revenueCatReady && !isPro && (
+          <Text style={styles.limitText}>
+            {videos.length}/{FREE_TIER_SOURCE_VIDEOS_LIMIT} vidéos (Plan gratuit)
+          </Text>
+        )}
       </View>
 
       <ScrollView
@@ -252,11 +291,40 @@ export default function SourceVideosScreen() {
           </View>
         )}
 
+        {/* Free tier limit warning */}
+        {!isPro && !canUploadMore && (
+          <View style={styles.limitContainer}>
+            <Crown size={20} color="#FFD700" />
+            <View style={styles.limitTextContainer}>
+              <Text style={styles.limitTitle}>
+                Limite de vidéos sources atteinte
+              </Text>
+              <Text style={styles.limitDescription}>
+                Vous avez atteint la limite de {FREE_TIER_SOURCE_VIDEOS_LIMIT} vidéos sources du plan gratuit. 
+                Passez Pro pour uploader plus de vidéos.
+              </Text>
+            </View>
+          </View>
+        )}
+
         <View style={styles.uploadSection}>
-          <VideoUploader
-            onUploadComplete={handleUploadComplete}
-            onUploadError={handleUploadError}
-          />
+          {canUploadMore ? (
+            <VideoUploader
+              onUploadComplete={handleUploadComplete}
+              onUploadError={handleUploadError}
+              onUploadStart={clearError} // Clear errors when upload starts
+            />
+          ) : (
+            <View style={styles.uploadDisabled}>
+              <VideoIcon size={32} color="#555" />
+              <Text style={styles.uploadDisabledText}>
+                Limite de vidéos sources atteinte
+              </Text>
+              <Text style={styles.uploadDisabledSubtext}>
+                Supprimez une vidéo ou passez Pro pour continuer
+              </Text>
+            </View>
+          )}
 
           {editingVideo.id && (
             <View style={styles.form}>
@@ -269,9 +337,10 @@ export default function SourceVideosScreen() {
                 placeholder="Titre de la vidéo"
                 placeholderTextColor="#666"
                 value={editingVideo.title}
-                onChangeText={(text) =>
-                  setEditingVideo((prev) => ({ ...prev, title: text }))
-                }
+                onChangeText={(text) => {
+                  clearError(); // Clear errors on input
+                  setEditingVideo((prev) => ({ ...prev, title: text }));
+                }}
               />
 
               <TextInput
@@ -281,9 +350,10 @@ export default function SourceVideosScreen() {
                 multiline
                 numberOfLines={3}
                 value={editingVideo.description}
-                onChangeText={(text) =>
-                  setEditingVideo((prev) => ({ ...prev, description: text }))
-                }
+                onChangeText={(text) => {
+                  clearError(); // Clear errors on input
+                  setEditingVideo((prev) => ({ ...prev, description: text }));
+                }}
               />
 
               <TextInput
@@ -291,15 +361,17 @@ export default function SourceVideosScreen() {
                 placeholder="Tags (séparés par des virgules)"
                 placeholderTextColor="#666"
                 value={editingVideo.tags}
-                onChangeText={(text) =>
-                  setEditingVideo((prev) => ({ ...prev, tags: text }))
-                }
+                onChangeText={(text) => {
+                  clearError(); // Clear errors on input
+                  setEditingVideo((prev) => ({ ...prev, tags: text }));
+                }}
               />
 
               <View style={styles.formActions}>
                 <TouchableOpacity
                   style={styles.skipButton}
                   onPress={() => {
+                    clearError(); // Clear errors on interaction
                     setEditingVideo({
                       id: null,
                       title: '',
@@ -316,12 +388,16 @@ export default function SourceVideosScreen() {
                 <TouchableOpacity
                   style={[
                     styles.button,
-                    !editingVideo.title && styles.buttonDisabled,
+                    (!editingVideo.title || savingMetadata) && styles.buttonDisabled,
                   ]}
                   onPress={updateVideoMetadata}
-                  disabled={!editingVideo.title}
+                  disabled={!editingVideo.title || savingMetadata}
                 >
-                  <Text style={styles.buttonText}>Sauvegarder</Text>
+                  {savingMetadata ? (
+                    <ActivityIndicator size="small" color="#fff" />
+                  ) : (
+                    <Text style={styles.buttonText}>Sauvegarder</Text>
+                  )}
                 </TouchableOpacity>
               </View>
             </View>
@@ -394,6 +470,11 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#fff',
   },
+  limitText: {
+    fontSize: 14,
+    color: '#888',
+    marginTop: 4,
+  },
   content: {
     flex: 1,
     padding: 20,
@@ -412,8 +493,51 @@ const styles = StyleSheet.create({
     fontSize: 14,
     flex: 1,
   },
+  limitContainer: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    backgroundColor: '#2D1A00',
+    padding: 16,
+    borderRadius: 12,
+    marginBottom: 20,
+    gap: 12,
+  },
+  limitTextContainer: {
+    flex: 1,
+  },
+  limitTitle: {
+    color: '#FFD700',
+    fontSize: 16,
+    fontWeight: '600',
+    marginBottom: 4,
+  },
+  limitDescription: {
+    color: '#FFA500',
+    fontSize: 14,
+    lineHeight: 20,
+  },
   uploadSection: {
     gap: 20,
+  },
+  uploadDisabled: {
+    width: '100%',
+    height: 120,
+    backgroundColor: '#1a1a1a',
+    borderRadius: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+    opacity: 0.6,
+    gap: 8,
+  },
+  uploadDisabledText: {
+    color: '#888',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  uploadDisabledSubtext: {
+    color: '#666',
+    fontSize: 14,
+    textAlign: 'center',
   },
   form: {
     gap: 12,
@@ -448,6 +572,7 @@ const styles = StyleSheet.create({
     padding: 16,
     borderRadius: 12,
     gap: 8,
+    minWidth: 120,
   },
   buttonDisabled: {
     opacity: 0.7,

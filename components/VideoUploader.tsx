@@ -17,11 +17,13 @@ import { useAuth } from '@clerk/clerk-expo';
 type VideoUploaderProps = {
   onUploadComplete?: (videoData: { videoId: string; url: string }) => void;
   onUploadError?: (error: Error) => void;
+  onUploadStart?: () => void;
 };
 
 export default function VideoUploader({
   onUploadComplete,
   onUploadError,
+  onUploadStart,
 }: VideoUploaderProps) {
   const [isUploading, setIsUploading] = useState(false);
   const [uploadStatus, setUploadStatus] = useState<string>('');
@@ -35,8 +37,8 @@ export default function VideoUploader({
       // Check if user is signed in
       if (!isSignedIn) {
         Alert.alert(
-          'Authentication Required',
-          'Please sign in to upload videos'
+          'Authentification requise',
+          'Veuillez vous connecter pour uploader des vidéos'
         );
         return;
       }
@@ -44,6 +46,11 @@ export default function VideoUploader({
       // Show immediate feedback when user clicks
       setIsUploading(true);
       setUploadStatus('Ouverture de la galerie...');
+      
+      // Notify parent that upload started (to clear any errors)
+      if (onUploadStart) {
+        onUploadStart();
+      }
 
       console.log('Starting video selection...');
 
@@ -55,9 +62,9 @@ export default function VideoUploader({
         setIsUploading(false);
         setUploadStatus('');
         Alert.alert(
-          'Permission Required',
-          'Please grant camera roll permissions to upload videos',
-          [{ text: 'Cancel' }, { text: 'Open Settings', onPress: openSettings }]
+          'Permission requise',
+          'Veuillez autoriser l\'accès à la galerie pour uploader des vidéos',
+          [{ text: 'Annuler' }, { text: 'Ouvrir les paramètres', onPress: openSettings }]
         );
         return;
       }
@@ -89,16 +96,16 @@ export default function VideoUploader({
           // Show file size info
           const fileSizeMB = asset.fileSize
             ? (asset.fileSize / (1024 * 1024)).toFixed(1)
-            : 'Unknown';
+            : 'Inconnue';
           setUploadStatus(`Fichier sélectionné: ${fileSizeMB}MB`);
 
           console.log('Getting presigned URL from backend...');
-          setUploadStatus("Génération de l'URL de téléchargement...");
+          setUploadStatus('Préparation du téléchargement...');
 
           // Get Clerk JWT token
           const clerkToken = await getToken();
           if (!clerkToken) {
-            throw new Error('Unable to get authentication token');
+            throw new Error('Impossible d\'obtenir le token d\'authentification');
           }
 
           console.log('🔑 Got Clerk token, making request to backend...');
@@ -119,7 +126,7 @@ export default function VideoUploader({
             const errorText = await presignedResponse.text();
             console.error('Backend error response:', errorText);
             throw new Error(
-              `Failed to get upload URL: ${presignedResponse.status} - ${errorText}`
+              `Échec de la préparation du téléchargement: ${presignedResponse.status}`
             );
           }
 
@@ -141,28 +148,24 @@ export default function VideoUploader({
 
           console.log('Blob created:', { size: blob.size, type: blob.type });
 
-          // Upload directly to S3 using presigned URL
-          console.log('Uploading to S3...');
-          setUploadStatus('Téléchargement vers S3...');
+          // Upload to cloud storage
+          console.log('Uploading to cloud storage...');
+          setUploadStatus('Téléchargement en cours...');
           const uploadResponse = await fetch(presignedUrl, {
             method: 'PUT',
             body: blob,
             // No custom headers needed - let browser set correct Content-Type
-            // S3 presigned URLs handle authentication automatically
+            // Presigned URLs handle authentication automatically
           });
 
           if (!uploadResponse.ok) {
-            throw new Error(`S3 upload failed: ${uploadResponse.status}`);
+            throw new Error(`Échec du téléchargement: ${uploadResponse.status}`);
           }
 
           console.log('Upload successful! Public URL:', publicUrl);
           setUploadStatus('Téléchargement terminé!');
 
-          Alert.alert(
-            'Upload Complete',
-            'Your video has been uploaded successfully to S3.'
-          );
-
+          // No more success alert - just notify parent component
           if (onUploadComplete) {
             onUploadComplete({
               videoId: s3FileName,
@@ -172,15 +175,21 @@ export default function VideoUploader({
         } catch (uploadError) {
           console.error('Upload error:', uploadError);
           setUploadStatus('Erreur de téléchargement');
-          Alert.alert(
-            'Upload Error',
-            uploadError instanceof Error ? uploadError.message : 'Upload failed'
-          );
+          
+          // Only show alert for critical errors
+          const errorMessage = uploadError instanceof Error ? uploadError.message : 'Téléchargement échoué';
+          if (errorMessage.includes('token') || errorMessage.includes('authentication')) {
+            Alert.alert(
+              'Erreur d\'authentification',
+              'Veuillez vous reconnecter et réessayer'
+            );
+          }
+          
           if (onUploadError) {
             onUploadError(
               uploadError instanceof Error
                 ? uploadError
-                : new Error('Upload failed')
+                : new Error('Téléchargement échoué')
             );
           }
         } finally {
@@ -200,7 +209,7 @@ export default function VideoUploader({
       setUploadStatus('');
       if (onUploadError) {
         onUploadError(
-          error instanceof Error ? error : new Error('Unknown error occurred')
+          error instanceof Error ? error : new Error('Une erreur inconnue s\'est produite')
         );
       }
     }

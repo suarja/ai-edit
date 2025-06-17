@@ -581,3 +581,118 @@ Enhance the caption system to provide better user experience with default config
 Type **"ARCHIVE NOW"** to proceed with archiving the enhanced caption system documentation and marking the task as fully completed.
 
 ## Previous Completions Maintained
+
+# Task: Improve Source Videos Upload UX
+
+## Task ID: SVU-001
+
+## Complexity Level: Level 2
+
+## Priority: High
+
+## Description
+
+Improve the source videos upload user experience by addressing several UI/UX issues that affect user feedback and flow. The current implementation lacks visual feedback, has too many alerts, and needs free tier limitations.
+
+## Current Issues
+
+1. **Missing Loading Indicator**: No visual feedback when saving video metadata
+2. **Technical Messages**: Upload messages mention S3 which is confusing for users
+3. **Excessive Alerts**: Too many pop-up alerts interrupt the user experience
+4. **Persistent Errors**: Error messages don't reset when user performs new actions
+5. **No Free Tier Limits**: Need to implement 5-video limit for free tier users
+
+## Requirements Analysis
+
+### UI/UX Improvements Needed
+- Add loading state for metadata save operations
+- Replace technical messages with user-friendly text
+- Reduce alert pop-ups to essential ones only
+- Reset error states on user interaction
+- Implement free tier upload restrictions
+
+### Free Tier Implementation
+- Maximum 5 videos for free tier users
+- Prevent new uploads when limit reached
+- Allow existing videos to remain (grandfathering)
+- Show clear messaging about upgrade options
+
+## Level 2 Implementation Plan
+
+### Phase 1: Planning ✅
+- [x] Analyze current issues in source-videos upload flow
+- [x] Define user-friendly messaging strategy
+- [x] Plan error state management improvements
+- [x] Design free tier limitation approach
+
+### Phase 2: Implementation ✅
+- [x] Add loading state for metadata save operations
+- [x] Replace S3-specific messages with generic upload messages
+- [x] Remove unnecessary alert pop-ups
+- [x] Implement error state reset on user interactions
+- [x] Add free tier video count validation (5 videos max for source videos)
+- [x] Add subscription upgrade prompts for free tier limits
+
+### Phase 3: Testing
+- [ ] Test metadata save loading indicator
+- [ ] Verify user-friendly messages display correctly
+- [ ] Test error state reset functionality
+- [ ] Test free tier upload restrictions
+- [ ] Verify grandfathering of existing videos
+
+## Status: ✅ IMPLEMENTATION COMPLETE - Ready for Testing
+
+**Current Phase**: Testing
+**Implementation Details**: All core improvements implemented successfully
+
+## Implementation Details
+
+### Files Modified ✅
+- `app/(tabs)/source-videos.tsx`: Main upload page improvements
+- `components/VideoUploader.tsx`: Upload message improvements
+
+### Key Changes Implemented ✅
+
+#### 1. **Metadata Save Loading State** ✅
+- Added `savingMetadata` state to track loading
+- Button shows ActivityIndicator while saving
+- Button disabled during save operation
+- Proper loading feedback for users
+
+#### 2. **User-Friendly Upload Messages** ✅
+- Removed all S3 technical references
+- "Téléchargement vers S3" → "Téléchargement en cours"
+- "Génération de l'URL de téléchargement" → "Préparation du téléchargement"
+- "S3 upload failed" → "Échec du téléchargement"
+- All error messages translated to French
+
+#### 3. **Alert Reduction** ✅
+- Removed success alert after video upload completion
+- Removed success alert after metadata save
+- Kept only critical authentication errors
+- Users see feedback through UI states instead of disruptive alerts
+
+#### 4. **Error State Reset** ✅
+- Added `clearError` callback function
+- Errors clear on any user interaction:
+  - Text input changes
+  - Button clicks
+  - Upload start
+  - Pull-to-refresh
+  - Navigation actions
+
+#### 5. **Free Tier Limits** ✅
+- Implemented 5-video limit for source videos (free tier)
+- Upload blocked when limit reached
+- Clear messaging about upgrade options
+- Visual counter showing current usage
+- Grandfathering existing videos (no deletion)
+- Disabled upload component with clear messaging
+- Integration with RevenueCat subscription status
+
+#### 6. **UI/UX Improvements** ✅
+- Added limit counter in header for free tier users
+- Warning card when approaching/reaching limits
+- Crown icon for premium messaging
+- Improved visual hierarchy and spacing
+- Better disabled states and feedback
