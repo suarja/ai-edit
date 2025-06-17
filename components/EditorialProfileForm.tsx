@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, TextInput, ScrollView } from 'react-native';
 import {
   User,
@@ -86,6 +86,10 @@ export default function EditorialProfileForm({
 }: EditorialProfileFormProps) {
   const [formData, setFormData] = useState<EditorialProfile>(profile);
   const [activeField, setActiveField] = useState<string | null>(null);
+  
+  // Add ref for ScrollView to enable programmatic scrolling
+  const scrollViewRef = useRef<ScrollView>(null);
+  const inputRefs = useRef<{ [key: string]: TextInput | null }>({});
 
   // Update parent component whenever form data changes
   useEffect(() => {
@@ -94,6 +98,31 @@ export default function EditorialProfileForm({
 
   const updateField = (key: keyof EditorialProfile, value: string) => {
     setFormData((prev) => ({ ...prev, [key]: value }));
+  };
+
+  const handleInputFocus = (key: string) => {
+    setActiveField(key);
+    
+    // Scroll to focused input with a small delay to ensure keyboard is open
+    setTimeout(() => {
+      const inputRef = inputRefs.current[key];
+      if (inputRef && scrollViewRef.current) {
+        inputRef.measureLayout(
+          scrollViewRef.current as any,
+          (x, y, width, height) => {
+            // Scroll to show the input with some extra space above
+            scrollViewRef.current?.scrollTo({
+              y: Math.max(0, y - 100),
+              animated: true,
+            });
+          },
+          () => {
+            // Fallback: scroll to end if measure fails
+            scrollViewRef.current?.scrollToEnd({ animated: true });
+          }
+        );
+      }
+    }, 300);
   };
 
   const getCompletionPercentage = () => {
@@ -123,7 +152,13 @@ export default function EditorialProfileForm({
         </View>
       </View>
 
-      <ScrollView style={styles.form} showsVerticalScrollIndicator={false}>
+      <ScrollView 
+        ref={scrollViewRef}
+        style={styles.form} 
+        contentContainerStyle={styles.formContent}
+        showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
+      >
         {FIELD_CONFIGS.map((config, index) => {
           const Icon = config.icon;
           const value = formData[config.key];
@@ -163,6 +198,9 @@ export default function EditorialProfileForm({
               </View>
 
               <TextInput
+                ref={(ref) => {
+                  inputRefs.current[config.key] = ref;
+                }}
                 style={[styles.textInput, isActive && styles.textInputActive]}
                 multiline
                 numberOfLines={config.numberOfLines}
@@ -170,7 +208,7 @@ export default function EditorialProfileForm({
                 placeholderTextColor="#666"
                 value={value}
                 onChangeText={(text) => updateField(config.key, text)}
-                onFocus={() => setActiveField(config.key)}
+                onFocus={() => handleInputFocus(config.key)}
                 onBlur={() => setActiveField(null)}
                 maxLength={config.maxLength}
               />
@@ -231,7 +269,10 @@ const styles = StyleSheet.create({
   },
   form: {
     flex: 1,
+  },
+  formContent: {
     padding: 20,
+    paddingBottom: 40, // Extra padding at bottom to ensure last field is accessible
   },
   fieldContainer: {
     marginBottom: 32,

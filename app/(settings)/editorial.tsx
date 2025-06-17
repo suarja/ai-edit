@@ -6,6 +6,8 @@ import {
   ScrollView,
   Alert,
   ActivityIndicator,
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -182,12 +184,18 @@ export default function EditorialScreen() {
             loading: saving,
           }}
         />
-        <EditorialProfileForm
-          profile={profile}
-          onSave={handleFormChange}
-          onCancel={handleCancel}
-          saving={saving}
-        />
+        <KeyboardAvoidingView 
+          style={styles.keyboardContainer}
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
+        >
+          <EditorialProfileForm
+            profile={profile}
+            onSave={handleFormChange}
+            onCancel={handleCancel}
+            saving={saving}
+          />
+        </KeyboardAvoidingView>
       </SafeAreaView>
     );
   }
@@ -272,6 +280,9 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#000',
+  },
+  keyboardContainer: {
+    flex: 1,
   },
   loadingContainer: {
     flex: 1,

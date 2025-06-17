@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, StyleSheet, ActivityIndicator, Text } from 'react-native';
+import { View, StyleSheet, ActivityIndicator, Text, ScrollView } from 'react-native';
 import { useLocalSearchParams, router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { RefreshCcw } from 'lucide-react-native';
@@ -319,17 +319,23 @@ export default function GeneratedVideoDetailScreen() {
         refreshing={refreshing}
       />
 
-      <View style={styles.content}>
-        {video && video.render_status === 'done' ? (
-          <VideoPlayer video={video} />
-        ) : (
-          renderThumbnail()
-        )}
+      <ScrollView 
+        style={styles.scrollContainer}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
+        <View style={styles.content}>
+          {video && video.render_status === 'done' ? (
+            <VideoPlayer video={video} />
+          ) : (
+            renderThumbnail()
+          )}
 
-        <VideoDetails video={video} error={error} />
+          <VideoDetails video={video} error={error} />
 
-        <VideoActionButtons video={video} layout="row" showCopyLink={true} />
-      </View>
+          <VideoActionButtons video={video} layout="row" showCopyLink={true} />
+        </View>
+      </ScrollView>
     </SafeAreaView>
   );
 }
@@ -339,8 +345,16 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#000',
   },
+  scrollContainer: {
+    flex: 1,
+  },
+  scrollContent: {
+    flexGrow: 1,
+    paddingBottom: 20,
+  },
   content: {
     flex: 1,
+    gap: 20,
   },
   loadingContainer: {
     flex: 1,
