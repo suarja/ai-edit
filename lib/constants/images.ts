@@ -15,8 +15,20 @@ export const IMAGES = {
   },
   signUp: {
     header:
-      'https://images.pexels.com/photos/3756879/pexels-photo-3756879.jpeg',
+      'https://images.pexels.com/photos/2882566/pexels-photo-2882566.jpeg',
     header_plane:
       'https://images.pexels.com/photos/1647116/pexels-photo-1647116.jpeg',
+  },
+  forgotPassword: {
+    header:
+      'https://images.pexels.com/photos/2882566/pexels-photo-2882566.jpeg',
+  },
+  voiceClone: {
+    header:
+      'https://images.pexels.com/photos/3756878/pexels-photo-3756878.jpeg',
+  },
+  avatars: {
+    placeholder:
+      'https://images.pexels.com/photos/2379005/pexels-photo-2379005.jpeg',
   },
 };

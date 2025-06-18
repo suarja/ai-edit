@@ -97,21 +97,6 @@ function LandingScreen() {
           <Play size={24} color="#fff" />
           <Text style={styles.buttonText}>Commencer</Text>
         </TouchableOpacity>
-
-        {/* Debug info in development */}
-        {__DEV__ && (
-          <View style={styles.debugInfo}>
-            <Text style={styles.debugText}>
-              Debug: isLoaded={isLoaded ? 'true' : 'false'}
-            </Text>
-            <Text style={styles.debugText}>
-              Debug: isSignedIn={isSignedIn ? 'true' : 'false'}
-            </Text>
-            <Text style={styles.debugText}>
-              Debug: initializing={initializing ? 'true' : 'false'}
-            </Text>
-          </View>
-        )}
       </View>
     </View>
   );
@@ -194,17 +179,7 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '600',
   },
-  debugInfo: {
-    backgroundColor: '#1a1a1a',
-    padding: 12,
-    borderRadius: 8,
-    marginTop: 20,
-  },
-  debugText: {
-    color: '#888',
-    fontSize: 12,
-    fontFamily: 'monospace',
-  },
+
 });
 
 // Export with error boundary
