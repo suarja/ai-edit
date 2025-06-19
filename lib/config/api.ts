@@ -25,6 +25,7 @@ const API_CONFIGS = {
     promptsEnhance: '/api/prompts/enhance',
     promptsEnhanceSystem: '/api/prompts/enhance-system',
     promptsGenerateSystem: '/api/prompts/generate-system',
+    scripts: '/api/scripts',
     webhooksCreatomate: '/api/webhooks/creatomate',
     voiceClone: '/api/voice-clone',
     onboarding: '/api/onboarding',
@@ -48,6 +49,7 @@ const API_CONFIGS = {
     promptsEnhance: '/api/prompts/enhance',
     promptsEnhanceSystem: '/api/prompts/enhance-system',
     promptsGenerateSystem: '/api/prompts/generate-system',
+    scripts: '/api/scripts',
     webhooksCreatomate: '/api/webhooks/creatomate',
     voiceClone: '/api/voice-clone',
     onboarding: '/api/onboarding',
@@ -73,6 +75,7 @@ const API_CONFIGS = {
     promptsEnhance: '/api/prompts/enhance',
     promptsEnhanceSystem: '/api/prompts/enhance-system',
     promptsGenerateSystem: '/api/prompts/generate-system',
+    scripts: '/api/scripts',
     webhooksCreatomate: '/api/webhooks/creatomate',
     voiceClone: '/api/voice-clone',
     onboarding: '/api/onboarding',
@@ -143,6 +146,12 @@ export const API_ENDPOINTS = {
   PROMPTS_GENERATE_SYSTEM: () => {
     const config = getCurrentConfig();
     return config.baseUrl + config.promptsGenerateSystem;
+  },
+
+  // Script chat endpoints
+  SCRIPTS: () => {
+    const config = getCurrentConfig();
+    return config.baseUrl + config.scripts;
   },
 
   // Webhooks

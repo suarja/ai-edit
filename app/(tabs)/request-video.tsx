@@ -182,7 +182,7 @@ export default function RequestVideoScreen() {
       <SubmitButton
         onSubmit={videoRequest.handleSubmit}
         isSubmitting={videoRequest.submitting}
-        isDisabled={isSubmitDisabled}
+        isDisabled={isSubmitDisabled || !canGenerateVideo}
       />
     </SafeAreaView>
   );

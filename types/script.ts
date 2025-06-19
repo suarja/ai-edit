@@ -18,19 +18,17 @@ export interface ScriptDraft {
   id: string;
   title: string;
   status: 'draft' | 'validated' | 'used';
-  currentScript: string;
+  current_script: string;
   messages: ChatMessage[];
-  metadata: {
-    outputLanguage: string;
-    editorialProfileId?: string;
-    wordCount: number;
-    estimatedDuration: number;
-    lastModified: string;
-    version: number;
-  };
-  userId: string;
-  createdAt: string;
-  updatedAt: string;
+  output_language: string;
+  editorial_profile_id?: string;
+  word_count: number;
+  estimated_duration: number;
+  message_count: number;
+  version: number;
+  user_id: string;
+  created_at: string;
+  updated_at: string;
 }
 
 // Chat Request/Response Types
@@ -72,12 +70,12 @@ export interface ScriptListItem {
   id: string;
   title: string;
   status: 'draft' | 'validated' | 'used';
-  currentScript: string;
-  outputLanguage: string;
-  lastModified: string;
-  messageCount: number;
-  wordCount: number;
-  estimatedDuration: number;
+  current_script: string;
+  output_language: string;
+  updated_at: string;
+  message_count: number;
+  word_count: number;
+  estimated_duration: number;
 }
 
 export interface ScriptListResponse {

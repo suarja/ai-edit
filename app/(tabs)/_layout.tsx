@@ -1,5 +1,5 @@
 import { Redirect, Tabs } from 'expo-router';
-import { Upload, Video, Settings, Plus } from 'lucide-react-native';
+import { Upload, Video, Settings, Plus, MessageCircle } from 'lucide-react-native';
 import { View, ActivityIndicator, Text, StyleSheet } from 'react-native';
 import { useClerkAuth } from '@/hooks/useClerkAuth';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -59,6 +59,13 @@ export default function TabLayout() {
           options={{
             title: 'Créer',
             tabBarIcon: ({ size, color }) => <Plus size={size} color={color} />,
+          }}
+        />
+        <Tabs.Screen
+          name="script-chat-demo"
+          options={{
+            title: 'Chat 🎯',
+            tabBarIcon: ({ size, color }) => <MessageCircle size={size} color={color} />,
           }}
         />
         <Tabs.Screen
