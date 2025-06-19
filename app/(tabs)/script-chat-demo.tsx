@@ -7,122 +7,82 @@ import {
   ScrollView,
   StyleSheet,
   ActivityIndicator,
+  Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Send, MessageCircle, CheckCircle2, Clock } from 'lucide-react-native';
-
-interface ChatMessage {
-  id: string;
-  role: 'user' | 'assistant';
-  content: string;
-  timestamp: string;
-  streaming?: boolean;
-}
+import { Send, MessageCircle, CheckCircle2, Clock, Database } from 'lucide-react-native';
+import { useScriptChat } from '@/app/hooks/useScriptChat';
+import { useAuth } from '@clerk/clerk-expo';
 
 /**
- * 🎯 DÉMO DU SCRIPT CHAT AVEC FEEDBACK TEMPS RÉEL
+ * 🎯 SCRIPT CHAT AVEC VRAIE API ET PROFIL ÉDITORIAL
  * 
- * Cette démo illustre l'importance du feedback temps réel dans l'interface chat :
- * 1. Indicateur de frappe en temps réel
- * 2. Messages streaming character par character
- * 3. États visuels clairs (envoi, réception, terminé)
- * 4. Interface responsive et moderne
+ * Cette version utilise :
+ * 1. Hook useScriptChat pour vraie API backend
+ * 2. Profil éditorial pour contexte personnalisé
+ * 3. Prompt design structuré (Parahelp inspired)
+ * 4. Sauvegarde automatique en DB
+ * 5. Streaming temps réel OpenAI
  */
 export default function ScriptChatDemo() {
-  const [messages, setMessages] = useState<ChatMessage[]>([
-    {
-      id: '1',
-      role: 'assistant',
-      content: "Bonjour ! Je suis ici pour vous aider à créer un script parfait. Décrivez-moi le type de vidéo que vous souhaitez créer.",
-      timestamp: new Date().toISOString(),
-    }
-  ]);
-  
-  const [currentMessage, setCurrentMessage] = useState('');
-  const [isStreaming, setIsStreaming] = useState(false);
-  const [streamingMessageId, setStreamingMessageId] = useState<string | null>(null);
+  const { isSignedIn } = useAuth();
+  const [inputMessage, setInputMessage] = useState('');
   const scrollViewRef = useRef<ScrollView>(null);
+
+  // Utiliser le vrai hook avec options
+  const {
+    messages,
+    currentScript,
+    isLoading,
+    isStreaming,
+    error,
+    sendMessage,
+    createNewScript,
+    clearError,
+    wordCount,
+    estimatedDuration,
+    title,
+    scriptDraft,
+  } = useScriptChat({
+    outputLanguage: 'fr',
+    // editorialProfileId sera récupéré automatiquement du user
+  });
 
   // Auto-scroll vers le bas
   useEffect(() => {
     scrollViewRef.current?.scrollToEnd({ animated: true });
   }, [messages]);
 
-  // Simuler une réponse streaming
-  const simulateStreamingResponse = async (userMessage: string) => {
-    setIsStreaming(true);
-    
-    // Ajouter le message utilisateur
-    const userMsg: ChatMessage = {
-      id: Date.now().toString(),
-      role: 'user',
-      content: userMessage,
-      timestamp: new Date().toISOString(),
-    };
-    
-    setMessages(prev => [...prev, userMsg]);
-    setCurrentMessage('');
-
-    // Simuler un délai de traitement
-    await new Promise(resolve => setTimeout(resolve, 800));
-
-    // Créer le message assistant avec streaming
-    const assistantId = (Date.now() + 1).toString();
-    setStreamingMessageId(assistantId);
-    
-    const assistantMsg: ChatMessage = {
-      id: assistantId,
-      role: 'assistant',
-      content: '',
-      timestamp: new Date().toISOString(),
-      streaming: true,
-    };
-    
-    setMessages(prev => [...prev, assistantMsg]);
-
-    // Simuler différentes réponses selon le contenu
-    let responseText = '';
-    if (userMessage.toLowerCase().includes('café')) {
-      responseText = "Excellent ! Voici un script de 30 secondes sur les bienfaits du café :\n\n[OUVERTURE - 3 secondes]\n\"Saviez-vous que votre tasse de café matinale est bien plus qu'un simple réveil ?\"\n\n[DÉVELOPPEMENT - 20 secondes]\n\"Le café est riche en antioxydants qui protègent vos cellules. Il améliore la concentration, booste votre métabolisme et peut même réduire le risque de certaines maladies. Une tasse contient plus d'antioxydants que la plupart des fruits !\"\n\n[CONCLUSION - 7 secondes]\n\"Alors la prochaine fois que vous dégustez votre café, rappelez-vous : vous ne buvez pas juste une boisson, vous consommez un véritable élixir de santé !\"\n\nQue pensez-vous de ce script ? Souhaitez-vous que je l'adapte ?";
-    } else if (userMessage.toLowerCase().includes('productivité')) {
-      responseText = "Parfait ! Créons un script percutant sur la productivité :\n\n[ACCROCHE - 3 secondes]\n\"3 habitudes qui vont transformer votre productivité dès aujourd'hui.\"\n\n[CONTENU - 22 secondes]\n\"Première habitude : La règle des 2 minutes. Si une tâche prend moins de 2 minutes, faites-la immédiatement. Deuxième habitude : Planifiez votre journée la veille. Votre cerveau travaillera déjà sur vos objectifs pendant la nuit. Troisième habitude : Éliminez les distractions. Un téléphone en mode silencieux peut augmenter votre focus de 40%.\"\n\n[APPEL À L'ACTION - 5 secondes]\n\"Choisissez une de ces habitudes et testez-la dès demain. Votre futur vous remerciera !\"\n\nCe script vous convient-il ?";
-    } else {
-      responseText = `Merci pour cette idée ! Je vais créer un script personnalisé pour "${userMessage}".\n\nPour vous proposer le meilleur contenu possible, pouvez-vous me préciser :\n\n• Quelle est la durée souhaitée ?\n• Quel est votre public cible ?\n• Quel ton souhaitez-vous adopter (professionnel, décontracté, inspirant) ?\n• Y a-t-il des points spécifiques à aborder ?\n\nCes informations m'aideront à créer un script parfaitement adapté à vos besoins !`;
+  // Afficher les erreurs
+  useEffect(() => {
+    if (error) {
+      Alert.alert('Erreur', error, [
+        { text: 'OK', onPress: clearError }
+      ]);
     }
-
-    // Streaming character par character
-    for (let i = 0; i <= responseText.length; i++) {
-      const partialText = responseText.substring(0, i);
-      
-      setMessages(prev => prev.map(msg => 
-        msg.id === assistantId 
-          ? { ...msg, content: partialText }
-          : msg
-      ));
-      
-      // Délai variable pour simuler la vitesse de frappe naturelle
-      const delay = Math.random() * 30 + 10; // 10-40ms
-      await new Promise(resolve => setTimeout(resolve, delay));
-    }
-
-    // Marquer comme terminé
-    setMessages(prev => prev.map(msg => 
-      msg.id === assistantId 
-        ? { ...msg, streaming: false }
-        : msg
-    ));
-    
-    setStreamingMessageId(null);
-    setIsStreaming(false);
-  };
+  }, [error]);
 
   const handleSendMessage = async () => {
-    if (!currentMessage.trim() || isStreaming) return;
+    if (!inputMessage.trim() || isStreaming) return;
     
-    await simulateStreamingResponse(currentMessage.trim());
+    try {
+      await sendMessage(inputMessage.trim());
+      setInputMessage('');
+    } catch (err) {
+      console.error('Error sending message:', err);
+    }
   };
 
-  const renderMessage = (message: ChatMessage) => {
+  const handleCreateNew = async () => {
+    try {
+      await createNewScript();
+      setInputMessage('');
+    } catch (err) {
+      console.error('Error creating new script:', err);
+    }
+  };
+
+  const renderMessage = (message: any) => {
     const isUser = message.role === 'user';
     
     return (
@@ -142,7 +102,7 @@ export default function ScriptChatDemo() {
           </Text>
           
           {/* Indicateur de streaming */}
-          {message.streaming && (
+          {message.metadata?.isStreaming && (
             <View style={styles.streamingIndicator}>
               <ActivityIndicator size="small" color="#007AFF" />
               <Text style={styles.streamingText}>En cours de frappe...</Text>
@@ -166,25 +126,54 @@ export default function ScriptChatDemo() {
     );
   };
 
+  if (!isSignedIn) {
+    return (
+      <SafeAreaView style={styles.container} edges={['top']}>
+        <View style={styles.centeredContainer}>
+          <MessageCircle size={48} color="#888" />
+          <Text style={styles.centeredText}>Connectez-vous pour utiliser le Script Chat</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      {/* Header */}
+      {/* Header avec informations script */}
       <View style={styles.header}>
         <View style={styles.headerContent}>
           <MessageCircle size={24} color="#007AFF" />
           <View style={styles.headerText}>
-            <Text style={styles.headerTitle}>Script Chat</Text>
+            <Text style={styles.headerTitle}>
+              {title || 'Nouveau Script'}
+            </Text>
             <Text style={styles.headerSubtitle}>
-              {isStreaming ? 'IA en train d\'écrire...' : 'Créez votre script parfait'}
+              {isStreaming ? (
+                '🤖 IA en train d\'écrire...'
+              ) : scriptDraft ? (
+                `💾 Sauvé • ${wordCount} mots • ${Math.round(estimatedDuration)}s`
+              ) : (
+                '✨ Profil éditorial intégré'
+              )}
             </Text>
           </View>
         </View>
         
-        {isStreaming && (
-          <View style={styles.statusIndicator}>
-            <Clock size={16} color="#FF9500" />
-          </View>
-        )}
+        <View style={styles.headerActions}>
+          {scriptDraft && (
+            <View style={styles.dbIndicator}>
+              <Database size={16} color="#4CD964" />
+            </View>
+          )}
+          
+          <TouchableOpacity 
+            onPress={handleCreateNew}
+            style={styles.newButton}
+            disabled={isLoading}
+          >
+            <Text style={styles.newButtonText}>Nouveau</Text>
+          </TouchableOpacity>
+        </View>
       </View>
 
       {/* Messages */}
@@ -193,51 +182,101 @@ export default function ScriptChatDemo() {
         style={styles.messagesContainer}
         showsVerticalScrollIndicator={false}
       >
-        {messages.map(renderMessage)}
+        {isLoading && messages.length === 0 ? (
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color="#007AFF" />
+            <Text style={styles.loadingText}>Chargement du script...</Text>
+          </View>
+        ) : (
+          <>
+            {messages.map(renderMessage)}
+            
+            {/* Script prévisualisation */}
+            {currentScript && (
+              <View style={styles.scriptPreview}>
+                <Text style={styles.scriptTitle}>📝 Script Actuel</Text>
+                <Text style={styles.scriptContent}>{currentScript}</Text>
+                <Text style={styles.scriptMeta}>
+                  {wordCount} mots • ~{Math.round(estimatedDuration)} secondes
+                </Text>
+              </View>
+            )}
+          </>
+        )}
         
         {/* Indicateur de frappe global */}
-        {isStreaming && streamingMessageId && (
+        {isStreaming && (
           <View style={styles.typingIndicator}>
-            <ActivityIndicator size="small" color="#007AFF" />
-            <Text style={styles.typingText}>L'IA génère votre script...</Text>
+            <View style={styles.typingDots}>
+              <View style={[styles.dot, styles.dot1]} />
+              <View style={[styles.dot, styles.dot2]} />
+              <View style={[styles.dot, styles.dot3]} />
+            </View>
+            <Text style={styles.typingText}>L'IA analyse votre profil éditorial...</Text>
           </View>
         )}
       </ScrollView>
 
-      {/* Input area */}
+      {/* Zone de saisie */}
       <View style={styles.inputContainer}>
-        <TextInput
-          style={styles.textInput}
-          value={currentMessage}
-          onChangeText={setCurrentMessage}
-          placeholder="Décrivez votre idée de vidéo..."
-          placeholderTextColor="#666"
-          multiline
-          maxLength={500}
-          editable={!isStreaming}
-        />
+        <View style={styles.inputRow}>
+          <TextInput
+            style={styles.textInput}
+            value={inputMessage}
+            onChangeText={setInputMessage}
+            placeholder={
+              messages.length === 0 
+                ? "Décrivez le script que vous souhaitez créer..."
+                : "Affinez votre script..."
+            }
+            placeholderTextColor="#888"
+            multiline
+            maxLength={500}
+            editable={!isStreaming}
+          />
+          
+          <TouchableOpacity
+            style={[
+              styles.sendButton,
+              (!inputMessage.trim() || isStreaming) && styles.sendButtonDisabled
+            ]}
+            onPress={handleSendMessage}
+            disabled={!inputMessage.trim() || isStreaming}
+          >
+            {isStreaming ? (
+              <ActivityIndicator size="small" color="#fff" />
+            ) : (
+              <Send size={20} color="#fff" />
+            )}
+          </TouchableOpacity>
+        </View>
         
-        <TouchableOpacity
-          style={[
-            styles.sendButton,
-            (!currentMessage.trim() || isStreaming) && styles.sendButtonDisabled
-          ]}
-          onPress={handleSendMessage}
-          disabled={!currentMessage.trim() || isStreaming}
-        >
-          {isStreaming ? (
-            <ActivityIndicator size="small" color="#fff" />
-          ) : (
-            <Send size={20} color="#fff" />
-          )}
-        </TouchableOpacity>
-      </View>
-
-      {/* Info footer */}
-      <View style={styles.footer}>
-        <Text style={styles.footerText}>
-          💡 Cette démo illustre le feedback temps réel essentiel pour l'UX
-        </Text>
+        {/* Exemples de prompts */}
+        {messages.length === 0 && (
+          <View style={styles.examplesContainer}>
+            <Text style={styles.examplesTitle}>💡 Exemples :</Text>
+            <View style={styles.examplesRow}>
+              <TouchableOpacity 
+                style={styles.exampleChip}
+                onPress={() => setInputMessage("Script sur les bienfaits du café")}
+              >
+                <Text style={styles.exampleText}>☕ Café</Text>
+              </TouchableOpacity>
+              <TouchableOpacity 
+                style={styles.exampleChip}
+                onPress={() => setInputMessage("3 astuces productivité")}
+              >
+                <Text style={styles.exampleText}>⚡ Productivité</Text>
+              </TouchableOpacity>
+              <TouchableOpacity 
+                style={styles.exampleChip}
+                onPress={() => setInputMessage("Expliquer l'IA simplement")}
+              >
+                <Text style={styles.exampleText}>🤖 IA</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        )}
       </View>
     </SafeAreaView>
   );
@@ -248,25 +287,37 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#000',
   },
+  centeredContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 16,
+  },
+  centeredText: {
+    color: '#888',
+    fontSize: 16,
+    textAlign: 'center',
+  },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    paddingVertical: 16,
+    padding: 16,
     borderBottomWidth: 1,
     borderBottomColor: '#333',
   },
   headerContent: {
     flexDirection: 'row',
     alignItems: 'center',
+    flex: 1,
   },
   headerText: {
     marginLeft: 12,
+    flex: 1,
   },
   headerTitle: {
     fontSize: 18,
-    fontWeight: '600',
+    fontWeight: 'bold',
     color: '#fff',
   },
   headerSubtitle: {
@@ -274,17 +325,38 @@ const styles = StyleSheet.create({
     color: '#888',
     marginTop: 2,
   },
-  statusIndicator: {
-    backgroundColor: 'rgba(255, 149, 0, 0.1)',
-    borderRadius: 12,
-    width: 32,
-    height: 32,
-    justifyContent: 'center',
+  headerActions: {
+    flexDirection: 'row',
     alignItems: 'center',
+    gap: 8,
+  },
+  dbIndicator: {
+    padding: 4,
+  },
+  newButton: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    backgroundColor: '#007AFF',
+    borderRadius: 16,
+  },
+  newButtonText: {
+    color: '#fff',
+    fontSize: 12,
+    fontWeight: '600',
   },
   messagesContainer: {
     flex: 1,
     padding: 16,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 16,
+  },
+  loadingText: {
+    color: '#888',
+    fontSize: 16,
   },
   messageContainer: {
     marginBottom: 16,
@@ -297,15 +369,16 @@ const styles = StyleSheet.create({
   },
   messageBubble: {
     maxWidth: '85%',
-    borderRadius: 18,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
+    padding: 12,
+    borderRadius: 16,
   },
   userBubble: {
     backgroundColor: '#007AFF',
+    borderBottomRightRadius: 4,
   },
   assistantBubble: {
     backgroundColor: '#1a1a1a',
+    borderBottomLeftRadius: 4,
     borderWidth: 1,
     borderColor: '#333',
   },
@@ -319,62 +392,107 @@ const styles = StyleSheet.create({
   assistantText: {
     color: '#fff',
   },
-  messageFooter: {
+  streamingIndicator: {
     flexDirection: 'row',
     alignItems: 'center',
     marginTop: 8,
-    justifyContent: 'flex-end',
+    gap: 6,
+  },
+  streamingText: {
+    fontSize: 12,
+    color: '#007AFF',
+    fontStyle: 'italic',
+  },
+  messageFooter: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginTop: 6,
   },
   timestamp: {
-    fontSize: 12,
+    fontSize: 11,
     color: '#888',
   },
   checkmark: {
     marginLeft: 4,
   },
-  streamingIndicator: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: 8,
+  scriptPreview: {
+    backgroundColor: '#1a1a1a',
+    borderRadius: 12,
+    padding: 16,
+    marginTop: 16,
+    borderWidth: 1,
+    borderColor: '#333',
   },
-  streamingText: {
-    fontSize: 12,
+  scriptTitle: {
+    fontSize: 14,
+    fontWeight: '600',
     color: '#007AFF',
-    marginLeft: 8,
+    marginBottom: 8,
+  },
+  scriptContent: {
+    fontSize: 15,
+    color: '#fff',
+    lineHeight: 22,
+    marginBottom: 8,
+  },
+  scriptMeta: {
+    fontSize: 12,
+    color: '#888',
     fontStyle: 'italic',
   },
   typingIndicator: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 12,
+    padding: 16,
+    gap: 8,
+  },
+  typingDots: {
+    flexDirection: 'row',
+    gap: 4,
+  },
+  dot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: '#007AFF',
+  },
+  dot1: {
+    opacity: 0.4,
+  },
+  dot2: {
+    opacity: 0.7,
+  },
+  dot3: {
+    opacity: 1,
   },
   typingText: {
-    fontSize: 14,
-    color: '#007AFF',
-    marginLeft: 8,
+    fontSize: 12,
+    color: '#888',
     fontStyle: 'italic',
   },
   inputContainer: {
-    flexDirection: 'row',
-    alignItems: 'flex-end',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
+    padding: 16,
     borderTopWidth: 1,
     borderTopColor: '#333',
+  },
+  inputRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    gap: 12,
   },
   textInput: {
     flex: 1,
     backgroundColor: '#1a1a1a',
-    borderWidth: 1,
-    borderColor: '#333',
     borderRadius: 20,
     paddingHorizontal: 16,
     paddingVertical: 12,
     color: '#fff',
     fontSize: 16,
     maxHeight: 100,
-    marginRight: 12,
+    borderWidth: 1,
+    borderColor: '#333',
   },
   sendButton: {
     backgroundColor: '#007AFF',
@@ -387,15 +505,28 @@ const styles = StyleSheet.create({
   sendButtonDisabled: {
     backgroundColor: '#333',
   },
-  footer: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    backgroundColor: 'rgba(0, 122, 255, 0.1)',
+  examplesContainer: {
+    marginTop: 12,
   },
-  footerText: {
+  examplesTitle: {
     fontSize: 12,
-    color: '#007AFF',
-    textAlign: 'center',
-    fontStyle: 'italic',
+    color: '#888',
+    marginBottom: 8,
+  },
+  examplesRow: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  exampleChip: {
+    backgroundColor: '#1a1a1a',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: '#333',
+  },
+  exampleText: {
+    fontSize: 12,
+    color: '#888',
   },
 }); 

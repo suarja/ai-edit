@@ -84,7 +84,7 @@ export function useScriptChat(options: UseScriptChatOptions = {}): UseScriptChat
       setError(null);
 
       const token = await getToken();
-      const response = await fetch(`${API_ENDPOINTS.SCRIPTS}/${scriptId}`, {
+      const response = await fetch(`${API_ENDPOINTS.SCRIPTS()}/${scriptId}`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
@@ -146,27 +146,70 @@ export function useScriptChat(options: UseScriptChatOptions = {}): UseScriptChat
       };
 
       const token = await getToken();
+      console.log('🔐 Token obtained:', token ? 'Yes' : 'No', token?.substring(0, 20) + '...');
       
       // Create abort controller for cancellation
       abortControllerRef.current = new AbortController();
 
-      const response = await fetch(`${API_ENDPOINTS.SCRIPTS}/chat?stream=true`, {
+      const requestUrl = `${API_ENDPOINTS.SCRIPTS()}/chat?stream=false`;
+      console.log('📡 Making request to:', requestUrl);
+
+      console.log('📤 Sending request with body:', JSON.stringify(chatRequest));
+      
+      const response = await fetch(requestUrl, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
-          'Accept': 'text/stream',
+          'Accept': 'application/json',
         },
         body: JSON.stringify(chatRequest),
         signal: abortControllerRef.current.signal,
       });
 
+      console.log('📥 Response received!');
+
       if (!response.ok) {
-        throw new Error('Failed to send message');
+        console.error('❌ Response not ok:', response.status, response.statusText);
+        throw new Error(`Failed to send message: ${response.status} ${response.statusText}`);
       }
 
-      // Handle streaming response
-      await handleStreamingResponse(response);
+      // Handle non-streaming response for now
+      console.log('📡 Response status:', response.status, response.statusText);
+      console.log('📡 Response headers:', Object.fromEntries(response.headers.entries()));
+      
+      const result = await response.json();
+      console.log('📝 Chat response received:', JSON.stringify(result, null, 2));
+      
+      // Update messages with the response
+      if (result.data?.message) {
+        console.log('🔄 Updating message with response data');
+        setMessages(prev => prev.map(msg => 
+          msg.id === assistantMessage.id
+            ? { ...result.data.message, metadata: { isStreaming: false } }
+            : msg
+        ));
+      } else {
+        console.warn('⚠️ No message found in response data');
+      }
+      
+      // Update current script if available
+      if (result.data?.currentScript) {
+        console.log('🔄 Updating current script');
+        setCurrentScript(result.data.currentScript);
+      } else {
+        console.warn('⚠️ No currentScript found in response data');
+      }
+      
+      // Update script draft if available
+      if (result.data?.scriptId) {
+        console.log('🔄 Updating script draft ID');
+        setScriptDraft(prev => prev ? { ...prev, id: result.data.scriptId } : null);
+      } else {
+        console.warn('⚠️ No scriptId found in response data');
+      }
+
+      console.log('✅ Message processed successfully!');
 
     } catch (err) {
       console.error('Error sending message:', err);
@@ -180,6 +223,7 @@ export function useScriptChat(options: UseScriptChatOptions = {}): UseScriptChat
         ));
       }
     } finally {
+      console.log('🔄 Cleaning up - setting isStreaming to false');
       setIsStreaming(false);
       streamingMessageRef.current = null;
       abortControllerRef.current = null;
@@ -297,7 +341,7 @@ export function useScriptChat(options: UseScriptChatOptions = {}): UseScriptChat
       setError(null);
 
       const token = await getToken();
-      await fetch(`${API_ENDPOINTS.SCRIPTS}/${scriptDraft.id}`, {
+      await fetch(`${API_ENDPOINTS.SCRIPTS()}/${scriptDraft.id}`, {
         method: 'PATCH',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -329,7 +373,7 @@ export function useScriptChat(options: UseScriptChatOptions = {}): UseScriptChat
       setError(null);
 
       const token = await getToken();
-      const response = await fetch(`${API_ENDPOINTS.SCRIPTS}/${scriptDraft.id}/validate`, {
+      const response = await fetch(`${API_ENDPOINTS.SCRIPTS()}/${scriptDraft.id}/validate`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -420,7 +464,7 @@ export function useScriptList() {
         params.set('status', status);
       }
 
-      const response = await fetch(`${API_ENDPOINTS.SCRIPTS}?${params}`, {
+      const response = await fetch(`${API_ENDPOINTS.SCRIPTS()}?${params}`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
@@ -451,7 +495,7 @@ export function useScriptList() {
   const deleteScript = useCallback(async (scriptId: string) => {
     try {
       const token = await getToken();
-      const response = await fetch(`${API_ENDPOINTS.SCRIPTS}/${scriptId}`, {
+      const response = await fetch(`${API_ENDPOINTS.SCRIPTS()}/${scriptId}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -472,7 +516,7 @@ export function useScriptList() {
   const duplicateScript = useCallback(async (scriptId: string) => {
     try {
       const token = await getToken();
-      const response = await fetch(`${API_ENDPOINTS.SCRIPTS}/${scriptId}/duplicate`, {
+      const response = await fetch(`${API_ENDPOINTS.SCRIPTS()}/${scriptId}/duplicate`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
