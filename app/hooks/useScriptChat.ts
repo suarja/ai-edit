@@ -96,7 +96,8 @@ export function useScriptChat(options: UseScriptChatOptions = {}): UseScriptChat
       }
 
       const data = await response.json();
-      setScriptDraft(data);
+      console.log('📝 Script draft loaded:', JSON.stringify(data, null, 2));
+      setScriptDraft(data.data || data); // Handle wrapped response
     } catch (err) {
       console.error('Error loading script draft:', err);
       setError(err instanceof Error ? err.message : 'Failed to load script');
@@ -445,7 +446,7 @@ export function useScriptChat(options: UseScriptChatOptions = {}): UseScriptChat
 export function useScriptList() {
   const { getToken } = useAuth();
   const [scripts, setScripts] = useState<ScriptListItem[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true); // Start with loading true
   const [error, setError] = useState<string | null>(null);
   const [hasMore, setHasMore] = useState(false);
 
@@ -476,14 +477,18 @@ export function useScriptList() {
       }
 
       const data = await response.json();
+      console.log('📝 Scripts API response:', JSON.stringify(data, null, 2));
+      
+      // The API returns data in data.data.scripts format due to successResponseExpress wrapper
+      const scriptsData = data.data || data;
       
       if (page === 1) {
-        setScripts(data.scripts);
+        setScripts(scriptsData.scripts || []);
       } else {
-        setScripts(prev => [...prev, ...data.scripts]);
+        setScripts(prev => [...prev, ...(scriptsData.scripts || [])]);
       }
       
-      setHasMore(data.hasMore);
+      setHasMore(scriptsData.hasMore || false);
     } catch (err) {
       console.error('Error loading scripts:', err);
       setError(err instanceof Error ? err.message : 'Failed to load scripts');
@@ -538,6 +543,11 @@ export function useScriptList() {
       console.error('Error duplicating script:', err);
       throw err;
     }
+  }, [loadScripts]);
+
+  // Load scripts on mount
+  useEffect(() => {
+    loadScripts();
   }, [loadScripts]);
 
   return {

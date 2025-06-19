@@ -10,9 +10,10 @@ import {
   Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Send, MessageCircle, CheckCircle2, Clock, Database } from 'lucide-react-native';
+import { Send, MessageCircle, CheckCircle2, Clock, Database, Video } from 'lucide-react-native';
 import { useScriptChat } from '@/app/hooks/useScriptChat';
 import { useAuth } from '@clerk/clerk-expo';
+import { router, useLocalSearchParams } from 'expo-router';
 
 /**
  * 🎯 SCRIPT CHAT AVEC VRAIE API ET PROFIL ÉDITORIAL
@@ -26,6 +27,7 @@ import { useAuth } from '@clerk/clerk-expo';
  */
 export default function ScriptChatDemo() {
   const { isSignedIn } = useAuth();
+  const { scriptId } = useLocalSearchParams<{ scriptId?: string }>();
   const [inputMessage, setInputMessage] = useState('');
   const scrollViewRef = useRef<ScrollView>(null);
 
@@ -44,6 +46,7 @@ export default function ScriptChatDemo() {
     title,
     scriptDraft,
   } = useScriptChat({
+    scriptId: scriptId,
     outputLanguage: 'fr',
     // editorialProfileId sera récupéré automatiquement du user
   });
@@ -80,6 +83,30 @@ export default function ScriptChatDemo() {
     } catch (err) {
       console.error('Error creating new script:', err);
     }
+  };
+
+  const handleGenerateVideo = () => {
+    if (!currentScript || !scriptDraft) {
+      Alert.alert(
+        'Script requis',
+        'Veuillez d\'abord créer un script avant de générer une vidéo.',
+        [{ text: 'OK' }]
+      );
+      return;
+    }
+
+    // For now, show an alert - we'll create the settings screen next
+    Alert.alert(
+      'Générer Vidéo',
+      `Script prêt !\n\n📝 ${wordCount} mots\n⏱️ ~${Math.round(estimatedDuration)}s\n\nL'écran de paramètres avancés sera bientôt disponible.`,
+      [
+        { text: 'OK' },
+        { 
+          text: 'Aller aux paramètres', 
+          onPress: () => router.push('/request-video')
+        }
+      ]
+    );
   };
 
   const renderMessage = (message: any) => {
@@ -194,7 +221,16 @@ export default function ScriptChatDemo() {
             {/* Script prévisualisation */}
             {currentScript && (
               <View style={styles.scriptPreview}>
-                <Text style={styles.scriptTitle}>📝 Script Actuel</Text>
+                <View style={styles.scriptHeader}>
+                  <Text style={styles.scriptTitle}>📝 Script Actuel</Text>
+                  <TouchableOpacity
+                    style={styles.generateButton}
+                    onPress={handleGenerateVideo}
+                  >
+                    <Video size={16} color="#fff" />
+                    <Text style={styles.generateButtonText}>Générer Vidéo</Text>
+                  </TouchableOpacity>
+                </View>
                 <Text style={styles.scriptContent}>{currentScript}</Text>
                 <Text style={styles.scriptMeta}>
                   {wordCount} mots • ~{Math.round(estimatedDuration)} secondes
@@ -424,11 +460,30 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#333',
   },
+  scriptHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
   scriptTitle: {
     fontSize: 14,
     fontWeight: '600',
     color: '#007AFF',
-    marginBottom: 8,
+  },
+  generateButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#007AFF',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 16,
+    gap: 4,
+  },
+  generateButtonText: {
+    color: '#fff',
+    fontSize: 12,
+    fontWeight: '600',
   },
   scriptContent: {
     fontSize: 15,
