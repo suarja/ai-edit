@@ -3,7 +3,7 @@
 
 CREATE TABLE IF NOT EXISTS script_drafts (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-  user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  user_id UUID NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
   title TEXT NOT NULL DEFAULT 'Nouveau Script',
   status TEXT NOT NULL DEFAULT 'draft' CHECK (status IN ('draft', 'validated', 'used')),
   current_script TEXT NOT NULL DEFAULT '',
@@ -42,49 +42,55 @@ CREATE TRIGGER trigger_script_drafts_updated_at
 -- Enable RLS (Row Level Security)
 ALTER TABLE script_drafts ENABLE ROW LEVEL SECURITY;
 
--- Create RLS policies
+-- Create RLS policies using Clerk authentication
 CREATE POLICY "Users can view their own script drafts"
   ON script_drafts FOR SELECT
-  USING (auth.uid() = user_id);
+  TO authenticated
+  USING (
+    user_id IN (
+      SELECT id FROM public.users 
+      WHERE clerk_user_id = (SELECT (auth.jwt() ->> 'sub'::text))
+    )
+  );
 
 CREATE POLICY "Users can create their own script drafts"
   ON script_drafts FOR INSERT
-  WITH CHECK (auth.uid() = user_id);
+  TO authenticated
+  WITH CHECK (
+    user_id IN (
+      SELECT id FROM public.users 
+      WHERE clerk_user_id = (SELECT (auth.jwt() ->> 'sub'::text))
+    )
+  );
 
 CREATE POLICY "Users can update their own script drafts"
   ON script_drafts FOR UPDATE
-  USING (auth.uid() = user_id)
-  WITH CHECK (auth.uid() = user_id);
+  TO authenticated
+  USING (
+    user_id IN (
+      SELECT id FROM public.users 
+      WHERE clerk_user_id = (SELECT (auth.jwt() ->> 'sub'::text))
+    )
+  )
+  WITH CHECK (
+    user_id IN (
+      SELECT id FROM public.users 
+      WHERE clerk_user_id = (SELECT (auth.jwt() ->> 'sub'::text))
+    )
+  );
 
 CREATE POLICY "Users can delete their own script drafts"
   ON script_drafts FOR DELETE
-  USING (auth.uid() = user_id);
+  TO authenticated
+  USING (
+    user_id IN (
+      SELECT id FROM public.users 
+      WHERE clerk_user_id = (SELECT (auth.jwt() ->> 'sub'::text))
+    )
+  );
 
 -- Add index on JSONB messages field for better performance on conversation queries
 CREATE INDEX idx_script_drafts_messages_gin ON script_drafts USING GIN (messages);
-
--- Create view for script list optimization
-CREATE OR REPLACE VIEW script_drafts_list AS 
-SELECT 
-  id,
-  title,
-  status,
-  LEFT(current_script, 200) as current_script, -- Limit script preview
-  output_language,
-  updated_at,
-  message_count,
-  word_count,
-  estimated_duration,
-  user_id
-FROM script_drafts;
-
--- Grant access to the view
-GRANT SELECT ON script_drafts_list TO authenticated;
-
--- Create RLS policy for the view
-CREATE POLICY "Users can view their own script drafts list"
-  ON script_drafts_list FOR SELECT
-  USING (auth.uid() = user_id);
 
 -- Comment on table and important columns
 COMMENT ON TABLE script_drafts IS 'Stores script drafts with conversation history for script chat feature';
@@ -107,7 +113,11 @@ BEGIN
     message_count = message_count + jsonb_array_length(new_messages),
     version = version + 1,
     updated_at = NOW()
-  WHERE id = draft_id AND user_id = auth.uid()
+  WHERE id = draft_id 
+    AND user_id IN (
+      SELECT id FROM public.users 
+      WHERE clerk_user_id = (SELECT (auth.jwt() ->> 'sub'::text))
+    )
   RETURNING * INTO result;
   
   IF NOT FOUND THEN
