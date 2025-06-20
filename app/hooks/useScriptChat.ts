@@ -26,12 +26,15 @@ interface UseScriptChatReturn {
   isLoading: boolean;
   isStreaming: boolean;
   error: string | null;
+  streamingStatus: string | null;
   
   // Actions
   sendMessage: (message: string) => Promise<void>;
   createNewScript: () => Promise<void>;
   saveAsDraft: () => Promise<void>;
   validateScript: () => Promise<void>;
+  duplicateScript: () => Promise<ScriptDraft | null>;
+  deleteScript: () => Promise<boolean>;
   clearError: () => void;
   
   // Metadata
@@ -55,6 +58,7 @@ export function useScriptChat(options: UseScriptChatOptions = {}): UseScriptChat
   const [isLoading, setIsLoading] = useState(false);
   const [isStreaming, setIsStreaming] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [streamingStatus, setStreamingStatus] = useState<string | null>(null);
   
   // Refs for streaming
   const streamingMessageRef = useRef<ChatMessage | null>(null);
@@ -232,6 +236,7 @@ export function useScriptChat(options: UseScriptChatOptions = {}): UseScriptChat
     } finally {
       console.log('🔄 Cleaning up - setting isStreaming to false');
       setIsStreaming(false);
+      setStreamingStatus(null);
       streamingMessageRef.current = null;
       abortControllerRef.current = null;
     }
@@ -262,6 +267,12 @@ export function useScriptChat(options: UseScriptChatOptions = {}): UseScriptChat
               const data = JSON.parse(line.slice(6));
               
               switch (data.type) {
+                case 'status_update':
+                  // Update loading status with detailed feedback
+                  console.log(`📊 Status: ${data.status} - ${data.message}`);
+                  setStreamingStatus(data.message);
+                  break;
+
                 case 'message_start':
                   // Script draft ID available
                   if (data.scriptId && !scriptDraft) {
@@ -403,6 +414,82 @@ export function useScriptChat(options: UseScriptChatOptions = {}): UseScriptChat
   }, [scriptDraft]);
 
   /**
+   * Duplicate current script
+   */
+  const duplicateScript = useCallback(async (): Promise<ScriptDraft | null> => {
+    if (!scriptDraft) return null;
+
+    try {
+      setIsLoading(true);
+      setError(null);
+
+      const token = await getToken();
+      const response = await fetch(`${API_ENDPOINTS.SCRIPTS()}/${scriptDraft.id}/duplicate`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to duplicate script');
+      }
+
+      const result = await response.json();
+      console.log('📋 Script duplicated:', result.data.script);
+      
+      return result.data.script;
+    } catch (err) {
+      console.error('Error duplicating script:', err);
+      setError(err instanceof Error ? err.message : 'Failed to duplicate script');
+      return null;
+    } finally {
+      setIsLoading(false);
+    }
+  }, [scriptDraft]);
+
+  /**
+   * Delete current script
+   */
+  const deleteScript = useCallback(async (): Promise<boolean> => {
+    if (!scriptDraft) return false;
+
+    try {
+      setIsLoading(true);
+      setError(null);
+
+      const token = await getToken();
+      const response = await fetch(`${API_ENDPOINTS.SCRIPTS()}/${scriptDraft.id}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to delete script');
+      }
+
+      console.log('🗑️ Script deleted successfully');
+      
+      // Reset local state
+      setScriptDraft(null);
+      setMessages([]);
+      setCurrentScript('');
+      
+      return true;
+    } catch (err) {
+      console.error('Error deleting script:', err);
+      setError(err instanceof Error ? err.message : 'Failed to delete script');
+      return false;
+    } finally {
+      setIsLoading(false);
+    }
+  }, [scriptDraft]);
+
+  /**
    * Clear error state
    */
   const clearError = useCallback(() => {
@@ -431,12 +518,15 @@ export function useScriptChat(options: UseScriptChatOptions = {}): UseScriptChat
     isLoading,
     isStreaming,
     error,
+    streamingStatus,
     
     // Actions
     sendMessage,
     createNewScript,
     saveAsDraft,
     validateScript,
+    duplicateScript,
+    deleteScript,
     clearError,
     
     // Metadata
@@ -461,7 +551,13 @@ export function useScriptList() {
       setIsLoading(true);
       setError(null);
 
+      console.log('🔍 Loading scripts - getting token...');
       const token = await getToken();
+      console.log('🔍 Token received:', token ? `${token.substring(0, 20)}...` : 'NULL');
+      
+      const apiUrl = API_ENDPOINTS.SCRIPTS();
+      console.log('🔍 API URL:', apiUrl);
+      
       const params = new URLSearchParams({ 
         page: page.toString(),
         limit: '20',
@@ -471,15 +567,23 @@ export function useScriptList() {
         params.set('status', status);
       }
 
-      const response = await fetch(`${API_ENDPOINTS.SCRIPTS()}?${params}`, {
+      const fullUrl = `${apiUrl}?${params}`;
+      console.log('🔍 Full request URL:', fullUrl);
+
+      const response = await fetch(fullUrl, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
         },
       });
 
+      console.log('🔍 Response status:', response.status);
+      console.log('🔍 Response ok:', response.ok);
+
       if (!response.ok) {
-        throw new Error('Failed to load scripts');
+        const errorText = await response.text();
+        console.log('🔍 Error response:', errorText);
+        throw new Error(`Failed to load scripts: ${response.status} - ${errorText}`);
       }
 
       const data = await response.json();

@@ -14,6 +14,8 @@ import { Send, MessageCircle, CheckCircle2, Clock, Database, Video } from 'lucid
 import { useScriptChat } from '@/app/hooks/useScriptChat';
 import { useAuth } from '@clerk/clerk-expo';
 import { router, useLocalSearchParams } from 'expo-router';
+import ScriptActions from '@/components/ScriptActions';
+import StreamingStatus from '@/components/StreamingStatus';
 
 /**
  * 🎯 SCRIPT CHAT AVEC VRAIE API ET PROFIL ÉDITORIAL
@@ -38,8 +40,12 @@ export default function ScriptChatDemo() {
     isLoading,
     isStreaming,
     error,
+    streamingStatus,
     sendMessage,
     createNewScript,
+    validateScript,
+    duplicateScript,
+    deleteScript,
     clearError,
     wordCount,
     estimatedDuration,
@@ -202,6 +208,12 @@ export default function ScriptChatDemo() {
         </View>
       </View>
 
+      {/* Streaming Status */}
+      <StreamingStatus 
+        isStreaming={isStreaming}
+        streamingStatus={streamingStatus}
+      />
+
       {/* Messages */}
       <ScrollView 
         ref={scrollViewRef}
@@ -239,13 +251,6 @@ export default function ScriptChatDemo() {
               <View style={styles.scriptPreview}>
                 <View style={styles.scriptHeader}>
                   <Text style={styles.scriptTitle}>📝 Script Actuel</Text>
-                  <TouchableOpacity
-                    style={styles.generateButton}
-                    onPress={handleGenerateVideo}
-                  >
-                    <Video size={16} color="#fff" />
-                    <Text style={styles.generateButtonText}>Générer Vidéo</Text>
-                  </TouchableOpacity>
                 </View>
                 <Text style={styles.scriptContent}>{currentScript}</Text>
                 <Text style={styles.scriptMeta}>
@@ -330,6 +335,17 @@ export default function ScriptChatDemo() {
           </View>
         )}
       </View>
+
+      {/* Script Actions */}
+      <ScriptActions
+        scriptDraft={scriptDraft}
+        currentScript={currentScript}
+        isLoading={isLoading}
+        onValidate={validateScript}
+        onDuplicate={duplicateScript}
+        onDelete={deleteScript}
+        onGenerateVideo={handleGenerateVideo}
+      />
     </SafeAreaView>
   );
 }

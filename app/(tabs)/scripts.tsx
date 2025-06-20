@@ -10,13 +10,16 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
-import { Plus, MessageCircle, Clock, FileText } from 'lucide-react-native';
+import { Plus, MessageCircle, Clock, FileText, MoreVertical, Copy, Trash2, CheckCircle } from 'lucide-react-native';
 
 // Hooks
 import { useScriptList } from '@/app/hooks/useScriptChat';
 
+// Components
+import ScriptListActions from '@/components/ScriptListActions';
+
 export default function ScriptsScreen() {
-  const { scripts, isLoading, error, loadScripts } = useScriptList();
+  const { scripts, isLoading, error, loadScripts, deleteScript, duplicateScript } = useScriptList();
 
   const handleCreateNewScript = () => {
     // Navigate to chat interface without scriptId (new script)
@@ -43,6 +46,19 @@ export default function ScriptsScreen() {
 
   const getScriptPreview = (script: string) => {
     return script.length > 100 ? script.substring(0, 100) + '...' : script;
+  };
+
+  const handleScriptDeleted = async (scriptId: string) => {
+    try {
+      await deleteScript(scriptId);
+    } catch (error) {
+      console.error('Error deleting script:', error);
+    }
+  };
+
+  const handleScriptDuplicated = async (newScript: any) => {
+    // The script list will be reloaded automatically by the duplicateScript method
+    console.log('Script duplicated:', newScript);
   };
 
   if (isLoading) {
@@ -142,6 +158,11 @@ export default function ScriptsScreen() {
                 ]}
               />
             </View>
+            <ScriptListActions
+              script={script}
+              onScriptDeleted={handleScriptDeleted}
+              onScriptDuplicated={handleScriptDuplicated}
+            />
           </View>
           
           {script.current_script && (
