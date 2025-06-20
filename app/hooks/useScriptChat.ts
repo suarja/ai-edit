@@ -208,10 +208,10 @@ export function useScriptChat(options: UseScriptChatOptions = {}): UseScriptChat
         console.warn('⚠️ No currentScript found in response data');
       }
       
-      // Update script draft if available
+      // Reload the complete script draft if available
       if (result.data?.scriptId) {
-        console.log('🔄 Updating script draft ID');
-        setScriptDraft(prev => prev ? { ...prev, id: result.data.scriptId } : null);
+        console.log('🔄 Reloading complete script draft');
+        await loadScriptDraft(result.data.scriptId);
       } else {
         console.warn('⚠️ No scriptId found in response data');
       }
