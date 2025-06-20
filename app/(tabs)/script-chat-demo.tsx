@@ -95,18 +95,17 @@ export default function ScriptChatDemo() {
       return;
     }
 
-    // For now, show an alert - we'll create the settings screen next
-    Alert.alert(
-      'Générer Vidéo',
-      `Script prêt !\n\n📝 ${wordCount} mots\n⏱️ ~${Math.round(estimatedDuration)}s\n\nL'écran de paramètres avancés sera bientôt disponible.`,
-      [
-        { text: 'OK' },
-        { 
-          text: 'Aller aux paramètres', 
-          onPress: () => router.push('/request-video')
-        }
-      ]
-    );
+    // Navigate to video settings screen with script data
+    router.push({
+      pathname: '/script-video-settings',
+      params: {
+        scriptId: scriptDraft.id,
+        script: currentScript,
+        wordCount: wordCount.toString(),
+        estimatedDuration: estimatedDuration.toString(),
+        title: title,
+      },
+    });
   };
 
   const renderMessage = (message: any) => {
@@ -209,6 +208,15 @@ export default function ScriptChatDemo() {
         style={styles.messagesContainer}
         showsVerticalScrollIndicator={false}
       >
+        {(() => {
+          console.log('🎯 Render condition check:', {
+            isLoading,
+            messagesLength: messages.length,
+            showLoading: isLoading && messages.length === 0,
+            showContent: !(isLoading && messages.length === 0)
+          });
+          return null;
+        })()}
         {isLoading && messages.length === 0 ? (
           <View style={styles.loadingContainer}>
             <ActivityIndicator size="large" color="#007AFF" />
@@ -219,6 +227,14 @@ export default function ScriptChatDemo() {
             {messages.map(renderMessage)}
             
             {/* Script prévisualisation */}
+            {(() => {
+              console.log('🎯 Script preview check:', { 
+                currentScript: currentScript ? currentScript.substring(0, 50) + '...' : 'EMPTY',
+                currentScriptLength: currentScript?.length || 0,
+                scriptDraft: scriptDraft?.id || 'NO_DRAFT'
+              });
+              return null;
+            })()}
             {currentScript && (
               <View style={styles.scriptPreview}>
                 <View style={styles.scriptHeader}>

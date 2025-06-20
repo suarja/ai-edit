@@ -70,6 +70,12 @@ export function useScriptChat(options: UseScriptChatOptions = {}): UseScriptChat
   // Update messages when script draft changes
   useEffect(() => {
     if (scriptDraft) {
+      console.log('🔄 Processing script draft:', {
+        id: scriptDraft.id,
+        messagesCount: scriptDraft.messages?.length || 0,
+        currentScriptLength: scriptDraft.current_script?.length || 0,
+        currentScript: scriptDraft.current_script?.substring(0, 100) + '...'
+      });
       setMessages(scriptDraft.messages || []);
       setCurrentScript(scriptDraft.current_script || '');
     }
