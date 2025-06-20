@@ -102,7 +102,7 @@ const API_CONFIGS = {
 export const CURRENT_API_ENVIRONMENT: ApiEnvironment =
   process.env.NODE_ENV === 'production'
     ? API_ENVIRONMENTS.PRODUCTION
-    : API_ENVIRONMENTS.LOCAL_SERVER; // Change this to test different environments
+    : API_ENVIRONMENTS.DEVELOPMENT; // Change this to test different environments
 
 // Get current configuration
 const getCurrentConfig = () => API_CONFIGS[CURRENT_API_ENVIRONMENT];
@@ -231,7 +231,6 @@ export const debugApiConfig = () => {
  */
 export const ENV_CONFIG = {
   isDevelopment: CURRENT_API_ENVIRONMENT === API_ENVIRONMENTS.DEVELOPMENT,
-  isLocalServer: CURRENT_API_ENVIRONMENT === API_ENVIRONMENTS.LOCAL_SERVER,
   isProduction: CURRENT_API_ENVIRONMENT === API_ENVIRONMENTS.PRODUCTION,
   useNodeServer: CURRENT_API_ENVIRONMENT !== API_ENVIRONMENTS.DEVELOPMENT,
 };
