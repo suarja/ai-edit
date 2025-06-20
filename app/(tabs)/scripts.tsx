@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -16,10 +16,11 @@ import { Plus, MessageCircle, Clock, FileText, MoreVertical, Copy, Trash2, Check
 import { useScriptList } from '@/app/hooks/useScriptChat';
 
 // Components
-import ScriptListActions from '@/components/ScriptListActions';
+import ScriptActionsModal from '@/components/ScriptActionsModal';
 
 export default function ScriptsScreen() {
   const { scripts, isLoading, error, loadScripts, deleteScript, duplicateScript } = useScriptList();
+  const [selectedScript, setSelectedScript] = useState<any | null>(null);
 
   const handleCreateNewScript = () => {
     // Navigate to chat interface without scriptId (new script)
@@ -51,13 +52,18 @@ export default function ScriptsScreen() {
   const handleScriptDeleted = async (scriptId: string) => {
     try {
       await deleteScript(scriptId);
+      // Close modal and reload scripts
+      setSelectedScript(null);
+      await loadScripts();
     } catch (error) {
       console.error('Error deleting script:', error);
     }
   };
 
   const handleScriptDuplicated = async (newScript: any) => {
-    // The script list will be reloaded automatically by the duplicateScript method
+    // Close modal and reload scripts
+    setSelectedScript(null);
+    await loadScripts();
     console.log('Script duplicated:', newScript);
   };
 
@@ -91,6 +97,8 @@ export default function ScriptsScreen() {
           </TouchableOpacity>
         </View>
       </View>
+
+
 
       {/* Content */}
       <ScrollView
@@ -129,12 +137,12 @@ export default function ScriptsScreen() {
         )}
 
         {/* Scripts List */}
-        {scripts && scripts.map((script) => (
-          <TouchableOpacity
-            key={script.id}
-            style={styles.scriptCard}
-            onPress={() => handleEditScript(script.id)}
-          >
+        {scripts && scripts.map((script, index) => (
+          <View key={script.id} style={styles.scriptCardContainer}>
+            <TouchableOpacity
+              style={styles.scriptCard}
+              onPress={() => handleEditScript(script.id)}
+            >
             <View style={styles.scriptHeader}>
               <View style={styles.scriptIcon}>
                 <MessageCircle size={20} color="#007AFF" />
@@ -158,11 +166,12 @@ export default function ScriptsScreen() {
                 ]}
               />
             </View>
-            <ScriptListActions
-              script={script}
-              onScriptDeleted={handleScriptDeleted}
-              onScriptDuplicated={handleScriptDuplicated}
-            />
+            <TouchableOpacity
+              onPress={() => setSelectedScript(script)}
+              style={styles.moreButton}
+            >
+              <MoreVertical size={20} color="#666" />
+            </TouchableOpacity>
           </View>
           
           {script.current_script && (
@@ -176,9 +185,19 @@ export default function ScriptsScreen() {
               {script.word_count || 0} mots • {Math.round((script.estimated_duration || 0))}s
             </Text>
             </View>
-          </TouchableOpacity>
+            </TouchableOpacity>
+          </View>
         ))}
       </ScrollView>
+
+      {/* Actions Modal */}
+      <ScriptActionsModal
+        script={selectedScript}
+        visible={!!selectedScript}
+        onClose={() => setSelectedScript(null)}
+        onScriptDeleted={handleScriptDeleted}
+        onScriptDuplicated={handleScriptDuplicated}
+      />
     </SafeAreaView>
   );
 }
@@ -284,7 +303,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#1a1a1a',
     borderRadius: 16,
     padding: 16,
-    marginBottom: 12,
     borderWidth: 1,
     borderColor: '#333',
   },
@@ -343,4 +361,14 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#888',
   },
+  scriptCardContainer: {
+    position: 'relative' as const,
+    zIndex: 1,
+    marginBottom: 16,
+  },
+  moreButton: {
+    padding: 8,
+    borderRadius: 6,
+  },
+
 }); 

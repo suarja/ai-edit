@@ -142,6 +142,9 @@ export default function ScriptActions({
   const isValidated = scriptDraft.status === 'validated';
   const hasScript = currentScript.trim().length > 0;
 
+  // Only show if there are actions to display
+  if (!hasScript && isValidated) return null;
+
   return (
     <View style={styles.container}>
       {/* Primary Actions */}
@@ -153,8 +156,8 @@ export default function ScriptActions({
             onPress={handleGenerateVideo}
             disabled={isLoading}
           >
-            <Video size={20} color="#fff" />
-            <Text style={styles.primaryButtonText}>Générer Vidéo</Text>
+            <Video size={18} color="#fff" />
+            <Text style={styles.primaryButtonText}>Vidéo</Text>
           </TouchableOpacity>
         )}
 
@@ -168,7 +171,7 @@ export default function ScriptActions({
             {actionLoading === 'validate' ? (
               <ActivityIndicator size="small" color="#fff" />
             ) : (
-              <CheckCircle size={20} color="#fff" />
+              <CheckCircle size={18} color="#fff" />
             )}
             <Text style={styles.primaryButtonText}>
               {actionLoading === 'validate' ? 'Validation...' : 'Valider'}
@@ -240,12 +243,13 @@ const styles = {
   container: {
     flexDirection: 'row' as const,
     alignItems: 'center' as const,
-    gap: 12,
-    paddingHorizontal: 20,
-    paddingVertical: 16,
+    gap: 8,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
     borderTopWidth: 1,
     borderTopColor: '#333',
     backgroundColor: '#000',
+    minHeight: 60, // Plus compact
   },
   primaryActions: {
     flexDirection: 'row' as const,
@@ -255,10 +259,10 @@ const styles = {
   primaryButton: {
     flexDirection: 'row' as const,
     alignItems: 'center' as const,
-    gap: 8,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderRadius: 8,
+    gap: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 6,
     flex: 1,
     justifyContent: 'center' as const,
   },
@@ -270,7 +274,7 @@ const styles = {
   },
   primaryButtonText: {
     color: '#fff',
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: '600' as const,
   },
   secondaryActions: {

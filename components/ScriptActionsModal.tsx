@@ -1,45 +1,52 @@
-import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
+import React from 'react';
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  Modal,
+  Alert,
+  ActivityIndicator,
+} from 'react-native';
 import { useRouter } from 'expo-router';
 import { 
-  MoreVertical, 
-  Copy, 
-  Trash2, 
-  CheckCircle,
+  Edit3,
   Video,
-  Edit3
+  CheckCircle,
+  Copy,
+  Trash2,
+  X
 } from 'lucide-react-native';
 import { ScriptListItem } from '@/types/script';
 import { useAuth } from '@clerk/clerk-expo';
 import { API_ENDPOINTS } from '@/lib/config/api';
 
-interface ScriptListActionsProps {
-  script: ScriptListItem;
-  onScriptDeleted: (scriptId: string) => void;
-  onScriptDuplicated: (newScript: ScriptListItem) => void;
-  isOpen?: boolean;
-  onToggle?: () => void;
+interface ScriptActionsModalProps {
+  script: any | null; // Peut être ScriptListItem ou ScriptDraft
+  visible: boolean;
+  onClose: () => void;
+  onScriptDeleted: (scriptId?: string) => void;
+  onScriptDuplicated: (newScript: any) => void;
+  onValidate?: () => void;
+  onGenerateVideo?: () => void;
 }
 
-export default function ScriptListActions({
+export default function ScriptActionsModal({
   script,
+  visible,
+  onClose,
   onScriptDeleted,
   onScriptDuplicated,
-  isOpen = false,
-  onToggle,
-}: ScriptListActionsProps) {
+  onValidate,
+  onGenerateVideo,
+}: ScriptActionsModalProps) {
   const router = useRouter();
   const { getToken } = useAuth();
-  const [showActions, setShowActions] = useState(false);
-  const [actionLoading, setActionLoading] = useState<string | null>(null);
+  const [actionLoading, setActionLoading] = React.useState<string | null>(null);
 
-  // Use external state if provided, otherwise use internal state
-  const menuOpen = onToggle ? isOpen : showActions;
-  const toggleMenu = onToggle || (() => setShowActions(!showActions));
+  if (!script) return null;
 
   const handleEdit = () => {
-    if (onToggle) onToggle(); // Close menu
-    else setShowActions(false);
+    onClose();
     router.push({
       pathname: '/(tabs)/script-chat-demo',
       params: { scriptId: script.id },
@@ -47,8 +54,6 @@ export default function ScriptListActions({
   };
 
   const handleDuplicate = async () => {
-    if (onToggle) onToggle(); // Close menu
-    else setShowActions(false);
     setActionLoading('duplicate');
 
     try {
@@ -69,22 +74,12 @@ export default function ScriptListActions({
       const duplicatedScript = result.data.script;
 
       onScriptDuplicated(duplicatedScript);
+      onClose();
 
       Alert.alert(
         'Script dupliqué',
-        'Le script a été dupliqué avec succès. Voulez-vous l\'ouvrir ?',
-        [
-          { text: 'Plus tard', style: 'cancel' },
-          {
-            text: 'Ouvrir',
-            onPress: () => {
-              router.push({
-                pathname: '/(tabs)/script-chat-demo',
-                params: { scriptId: duplicatedScript.id },
-              });
-            },
-          },
-        ]
+        'Le script a été dupliqué avec succès.',
+        [{ text: 'OK' }]
       );
     } catch (error) {
       console.error('Error duplicating script:', error);
@@ -95,9 +90,6 @@ export default function ScriptListActions({
   };
 
   const handleDelete = async () => {
-    if (onToggle) onToggle(); // Close menu
-    else setShowActions(false);
-
     Alert.alert(
       'Supprimer le script',
       `Êtes-vous sûr de vouloir supprimer "${script.title}" ? Cette action est irréversible.`,
@@ -123,7 +115,7 @@ export default function ScriptListActions({
               }
 
               onScriptDeleted(script.id);
-              Alert.alert('Supprimé', 'Script supprimé avec succès');
+              onClose();
             } catch (error) {
               console.error('Error deleting script:', error);
               Alert.alert('Erreur', 'Impossible de supprimer le script');
@@ -137,8 +129,12 @@ export default function ScriptListActions({
   };
 
   const handleValidate = async () => {
-    if (onToggle) onToggle(); // Close menu
-    else setShowActions(false);
+    if (onValidate) {
+      onClose();
+      onValidate();
+      return;
+    }
+
     setActionLoading('validate');
 
     try {
@@ -155,8 +151,8 @@ export default function ScriptListActions({
         throw new Error('Failed to validate script');
       }
 
+      onClose();
       Alert.alert('Validé', 'Script validé avec succès !');
-      // Optionally refresh the list or update the script status locally
     } catch (error) {
       console.error('Error validating script:', error);
       Alert.alert('Erreur', 'Impossible de valider le script');
@@ -166,8 +162,13 @@ export default function ScriptListActions({
   };
 
   const handleGenerateVideo = () => {
-    if (onToggle) onToggle(); // Close menu
-    else setShowActions(false);
+    onClose();
+    
+    if (onGenerateVideo) {
+      onGenerateVideo();
+      return;
+    }
+
     if (!script.current_script?.trim()) {
       Alert.alert('Erreur', 'Ce script est vide et ne peut pas être utilisé pour générer une vidéo');
       return;
@@ -189,117 +190,161 @@ export default function ScriptListActions({
   const hasScript = script.current_script?.trim().length > 0;
 
   return (
-    <View style={styles.container}>
-      <TouchableOpacity
-        style={styles.moreButton}
-        onPress={toggleMenu}
-        disabled={actionLoading !== null}
-      >
-        {actionLoading ? (
-          <ActivityIndicator size="small" color="#666" />
-        ) : (
-          <MoreVertical size={20} color="#666" />
-        )}
-      </TouchableOpacity>
+    <Modal
+      visible={visible}
+      transparent
+      animationType="fade"
+      onRequestClose={onClose}
+    >
+      <View style={styles.overlay}>
+        <View style={styles.modal}>
+          {/* Header */}
+          <View style={styles.header}>
+            <Text style={styles.title} numberOfLines={1}>
+              {script.title || 'Script sans titre'}
+            </Text>
+            <TouchableOpacity onPress={onClose} style={styles.closeButton}>
+              <X size={20} color="#666" />
+            </TouchableOpacity>
+          </View>
 
-      {menuOpen && (
-        <>
-          {/* Backdrop */}
-          <TouchableOpacity
-            style={styles.backdrop}
-            onPress={() => {
-              toggleMenu();
-              if (onToggle) onToggle(); // Close via parent too
-            }}
-            activeOpacity={1}
-          />
-          
-          {/* Actions Menu */}
-          <View style={styles.actionsMenu}>
+          {/* Actions */}
+          <View style={styles.actions}>
             {/* Edit */}
-            <TouchableOpacity style={styles.actionItem} onPress={handleEdit}>
-              <Edit3 size={18} color="#007AFF" />
+            <TouchableOpacity 
+              style={styles.actionItem} 
+              onPress={handleEdit}
+              disabled={actionLoading !== null}
+            >
+              <Edit3 size={20} color="#007AFF" />
               <Text style={styles.actionText}>Modifier</Text>
             </TouchableOpacity>
 
             {/* Generate Video */}
             {hasScript && (
-              <TouchableOpacity style={styles.actionItem} onPress={handleGenerateVideo}>
-                <Video size={18} color="#007AFF" />
+              <TouchableOpacity 
+                style={styles.actionItem} 
+                onPress={handleGenerateVideo}
+                disabled={actionLoading !== null}
+              >
+                <Video size={20} color="#007AFF" />
                 <Text style={styles.actionText}>Générer Vidéo</Text>
               </TouchableOpacity>
             )}
 
             {/* Validate */}
             {hasScript && !isValidated && (
-              <TouchableOpacity style={styles.actionItem} onPress={handleValidate}>
-                <CheckCircle size={18} color="#34C759" />
-                <Text style={[styles.actionText, { color: '#34C759' }]}>Valider</Text>
+              <TouchableOpacity 
+                style={styles.actionItem} 
+                onPress={handleValidate}
+                disabled={actionLoading !== null}
+              >
+                {actionLoading === 'validate' ? (
+                  <ActivityIndicator size="small" color="#34C759" />
+                ) : (
+                  <CheckCircle size={20} color="#34C759" />
+                )}
+                <Text style={[styles.actionText, { color: '#34C759' }]}>
+                  Valider
+                </Text>
               </TouchableOpacity>
             )}
 
             {/* Duplicate */}
-            <TouchableOpacity style={styles.actionItem} onPress={handleDuplicate}>
-              <Copy size={18} color="#007AFF" />
+            <TouchableOpacity 
+              style={styles.actionItem} 
+              onPress={handleDuplicate}
+              disabled={actionLoading !== null}
+            >
+              {actionLoading === 'duplicate' ? (
+                <ActivityIndicator size="small" color="#007AFF" />
+              ) : (
+                <Copy size={20} color="#007AFF" />
+              )}
               <Text style={styles.actionText}>Dupliquer</Text>
             </TouchableOpacity>
 
             {/* Delete */}
-            <TouchableOpacity style={styles.actionItem} onPress={handleDelete}>
-              <Trash2 size={18} color="#FF3B30" />
-              <Text style={[styles.actionText, { color: '#FF3B30' }]}>Supprimer</Text>
+            <TouchableOpacity 
+              style={[styles.actionItem, styles.deleteAction]} 
+              onPress={handleDelete}
+              disabled={actionLoading !== null}
+            >
+              {actionLoading === 'delete' ? (
+                <ActivityIndicator size="small" color="#FF3B30" />
+              ) : (
+                <Trash2 size={20} color="#FF3B30" />
+              )}
+              <Text style={[styles.actionText, { color: '#FF3B30' }]}>
+                Supprimer
+              </Text>
             </TouchableOpacity>
           </View>
-        </>
-      )}
-    </View>
+        </View>
+      </View>
+    </Modal>
   );
 }
 
 const styles = {
-  container: {
-    position: 'relative' as const,
+  overlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center' as const,
+    alignItems: 'center' as const,
+    padding: 20,
   },
-  moreButton: {
-    padding: 8,
-    borderRadius: 6,
-  },
-  backdrop: {
-    position: 'absolute' as const,
-    top: -1000,
-    left: -1000,
-    right: -1000,
-    bottom: -1000,
-    zIndex: 998,
-  },
-  actionsMenu: {
-    position: 'absolute' as const,
-    top: 30,
-    right: -5,
+  modal: {
     backgroundColor: '#1a1a1a',
-    borderRadius: 8,
+    borderRadius: 16,
+    minWidth: 280,
+    maxWidth: 340,
     borderWidth: 1,
     borderColor: '#333',
-    minWidth: 120,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 8,
-    elevation: 1000,
-    zIndex: 1000,
+  },
+  header: {
+    flexDirection: 'row' as const,
+    alignItems: 'center' as const,
+    justifyContent: 'space-between' as const,
+    padding: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: '#333',
+  },
+  title: {
+    fontSize: 18,
+    fontWeight: '600' as const,
+    color: '#fff',
+    flex: 1,
+    marginRight: 12,
+  },
+  closeButton: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: '#333',
+    justifyContent: 'center' as const,
+    alignItems: 'center' as const,
+  },
+  actions: {
+    padding: 8,
   },
   actionItem: {
     flexDirection: 'row' as const,
     alignItems: 'center' as const,
-    gap: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: '#333',
+    padding: 16,
+    borderRadius: 12,
+    marginVertical: 2,
+  },
+  deleteAction: {
+    marginTop: 8,
+    borderTopWidth: 1,
+    borderTopColor: '#333',
+    borderRadius: 0,
   },
   actionText: {
     color: '#007AFF',
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '500' as const,
+    marginLeft: 12,
   },
 }; 

@@ -10,11 +10,11 @@ import {
   Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Send, MessageCircle, CheckCircle2, Clock, Database, Video } from 'lucide-react-native';
+import { Send, MessageCircle, CheckCircle2, CheckCircle, Clock, Database, Video, MoreHorizontal, Copy, Trash2 } from 'lucide-react-native';
 import { useScriptChat } from '@/app/hooks/useScriptChat';
 import { useAuth } from '@clerk/clerk-expo';
 import { router, useLocalSearchParams } from 'expo-router';
-import ScriptActions from '@/components/ScriptActions';
+import ScriptActionsModal from '@/components/ScriptActionsModal';
 import StreamingStatus from '@/components/StreamingStatus';
 
 /**
@@ -31,6 +31,7 @@ export default function ScriptChatDemo() {
   const { isSignedIn } = useAuth();
   const { scriptId } = useLocalSearchParams<{ scriptId?: string }>();
   const [inputMessage, setInputMessage] = useState('');
+  const [showActionsModal, setShowActionsModal] = useState(false);
   const scrollViewRef = useRef<ScrollView>(null);
 
   // Utiliser le vrai hook avec options
@@ -192,6 +193,18 @@ export default function ScriptChatDemo() {
         </View>
         
         <View style={styles.headerActions}>
+          {/* Actions Button - Seulement si script existe */}
+          {scriptDraft && (
+            <TouchableOpacity 
+              onPress={() => setShowActionsModal(true)}
+              style={styles.actionsButton}
+              disabled={isLoading}
+            >
+              <MoreHorizontal size={20} color="#666" />
+            </TouchableOpacity>
+          )}
+          
+          {/* Status Indicator */}
           {scriptDraft && (
             <View style={styles.dbIndicator}>
               <Database size={16} color="#4CD964" />
@@ -336,16 +349,27 @@ export default function ScriptChatDemo() {
         )}
       </View>
 
-      {/* Script Actions */}
-      <ScriptActions
-        scriptDraft={scriptDraft}
-        currentScript={currentScript}
-        isLoading={isLoading}
+      {/* Actions Modal */}
+      <ScriptActionsModal
+        script={scriptDraft}
+        visible={showActionsModal}
+        onClose={() => setShowActionsModal(false)}
+        onScriptDeleted={async () => {
+          setShowActionsModal(false);
+          await deleteScript();
+          router.back();
+        }}
+        onScriptDuplicated={async (newScript: any) => {
+          setShowActionsModal(false);
+          router.push({
+            pathname: '/(tabs)/script-chat-demo',
+            params: { scriptId: newScript.id },
+          });
+        }}
         onValidate={validateScript}
-        onDuplicate={duplicateScript}
-        onDelete={deleteScript}
         onGenerateVideo={handleGenerateVideo}
       />
+
     </SafeAreaView>
   );
 }
@@ -615,5 +639,35 @@ const styles = StyleSheet.create({
   exampleText: {
     fontSize: 12,
     color: '#888',
+  },
+  scriptActionsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  primaryActionBtn: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: 'rgba(0, 122, 255, 0.1)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  actionBtn: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: '#1a1a1a',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  actionsButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: '#1a1a1a',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginLeft: 8,
   },
 }); 
