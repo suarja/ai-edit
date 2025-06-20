@@ -154,6 +154,11 @@ export const API_ENDPOINTS = {
     return config.baseUrl + config.scripts;
   },
 
+  SCRIPT_GENERATE_VIDEO: (scriptId: string) => {
+    const config = getCurrentConfig();
+    return `${config.baseUrl}${config.scripts}/${scriptId}/generate-video`;
+  },
+
   // Webhooks
   WEBHOOKS_CREATOMATE: () => {
     const config = getCurrentConfig();
