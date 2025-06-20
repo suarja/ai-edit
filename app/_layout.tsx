@@ -192,6 +192,10 @@ export default function RootLayout() {
                 />
                 <Stack.Screen name="+not-found" />
                 <Stack.Screen name="index" options={{ headerShown: false }} />
+                <Stack.Screen 
+                  name="script-video-settings" 
+                  options={{ headerShown: false }} 
+                />
 
                 {/* Auth callback screens - accessible via deep linking */}
                 <Stack.Screen

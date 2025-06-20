@@ -9,6 +9,7 @@ import {
   Alert,
 } from 'react-native';
 import { ArrowLeft, Video, Sparkles } from 'lucide-react-native';
+import VideoHeader from '@/components/VideoHeader';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, useLocalSearchParams } from 'expo-router';
 
@@ -97,6 +98,10 @@ export default function ScriptVideoSettingsScreen() {
     refreshUsage();
   };
 
+  const handleBack = () => {
+    router.back();
+  };
+
   const handleGenerateVideo = async () => {
     if (!script || videoRequest.selectedVideos.length === 0) {
       Alert.alert(
@@ -107,23 +112,23 @@ export default function ScriptVideoSettingsScreen() {
       return;
     }
 
-              try {
-       // Use the script directly instead of the prompt input
-       await videoRequest.handleSubmit();
-       
-       // If we get here, the submission was successful
-       Alert.alert(
-         'Génération lancée !',
-         'Votre vidéo est en cours de génération. Vous serez notifié quand elle sera prête.',
-         [
-           {
-             text: 'Voir les vidéos',
-             onPress: () => router.push('/(tabs)/videos'),
-           },
-           { text: 'OK' },
-         ]
-       );
-     } catch (error) {
+    try {
+      // Use the script directly instead of the prompt input
+      await videoRequest.handleSubmit();
+      
+      // If we get here, the submission was successful
+      Alert.alert(
+        'Génération lancée !',
+        'Votre vidéo est en cours de génération. Vous serez notifié quand elle sera prête.',
+        [
+          {
+            text: 'Voir les vidéos',
+            onPress: () => router.push('/(tabs)/videos'),
+          },
+          { text: 'OK' },
+        ]
+      );
+    } catch (error) {
       console.error('Error generating video:', error);
       Alert.alert(
         'Erreur',
@@ -135,22 +140,11 @@ export default function ScriptVideoSettingsScreen() {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      {/* Header */}
-      <View style={styles.header}>
-        <View style={styles.headerContent}>
-          <View style={styles.headerLeft}>
-            <View style={styles.headerIcon}>
-              <Video size={24} color="#007AFF" />
-            </View>
-            <View>
-              <Text style={styles.title}>Paramètres Vidéo</Text>
-              <Text style={styles.subtitle}>
-                {title || 'Script prêt pour la génération'}
-              </Text>
-            </View>
-          </View>
-        </View>
-      </View>
+      <VideoHeader
+        title="Paramètres Vidéo"
+        subtitle={title || 'Script prêt pour la génération'}
+        onBack={handleBack}
+      />
 
       <ScrollView
         style={styles.content}
@@ -242,31 +236,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#000',
   },
-  header: {
-    paddingTop: 16,
-    paddingHorizontal: 20,
-    paddingBottom: 20,
-    borderBottomWidth: 1,
-    borderBottomColor: '#333',
-  },
-  headerContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  headerLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-  },
-  headerIcon: {
-    backgroundColor: 'rgba(0, 122, 255, 0.1)',
-    borderRadius: 12,
-    width: 48,
-    height: 48,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
+
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
@@ -277,16 +247,7 @@ const styles = StyleSheet.create({
     color: '#888',
     fontSize: 16,
   },
-  title: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: '#fff',
-  },
-  subtitle: {
-    fontSize: 16,
-    color: '#888',
-    marginTop: 4,
-  },
+
   content: {
     flex: 1,
     padding: 20,
