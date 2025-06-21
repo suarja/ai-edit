@@ -45,7 +45,7 @@ export default function SuccessScreen() {
       // Use the safe navigation function to navigate to settings
       const success = await safeNavigate(
         router,
-        '/(tabs)/settings',
+        '/settings',
         'replace',
         500
       );
