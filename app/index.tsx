@@ -34,7 +34,7 @@ function LandingScreen() {
         console.log(
           '✅ User authenticated with Clerk, redirecting to main app'
         );
-        router.replace('/(tabs)/source-videos');
+        router.replace('/(drawer)/source-videos');
       } else {
         // User is not authenticated, stay on landing screen
         console.log('❌ User not authenticated, staying on landing screen');
