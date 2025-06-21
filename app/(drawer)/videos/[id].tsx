@@ -53,17 +53,13 @@ export default function GeneratedVideoDetailScreen() {
   const fetchVideoDetails = async () => {
     try {
       setError(null);
-      console.log('fetching video details', id);
 
       // Get the database user first
       const user = await fetchUser();
       if (!user) {
-        console.log('No database user found');
         router.replace('/(auth)/sign-in');
         return;
       }
-
-      console.log('Fetching video details for database user ID:', user.id);
 
       // Get video request details with script information using the database user ID
       const { data: videoRequest, error: videoError } = await supabase
@@ -234,7 +230,7 @@ export default function GeneratedVideoDetailScreen() {
     }
   };
 
-
+  
 
   // Render thumbnail for rendering videos
   const renderThumbnail = () => {

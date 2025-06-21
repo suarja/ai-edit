@@ -117,7 +117,6 @@ export default function DrawerLayout() {
 
   // Redirect to sign-in if not authenticated
   if (!isSignedIn) {
-    console.log('🔀 User not signed in, redirecting from drawer to sign-in');
     return <Redirect href="/(auth)/sign-in" />;
   }
 

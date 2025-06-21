@@ -86,12 +86,9 @@ export default function SourceVideosScreen() {
       // Get the database user (which includes the database ID)
       const user = await fetchUser();
       if (!user) {
-        console.log('No database user found');
         router.replace('/(auth)/sign-in');
         return;
       }
-
-      console.log('🔍 Fetching videos for database user ID:', user.id);
 
       // Use the database ID directly - no need to lookup again!
       const { data, error } = await supabase
@@ -105,11 +102,6 @@ export default function SourceVideosScreen() {
         throw error;
       }
 
-      console.log(
-        '✅ Videos fetched successfully:',
-        data?.length || 0,
-        'videos'
-      );
       setVideos(data || []);
     } catch (err) {
       console.error('Error fetching videos:', err);
@@ -140,8 +132,6 @@ export default function SourceVideosScreen() {
         throw new Error('User not authenticated');
       }
 
-      console.log('💾 Saving video for database user ID:', user.id);
-
       const { error } = await supabase.from('videos').insert({
         user_id: user.id, // Use database ID directly
         title: '',
@@ -156,8 +146,6 @@ export default function SourceVideosScreen() {
         console.error('Supabase insert error:', error);
         throw error;
       }
-
-      console.log('✅ Video saved successfully');
       await fetchVideos();
       setEditingVideo({
         id: data.videoId,
@@ -415,15 +403,6 @@ export default function SourceVideosScreen() {
             </View>
           ) : (
             videos.map((video, index) => {
-              // Debug: Log video data structure to diagnose text rendering issue
-              console.log(`🔍 Video ${index} data:`, {
-                id: video.id,
-                title: video.title,
-                description: video.description,
-                tags: video.tags,
-                tagsType: typeof video.tags,
-                tagsIsArray: Array.isArray(video.tags),
-              });
 
               return (
                 <VideoCard

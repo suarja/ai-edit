@@ -47,9 +47,6 @@ function SignIn() {
         password,
       });
 
-      if (__DEV__) {
-        console.log('Clerk sign in status:', signInAttempt.status);
-      }
 
       // If sign-in process is complete, set the created session as active
       if (signInAttempt.status === 'complete') {

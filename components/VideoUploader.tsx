@@ -52,7 +52,6 @@ export default function VideoUploader({
         onUploadStart();
       }
 
-      console.log('Starting video selection...');
 
       // Request permissions
       const { status } =
@@ -69,7 +68,6 @@ export default function VideoUploader({
         return;
       }
 
-      console.log('Permissions granted, launching image picker...');
       setUploadStatus('Sélectionnez votre vidéo...');
 
       // Pick a video
@@ -80,10 +78,8 @@ export default function VideoUploader({
         videoMaxDuration: 300,
       });
 
-      console.log('Image picker result:', result);
       if (!result.canceled && result.assets[0]) {
         const asset = result.assets[0];
-        console.log('Selected asset:', asset);
 
         // Show file selection confirmation
         setUploadStatus('Préparation du fichier...');
@@ -99,7 +95,6 @@ export default function VideoUploader({
             : 'Inconnue';
           setUploadStatus(`Fichier sélectionné: ${fileSizeMB}MB`);
 
-          console.log('Getting presigned URL from backend...');
           setUploadStatus('Préparation du téléchargement...');
 
           // Get Clerk JWT token
@@ -108,7 +103,6 @@ export default function VideoUploader({
             throw new Error('Impossible d\'obtenir le token d\'authentification');
           }
 
-          console.log('🔑 Got Clerk token, making request to backend...');
 
           // Get presigned URL from backend using Clerk authentication
           const presignedResponse = await fetch(API_ENDPOINTS.S3_UPLOAD(), {
@@ -120,11 +114,9 @@ export default function VideoUploader({
             }),
           });
 
-          console.log('Presigned response:', presignedResponse);
 
           if (!presignedResponse.ok) {
             const errorText = await presignedResponse.text();
-            console.error('Backend error response:', errorText);
             throw new Error(
               `Échec de la préparation du téléchargement: ${presignedResponse.status}`
             );
@@ -133,23 +125,13 @@ export default function VideoUploader({
           const {
             data: { presignedUrl, publicUrl, fileName: s3FileName },
           } = await presignedResponse.json();
-          console.log('Got presigned URL:', {
-            presignedUrl,
-            publicUrl,
-            s3FileName,
-          });
 
-          console.log(presignedUrl);
           // Convert asset to blob for upload
-          console.log('Converting asset to blob...');
           setUploadStatus('Conversion du fichier...');
           const response = await fetch(asset.uri);
           const blob = await response.blob();
 
-          console.log('Blob created:', { size: blob.size, type: blob.type });
-
           // Upload to cloud storage
-          console.log('Uploading to cloud storage...');
           setUploadStatus('Téléchargement en cours...');
           const uploadResponse = await fetch(presignedUrl, {
             method: 'PUT',
@@ -162,7 +144,6 @@ export default function VideoUploader({
             throw new Error(`Échec du téléchargement: ${uploadResponse.status}`);
           }
 
-          console.log('Upload successful! Public URL:', publicUrl);
           setUploadStatus('Téléchargement terminé!');
 
           // No more success alert - just notify parent component
@@ -172,8 +153,7 @@ export default function VideoUploader({
               url: publicUrl,
             });
           }
-        } catch (uploadError) {
-          console.error('Upload error:', uploadError);
+        } catch (uploadError) { 
           setUploadStatus('Erreur de téléchargement');
           
           // Only show alert for critical errors
