@@ -102,7 +102,7 @@ export default function SettingsScreen() {
   useEffect(() => {
     if (clerkLoaded) {
       if (!isSignedIn) {
-        router.replace('/(auth)/sign-in-clerk');
+        router.replace('/(auth)/sign-in');
         return;
       }
       fetchProfile();
@@ -115,7 +115,7 @@ export default function SettingsScreen() {
       const user = await fetchUser();
       if (!user) {
         console.log('No user found');
-        router.replace('/(auth)/sign-in-clerk');
+        router.replace('/(auth)/sign-in');
         return;
       }
 
@@ -320,7 +320,7 @@ export default function SettingsScreen() {
       await signOut();
 
       // Navigate to sign-in screen
-      router.replace('/(auth)/sign-in-clerk');
+      router.replace('/(auth)/sign-in');
     } catch (err) {
       console.error('Error signing out:', err);
       setError('Échec de la déconnexion');

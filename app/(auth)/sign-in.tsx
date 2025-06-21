@@ -19,7 +19,6 @@ import { withErrorBoundary } from '@/components/ErrorBoundary';
 import { IMAGES } from '@/lib/constants/images';
 
 function SignIn() {
-  console.log('SignInClerk');
   const { signIn, setActive, isLoaded } = useSignIn();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -41,10 +40,6 @@ function SignIn() {
     try {
       setLoading(true);
       setError(null);
-
-      if (__DEV__) {
-        console.log('Signing in via Clerk...');
-      }
 
       // Start sign-in process using Clerk
       const signInAttempt = await signIn.create({
