@@ -779,3 +779,93 @@ Fix two critical UI accessibility issues that prevent users from accessing impor
 - **TypeScript compliance**: All refs and handlers properly typed
 - **Performance optimized**: Minimal re-renders and efficient scrolling
 - **User experience**: Smooth animations and intuitive behavior
+
+# VOICE CLONE PAYWALL IMPLEMENTATION
+
+## Objectif
+Implémenter un paywall pour le clonage vocal tout en permettant l'enregistrement pour le profil éditorial.
+
+## Changements Implémentés
+
+### 1. Frontend - Voice Recording Onboarding (`voice-recording.tsx`)
+- ✅ Ajout du hook `useRevenueCat` pour détecter le statut pro
+- ✅ Nouveau state `showVoiceClonePaywall` pour gérer l'affichage du paywall
+- ✅ Nouveau state `wantsVoiceClone` pour tracker l'intention de l'utilisateur
+- ✅ Nouveau state `recordingMode` pour gérer les modes d'affichage
+- ✅ Interface avec deux options :
+  - **Clonage Vocal IA** (avec badge PRO si non-pro)
+  - **Profil Éditorial** (toujours accessible)
+- ✅ Paywall avec features et bouton upgrade
+- ✅ Option "Continuer sans clonage vocal" dans le paywall
+- ✅ Passage du paramètre `enableVoiceClone` au backend
+
+### 2. Client API (`voice-recording-client.ts`)
+- ✅ Ajout du paramètre `enableVoiceClone` à l'interface `OnboardingSubmissionData`
+- ✅ Transmission du paramètre au backend via FormData
+
+### 3. Backend - Onboarding API (`onboarding.ts`)
+- ✅ Lecture du paramètre `enable_voice_clone` depuis la request
+- ✅ Logique conditionnelle pour créer le clone vocal seulement si :
+  - L'utilisateur n'a pas déjà un clone vocal ET
+  - `enableVoiceClone` est true
+- ✅ Logging approprié pour tracer les décisions
+
+### 4. Settings - Voice Clone Page (`voice-clone.tsx`)
+- ✅ Ajout du hook `useRevenueCat` pour vérifier le statut pro
+- ✅ Paywall complet pour les utilisateurs non-pro avec :
+  - Features du clonage vocal
+  - Bouton redirection vers subscription
+  - Message explicatif
+- ✅ Accès normal pour les utilisateurs pro
+
+## Flow Utilisateur
+
+### Utilisateur Gratuit
+1. Arrive sur l'écran d'enregistrement vocal
+2. Voit deux options : Clonage Vocal (avec badge PRO) et Profil Éditorial
+3. S'il clique sur Clonage Vocal → Paywall s'affiche
+4. Peut choisir :
+   - Passer Pro → Redirigé vers subscription
+   - Continuer sans clonage → Enregistrement pour profil seulement
+5. Dans Settings → Paywall complet pour Voice Clone
+
+### Utilisateur Pro
+1. Arrive sur l'écran d'enregistrement vocal
+2. Voit les deux options sans restriction
+3. Peut créer son clone vocal directement
+4. Accès complet aux settings Voice Clone
+
+## Backend Logic
+
+```
+IF user has existing voice clone:
+  → Skip voice creation, use existing
+ELSE IF enableVoiceClone is true:
+  → Create new voice clone with ElevenLabs
+ELSE:
+  → Skip voice creation, log preference
+```
+
+## Avantages de cette Approche
+
+1. **Conversion-Friendly** : L'utilisateur découvre la valeur du clonage vocal
+2. **Non-Bloquant** : Peut toujours créer un profil éditorial
+3. **Sécurisé** : Logique côté backend, pas de contournement possible
+4. **UX Fluide** : Pas de migration, changements transparents
+5. **80-20** : Implémentation simple et efficace
+
+## Tests à Effectuer
+
+- [ ] Test utilisateur gratuit : voir le paywall
+- [ ] Test utilisateur pro : accès direct
+- [ ] Test enregistrement profil sans clonage
+- [ ] Test création clone vocal avec utilisateur pro
+- [ ] Test settings voice clone pour utilisateur gratuit
+- [ ] Test settings voice clone pour utilisateur pro
+
+## Notes
+
+- L'enregistrement audio sert toujours à créer le profil éditorial
+- Le clonage vocal est maintenant une feature premium
+- Pas de migration de données nécessaire
+- Compatible avec le flow d'onboarding existant

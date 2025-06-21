@@ -17,6 +17,8 @@ import {
   Send,
   CircleStop as StopCircle,
   Volume2,
+  Crown,
+  Zap,
 } from 'lucide-react-native';
 import * as DocumentPicker from 'expo-document-picker';
 import { Audio } from 'expo-av';
@@ -36,6 +38,7 @@ import {
 import { useClerkSupabaseClient } from '@/lib/supabase-clerk';
 import { useGetUser } from '@/lib/hooks/useGetUser';
 import { useAuth } from '@clerk/clerk-expo';
+import { useRevenueCat } from '@/providers/RevenueCat';
 
 type VoiceClone = {
   id: string;
@@ -74,6 +77,7 @@ export default function VoiceCloneScreen() {
   const { client: supabase } = useClerkSupabaseClient();
   const { fetchUser } = useGetUser();
   const { getToken } = useAuth();
+  const { isPro, goPro } = useRevenueCat();
 
   useEffect(() => {
     fetchExistingVoice();
@@ -377,6 +381,59 @@ export default function VoiceCloneScreen() {
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#007AFF" />
         </View>
+      </SafeAreaView>
+    );
+  }
+
+  // Show paywall for non-pro users
+  if (!isPro) {
+    return (
+      <SafeAreaView style={styles.container} edges={['top']}>
+        <SettingsHeader title="Clone Vocal" />
+        <ScrollView style={styles.scrollView}>
+          <View style={styles.paywallContainer}>
+            <View style={styles.paywallHeader}>
+              <Crown size={48} color="#FFD700" />
+              <Text style={styles.paywallTitle}>Clonage Vocal Pro</Text>
+            </View>
+            
+            <Text style={styles.paywallDescription}>
+              Le clonage vocal est une fonctionnalité exclusive aux utilisateurs Pro. 
+              Passez Pro pour débloquer cette fonctionnalité avancée.
+            </Text>
+            
+            <View style={styles.featuresList}>
+              <View style={styles.featureItem}>
+                <Text style={styles.checkmark}>✓</Text>
+                <Text style={styles.featureText}>Créer votre clone vocal IA</Text>
+              </View>
+              <View style={styles.featureItem}>
+                <Text style={styles.checkmark}>✓</Text>
+                <Text style={styles.featureText}>Voix naturelle et authentique</Text>
+              </View>
+              <View style={styles.featureItem}>
+                <Text style={styles.checkmark}>✓</Text>
+                <Text style={styles.featureText}>Intégration directe dans vos vidéos</Text>
+              </View>
+              <View style={styles.featureItem}>
+                <Text style={styles.checkmark}>✓</Text>
+                <Text style={styles.featureText}>Gestion de plusieurs échantillons</Text>
+              </View>
+            </View>
+
+            <TouchableOpacity
+              style={styles.upgradeButton}
+              onPress={goPro}
+            >
+              <Zap size={20} color="#fff" />
+              <Text style={styles.upgradeButtonText}>Passer Pro</Text>
+            </TouchableOpacity>
+            
+            <Text style={styles.paywallFooter}>
+              Retournez aux paramètres après votre mise à niveau pour accéder au clonage vocal.
+            </Text>
+          </View>
+        </ScrollView>
       </SafeAreaView>
     );
   }
@@ -918,5 +975,63 @@ const styles = StyleSheet.create({
     color: '#888',
     fontSize: 14,
     textAlign: 'center',
+  },
+  paywallContainer: {
+    padding: 20,
+  },
+  paywallHeader: {
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  paywallTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#fff',
+    marginTop: 12,
+  },
+  paywallDescription: {
+    color: '#fff',
+    fontSize: 16,
+    marginBottom: 20,
+    lineHeight: 22,
+  },
+  featuresList: {
+    marginBottom: 24,
+  },
+  featureItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  checkmark: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#4CAF50',
+    marginRight: 12,
+  },
+  featureText: {
+    color: '#fff',
+    fontSize: 16,
+  },
+  upgradeButton: {
+    backgroundColor: '#FFD700',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 16,
+    borderRadius: 12,
+    gap: 8,
+    marginBottom: 16,
+  },
+  upgradeButtonText: {
+    color: '#000',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  paywallFooter: {
+    color: '#888',
+    fontSize: 14,
+    textAlign: 'center',
+    fontStyle: 'italic',
   },
 });

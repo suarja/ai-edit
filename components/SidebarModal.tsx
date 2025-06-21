@@ -54,12 +54,12 @@ export default function SidebarModal({ visible, onClose }: SidebarModalProps) {
       icon: FileText,
       isExpanded: true,
       items: [
-        {
-          id: 'create-script',
-          name: 'Créer un script',
-          route: '/chat',
-          description: 'Générer un nouveau script via IA',
-        },
+        // {
+        //   id: 'create-script',
+        //   name: 'Créer un script',
+        //   route: '/chat',
+        //   description: 'Générer un nouveau script via IA',
+        // },
         {
           id: 'scripts-list',
           name: 'Mes scripts',

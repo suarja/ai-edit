@@ -157,7 +157,7 @@ export const RevenueCatProvider = ({ children }: any) => {
       }
 
       setUserUsage(usage);
-      setIsEarlyAdopter(usage.is_early_adopter || true); // Default to early adopter for now
+      setIsEarlyAdopter(true); // Default to early adopter for now
     } catch (error) {
       console.error('Error loading user usage:', error);
     }
@@ -274,7 +274,7 @@ export const RevenueCatProvider = ({ children }: any) => {
   };
 
   // Calculate current plan
-  const currentPlan = isPro ? 'pro' : 'free';
+  const currentPlan: 'free' | 'pro' = isPro ? 'pro' : 'free';
 
   // Get dynamic video limit based on subscription status
   const dynamicVideosLimit = isPro ? PLAN_LIMITS.pro : PLAN_LIMITS.free;
