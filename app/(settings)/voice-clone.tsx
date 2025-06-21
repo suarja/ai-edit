@@ -77,7 +77,7 @@ export default function VoiceCloneScreen() {
   const { client: supabase } = useClerkSupabaseClient();
   const { fetchUser } = useGetUser();
   const { getToken } = useAuth();
-  const { isPro } = useRevenueCat();
+  const { isPro, goPro } = useRevenueCat();
 
   useEffect(() => {
     fetchExistingVoice();
@@ -423,7 +423,7 @@ export default function VoiceCloneScreen() {
 
             <TouchableOpacity
               style={styles.upgradeButton}
-              onPress={() => router.push('/(onboarding)/subscription')}
+              onPress={goPro}
             >
               <Zap size={20} color="#fff" />
               <Text style={styles.upgradeButtonText}>Passer Pro</Text>
