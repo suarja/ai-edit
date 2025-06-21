@@ -111,7 +111,7 @@ export default function ScriptActions({
                 Alert.alert('Supprimé', 'Script supprimé avec succès', [
                   {
                     text: 'OK',
-                    onPress: () => router.push('/(tabs)/scripts'),
+                    onPress: () => router.push('/scripts'),
                   },
                 ]);
               }

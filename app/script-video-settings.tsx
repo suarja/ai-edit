@@ -123,7 +123,7 @@ export default function ScriptVideoSettingsScreen() {
         [
           {
             text: 'Voir les vidéos',
-            onPress: () => router.push('/(tabs)/videos'),
+                          onPress: () => router.push('/videos'),
           },
           { text: 'OK' },
         ]

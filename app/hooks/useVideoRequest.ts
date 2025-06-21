@@ -333,7 +333,7 @@ export default function useVideoRequest() {
         [
           {
             text: 'Voir mes vidéos',
-            onPress: () => router.push('/(tabs)/videos'),
+                          onPress: () => router.push('/videos'),
           },
         ]
       );

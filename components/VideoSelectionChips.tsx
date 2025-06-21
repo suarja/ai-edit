@@ -60,7 +60,7 @@ export default function VideoSelectionChips({
           </Text>
           <TouchableOpacity
             style={styles.uploadButton}
-            onPress={() => router.push('/(tabs)/source-videos')}
+            onPress={() => router.push('/source-videos')}
           >
             <Upload size={16} color="#007AFF" />
             <Text style={styles.uploadButtonText}>Uploader des vidéos</Text>

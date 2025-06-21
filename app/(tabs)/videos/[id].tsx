@@ -245,7 +245,7 @@ export default function GeneratedVideoDetailScreen() {
 
   const handleBackToVideos = () => {
     // Navigate specifically to the videos list page
-    router.push('/(tabs)/videos');
+    router.push('/videos');
   };
 
   // Render thumbnail for rendering videos

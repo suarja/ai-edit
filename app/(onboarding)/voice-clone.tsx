@@ -36,7 +36,7 @@ export default function OnboardingVoiceCloneScreen() {
   };
 
   const handleSkip = () => {
-    router.push('/(tabs)/videos');
+    router.push('/scripts');
   };
 
   return (

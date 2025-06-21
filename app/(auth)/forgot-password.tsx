@@ -32,7 +32,7 @@ function ForgotPassword() {
 
   useEffect(() => {
     if (isSignedIn) {
-      router.replace('/(tabs)/source-videos');
+      router.replace('/scripts');
     }
   }, [isSignedIn]);
 
@@ -148,7 +148,7 @@ function ForgotPassword() {
           [
             {
               text: 'Continuer',
-              onPress: () => router.replace('/(tabs)/source-videos'),
+              onPress: () => router.replace('/scripts'),
             },
           ]
         );

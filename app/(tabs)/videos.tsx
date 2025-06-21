@@ -210,7 +210,7 @@ export default function GeneratedVideosScreen() {
   }, []);
 
   const handleVideoPress = (videoId: string) => {
-    router.push(`/(tabs)/videos/${videoId}`);
+    router.push(`/videos/${videoId}`);
   };
 
   const handleDownload = async (video: VideoRequest) => {
@@ -298,7 +298,7 @@ export default function GeneratedVideosScreen() {
   };
 
   const handleCreateVideo = () => {
-    router.push('/(tabs)/request-video');
+    router.push('/chat');
   };
 
   const getTitle = () => {

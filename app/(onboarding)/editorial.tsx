@@ -114,7 +114,7 @@ export default function EditorialScreen() {
 
       // Navigate based on voice clone status
       if (hasVoiceClone) {
-        router.push('/(tabs)/source-videos');
+        router.push('/scripts');
       } else {
         router.push('/(onboarding)/voice-clone');
       }

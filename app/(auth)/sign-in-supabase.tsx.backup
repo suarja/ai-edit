@@ -65,7 +65,7 @@ function SignIn() {
           return;
         }
 
-        router.replace('/(tabs)/settings');
+        router.replace('/scripts');
       } catch (authError: any) {
         reportAuthError(authError, {
           screen: 'SignIn',

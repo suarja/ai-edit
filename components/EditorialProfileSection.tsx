@@ -47,7 +47,7 @@ export default function EditorialProfileSection({
   const [showCustomForm, setShowCustomForm] = useState(false);
 
   const handleEditProfile = () => {
-    router.push('/(tabs)/editorial');
+    router.push('/settings');
   };
 
   const handleEditCustomProfile = () => {

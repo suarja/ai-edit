@@ -59,7 +59,7 @@ function SignIn() {
       // If sign-in process is complete, set the created session as active
       if (signInAttempt.status === 'complete') {
         await setActive({ session: signInAttempt.createdSessionId });
-        router.replace('/(tabs)/settings');
+        router.replace('/scripts');
       } else {
         // If the status isn't complete, check why
         console.error(

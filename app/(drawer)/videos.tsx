@@ -299,7 +299,7 @@ export default function GeneratedVideosScreen() {
   };
 
   const handleCreateVideo = () => {
-    router.push('/(tabs)/request-video');
+    router.push('/chat');
   };
 
   if (loading) {
