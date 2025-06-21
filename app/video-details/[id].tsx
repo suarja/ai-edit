@@ -184,12 +184,9 @@ export default function UploadedVideoDetailScreen() {
       // Get the database user (which includes the database ID)
       const user = await fetchUser();
       if (!user) {
-        console.log('No database user found');
         router.replace('/(auth)/sign-in');
         return;
       }
-
-      console.log('🔍 Fetching video details for database user ID:', user.id);
 
       const { data, error: fetchError } = await supabase
         .from('videos')
@@ -215,7 +212,6 @@ export default function UploadedVideoDetailScreen() {
       };
 
       setVideo(formattedVideo);
-      console.log('✅ Video details fetched successfully');
     } catch (error) {
       console.error('Error fetching video:', error);
       setError('Unable to load video details');
@@ -256,7 +252,6 @@ export default function UploadedVideoDetailScreen() {
 
       setIsEditing(false);
       Alert.alert('Success', 'Video updated successfully');
-      console.log('✅ Video metadata updated successfully');
     } catch (error) {
       console.error('Error updating video:', error);
       Alert.alert('Error', 'Failed to update video');
@@ -282,7 +277,6 @@ export default function UploadedVideoDetailScreen() {
               if (deleteError) throw deleteError;
 
               Alert.alert('Success', 'Video deleted successfully');
-              console.log('✅ Video deleted successfully');
               router.back();
             } catch (error) {
               console.error('Error deleting video:', error);
@@ -335,8 +329,7 @@ export default function UploadedVideoDetailScreen() {
           const progress =
             downloadProgress.totalBytesWritten /
             downloadProgress.totalBytesExpectedToWrite;
-          // You could update a progress state here if you want to show a progress bar
-          console.log(`Download progress: ${progress * 100}%`);
+          // You could update a progress state here if you want to show a progress bar  
         }
       );
 

@@ -76,12 +76,10 @@ export default function VoiceRecordingScreen() {
       if (error) {
         console.error('Error saving survey data:', error);
         // Log the data for recovery if needed
-        console.log('Survey data that failed to save:', surveyData);
         // Continue anyway to not block the user
         return true;
       }
 
-      console.log('Survey data saved successfully');
       return true;
     } catch (err) {
       console.error('Error in saveSurveyData:', err);
@@ -93,7 +91,6 @@ export default function VoiceRecordingScreen() {
   const handleRecordingComplete = async (result: VoiceRecordingResult) => {
     // Protection contre les soumissions multiples
     if (isProcessing || isCompleted) {
-      console.log('⚠️ Soumission déjà en cours ou complétée, ignorer');
       return;
     }
 
@@ -172,7 +169,6 @@ export default function VoiceRecordingScreen() {
   const handleSkip = async () => {
     // Protection contre les soumissions multiples
     if (isProcessing || isCompleted) {
-      console.log('⚠️ Skip déjà en cours ou complété, ignorer');
       return;
     }
 
@@ -229,7 +225,7 @@ export default function VoiceRecordingScreen() {
       // Auto-advance when skipping since user explicitly chose to skip
       // Add a small delay to ensure processing state is cleared
       setTimeout(() => {
-        console.log('Voice recording skip: auto-advancing to next step');
+         console.log('Voice recording skip: auto-advancing to next step');
         nextStep();
       }, 100);
     }

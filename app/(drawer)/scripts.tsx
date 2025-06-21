@@ -65,7 +65,6 @@ export default function ScriptsScreen() {
     // Close modal and reload scripts
     setSelectedScript(null);
     await loadScripts();
-    console.log('Script duplicated:', newScript);
   };
 
   if (isLoading) {

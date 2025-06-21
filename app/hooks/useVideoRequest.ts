@@ -88,17 +88,13 @@ export default function useVideoRequest() {
 
   const fetchInitialData = async () => {
     try {
-      console.log('Fetching initial data...');
 
       // Get the database user (which includes the database ID)
       const user = await fetchUser();
       if (!user) {
-        console.log('No database user found');
         router.replace('/(auth)/sign-in');
         return;
       }
-
-      console.log('🔍 Fetching data for database user ID:', user.id);
 
       // Fetch source videos using database ID
       const { data: videos, error: videosError } = await supabase
@@ -109,7 +105,6 @@ export default function useVideoRequest() {
 
       if (videosError) throw videosError;
       setSourceVideos(videos as unknown as VideoType[]);
-      console.log('Fetched videos:', videos?.length || 0);
 
       // Fetch voice clone using database ID
       const { data: voice, error: voiceError } = await supabase
@@ -120,7 +115,6 @@ export default function useVideoRequest() {
 
       if (voiceError && voiceError.code !== 'PGRST116') throw voiceError;
       setVoiceClone(voice as unknown as VoiceClone);
-      console.log('Voice clone status:', voice?.status || 'none');
 
       // Fetch editorial profile using database ID
       const { data: profile, error: profileError } = await supabase
@@ -131,7 +125,6 @@ export default function useVideoRequest() {
 
       if (profileError && profileError.code !== 'PGRST116') throw profileError;
       setEditorialProfile(profile as unknown as EditorialProfile);
-      console.log('Editorial profile found:', !!profile);
 
       // If we have an editorial profile, use it as the base for custom profile
       if (profile) {
@@ -155,7 +148,6 @@ export default function useVideoRequest() {
         const savedCaptionConfig = await CaptionConfigStorage.getOrDefault(
           user.id
         );
-        console.log('Loaded caption config:', savedCaptionConfig);
         setCaptionConfig(savedCaptionConfig);
       } catch (error) {
         console.warn('Failed to load saved caption config:', error);
@@ -215,8 +207,6 @@ export default function useVideoRequest() {
       return false;
     }
 
-    console.log('Caption config validation:', captionConfig);
-
     // Enhanced validation: only check if captions are enabled and missing required fields
     if (
       captionConfig.enabled &&
@@ -264,7 +254,6 @@ export default function useVideoRequest() {
       // Get the database user
       const user = await fetchUser();
       if (!user) {
-        console.log('No database user found');
         router.replace('/(auth)/sign-in');
         return;
       }
@@ -273,9 +262,6 @@ export default function useVideoRequest() {
       const currentCaptionConfig = await CaptionConfigStorage.getOrDefault(
         user.id
       );
-      console.log('Current caption config:', currentCaptionConfig);
-
-      console.log('Preparing request payload...');
 
       // Get storage paths for selected videos
       const selectedVideoData = sourceVideos.filter((video) =>
@@ -300,15 +286,12 @@ export default function useVideoRequest() {
         outputLanguage: outputLanguage,
       };
 
-      console.log('Request payload:', JSON.stringify(requestPayload, null, 2));
-
       // Get Clerk token for API authentication
       const clerkToken = await getToken();
       if (!clerkToken) {
         throw new Error('No authentication token available');
       }
 
-      console.log('🔑 Got Clerk token, making request to backend...');
       const response = await fetch(API_ENDPOINTS.VIDEO_GENERATE(), {
         method: 'POST',
         headers: {
@@ -321,11 +304,8 @@ export default function useVideoRequest() {
       const result = await response.json();
 
       if (!response.ok) {
-        console.log('Error:', JSON.stringify(result, null, 2));
         throw new Error(result.error || 'Failed to generate video');
       }
-
-      console.log('Video generation started:', result);
 
       Alert.alert(
         'Génération lancée',
@@ -333,7 +313,7 @@ export default function useVideoRequest() {
         [
           {
             text: 'Voir mes vidéos',
-                          onPress: () => router.push('/videos'),
+                            onPress: () => router.push('/videos'),
           },
         ]
       );

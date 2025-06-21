@@ -38,14 +38,12 @@ export default function OnboardingLayout() {
         }
 
         if (!isSignedIn) {
-          console.log('No Clerk session found during onboarding');
           setError('You must be signed in to access onboarding');
           // Redirect to sign-in if not authenticated
           handleRedirect('/(auth)/sign-in', 'not authenticated');
           return;
         }
 
-        console.log('✅ Clerk session found, proceeding with onboarding');
         setLoading(false);
       } catch (err) {
         console.error('Error checking Clerk auth state:', err);
@@ -62,7 +60,6 @@ export default function OnboardingLayout() {
     if (isRedirecting) return;
 
     setIsRedirecting(true);
-    console.log(`🔀 Redirecting to ${path} (reason: ${reason})`);
 
     // Clear any existing timeouts
     if (redirectTimeoutRef.current) {

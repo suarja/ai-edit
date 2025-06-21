@@ -114,13 +114,11 @@ export default function SettingsScreen() {
     try {
       const user = await fetchUser();
       if (!user) {
-        console.log('No user found');
         router.replace('/(auth)/sign-in');
         return;
       }
 
       const isAdmin = profile.role === 'admin';
-      console.log('isAdmin', isAdmin);
       setProfile({
         id: user.id,
         full_name: user.full_name,
@@ -140,7 +138,6 @@ export default function SettingsScreen() {
         await ensureAdminRoleEntry(user.id); // Use the database ID from fetchUser
       }
 
-      console.log('Profile loaded successfully');
     } catch (err) {
       console.error('Error fetching profile:', err);
       setError('Échec du chargement du profil');
@@ -158,11 +155,8 @@ export default function SettingsScreen() {
       // Get the database user (which includes the database ID)
       const user = await fetchUser();
       if (!user) {
-        console.log('No database user found for usage data');
         return;
       }
-
-      console.log('Fetching usage data for database user ID:', user.id);
 
       // Use the database ID directly - no need to lookup again!
       const { data: usageData, error: usageError } = await supabase
@@ -176,7 +170,6 @@ export default function SettingsScreen() {
 
         if (usageError.code === 'PGRST116') {
           // No usage record found, create one
-          console.log('No usage record found, creating one...');
           await createUsageRecord(user.id); // Use database ID
           return;
         }
@@ -185,7 +178,6 @@ export default function SettingsScreen() {
         return;
       }
 
-      console.log('Usage data retrieved:', usageData);
       setUserUsage(usageData);
     } catch (err) {
       console.error('Error fetching usage data:', err);
@@ -240,7 +232,6 @@ export default function SettingsScreen() {
 
       // If no entry exists, create one
       if (!existingRole) {
-        console.log('No admin role entry found, creating one...');
         const { error: insertError } = await supabase
           .from('user_roles')
           .insert({
@@ -251,10 +242,8 @@ export default function SettingsScreen() {
         if (insertError) {
           console.error('Error creating admin role entry:', insertError);
         } else {
-          console.log('Admin role entry created successfully');
         }
       } else {
-        console.log('Admin role entry already exists');
       }
     } catch (err) {
       console.error('Error ensuring admin role entry:', err);

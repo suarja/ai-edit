@@ -60,17 +60,13 @@ export default function GeneratedVideosScreen() {
   const { getToken } = useAuth();
 
   const fetchVideos = async () => {
-    console.log('fetching videos');
     try {
       // Get the database user (which includes the database ID)
       const user = await fetchUser();
       if (!user) {
-        console.log('No database user found');
         router.replace('/(auth)/sign-in');
         return;
       }
-
-      console.log('Fetching videos for database user ID:', user.id);
 
       // Use the database ID directly - no need to lookup again!
       const { data, error } = await supabase
@@ -104,7 +100,6 @@ export default function GeneratedVideosScreen() {
         ) || [];
 
       for (const video of renderingVideos) {
-        console.log('checking video status', video.id);
         await checkVideoStatus(video.id as string);
       }
     } catch (err) {
@@ -127,7 +122,6 @@ export default function GeneratedVideosScreen() {
       }
 
       const url = API_ENDPOINTS.VIDEO_STATUS(videoId);
-      console.log('url', url);
       const response = await fetch(url, {
         headers: {
           'Content-Type': 'application/json',
@@ -141,9 +135,7 @@ export default function GeneratedVideosScreen() {
       }
 
       const data: VideoRequest = (await response.json()).data;
-
-      console.log('data', data);
-
+      
       // Update video in state if status changed
       setVideos((prev) =>
         prev.map((v) => (v.id === videoId ? { ...v, ...data } : v))

@@ -74,12 +74,6 @@ export function useScriptChat(options: UseScriptChatOptions = {}): UseScriptChat
   // Update messages when script draft changes
   useEffect(() => {
     if (scriptDraft) {
-      console.log('🔄 Processing script draft:', {
-        id: scriptDraft.id,
-        messagesCount: scriptDraft.messages?.length || 0,
-        currentScriptLength: scriptDraft.current_script?.length || 0,
-        currentScript: scriptDraft.current_script?.substring(0, 100) + '...'
-      });
       setMessages(scriptDraft.messages || []);
       setCurrentScript(scriptDraft.current_script || '');
     }
@@ -106,7 +100,6 @@ export function useScriptChat(options: UseScriptChatOptions = {}): UseScriptChat
       }
 
       const data = await response.json();
-      console.log('📝 Script draft loaded:', JSON.stringify(data, null, 2));
       setScriptDraft(data.data || data); // Handle wrapped response
     } catch (err) {
       console.error('Error loading script draft:', err);
@@ -157,15 +150,11 @@ export function useScriptChat(options: UseScriptChatOptions = {}): UseScriptChat
       };
 
       const token = await getToken();
-      console.log('🔐 Token obtained:', token ? 'Yes' : 'No', token?.substring(0, 20) + '...');
       
       // Create abort controller for cancellation
       abortControllerRef.current = new AbortController();
 
       const requestUrl = `${API_ENDPOINTS.SCRIPTS()}/chat?stream=false`;
-      console.log('📡 Making request to:', requestUrl);
-
-      console.log('📤 Sending request with body:', JSON.stringify(chatRequest));
       
       const response = await fetch(requestUrl, {
         method: 'POST',
@@ -178,23 +167,16 @@ export function useScriptChat(options: UseScriptChatOptions = {}): UseScriptChat
         signal: abortControllerRef.current.signal,
       });
 
-      console.log('📥 Response received!');
-
       if (!response.ok) {
         console.error('❌ Response not ok:', response.status, response.statusText);
         throw new Error(`Failed to send message: ${response.status} ${response.statusText}`);
       }
 
       // Handle non-streaming response for now
-      console.log('📡 Response status:', response.status, response.statusText);
-      console.log('📡 Response headers:', Object.fromEntries(response.headers.entries()));
-      
       const result = await response.json();
-      console.log('📝 Chat response received:', JSON.stringify(result, null, 2));
       
       // Update messages with the response
       if (result.data?.message) {
-        console.log('🔄 Updating message with response data');
         setMessages(prev => prev.map(msg => 
           msg.id === assistantMessage.id
             ? { ...result.data.message, metadata: { isStreaming: false } }
@@ -206,7 +188,6 @@ export function useScriptChat(options: UseScriptChatOptions = {}): UseScriptChat
       
       // Update current script if available
       if (result.data?.currentScript) {
-        console.log('🔄 Updating current script');
         setCurrentScript(result.data.currentScript);
       } else {
         console.warn('⚠️ No currentScript found in response data');
@@ -214,13 +195,10 @@ export function useScriptChat(options: UseScriptChatOptions = {}): UseScriptChat
       
       // Reload the complete script draft if available
       if (result.data?.scriptId) {
-        console.log('🔄 Reloading complete script draft');
         await loadScriptDraft(result.data.scriptId);
       } else {
         console.warn('⚠️ No scriptId found in response data');
       }
-
-      console.log('✅ Message processed successfully!');
 
     } catch (err) {
       console.error('Error sending message:', err);
@@ -234,7 +212,6 @@ export function useScriptChat(options: UseScriptChatOptions = {}): UseScriptChat
         ));
       }
     } finally {
-      console.log('🔄 Cleaning up - setting isStreaming to false');
       setIsStreaming(false);
       setStreamingStatus(null);
       streamingMessageRef.current = null;
@@ -269,7 +246,6 @@ export function useScriptChat(options: UseScriptChatOptions = {}): UseScriptChat
               switch (data.type) {
                 case 'status_update':
                   // Update loading status with detailed feedback
-                  console.log(`📊 Status: ${data.status} - ${data.message}`);
                   setStreamingStatus(data.message);
                   break;
 
@@ -437,7 +413,6 @@ export function useScriptChat(options: UseScriptChatOptions = {}): UseScriptChat
       }
 
       const result = await response.json();
-      console.log('📋 Script duplicated:', result.data.script);
       
       return result.data.script;
     } catch (err) {
@@ -472,8 +447,6 @@ export function useScriptChat(options: UseScriptChatOptions = {}): UseScriptChat
         throw new Error('Failed to delete script');
       }
 
-      console.log('🗑️ Script deleted successfully');
-      
       // Reset local state
       setScriptDraft(null);
       setMessages([]);
@@ -551,12 +524,9 @@ export function useScriptList() {
       setIsLoading(true);
       setError(null);
 
-      console.log('🔍 Loading scripts - getting token...');
       const token = await getToken();
-      console.log('🔍 Token received:', token ? `${token.substring(0, 20)}...` : 'NULL');
       
       const apiUrl = API_ENDPOINTS.SCRIPTS();
-      console.log('🔍 API URL:', apiUrl);
       
       const params = new URLSearchParams({ 
         page: page.toString(),
@@ -567,8 +537,7 @@ export function useScriptList() {
         params.set('status', status);
       }
 
-      const fullUrl = `${apiUrl}?${params}`;
-      console.log('🔍 Full request URL:', fullUrl);
+      const fullUrl = `${apiUrl}?${params}`;    
 
       const response = await fetch(fullUrl, {
         headers: {
@@ -577,17 +546,12 @@ export function useScriptList() {
         },
       });
 
-      console.log('🔍 Response status:', response.status);
-      console.log('🔍 Response ok:', response.ok);
-
       if (!response.ok) {
         const errorText = await response.text();
-        console.log('🔍 Error response:', errorText);
         throw new Error(`Failed to load scripts: ${response.status} - ${errorText}`);
       }
 
-      const data = await response.json();
-      console.log('📝 Scripts API response:', JSON.stringify(data, null, 2));
+      const data = await response.json(); 
       
       // The API returns data in data.data.scripts format due to successResponseExpress wrapper
       const scriptsData = data.data || data;
