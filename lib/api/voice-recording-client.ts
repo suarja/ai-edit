@@ -19,6 +19,7 @@ interface OnboardingSubmissionData extends VoiceRecordingSubmissionData {
   surveyData?: Record<string, any>;
   user: DatabaseUser;
   token: string;
+  enableVoiceClone?: boolean;
 }
 
 interface VoiceCloneSubmissionData {
@@ -163,6 +164,9 @@ export async function submitOnboardingRecording(
         })
       );
     }
+
+    // Add voice clone preference
+    formData.append('enable_voice_clone', data.enableVoiceClone ? 'true' : 'false');
 
     console.log(`📡 Appel API onboarding: ${API_ENDPOINTS.ONBOARDING()}`);
 

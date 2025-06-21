@@ -18,8 +18,9 @@ import {
   TouchableOpacity,
   Alert,
   ActivityIndicator,
+  ScrollView,
 } from 'react-native';
-import { ArrowRight, Square } from 'lucide-react-native';
+import { ArrowRight, Square, Crown, Zap } from 'lucide-react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useOnboarding } from '@/components/providers/OnboardingProvider';
 import { ProgressBar } from '@/components/onboarding/ProgressBar';
@@ -34,6 +35,7 @@ import { submitOnboardingRecording } from '@/lib/api/voice-recording-client';
 import { Audio } from 'expo-av';
 import { useAuth } from '@clerk/clerk-expo';
 import { router } from 'expo-router';
+import { useRevenueCat } from '@/providers/RevenueCat';
 
 export default function VoiceRecordingScreen() {
   const onboardingSteps = useOnboardingSteps();
@@ -43,10 +45,15 @@ export default function VoiceRecordingScreen() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [progress, setProgress] = useState<string>('');
+  const [showVoiceClonePaywall, setShowVoiceClonePaywall] = useState(false);
+  const [recordingMode, setRecordingMode] = useState(false);
+  const [wantsVoiceClone, setWantsVoiceClone] = useState(false);
 
   const { client: supabase } = useClerkSupabaseClient();
   const { fetchUser } = useGetUser();
   const { getToken } = useAuth();
+  const { isPro, isReady, goPro } = useRevenueCat();
+
   // Function to save survey data without audio processing
   const saveSurveyData = async (): Promise<boolean> => {
     try {
@@ -109,7 +116,8 @@ export default function VoiceRecordingScreen() {
         router.push('/(auth)/sign-in');
         return;
       }
-      // Submit the recording with survey data
+      
+      // Submit the recording with survey data and voice clone preference
       await submitOnboardingRecording({
         uri: result.uri,
         name: result.fileName,
@@ -124,6 +132,7 @@ export default function VoiceRecordingScreen() {
           platform_focus: surveyAnswers.platform_focus || null,
           content_frequency: surveyAnswers.content_frequency || null,
         },
+        enableVoiceClone: wantsVoiceClone && isPro, // Only enable if user wants it AND is pro
       });
 
       setProgress('Configuration de votre profil...');
@@ -167,6 +176,33 @@ export default function VoiceRecordingScreen() {
 
   const handleContinue = () => {
     nextStep();
+  };
+
+  const handleStartRecording = () => {
+    setRecordingMode(true);
+    setShowVoiceClonePaywall(false);
+  };
+
+  const handleVoiceCloneRequest = () => {
+    if (isPro) {
+      setWantsVoiceClone(true);
+      setRecordingMode(true);
+    } else {
+      setShowVoiceClonePaywall(true);
+    }
+  };
+
+  const handleUpgradeToPro = async () => {
+    try {
+      const success = await goPro();
+      if (success) {
+        setWantsVoiceClone(true);
+        setShowVoiceClonePaywall(false);
+        setRecordingMode(true);
+      }
+    } catch (error) {
+      console.error('Upgrade error:', error);
+    }
   };
 
   const handleSkip = async () => {
@@ -235,6 +271,23 @@ export default function VoiceRecordingScreen() {
     }
   };
 
+  // Show loading while RevenueCat initializes
+  if (!isReady) {
+    return (
+      <SafeAreaView style={styles.container} edges={['top']}>
+        <ProgressBar
+          steps={onboardingSteps}
+          currentStep="voice-recording"
+          completedSteps={['welcome', 'survey']}
+        />
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#007AFF" />
+          <Text style={styles.loadingText}>Initialisation...</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <ProgressBar
@@ -243,67 +296,169 @@ export default function VoiceRecordingScreen() {
         completedSteps={['welcome', 'survey']}
       />
 
-      <View style={styles.header}>
-        <Text style={styles.title}>Configuration vocale</Text>
-        <Text style={styles.subtitle}>Créez votre clone vocal IA</Text>
-      </View>
+      <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
+        <View style={styles.header}>
+          <Text style={styles.title}>Configuration vocale</Text>
+          <Text style={styles.subtitle}>Personnalisez votre expérience</Text>
+        </View>
 
-      <View style={styles.content}>
-        {error && (
-          <View style={styles.errorContainer}>
-            <Text style={styles.errorText}>{error}</Text>
-          </View>
-        )}
+        <View style={styles.content}>
+          {error && (
+            <View style={styles.errorContainer}>
+              <Text style={styles.errorText}>{error}</Text>
+            </View>
+          )}
 
-        {(isProcessing || progress) && (
-          <View style={styles.progressContainer}>
-            <ActivityIndicator size="small" color="#007AFF" />
-            <Text style={styles.progressText}>
-              {progress || 'Traitement en cours...'}
-            </Text>
-          </View>
-        )}
+          {(isProcessing || progress) && (
+            <View style={styles.progressContainer}>
+              <ActivityIndicator size="small" color="#007AFF" />
+              <Text style={styles.progressText}>
+                {progress || 'Traitement en cours...'}
+              </Text>
+            </View>
+          )}
 
-        <VoiceRecordingUI
-          variant="onboarding"
-          config={{
-            minDuration: 3000, // 3 seconds
-            maxDuration: 120000, // 2 minutes
-            autoSubmit: true,
-          }}
-          onComplete={handleRecordingComplete}
-          onError={handleRecordingError}
-          showInstructions={true}
-          showTimer={true}
-        />
+          {showVoiceClonePaywall && (
+            <View style={styles.paywallContainer}>
+              <View style={styles.paywallHeader}>
+                <Crown size={32} color="#FFD700" />
+                <Text style={styles.paywallTitle}>Clonage Vocal Pro</Text>
+              </View>
+              
+              <Text style={styles.paywallDescription}>
+                Le clonage vocal avancé est une fonctionnalité exclusive Pro qui vous permet de :
+              </Text>
+              
+              <View style={styles.featuresList}>
+                <View style={styles.featureItem}>
+                  <Text style={styles.checkmark}>✓</Text>
+                  <Text style={styles.featureText}>Créer votre clone vocal IA</Text>
+                </View>
+                <View style={styles.featureItem}>
+                  <Text style={styles.checkmark}>✓</Text>
+                  <Text style={styles.featureText}>Générer des vidéos avec votre voix</Text>
+                </View>
+                <View style={styles.featureItem}>
+                  <Text style={styles.checkmark}>✓</Text>
+                  <Text style={styles.featureText}>Voix naturelle et authentique</Text>
+                </View>
+              </View>
 
-        {isCompleted ? (
-          <TouchableOpacity
-            style={styles.continueButton}
-            onPress={handleContinue}
-            disabled={isProcessing}
-          >
-            <Text style={styles.continueButtonText}>Continuer</Text>
-            <ArrowRight size={20} color="#fff" />
-          </TouchableOpacity>
-        ) : (
-          <TouchableOpacity
-            style={[styles.skipButton, isProcessing && styles.disabledButton]}
-            onPress={handleSkip}
-            disabled={isProcessing}
-          >
-            <Text
-              style={[
-                styles.skipButtonText,
-                isProcessing && styles.disabledText,
-              ]}
+              <TouchableOpacity
+                style={styles.upgradeButton}
+                onPress={handleUpgradeToPro}
+              >
+                <Zap size={20} color="#fff" />
+                <Text style={styles.upgradeButtonText}>Passer Pro</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={styles.continueWithoutButton}
+                onPress={handleStartRecording}
+              >
+                <Text style={styles.continueWithoutText}>
+                  Continuer sans clonage vocal
+                </Text>
+                <Text style={styles.continueWithoutSubtext}>
+                  (L'enregistrement servira uniquement à créer votre profil éditorial)
+                </Text>
+              </TouchableOpacity>
+            </View>
+          )}
+
+          {recordingMode && (
+            <View style={styles.recordingContainer}>
+              <VoiceRecordingUI
+                variant="onboarding"
+                config={{
+                  minDuration: 3000, // 3 seconds
+                  maxDuration: 120000, // 2 minutes
+                  autoSubmit: true,
+                }}
+                onComplete={handleRecordingComplete}
+                onError={handleRecordingError}
+                showInstructions={true}
+                showTimer={true}
+              />
+
+              <TouchableOpacity
+                style={styles.backButton}
+                onPress={() => setRecordingMode(false)}
+                disabled={isProcessing}
+              >
+                <Text style={styles.backButtonText}>Retour</Text>
+              </TouchableOpacity>
+            </View>
+          )}
+
+          {!recordingMode && !showVoiceClonePaywall && (
+            <View style={styles.optionsContainer}>
+              <View style={styles.optionCard}>
+                <View style={styles.optionHeader}>
+                  <Crown size={24} color="#FFD700" />
+                  <Text style={styles.optionTitle}>Clonage Vocal IA</Text>
+                  {!isPro && <Text style={styles.proBadge}>PRO</Text>}
+                </View>
+                <Text style={styles.optionDescription}>
+                  Créez votre clone vocal pour générer des vidéos avec votre propre voix
+                </Text>
+                                 <TouchableOpacity
+                   style={[styles.optionButton, styles.voiceCloneButton]}
+                   onPress={handleVoiceCloneRequest}
+                 >
+                   <Text style={styles.voiceCloneButtonText}>
+                     {isPro ? 'Créer mon clone vocal' : 'Découvrir (Pro)'}
+                   </Text>
+                 </TouchableOpacity>
+              </View>
+
+              <View style={styles.optionCard}>
+                <View style={styles.optionHeader}>
+                  <Text style={styles.optionTitle}>Profil Éditorial</Text>
+                </View>
+                <Text style={styles.optionDescription}>
+                  Enregistrez-vous pour créer un profil éditorial personnalisé
+                </Text>
+                <TouchableOpacity
+                  style={[styles.optionButton, styles.profileButton]}
+                  onPress={handleStartRecording}
+                >
+                  <Text style={styles.optionButtonText}>Enregistrer ma voix</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          )}
+
+          {isCompleted ? (
+            <TouchableOpacity
+              style={styles.continueButton}
+              onPress={handleContinue}
+              disabled={isProcessing}
             >
-              Je préfère écrire à la place
-            </Text>
-            <ArrowRight size={20} color={isProcessing ? '#555' : '#888'} />
-          </TouchableOpacity>
-        )}
-      </View>
+              <Text style={styles.continueButtonText}>Continuer</Text>
+              <ArrowRight size={20} color="#fff" />
+            </TouchableOpacity>
+          ) : (
+            !recordingMode && !showVoiceClonePaywall && (
+              <TouchableOpacity
+                style={[styles.skipButton, isProcessing && styles.disabledButton]}
+                onPress={handleSkip}
+                disabled={isProcessing}
+              >
+                <Text
+                  style={[
+                    styles.skipButtonText,
+                    isProcessing && styles.disabledText,
+                  ]}
+                >
+                  Je préfère écrire à la place
+                </Text>
+                <ArrowRight size={20} color={isProcessing ? '#555' : '#888'} />
+              </TouchableOpacity>
+            )
+          )}
+        </View>
+      </ScrollView>
     </SafeAreaView>
   );
 }
@@ -312,6 +467,22 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#000',
+  },
+  scrollView: {
+    flex: 1,
+  },
+  scrollContent: {
+    flexGrow: 1,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingText: {
+    color: '#fff',
+    fontSize: 16,
+    marginTop: 12,
   },
   header: {
     paddingTop: 16,
@@ -345,6 +516,169 @@ const styles = StyleSheet.create({
     color: '#ef4444',
     fontSize: 14,
   },
+  progressContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#1a1a1a',
+    padding: 16,
+    borderRadius: 12,
+    gap: 12,
+    marginBottom: 16,
+  },
+  progressText: {
+    color: '#007AFF',
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  paywallContainer: {
+    backgroundColor: '#1a1a1a',
+    borderRadius: 16,
+    padding: 24,
+    marginBottom: 20,
+    borderWidth: 2,
+    borderColor: '#FFD700',
+  },
+  paywallHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 16,
+    gap: 12,
+  },
+  paywallTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#fff',
+  },
+  paywallDescription: {
+    fontSize: 16,
+    color: '#ccc',
+    marginBottom: 20,
+    lineHeight: 22,
+  },
+  featuresList: {
+    marginBottom: 24,
+  },
+  featureItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  checkmark: {
+    color: '#4CAF50',
+    fontSize: 16,
+    marginRight: 12,
+    fontWeight: 'bold',
+  },
+  featureText: {
+    color: '#fff',
+    fontSize: 16,
+  },
+  upgradeButton: {
+    backgroundColor: '#FFD700',
+    borderRadius: 12,
+    paddingVertical: 16,
+    paddingHorizontal: 24,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    marginBottom: 16,
+  },
+  upgradeButtonText: {
+    color: '#000',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  continueWithoutButton: {
+    alignItems: 'center',
+    padding: 16,
+  },
+  continueWithoutText: {
+    color: '#007AFF',
+    fontSize: 16,
+    fontWeight: '500',
+  },
+  continueWithoutSubtext: {
+    color: '#888',
+    fontSize: 12,
+    textAlign: 'center',
+    marginTop: 4,
+  },
+  optionsContainer: {
+    gap: 16,
+    marginBottom: 20,
+  },
+  optionCard: {
+    backgroundColor: '#1a1a1a',
+    borderRadius: 12,
+    padding: 20,
+    borderWidth: 1,
+    borderColor: '#333',
+  },
+  optionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+    gap: 8,
+  },
+  optionTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#fff',
+    flex: 1,
+  },
+  proBadge: {
+    backgroundColor: '#FFD700',
+    color: '#000',
+    fontSize: 12,
+    fontWeight: 'bold',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 8,
+  },
+  optionDescription: {
+    fontSize: 14,
+    color: '#888',
+    marginBottom: 16,
+    lineHeight: 20,
+  },
+  optionButton: {
+    borderRadius: 8,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    alignItems: 'center',
+  },
+  voiceCloneButton: {
+    backgroundColor: '#FFD700',
+  },
+  profileButton: {
+    backgroundColor: '#007AFF',
+  },
+  optionButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#fff',
+  },
+  voiceCloneButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#000',
+  },
+  recordingContainer: {
+    gap: 16,
+  },
+  backButton: {
+    backgroundColor: '#333',
+    borderRadius: 8,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    alignItems: 'center',
+  },
+  backButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '500',
+  },
   continueButton: {
     backgroundColor: '#007AFF',
     flexDirection: 'row',
@@ -372,54 +706,6 @@ const styles = StyleSheet.create({
   },
   disabledText: {
     color: '#555',
-  },
-  debugContainer: {
-    backgroundColor: '#1a1a1a',
-    padding: 16,
-    borderRadius: 8,
-    marginBottom: 16,
-    borderWidth: 1,
-    borderColor: '#333',
-  },
-  debugTitle: {
-    color: '#fff',
-    fontSize: 14,
-    fontWeight: '600',
-    marginBottom: 8,
-  },
-  debugText: {
-    color: '#888',
-    fontSize: 12,
-    marginBottom: 4,
-  },
-  emergencyButton: {
-    backgroundColor: '#ef4444',
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: 12,
-    borderRadius: 8,
-    gap: 8,
-    marginTop: 8,
-  },
-  emergencyButtonText: {
-    color: '#fff',
-    fontSize: 14,
-    fontWeight: '600',
-  },
-  progressContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#1a1a1a',
-    padding: 16,
-    borderRadius: 12,
-    gap: 12,
-    marginBottom: 16,
-  },
-  progressText: {
-    color: '#007AFF',
-    fontSize: 14,
-    fontWeight: '500',
   },
   disabledButton: {
     opacity: 0.5,
