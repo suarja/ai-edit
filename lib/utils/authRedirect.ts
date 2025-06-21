@@ -38,7 +38,7 @@ export const AUTH_REDIRECT_CONFIGS: Record<AuthEventType, AuthRedirectConfig> =
     },
     [AuthEventType.SIGN_IN_SUCCESS]: {
       event: AuthEventType.SIGN_IN_SUCCESS,
-      route: '/(tabs)/source-videos',
+      route: '/scripts',
       replace: true,
       requiresAuth: true,
     },
@@ -48,8 +48,8 @@ export const AUTH_REDIRECT_CONFIGS: Record<AuthEventType, AuthRedirectConfig> =
 export const SUPABASE_CALLBACK_ROUTES: Record<AuthEventType, string> = {
   [AuthEventType.PASSWORD_RECOVERY]: '/auth/reset-password',
   [AuthEventType.EMAIL_CONFIRMATION]: '/auth/verify',
-  [AuthEventType.SIGN_UP_SUCCESS]: '/(tabs)/source-videos',
-  [AuthEventType.SIGN_IN_SUCCESS]: '/(tabs)/source-videos',
+  [AuthEventType.SIGN_UP_SUCCESS]: '/scripts',
+  [AuthEventType.SIGN_IN_SUCCESS]: '/scripts',
 };
 
 // Fonction pour les URLs de callback Supabase (ce qui va dans les emails)

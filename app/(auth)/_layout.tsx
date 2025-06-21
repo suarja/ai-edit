@@ -4,7 +4,7 @@ import { useClerkAuth } from '@/hooks/useClerkAuth';
 
 export default function AuthLayout() {
   const [isNavigating, setIsNavigating] = useState(false);
-  const navigationTimer = useRef<NodeJS.Timeout | null>(null);
+  const navigationTimer = useRef<number | null>(null);
   const navigationCount = useRef(0);
 
   // Clerk authentication state
@@ -65,7 +65,7 @@ export default function AuthLayout() {
   // If user is already signed in, redirect to main app
   if (isSignedIn) {
     console.log('🔀 User already signed in, redirecting from auth layout');
-    return <Redirect href="/(tabs)/source-videos" />;
+    return <Redirect href="/scripts" />;
   }
 
   // User is not signed in, show auth pages
@@ -79,9 +79,9 @@ export default function AuthLayout() {
         animationDuration: 300,
       }}
       // Add event listener for state changes
-      navigationKey={
-        isNavigating ? `navigating-${navigationCount.current}` : 'idle'
-      }
+      // navigationKey={
+      //   isNavigating ? `navigating-${navigationCount.current}` : 'idle'
+      // }
     />
   );
 }
