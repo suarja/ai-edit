@@ -309,7 +309,7 @@ export default function SettingsScreen() {
       await signOut();
 
       // Navigate to sign-in screen
-      router.replace('/(auth)/sign-in');
+      router.replace('/');
     } catch (err) {
       console.error('Error signing out:', err);
       setError('Échec de la déconnexion');

@@ -52,7 +52,7 @@ function LandingScreen() {
 
   const handleGetStarted = () => {
     // Redirect to new Clerk sign-in flow
-    router.push('/(auth)/sign-in-clerk');
+    router.push('/(auth)/sign-in');
   };
 
   // Show loading while Clerk is initializing or we're checking auth
