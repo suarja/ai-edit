@@ -86,6 +86,12 @@ function DrawerLayoutContent() {
             href: null,
           }}
         />
+        <Tabs.Screen
+          name="videos/[id]"
+          options={{
+            title: 'Détails Vidéo',
+          }}
+        />
       </Tabs>
       <SidebarModal visible={isOpen} onClose={closeSidebar} />
     </>

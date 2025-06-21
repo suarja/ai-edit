@@ -2,9 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { View, StyleSheet, ActivityIndicator, Text, ScrollView } from 'react-native';
 import { useLocalSearchParams, router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { RefreshCcw } from 'lucide-react-native';
 import VideoPlayer from '@/components/VideoPlayer';
-import VideoHeader from '@/components/VideoHeader';
 import VideoDetails from '@/components/VideoDetails';
 import VideoActionButtons from '@/components/VideoActionButtons';
 import { API_ENDPOINTS } from '@/lib/config/api';
@@ -34,7 +32,6 @@ type VideoRequestWithScript = {
 export default function GeneratedVideoDetailScreen() {
   const { id } = useLocalSearchParams();
   const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
   const [video, setVideo] = useState<EnhancedGeneratedVideoType | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -163,7 +160,6 @@ export default function GeneratedVideoDetailScreen() {
       setError('Failed to load video details');
     } finally {
       setLoading(false);
-      setRefreshing(false);
     }
   };
 
@@ -238,15 +234,7 @@ export default function GeneratedVideoDetailScreen() {
     }
   };
 
-  const handleRefresh = () => {
-    setRefreshing(true);
-    fetchVideoDetails();
-  };
 
-  const handleBackToVideos = () => {
-    // Navigate specifically to the videos list page
-    router.push('/(tabs)/videos');
-  };
 
   // Render thumbnail for rendering videos
   const renderThumbnail = () => {
@@ -277,48 +265,21 @@ export default function GeneratedVideoDetailScreen() {
     return null;
   };
 
-  const getVideoTitle = () => {
-    if (!video) return 'Détails de la vidéo';
 
-    // Use the actual title generated from prompt
-    return video.title || 'Détails de la vidéo';
-  };
-
-  const getVideoSubtitle = () => {
-    if (!video) return undefined;
-
-    const date = new Date(video.created_at).toLocaleDateString('fr-FR');
-    const language = video.output_language
-      ? ` • ${video.output_language.toUpperCase()}`
-      : '';
-    return `Créée le ${date}${language}`;
-  };
 
   if (loading) {
     return (
-      <SafeAreaView style={styles.container} edges={['top']}>
-        <VideoHeader title="Détails de la vidéo" />
+      <SafeAreaView style={styles.container} edges={[]}>
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#007AFF" />
+          <Text style={styles.loadingText}>Chargement des détails...</Text>
         </View>
       </SafeAreaView>
     );
   }
 
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
-      <VideoHeader
-        title={getVideoTitle()}
-        subtitle={getVideoSubtitle()}
-        onBack={handleBackToVideos}
-        rightButton={{
-          icon: <RefreshCcw size={20} color="#fff" />,
-          onPress: handleRefresh,
-          loading: refreshing,
-        }}
-        refreshing={refreshing}
-      />
-
+    <SafeAreaView style={styles.container} edges={[]}>
       <ScrollView 
         style={styles.scrollContainer}
         contentContainerStyle={styles.scrollContent}
@@ -360,6 +321,11 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    gap: 16,
+  },
+  loadingText: {
+    color: '#888',
+    fontSize: 16,
   },
   thumbnailContainer: {
     width: '100%',

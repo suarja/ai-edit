@@ -211,7 +211,7 @@ export default function GeneratedVideosScreen() {
   }, []);
 
   const handleVideoPress = (videoId: string) => {
-    router.push(`/(tabs)/videos/${videoId}`);
+    router.push(`/(drawer)/videos/${videoId}`);
   };
 
   const handleDownload = async (video: VideoRequest) => {
