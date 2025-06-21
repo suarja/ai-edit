@@ -22,7 +22,6 @@ import {
   ChevronRight,
   Plus,
   MessageCircle,
-  User,
   X,
 } from 'lucide-react-native';
 
@@ -50,8 +49,8 @@ export default function SidebarModal({ visible, onClose }: SidebarModalProps) {
   const insets = useSafeAreaInsets();
   const [folders, setFolders] = useState<DrawerFolder[]>([
     {
-      id: 'script-generation',
-      name: 'Script Generation',
+      id: 'scripts',
+      name: 'Contenus',
       icon: FileText,
       isExpanded: true,
       items: [
@@ -59,53 +58,41 @@ export default function SidebarModal({ visible, onClose }: SidebarModalProps) {
           id: 'create-script',
           name: 'Créer un script',
           route: '/chat',
-          description: 'Générer un nouveau script via chat',
+          description: 'Générer un nouveau script via IA',
         },
         {
           id: 'scripts-list',
-          name: 'Liste des scripts',
+          name: 'Mes scripts',
           route: '/scripts',
           description: 'Voir tous vos scripts',
         },
       ],
     },
     {
-      id: 'source-videos',
-      name: 'Source Vidéos',
-      icon: Upload,
-      isExpanded: false,
-      items: [
-        {
-          id: 'upload-video',
-          name: 'Uploader une vidéo',
-          route: '/source-videos?action=upload',
-          description: 'Ajouter une nouvelle vidéo source',
-        },
-        {
-          id: 'source-list',
-          name: 'Mes sources',
-          route: '/source-videos',
-          description: 'Gérer vos vidéos sources',
-        },
-      ],
-    },
-    {
-      id: 'generated-videos',
-      name: 'Vidéos Générées',
+      id: 'videos',
+      name: 'Mes Créations',
       icon: Video,
       isExpanded: false,
       items: [
-        {
-          id: 'generate-video',
-          name: 'Générer une vidéo',
-          route: '/videos?action=generate',
-          description: 'Créer une nouvelle vidéo',
-        },
         {
           id: 'video-list',
           name: 'Mes vidéos',
           route: '/videos',
           description: 'Vos vidéos générées',
+        },
+      ],
+    },
+    {
+      id: 'sources',
+      name: 'Bibliothèque',
+      icon: Upload,
+      isExpanded: false,
+      items: [
+        {
+          id: 'source-list',
+          name: 'Mes médias',
+          route: '/source-videos',
+          description: 'Gérer vos vidéos et ressources',
         },
       ],
     },
@@ -125,14 +112,7 @@ export default function SidebarModal({ visible, onClose }: SidebarModalProps) {
     },
   ]);
 
-  const [standaloneItems] = useState([
-    {
-      id: 'settings',
-      name: 'Paramètres',
-      route: '/settings',
-      icon: Settings,
-    },
-  ]);
+  const [standaloneItems] = useState([]);
 
   const toggleFolder = (folderId: string) => {
     setFolders(prev =>
@@ -200,12 +180,15 @@ export default function SidebarModal({ visible, onClose }: SidebarModalProps) {
         <TouchableOpacity
           style={styles.addButton}
           onPress={() => {
-            if (folder.id === 'script-generation') {
+            if (folder.id === 'scripts') {
               navigateToRoute('/chat');
-            } else if (folder.id === 'source-videos') {
+            } else if (folder.id === 'videos') {
+              // Pour générer une vidéo, on va vers les scripts
+              navigateToRoute('/chat');
+            } else if (folder.id === 'sources') {
               navigateToRoute('/source-videos?action=upload');
-            } else if (folder.id === 'generated-videos') {
-              navigateToRoute('/videos?action=generate');
+            } else if (folder.id === 'legacy') {
+              navigateToRoute('/request-video');
             }
           }}
         >
@@ -213,9 +196,10 @@ export default function SidebarModal({ visible, onClose }: SidebarModalProps) {
             <Plus size={16} color="#666" />
           </View>
           <Text style={styles.addButtonText}>
-            {folder.id === 'script-generation' ? 'Nouveau script' :
-             folder.id === 'source-videos' ? 'Uploader vidéo' :
-             folder.id === 'generated-videos' ? 'Générer vidéo' :
+            {folder.id === 'scripts' ? 'Nouveau script' :
+             folder.id === 'videos' ? 'Créer une vidéo' :
+             folder.id === 'sources' ? 'Uploader média' :
+             folder.id === 'legacy' ? 'Créer (Legacy)' :
              'Nouvelle action'}
           </Text>
         </TouchableOpacity>
@@ -263,19 +247,18 @@ export default function SidebarModal({ visible, onClose }: SidebarModalProps) {
               </View>
             ))}
 
-            {/* Separator */}
-            <View style={styles.separator} />
 
-            {/* Standalone items */}
-            {standaloneItems.map(renderStandaloneItem)}
           </ScrollView>
 
           {/* Footer */}
           <View style={styles.footer}>
-            <View style={styles.userInfo}>
-              <User size={20} color="#888" />
-              <Text style={styles.userName}>Profil utilisateur</Text>
-            </View>
+            <TouchableOpacity 
+              style={styles.userInfo}
+              onPress={() => navigateToRoute('/settings')}
+            >
+              <Settings size={20} color="#888" />
+              <Text style={styles.userName}>Paramètres</Text>
+            </TouchableOpacity>
           </View>
                   </View>
         <Pressable style={styles.backdrop} onPress={onClose} />
