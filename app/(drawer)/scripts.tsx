@@ -81,18 +81,6 @@ export default function ScriptsScreen() {
 
   return (
     <SafeAreaView style={styles.container} edges={[]}>
-      <View style={styles.headerInfo}>
-        <Text style={styles.subtitle}>
-          Créez et gérez vos scripts de vidéo
-        </Text>
-        <TouchableOpacity
-          style={styles.createButton}
-          onPress={handleCreateNewScript}
-        >
-          <Plus size={24} color="#fff" />
-        </TouchableOpacity>
-      </View>
-
       {/* Content */}
       <ScrollView
         style={styles.content}
@@ -182,6 +170,14 @@ export default function ScriptsScreen() {
           </View>
         ))}
       </ScrollView>
+
+      {/* Floating Action Button */}
+      <TouchableOpacity
+        style={styles.floatingButton}
+        onPress={handleCreateNewScript}
+      >
+        <Plus size={24} color="#fff" />
+      </TouchableOpacity>
 
       {/* Actions Modal */}
       <ScriptActionsModal
@@ -371,6 +367,25 @@ const styles = StyleSheet.create({
   moreButton: {
     padding: 8,
     borderRadius: 6,
+  },
+  floatingButton: {
+    position: 'absolute',
+    bottom: 30,
+    right: 20,
+    backgroundColor: '#007AFF',
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.3,
+    shadowRadius: 6,
+    elevation: 8,
   },
 
 }); 

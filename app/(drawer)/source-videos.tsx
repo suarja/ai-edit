@@ -254,7 +254,7 @@ export default function SourceVideosScreen() {
 
   if (loading) {
     return (
-      <SafeAreaView style={styles.container} edges={['top']}>
+      <SafeAreaView style={styles.container} edges={[]}>
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#007AFF" />
         </View>
@@ -263,7 +263,7 @@ export default function SourceVideosScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
+    <SafeAreaView style={styles.container} edges={[]}>
       <ScrollView
         style={styles.content}
         showsVerticalScrollIndicator={false}
@@ -453,7 +453,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#000',
   },
   header: {
-    paddingTop: 16,
     paddingHorizontal: 20,
     paddingBottom: 16,
     borderBottomWidth: 1,
