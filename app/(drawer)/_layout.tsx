@@ -1,14 +1,34 @@
 import React from 'react';
-import { Redirect, Tabs } from 'expo-router';
-import { View, ActivityIndicator, Text, StyleSheet } from 'react-native';
+import { Redirect, Tabs, usePathname } from 'expo-router';
+import { View, ActivityIndicator, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { useClerkAuth } from '@/hooks/useClerkAuth';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import DrawerToggle from '@/components/DrawerToggle';
 import SidebarModal from '@/components/SidebarModal';
 import { SidebarProvider, useSidebar } from '@/contexts/SidebarContext';
+import { Plus, MoreHorizontal } from 'lucide-react-native';
+import { router } from 'expo-router';
 
 function DrawerLayoutContent() {
   const { isOpen, closeSidebar } = useSidebar();
+  const pathname = usePathname();
+
+  const getHeaderRight = () => {
+    if (pathname === '/chat') {
+      return () => (
+        <TouchableOpacity 
+          style={styles.newChatButton}
+          onPress={() => {
+            // Force new chat by using replace with timestamp
+            router.replace(`/chat?new=${Date.now()}`);
+          }}
+        >
+          <Plus size={20} color="#fff" />
+        </TouchableOpacity>
+      );
+    }
+    return undefined;
+  };
 
   return (
     <>
@@ -20,6 +40,7 @@ function DrawerLayoutContent() {
           },
           headerTintColor: '#fff',
           headerLeft: () => <DrawerToggle />,
+          headerRight: getHeaderRight(),
           tabBarStyle: { display: 'none' }, // Hide tab bar for now
         }}
       >
@@ -33,6 +54,12 @@ function DrawerLayoutContent() {
           name="scripts"
           options={{
             title: 'Mes Scripts',
+          }}
+        />
+        <Tabs.Screen
+          name="chat"
+          options={{
+            title: 'Chat IA',
           }}
         />
         <Tabs.Screen
@@ -51,12 +78,6 @@ function DrawerLayoutContent() {
           name="settings"
           options={{
             title: 'Paramètres',
-          }}
-        />
-        <Tabs.Screen
-          name="script-chat-demo"
-          options={{
-            href: null,
           }}
         />
         <Tabs.Screen
@@ -120,5 +141,19 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#888',
     textAlign: 'center',
+  },
+  newChatButton: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#007AFF',
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    marginRight: 16,
+  },
+  newChatText: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: '600',
   },
 });

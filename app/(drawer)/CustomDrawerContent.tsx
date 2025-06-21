@@ -53,7 +53,7 @@ export default function CustomDrawerContent(props: CustomDrawerContentProps) {
         {
           id: 'chat-demo',
           name: 'Chat Interface',
-          route: '/script-generation/chat',
+          route: '/chat',
           description: 'Générer des scripts via chat',
         },
         {
@@ -170,7 +170,7 @@ export default function CustomDrawerContent(props: CustomDrawerContentProps) {
           style={styles.addButton}
           onPress={() => {
             if (folder.id === 'script-generation') {
-              navigateToRoute('/script-generation/chat');
+              navigateToRoute('/chat');
             }
           }}
         >

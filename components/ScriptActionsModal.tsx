@@ -48,7 +48,7 @@ export default function ScriptActionsModal({
   const handleEdit = () => {
     onClose();
     router.push({
-      pathname: '/(tabs)/script-chat-demo',
+              pathname: '/chat',
       params: { scriptId: script.id },
     });
   };

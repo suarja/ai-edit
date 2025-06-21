@@ -29,7 +29,7 @@ import StreamingStatus from '@/components/StreamingStatus';
  */
 export default function ScriptChatDemo() {
   const { isSignedIn } = useAuth();
-  const { scriptId } = useLocalSearchParams<{ scriptId?: string }>();
+  const { scriptId, new: isNewChat } = useLocalSearchParams<{ scriptId?: string; new?: string }>();
   const [inputMessage, setInputMessage] = useState('');
   const [showActionsModal, setShowActionsModal] = useState(false);
   const scrollViewRef = useRef<ScrollView>(null);
@@ -53,10 +53,19 @@ export default function ScriptChatDemo() {
     title,
     scriptDraft,
   } = useScriptChat({
-    scriptId: scriptId,
+    scriptId: isNewChat ? undefined : scriptId, // Force new chat if new param present
     outputLanguage: 'fr',
     // editorialProfileId sera récupéré automatiquement du user
   });
+
+  // Create new chat when new parameter is present
+  useEffect(() => {
+    if (isNewChat && !isLoading) {
+      createNewScript();
+      // Clean up URL by removing the new parameter
+      router.replace('/chat');
+    }
+  }, [isNewChat, isLoading, createNewScript]);
 
   // Auto-scroll vers le bas
   useEffect(() => {
@@ -171,61 +180,7 @@ export default function ScriptChatDemo() {
   }
 
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
-      {/* Header avec informations script */}
-      <View style={styles.header}>
-        <View style={styles.headerContent}>
-          <MessageCircle size={24} color="#007AFF" />
-          <View style={styles.headerText}>
-            <Text style={styles.headerTitle}>
-              {title || 'Nouveau Script'}
-            </Text>
-            <Text style={styles.headerSubtitle}>
-              {isStreaming ? (
-                '🤖 IA en train d\'écrire...'
-              ) : scriptDraft ? (
-                `💾 Sauvé • ${wordCount} mots • ${Math.round(estimatedDuration)}s`
-              ) : (
-                '✨ Profil éditorial intégré'
-              )}
-            </Text>
-          </View>
-        </View>
-        
-        <View style={styles.headerActions}>
-          {/* Actions Button - Seulement si script existe */}
-          {scriptDraft && (
-            <TouchableOpacity 
-              onPress={() => setShowActionsModal(true)}
-              style={styles.actionsButton}
-              disabled={isLoading}
-            >
-              <MoreHorizontal size={20} color="#666" />
-            </TouchableOpacity>
-          )}
-          
-          {/* Status Indicator */}
-          {scriptDraft && (
-            <View style={styles.dbIndicator}>
-              <Database size={16} color="#4CD964" />
-            </View>
-          )}
-          
-          <TouchableOpacity 
-            onPress={handleCreateNew}
-            style={styles.newButton}
-            disabled={isLoading}
-          >
-            <Text style={styles.newButtonText}>Nouveau</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-
-      {/* Streaming Status */}
-      <StreamingStatus 
-        isStreaming={isStreaming}
-        streamingStatus={streamingStatus}
-      />
+    <SafeAreaView style={styles.container} edges={[]}>
 
       {/* Messages */}
       <ScrollView 
@@ -264,6 +219,14 @@ export default function ScriptChatDemo() {
               <View style={styles.scriptPreview}>
                 <View style={styles.scriptHeader}>
                   <Text style={styles.scriptTitle}>📝 Script Actuel</Text>
+                  {scriptDraft && (
+                    <TouchableOpacity 
+                      onPress={() => setShowActionsModal(true)}
+                      style={styles.scriptActionsButton}
+                    >
+                      <MoreHorizontal size={16} color="#666" />
+                    </TouchableOpacity>
+                  )}
                 </View>
                 <Text style={styles.scriptContent}>{currentScript}</Text>
                 <Text style={styles.scriptMeta}>
@@ -287,66 +250,57 @@ export default function ScriptChatDemo() {
         )}
       </ScrollView>
 
-      {/* Zone de saisie */}
+      {/* Zone de saisie style ChatGPT */}
       <View style={styles.inputContainer}>
-        <View style={styles.inputRow}>
-          <TextInput
-            style={styles.textInput}
-            value={inputMessage}
-            onChangeText={setInputMessage}
-            placeholder={
-              messages.length === 0 
-                ? "Décrivez le script que vous souhaitez créer..."
-                : "Affinez votre script..."
-            }
-            placeholderTextColor="#888"
-            multiline
-            maxLength={500}
-            editable={!isStreaming}
-          />
-          
-          <TouchableOpacity
-            style={[
-              styles.sendButton,
-              (!inputMessage.trim() || isStreaming) && styles.sendButtonDisabled
-            ]}
-            onPress={handleSendMessage}
-            disabled={!inputMessage.trim() || isStreaming}
-          >
-            {isStreaming ? (
-              <ActivityIndicator size="small" color="#fff" />
-            ) : (
-              <Send size={20} color="#fff" />
-            )}
-          </TouchableOpacity>
-        </View>
-        
-        {/* Exemples de prompts */}
+        {/* Exemples de prompts - style ChatGPT */}
         {messages.length === 0 && (
-          <View style={styles.examplesContainer}>
-            <Text style={styles.examplesTitle}>💡 Exemples :</Text>
-            <View style={styles.examplesRow}>
-              <TouchableOpacity 
-                style={styles.exampleChip}
-                onPress={() => setInputMessage("Script sur les bienfaits du café")}
-              >
-                <Text style={styles.exampleText}>☕ Café</Text>
-              </TouchableOpacity>
-              <TouchableOpacity 
-                style={styles.exampleChip}
-                onPress={() => setInputMessage("3 astuces productivité")}
-              >
-                <Text style={styles.exampleText}>⚡ Productivité</Text>
-              </TouchableOpacity>
-              <TouchableOpacity 
-                style={styles.exampleChip}
-                onPress={() => setInputMessage("Expliquer l'IA simplement")}
-              >
-                <Text style={styles.exampleText}>🤖 IA</Text>
-              </TouchableOpacity>
-            </View>
+          <View style={styles.suggestionsContainer}>
+            <TouchableOpacity 
+              style={styles.suggestionCard}
+              onPress={() => setInputMessage("Créer un MVP en Next.js avec best practices")}
+            >
+              <Text style={styles.suggestionTitle}>Créer un MVP</Text>
+              <Text style={styles.suggestionSubtitle}>en Next.js avec best practices</Text>
+            </TouchableOpacity>
+            <TouchableOpacity 
+              style={styles.suggestionCard}
+              onPress={() => setInputMessage("Trouver un positionnement pour un SaaS éducatif")}
+            >
+              <Text style={styles.suggestionTitle}>Trouver un positionnement</Text>
+              <Text style={styles.suggestionSubtitle}>pour un SaaS éducatif</Text>
+            </TouchableOpacity>
           </View>
         )}
+
+        <View style={styles.inputWrapper}>
+          <View style={styles.inputRow}>
+            <TextInput
+              style={styles.textInput}
+              value={inputMessage}
+              onChangeText={setInputMessage}
+              placeholder="Poser une question"
+              placeholderTextColor="#888"
+              multiline
+              maxLength={500}
+              editable={!isStreaming}
+            />
+            
+            <TouchableOpacity
+              style={[
+                styles.sendButton,
+                (!inputMessage.trim() || isStreaming) && styles.sendButtonDisabled
+              ]}
+              onPress={handleSendMessage}
+              disabled={!inputMessage.trim() || isStreaming}
+            >
+              {isStreaming ? (
+                <ActivityIndicator size="small" color="#fff" />
+              ) : (
+                <Send size={18} color="#fff" />
+              )}
+            </TouchableOpacity>
+          </View>
+        </View>
       </View>
 
       {/* Actions Modal */}
@@ -361,10 +315,10 @@ export default function ScriptChatDemo() {
         }}
         onScriptDuplicated={async (newScript: any) => {
           setShowActionsModal(false);
-          router.push({
-            pathname: '/(tabs)/script-chat-demo',
-            params: { scriptId: newScript.id },
-          });
+                  router.push({
+          pathname: '/chat',
+          params: { scriptId: newScript.id },
+        });
         }}
         onValidate={validateScript}
         onGenerateVideo={handleGenerateVideo}
@@ -390,52 +344,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     textAlign: 'center',
   },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    padding: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#333',
-  },
-  headerContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flex: 1,
-  },
-  headerText: {
-    marginLeft: 12,
-    flex: 1,
-  },
-  headerTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#fff',
-  },
-  headerSubtitle: {
-    fontSize: 14,
-    color: '#888',
-    marginTop: 2,
-  },
-  headerActions: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  dbIndicator: {
-    padding: 4,
-  },
-  newButton: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    backgroundColor: '#007AFF',
-    borderRadius: 16,
-  },
-  newButtonText: {
-    color: '#fff',
-    fontSize: 12,
-    fontWeight: '600',
-  },
+
   messagesContainer: {
     flex: 1,
     padding: 16,
@@ -527,6 +436,11 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#007AFF',
   },
+  scriptActionsButton: {
+    padding: 4,
+    borderRadius: 12,
+    backgroundColor: '#333',
+  },
   generateButton: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -584,9 +498,40 @@ const styles = StyleSheet.create({
     fontStyle: 'italic',
   },
   inputContainer: {
+    padding: 20,
+    paddingTop: 10,
+  },
+  suggestionsContainer: {
+    flexDirection: 'row',
+    gap: 12,
+    marginBottom: 20,
+  },
+  suggestionCard: {
+    flex: 1,
+    backgroundColor: '#1a1a1a',
+    borderRadius: 12,
     padding: 16,
-    borderTopWidth: 1,
-    borderTopColor: '#333',
+    borderWidth: 1,
+    borderColor: '#333',
+  },
+  suggestionTitle: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: '600',
+    marginBottom: 4,
+  },
+  suggestionSubtitle: {
+    color: '#888',
+    fontSize: 12,
+    lineHeight: 16,
+  },
+  inputWrapper: {
+    backgroundColor: '#1a1a1a',
+    borderRadius: 25,
+    borderWidth: 1,
+    borderColor: '#333',
+    paddingHorizontal: 4,
+    paddingVertical: 4,
   },
   inputRow: {
     flexDirection: 'row',
@@ -595,51 +540,27 @@ const styles = StyleSheet.create({
   },
   textInput: {
     flex: 1,
-    backgroundColor: '#1a1a1a',
-    borderRadius: 20,
+    backgroundColor: 'transparent',
     paddingHorizontal: 16,
     paddingVertical: 12,
     color: '#fff',
     fontSize: 16,
     maxHeight: 100,
-    borderWidth: 1,
-    borderColor: '#333',
+    minHeight: 44,
   },
   sendButton: {
     backgroundColor: '#007AFF',
     borderRadius: 20,
-    width: 40,
-    height: 40,
+    width: 36,
+    height: 36,
     justifyContent: 'center',
     alignItems: 'center',
+    marginRight: 4,
   },
   sendButtonDisabled: {
     backgroundColor: '#333',
   },
-  examplesContainer: {
-    marginTop: 12,
-  },
-  examplesTitle: {
-    fontSize: 12,
-    color: '#888',
-    marginBottom: 8,
-  },
-  examplesRow: {
-    flexDirection: 'row',
-    gap: 8,
-  },
-  exampleChip: {
-    backgroundColor: '#1a1a1a',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: '#333',
-  },
-  exampleText: {
-    fontSize: 12,
-    color: '#888',
-  },
+
   scriptActionsRow: {
     flexDirection: 'row',
     alignItems: 'center',

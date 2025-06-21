@@ -79,7 +79,7 @@ export default function ScriptActions({
             {
               text: 'Ouvrir',
               onPress: () => {
-                router.push(`/(tabs)/script-chat-demo?scriptId=${duplicatedScript.id}`);
+                router.push(`/chat?scriptId=${duplicatedScript.id}`);
               },
             },
           ]

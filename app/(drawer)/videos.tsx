@@ -302,37 +302,19 @@ export default function GeneratedVideosScreen() {
     router.push('/(tabs)/request-video');
   };
 
-  const getTitle = () => {
-    return 'Vidéos Générées';
-  };
-
-  const getSubtitle = () => {
-    if (videos.length === 0) {
-      return 'Aucune vidéo pour le moment';
-    }
-    return `${videos.length} vidéo${videos.length > 1 ? 's' : ''} créée${
-      videos.length > 1 ? 's' : ''
-    }`;
-  };
-
   if (loading) {
     return (
+      <SafeAreaView style={styles.container} edges={[]}>
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#007AFF" />
           <Text style={styles.loadingText}>Chargement des vidéos...</Text>
         </View>
+      </SafeAreaView>
     );
   }
 
   return (
-    <>
-      <View style={styles.headerInfo}>
-        <Text style={styles.subtitle}>{getSubtitle()}</Text>
-        <TouchableOpacity style={styles.createButton} onPress={handleCreateVideo}>
-          <Plus size={20} color="#fff" />
-        </TouchableOpacity>
-      </View>
-
+    <SafeAreaView style={styles.container} edges={[]}>
       {error && (
         <View style={styles.errorContainer}>
           <AlertCircle size={20} color="#ef4444" />
@@ -367,7 +349,15 @@ export default function GeneratedVideosScreen() {
           )}
         />
       )}
-    </>
+
+      {/* Floating Action Button */}
+      <TouchableOpacity
+        style={styles.floatingButton}
+        onPress={handleCreateVideo}
+      >
+        <Plus size={24} color="#fff" />
+      </TouchableOpacity>
+    </SafeAreaView>
   );
 }
 
@@ -404,22 +394,23 @@ const styles = StyleSheet.create({
   list: {
     padding: 20,
   },
-  headerInfo: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    paddingVertical: 4,
-    borderBottomWidth: 1,
-    borderBottomColor: '#333',
-  },
-  subtitle: {
-    color: '#888',
-    fontSize: 16,
-  },
-  createButton: {
+  floatingButton: {
+    position: 'absolute',
+    bottom: 30,
+    right: 20,
     backgroundColor: '#007AFF',
-    padding: 12,
-    borderRadius: 20,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
   },
 });

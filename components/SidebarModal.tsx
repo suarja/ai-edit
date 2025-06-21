@@ -58,7 +58,7 @@ export default function SidebarModal({ visible, onClose }: SidebarModalProps) {
         {
           id: 'create-script',
           name: 'Créer un script',
-          route: '/script-generation/chat',
+          route: '/chat',
           description: 'Générer un nouveau script via chat',
         },
         {
@@ -201,7 +201,7 @@ export default function SidebarModal({ visible, onClose }: SidebarModalProps) {
           style={styles.addButton}
           onPress={() => {
             if (folder.id === 'script-generation') {
-              navigateToRoute('/script-generation/chat');
+              navigateToRoute('/chat');
             } else if (folder.id === 'source-videos') {
               navigateToRoute('/source-videos?action=upload');
             } else if (folder.id === 'generated-videos') {

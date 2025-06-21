@@ -40,10 +40,10 @@ export default function ScriptListActions({
   const handleEdit = () => {
     if (onToggle) onToggle(); // Close menu
     else setShowActions(false);
-    router.push({
-      pathname: '/(tabs)/script-chat-demo',
-      params: { scriptId: script.id },
-    });
+          router.push({
+        pathname: '/chat',
+        params: { scriptId: script.id },
+      });
   };
 
   const handleDuplicate = async () => {
@@ -79,7 +79,7 @@ export default function ScriptListActions({
             text: 'Ouvrir',
             onPress: () => {
               router.push({
-                pathname: '/(tabs)/script-chat-demo',
+                pathname: '/chat',
                 params: { scriptId: duplicatedScript.id },
               });
             },

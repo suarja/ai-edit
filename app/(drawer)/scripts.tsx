@@ -24,13 +24,13 @@ export default function ScriptsScreen() {
 
   const handleCreateNewScript = () => {
     // Navigate to chat interface without scriptId (new script)
-    router.push('/script-chat-demo');
+    router.push('/chat');
   };
 
   const handleEditScript = (scriptId: string) => {
     // Navigate to chat interface with scriptId (edit existing)
     router.push({
-      pathname: '/script-chat-demo',
+      pathname: '/chat',
       params: { scriptId },
     });
   };

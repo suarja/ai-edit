@@ -361,10 +361,10 @@ export default function ScriptChatDemo() {
         }}
         onScriptDuplicated={async (newScript: any) => {
           setShowActionsModal(false);
-          router.push({
-            pathname: '/(tabs)/script-chat-demo',
-            params: { scriptId: newScript.id },
-          });
+                  router.push({
+          pathname: '/chat',
+          params: { scriptId: newScript.id },
+        });
         }}
         onValidate={validateScript}
         onGenerateVideo={handleGenerateVideo}
