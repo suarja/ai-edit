@@ -30,6 +30,12 @@ function DrawerLayoutContent() {
           }}
         />
         <Tabs.Screen
+          name="scripts"
+          options={{
+            title: 'Mes Scripts',
+          }}
+        />
+        <Tabs.Screen
           name="source-videos"
           options={{
             title: 'Source Vidéos',

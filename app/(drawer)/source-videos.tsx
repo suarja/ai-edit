@@ -264,15 +264,6 @@ export default function SourceVideosScreen() {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      <View style={styles.header}>
-        <Text style={styles.title}>Vidéos Sources</Text>
-        {revenueCatReady && !isPro && (
-          <Text style={styles.limitText}>
-            {videos.length}/{FREE_TIER_SOURCE_VIDEOS_LIMIT} vidéos (Plan gratuit)
-          </Text>
-        )}
-      </View>
-
       <ScrollView
         style={styles.content}
         showsVerticalScrollIndicator={false}
@@ -284,6 +275,14 @@ export default function SourceVideosScreen() {
           />
         }
       >
+        {revenueCatReady && !isPro && (
+          <View style={styles.planInfoContainer}>
+            <Text style={styles.planInfoText}>
+              {videos.length}/{FREE_TIER_SOURCE_VIDEOS_LIMIT} vidéos (Plan gratuit)
+            </Text>
+          </View>
+        )}
+
         {error && (
           <View style={styles.errorContainer}>
             <AlertCircle size={20} color="#ef4444" />
@@ -478,6 +477,17 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
     padding: 20,
+  },
+  planInfoContainer: {
+    backgroundColor: '#1a1a1a',
+    padding: 12,
+    borderRadius: 8,
+    marginBottom: 16,
+    alignItems: 'center',
+  },
+  planInfoText: {
+    color: '#888',
+    fontSize: 14,
   },
   errorContainer: {
     flexDirection: 'row',

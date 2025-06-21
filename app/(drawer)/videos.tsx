@@ -8,6 +8,7 @@ import {
   RefreshControl,
   Alert,
   Linking,
+  TouchableOpacity,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
@@ -316,27 +317,21 @@ export default function GeneratedVideosScreen() {
 
   if (loading) {
     return (
-      <SafeAreaView style={styles.container} edges={['top']}>
-        <VideoHeader title="Vidéos Générées" />
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#007AFF" />
           <Text style={styles.loadingText}>Chargement des vidéos...</Text>
         </View>
-      </SafeAreaView>
     );
   }
 
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
-      <VideoHeader
-        title={getTitle()}
-        subtitle={getSubtitle()}
-        onBack={undefined} // Disable back button for main tab page
-        rightButton={{
-          icon: <Plus size={20} color="#fff" />,
-          onPress: handleCreateVideo,
-        }}
-      />
+    <>
+      <View style={styles.headerInfo}>
+        <Text style={styles.subtitle}>{getSubtitle()}</Text>
+        <TouchableOpacity style={styles.createButton} onPress={handleCreateVideo}>
+          <Plus size={20} color="#fff" />
+        </TouchableOpacity>
+      </View>
 
       {error && (
         <View style={styles.errorContainer}>
@@ -372,7 +367,7 @@ export default function GeneratedVideosScreen() {
           )}
         />
       )}
-    </SafeAreaView>
+    </>
   );
 }
 
@@ -408,5 +403,23 @@ const styles = StyleSheet.create({
   },
   list: {
     padding: 20,
+  },
+  headerInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 20,
+    paddingVertical: 4,
+    borderBottomWidth: 1,
+    borderBottomColor: '#333',
+  },
+  subtitle: {
+    color: '#888',
+    fontSize: 16,
+  },
+  createButton: {
+    backgroundColor: '#007AFF',
+    padding: 12,
+    borderRadius: 20,
   },
 });

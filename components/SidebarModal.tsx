@@ -56,16 +56,16 @@ export default function SidebarModal({ visible, onClose }: SidebarModalProps) {
       isExpanded: true,
       items: [
         {
-          id: 'chat-demo',
-          name: 'Chat Interface',
+          id: 'create-script',
+          name: 'Créer un script',
           route: '/script-generation/chat',
-          description: 'Générer des scripts via chat',
+          description: 'Générer un nouveau script via chat',
         },
         {
-          id: 'create-video',
-          name: 'Créer une vidéo',
-          route: '/request-video',
-          description: 'Nouvelle demande de vidéo',
+          id: 'scripts-list',
+          name: 'Liste des scripts',
+          route: '/scripts',
+          description: 'Voir tous vos scripts',
         },
       ],
     },
@@ -75,6 +75,12 @@ export default function SidebarModal({ visible, onClose }: SidebarModalProps) {
       icon: Upload,
       isExpanded: false,
       items: [
+        {
+          id: 'upload-video',
+          name: 'Uploader une vidéo',
+          route: '/source-videos?action=upload',
+          description: 'Ajouter une nouvelle vidéo source',
+        },
         {
           id: 'source-list',
           name: 'Mes sources',
@@ -90,10 +96,30 @@ export default function SidebarModal({ visible, onClose }: SidebarModalProps) {
       isExpanded: false,
       items: [
         {
+          id: 'generate-video',
+          name: 'Générer une vidéo',
+          route: '/videos?action=generate',
+          description: 'Créer une nouvelle vidéo',
+        },
+        {
           id: 'video-list',
           name: 'Mes vidéos',
           route: '/videos',
           description: 'Vos vidéos générées',
+        },
+      ],
+    },
+    {
+      id: 'legacy',
+      name: 'Autres Actions',
+      icon: Plus,
+      isExpanded: false,
+      items: [
+        {
+          id: 'create-video-legacy',
+          name: 'Créer une vidéo (Legacy)',
+          route: '/request-video',
+          description: 'Ancienne interface de création',
         },
       ],
     },
@@ -170,19 +196,28 @@ export default function SidebarModal({ visible, onClose }: SidebarModalProps) {
           </TouchableOpacity>
         ))}
         
-        {/* Add new conversation button */}
+        {/* Add action button specific to folder */}
         <TouchableOpacity
           style={styles.addButton}
           onPress={() => {
             if (folder.id === 'script-generation') {
               navigateToRoute('/script-generation/chat');
+            } else if (folder.id === 'source-videos') {
+              navigateToRoute('/source-videos?action=upload');
+            } else if (folder.id === 'generated-videos') {
+              navigateToRoute('/videos?action=generate');
             }
           }}
         >
           <View style={styles.folderItemIcon}>
             <Plus size={16} color="#666" />
           </View>
-          <Text style={styles.addButtonText}>Nouvelle conversation</Text>
+          <Text style={styles.addButtonText}>
+            {folder.id === 'script-generation' ? 'Nouveau script' :
+             folder.id === 'source-videos' ? 'Uploader vidéo' :
+             folder.id === 'generated-videos' ? 'Générer vidéo' :
+             'Nouvelle action'}
+          </Text>
         </TouchableOpacity>
       </View>
     );

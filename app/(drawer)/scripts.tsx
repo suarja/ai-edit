@@ -49,7 +49,8 @@ export default function ScriptsScreen() {
     return script.length > 100 ? script.substring(0, 100) + '...' : script;
   };
 
-  const handleScriptDeleted = async (scriptId: string) => {
+  const handleScriptDeleted = async (scriptId?: string) => {
+    if (!scriptId) return;
     try {
       await deleteScript(scriptId);
       // Close modal and reload scripts
@@ -69,7 +70,7 @@ export default function ScriptsScreen() {
 
   if (isLoading) {
     return (
-      <SafeAreaView style={styles.container} edges={['top']}>
+      <SafeAreaView style={styles.container} edges={[]}>
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#007AFF" />
           <Text style={styles.loadingText}>Chargement des scripts...</Text>
@@ -79,26 +80,18 @@ export default function ScriptsScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
-      {/* Header */}
-      <View style={styles.header}>
-        <View style={styles.headerContent}>
-          <View>
-            <Text style={styles.title}>Mes Scripts</Text>
-            <Text style={styles.subtitle}>
-              Créez et gérez vos scripts de vidéo
-            </Text>
-          </View>
-          <TouchableOpacity
-            style={styles.createButton}
-            onPress={handleCreateNewScript}
-          >
-            <Plus size={24} color="#fff" />
-          </TouchableOpacity>
-        </View>
+    <SafeAreaView style={styles.container} edges={[]}>
+      <View style={styles.headerInfo}>
+        <Text style={styles.subtitle}>
+          Créez et gérez vos scripts de vidéo
+        </Text>
+        <TouchableOpacity
+          style={styles.createButton}
+          onPress={handleCreateNewScript}
+        >
+          <Plus size={24} color="#fff" />
+        </TouchableOpacity>
       </View>
-
-
 
       {/* Content */}
       <ScrollView
@@ -211,6 +204,15 @@ const styles = StyleSheet.create({
     paddingTop: 16,
     paddingHorizontal: 20,
     paddingBottom: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: '#333',
+  },
+  headerInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 20,
+    paddingVertical: 16,
     borderBottomWidth: 1,
     borderBottomColor: '#333',
   },

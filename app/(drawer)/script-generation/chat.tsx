@@ -161,7 +161,7 @@ export default function ScriptChatDemo() {
 
   if (!isSignedIn) {
     return (
-      <SafeAreaView style={styles.container} edges={['top']}>
+      <SafeAreaView style={styles.container} edges={[]}>
         <View style={styles.centeredContainer}>
           <MessageCircle size={48} color="#888" />
           <Text style={styles.centeredText}>Connectez-vous pour utiliser le Script Chat</Text>
@@ -170,8 +170,8 @@ export default function ScriptChatDemo() {
     );
   }
 
-  return (
-    <SafeAreaView style={styles.container} edges={['top']}>
+    return (
+    <SafeAreaView style={styles.container} edges={[]}>
       {/* Header avec informations script */}
       <View style={styles.header}>
         <View style={styles.headerContent}>

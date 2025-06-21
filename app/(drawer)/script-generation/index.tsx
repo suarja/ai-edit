@@ -5,11 +5,10 @@ import {
   StyleSheet,
   TouchableOpacity,
   ScrollView,
-  SafeAreaView,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { Plus, MessageCircle, Clock } from 'lucide-react-native';
-import DrawerToggle from '@/components/DrawerToggle';
 
 // Mock data for existing conversations
 const mockConversations = [
@@ -38,12 +37,8 @@ export default function ScriptGenerationIndex() {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
-        <View style={styles.headerTop}>
-          <DrawerToggle />
-          <Text style={styles.title}>Script Generation</Text>
-        </View>
+    <SafeAreaView style={styles.container} edges={[]}>
+      <View style={styles.introSection}>
         <Text style={styles.subtitle}>
           Créez et gérez vos scripts vidéo via chat
         </Text>
@@ -117,6 +112,11 @@ const styles = StyleSheet.create({
   },
   header: {
     padding: 20,
+    paddingBottom: 10,
+  },
+  introSection: {
+    paddingHorizontal: 20,
+    paddingTop: 20,
     paddingBottom: 10,
   },
   headerTop: {
