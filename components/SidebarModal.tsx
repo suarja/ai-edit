@@ -181,10 +181,13 @@ export default function SidebarModal({ visible, onClose }: SidebarModalProps) {
           style={styles.addButton}
           onPress={() => {
             if (folder.id === 'scripts') {
-              navigateToRoute('/chat');
+              // Force new chat with timestamp like in drawer layout
+              router.push(`/chat?new=${Date.now()}`);
+              onClose();
             } else if (folder.id === 'videos') {
               // Pour générer une vidéo, on va vers les scripts
-              navigateToRoute('/chat');
+              router.push(`/chat?new=${Date.now()}`);
+              onClose();
             } else if (folder.id === 'sources') {
               navigateToRoute('/source-videos?action=upload');
             } else if (folder.id === 'legacy') {
@@ -193,11 +196,11 @@ export default function SidebarModal({ visible, onClose }: SidebarModalProps) {
           }}
         >
           <View style={styles.folderItemIcon}>
-            <Plus size={16} color="#666" />
+            <Plus size={16} color="#007AFF" />
           </View>
-          <Text style={styles.addButtonText}>
-            {folder.id === 'scripts' ? 'Nouveau script' :
-             folder.id === 'videos' ? 'Créer une vidéo' :
+          <Text style={[styles.addButtonText, { color: '#007AFF' }]}>
+            {folder.id === 'scripts' ? 'Créer un script' :
+             folder.id === 'videos' ? 'Générer vidéo' :
              folder.id === 'sources' ? 'Uploader média' :
              folder.id === 'legacy' ? 'Créer (Legacy)' :
              'Nouvelle action'}
@@ -365,7 +368,7 @@ const styles = StyleSheet.create({
   addButtonText: {
     color: '#666',
     fontSize: 14,
-    fontStyle: 'italic',
+    fontWeight: '500',
   },
   separator: {
     height: 1,

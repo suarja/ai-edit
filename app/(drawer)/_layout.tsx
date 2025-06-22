@@ -59,7 +59,7 @@ function DrawerLayoutContent() {
         <Tabs.Screen
           name="chat"
           options={{
-            title: 'Chat IA',
+            title: 'Script IA',
           }}
         />
         <Tabs.Screen
