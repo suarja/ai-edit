@@ -1,0 +1,477 @@
+[
+  {
+    "id": "xPxjb9yMaJbam2PU3",
+    "actId": "GdWCkxBtKWOsKjdch",
+    "userId": "wu0U4zvPaNPQf0jZY",
+    "startedAt": "2025-06-22T14:40:17.219Z",
+    "finishedAt": null,
+    "status": "READY",
+    "meta": {
+      "origin": "API",
+      "userAgent": "ApifyClient/2.12.5 (Darwin; Node/v23.4.0); isAtHome/false"
+    },
+    "stats": {
+      "inputBodyLen": 399,
+      "migrationCount": 0,
+      "rebootCount": 0,
+      "restartCount": 0,
+      "resurrectCount": 0,
+      "computeUnits": 0
+    },
+    "options": {
+      "build": "latest",
+      "timeoutSecs": 0,
+      "memoryMbytes": 4096,
+      "maxTotalChargeUsd": 4.543976220879257,
+      "diskMbytes": 8192
+    },
+    "buildId": "GaWnkKd7zgD14whKX",
+    "defaultKeyValueStoreId": "vZy4iTFudJvJlm0Vp",
+    "defaultDatasetId": "PmQ8yHfeySwJJKVae",
+    "defaultRequestQueueId": "NQfVr2WUkfat9A0KS",
+    "pricingInfo": {
+      "pricingModel": "PAY_PER_EVENT",
+      "reasonForChange": "We are introducing Store pricing discounts for this Actor; more info in the follow-up email.",
+      "minimalMaxTotalChargeUsd": 0.5,
+      "createdAt": "2025-06-05T12:05:00.000Z",
+      "startedAt": "2025-06-05T12:05:00.000Z",
+      "apifyMarginPercentage": 0.2,
+      "notifiedAboutChangeAt": "2025-06-05T12:05:00.000Z",
+      "pricingPerEvent": {
+        "actorChargeEvents": {
+          "actor-start": {
+            "eventTitle": "Actor start",
+            "eventDescription": "Flat fee for starting an Actor run.",
+            "eventPriceUsd": 0.006
+          },
+          "result": {
+            "eventTitle": "Result",
+            "eventDescription": "Cost per result item returned.",
+            "eventPriceUsd": 0.0037
+          },
+          "filter-applied": {
+            "eventTitle": "Add-on: Date filter applied",
+            "eventDescription": "Extra cost when date filtering is used.",
+            "eventPriceUsd": 0.0013
+          },
+          "popularity-filter-applied": {
+            "eventTitle": "Add-on: Popularity filter applied",
+            "eventDescription": "Extra cost when filtering by popularity is used.",
+            "eventPriceUsd": 0.0013
+          },
+          "video-download": {
+            "eventTitle": "Add-on: Video download",
+            "eventDescription": "Extra cost when downloading video is enabled.",
+            "eventPriceUsd": 0.0013
+          },
+          "scrape-as-in-country": {
+            "eventTitle": "Add-on: Scrape as in [country]",
+            "eventDescription": "Extra cost for scraping as if in a specific country.",
+            "eventPriceUsd": 0.0013
+          }
+        }
+      }
+    },
+    "chargedEventCounts": {
+      "actor-start": 0,
+      "result": 0,
+      "filter-applied": 0,
+      "popularity-filter-applied": 0,
+      "video-download": 0,
+      "scrape-as-in-country": 0
+    },
+    "platformUsageBillingModel": "DEVELOPER",
+    "accountedChargedEventCounts": {
+      "actor-start": 0,
+      "result": 0,
+      "filter-applied": 0,
+      "popularity-filter-applied": 0,
+      "video-download": 0,
+      "scrape-as-in-country": 0
+    },
+    "generalAccess": "FOLLOW_USER_SETTING",
+    "buildNumber": "0.0.382",
+    "containerUrl": "https://ehhp8jldpyzb.runs.apify.net",
+    "usageTotalUsd": 0
+  },
+  {
+    "id": "eqANhf8ftj33g04bn",
+    "actId": "GdWCkxBtKWOsKjdch",
+    "userId": "wu0U4zvPaNPQf0jZY",
+    "startedAt": "2025-06-22T15:07:28.932Z",
+    "finishedAt": null,
+    "status": "READY",
+    "meta": {
+      "origin": "API",
+      "userAgent": "ApifyClient/2.12.5 (Darwin; Node/v23.4.0); isAtHome/false"
+    },
+    "stats": {
+      "inputBodyLen": 400,
+      "migrationCount": 0,
+      "rebootCount": 0,
+      "restartCount": 0,
+      "resurrectCount": 0,
+      "computeUnits": 0
+    },
+    "options": {
+      "build": "latest",
+      "timeoutSecs": 0,
+      "memoryMbytes": 4096,
+      "maxTotalChargeUsd": 4.543976220879257,
+      "diskMbytes": 8192
+    },
+    "buildId": "GaWnkKd7zgD14whKX",
+    "defaultKeyValueStoreId": "KIXOtywG808jIM57X",
+    "defaultDatasetId": "2Dj9PfKuBNKbN7JnA",
+    "defaultRequestQueueId": "xaWY9MpUGwYP3pF1y",
+    "pricingInfo": {
+      "pricingModel": "PAY_PER_EVENT",
+      "reasonForChange": "We are introducing Store pricing discounts for this Actor; more info in the follow-up email.",
+      "minimalMaxTotalChargeUsd": 0.5,
+      "createdAt": "2025-06-05T12:05:00.000Z",
+      "startedAt": "2025-06-05T12:05:00.000Z",
+      "apifyMarginPercentage": 0.2,
+      "notifiedAboutChangeAt": "2025-06-05T12:05:00.000Z",
+      "pricingPerEvent": {
+        "actorChargeEvents": {
+          "actor-start": {
+            "eventTitle": "Actor start",
+            "eventDescription": "Flat fee for starting an Actor run.",
+            "eventPriceUsd": 0.006
+          },
+          "result": {
+            "eventTitle": "Result",
+            "eventDescription": "Cost per result item returned.",
+            "eventPriceUsd": 0.0037
+          },
+          "filter-applied": {
+            "eventTitle": "Add-on: Date filter applied",
+            "eventDescription": "Extra cost when date filtering is used.",
+            "eventPriceUsd": 0.0013
+          },
+          "popularity-filter-applied": {
+            "eventTitle": "Add-on: Popularity filter applied",
+            "eventDescription": "Extra cost when filtering by popularity is used.",
+            "eventPriceUsd": 0.0013
+          },
+          "video-download": {
+            "eventTitle": "Add-on: Video download",
+            "eventDescription": "Extra cost when downloading video is enabled.",
+            "eventPriceUsd": 0.0013
+          },
+          "scrape-as-in-country": {
+            "eventTitle": "Add-on: Scrape as in [country]",
+            "eventDescription": "Extra cost for scraping as if in a specific country.",
+            "eventPriceUsd": 0.0013
+          }
+        }
+      }
+    },
+    "chargedEventCounts": {
+      "actor-start": 0,
+      "result": 0,
+      "filter-applied": 0,
+      "popularity-filter-applied": 0,
+      "video-download": 0,
+      "scrape-as-in-country": 0
+    },
+    "platformUsageBillingModel": "DEVELOPER",
+    "accountedChargedEventCounts": {
+      "actor-start": 0,
+      "result": 0,
+      "filter-applied": 0,
+      "popularity-filter-applied": 0,
+      "video-download": 0,
+      "scrape-as-in-country": 0
+    },
+    "generalAccess": "FOLLOW_USER_SETTING",
+    "buildNumber": "0.0.382",
+    "containerUrl": "https://dsdhmcq1c8tp.runs.apify.net",
+    "usageTotalUsd": 0
+  },
+  {
+    "id": "dc4TmzwOzzuMTMBs0",
+    "actId": "GdWCkxBtKWOsKjdch",
+    "userId": "wu0U4zvPaNPQf0jZY",
+    "startedAt": "2025-06-22T15:08:30.223Z",
+    "finishedAt": null,
+    "status": "READY",
+    "meta": {
+      "origin": "API",
+      "userAgent": "ApifyClient/2.12.5 (Darwin; Node/v23.4.0); isAtHome/false"
+    },
+    "stats": {
+      "inputBodyLen": 400,
+      "migrationCount": 0,
+      "rebootCount": 0,
+      "restartCount": 0,
+      "resurrectCount": 0,
+      "computeUnits": 0
+    },
+    "options": {
+      "build": "latest",
+      "timeoutSecs": 0,
+      "memoryMbytes": 4096,
+      "maxTotalChargeUsd": 4.454217989726352,
+      "diskMbytes": 8192
+    },
+    "buildId": "GaWnkKd7zgD14whKX",
+    "defaultKeyValueStoreId": "p15oPNukLBjAhMOgl",
+    "defaultDatasetId": "FNvFfozuFsxopOP8O",
+    "defaultRequestQueueId": "vVufBpa5u3ezZKpkS",
+    "pricingInfo": {
+      "pricingModel": "PAY_PER_EVENT",
+      "reasonForChange": "We are introducing Store pricing discounts for this Actor; more info in the follow-up email.",
+      "minimalMaxTotalChargeUsd": 0.5,
+      "createdAt": "2025-06-05T12:05:00.000Z",
+      "startedAt": "2025-06-05T12:05:00.000Z",
+      "apifyMarginPercentage": 0.2,
+      "notifiedAboutChangeAt": "2025-06-05T12:05:00.000Z",
+      "pricingPerEvent": {
+        "actorChargeEvents": {
+          "actor-start": {
+            "eventTitle": "Actor start",
+            "eventDescription": "Flat fee for starting an Actor run.",
+            "eventPriceUsd": 0.006
+          },
+          "result": {
+            "eventTitle": "Result",
+            "eventDescription": "Cost per result item returned.",
+            "eventPriceUsd": 0.0037
+          },
+          "filter-applied": {
+            "eventTitle": "Add-on: Date filter applied",
+            "eventDescription": "Extra cost when date filtering is used.",
+            "eventPriceUsd": 0.0013
+          },
+          "popularity-filter-applied": {
+            "eventTitle": "Add-on: Popularity filter applied",
+            "eventDescription": "Extra cost when filtering by popularity is used.",
+            "eventPriceUsd": 0.0013
+          },
+          "video-download": {
+            "eventTitle": "Add-on: Video download",
+            "eventDescription": "Extra cost when downloading video is enabled.",
+            "eventPriceUsd": 0.0013
+          },
+          "scrape-as-in-country": {
+            "eventTitle": "Add-on: Scrape as in [country]",
+            "eventDescription": "Extra cost for scraping as if in a specific country.",
+            "eventPriceUsd": 0.0013
+          }
+        }
+      }
+    },
+    "chargedEventCounts": {
+      "actor-start": 0,
+      "result": 0,
+      "filter-applied": 0,
+      "popularity-filter-applied": 0,
+      "video-download": 0,
+      "scrape-as-in-country": 0
+    },
+    "platformUsageBillingModel": "DEVELOPER",
+    "accountedChargedEventCounts": {
+      "actor-start": 0,
+      "result": 0,
+      "filter-applied": 0,
+      "popularity-filter-applied": 0,
+      "video-download": 0,
+      "scrape-as-in-country": 0
+    },
+    "generalAccess": "FOLLOW_USER_SETTING",
+    "buildNumber": "0.0.382",
+    "containerUrl": "https://rfvfews8mj4e.runs.apify.net",
+    "usageTotalUsd": 0
+  },
+  {
+    "id": "vyDm7w5Sa6Z9flB2y",
+    "actId": "GdWCkxBtKWOsKjdch",
+    "userId": "wu0U4zvPaNPQf0jZY",
+    "startedAt": "2025-06-22T15:30:24.189Z",
+    "finishedAt": null,
+    "status": "READY",
+    "meta": {
+      "origin": "API",
+      "userAgent": "ApifyClient/2.12.5 (Darwin; Node/v23.4.0); isAtHome/false"
+    },
+    "stats": {
+      "inputBodyLen": 396,
+      "migrationCount": 0,
+      "rebootCount": 0,
+      "restartCount": 0,
+      "resurrectCount": 0,
+      "computeUnits": 0
+    },
+    "options": {
+      "build": "latest",
+      "timeoutSecs": 0,
+      "memoryMbytes": 4096,
+      "maxTotalChargeUsd": 4.3742177598183325,
+      "diskMbytes": 8192
+    },
+    "buildId": "GaWnkKd7zgD14whKX",
+    "defaultKeyValueStoreId": "HctQoqgRkLylebQa5",
+    "defaultDatasetId": "EAaLqgAbLsdDaf4N6",
+    "defaultRequestQueueId": "XCAk1LvU8Aq9Wvfc5",
+    "pricingInfo": {
+      "pricingModel": "PAY_PER_EVENT",
+      "reasonForChange": "We are introducing Store pricing discounts for this Actor; more info in the follow-up email.",
+      "minimalMaxTotalChargeUsd": 0.5,
+      "createdAt": "2025-06-05T12:05:00.000Z",
+      "startedAt": "2025-06-05T12:05:00.000Z",
+      "apifyMarginPercentage": 0.2,
+      "notifiedAboutChangeAt": "2025-06-05T12:05:00.000Z",
+      "pricingPerEvent": {
+        "actorChargeEvents": {
+          "actor-start": {
+            "eventTitle": "Actor start",
+            "eventDescription": "Flat fee for starting an Actor run.",
+            "eventPriceUsd": 0.006
+          },
+          "result": {
+            "eventTitle": "Result",
+            "eventDescription": "Cost per result item returned.",
+            "eventPriceUsd": 0.0037
+          },
+          "filter-applied": {
+            "eventTitle": "Add-on: Date filter applied",
+            "eventDescription": "Extra cost when date filtering is used.",
+            "eventPriceUsd": 0.0013
+          },
+          "popularity-filter-applied": {
+            "eventTitle": "Add-on: Popularity filter applied",
+            "eventDescription": "Extra cost when filtering by popularity is used.",
+            "eventPriceUsd": 0.0013
+          },
+          "video-download": {
+            "eventTitle": "Add-on: Video download",
+            "eventDescription": "Extra cost when downloading video is enabled.",
+            "eventPriceUsd": 0.0013
+          },
+          "scrape-as-in-country": {
+            "eventTitle": "Add-on: Scrape as in [country]",
+            "eventDescription": "Extra cost for scraping as if in a specific country.",
+            "eventPriceUsd": 0.0013
+          }
+        }
+      }
+    },
+    "chargedEventCounts": {
+      "actor-start": 0,
+      "result": 0,
+      "filter-applied": 0,
+      "popularity-filter-applied": 0,
+      "video-download": 0,
+      "scrape-as-in-country": 0
+    },
+    "platformUsageBillingModel": "DEVELOPER",
+    "accountedChargedEventCounts": {
+      "actor-start": 0,
+      "result": 0,
+      "filter-applied": 0,
+      "popularity-filter-applied": 0,
+      "video-download": 0,
+      "scrape-as-in-country": 0
+    },
+    "generalAccess": "FOLLOW_USER_SETTING",
+    "buildNumber": "0.0.382",
+    "containerUrl": "https://shrvvooi4dhh.runs.apify.net",
+    "usageTotalUsd": 0
+  },
+  {
+    "id": "UzliUaPDMByIIwoVd",
+    "actId": "GdWCkxBtKWOsKjdch",
+    "userId": "wu0U4zvPaNPQf0jZY",
+    "startedAt": "2025-06-22T15:33:26.467Z",
+    "finishedAt": null,
+    "status": "READY",
+    "meta": {
+      "origin": "API",
+      "userAgent": "ApifyClient/2.12.5 (Darwin; Node/v23.4.0); isAtHome/false"
+    },
+    "stats": {
+      "inputBodyLen": 396,
+      "migrationCount": 0,
+      "rebootCount": 0,
+      "restartCount": 0,
+      "resurrectCount": 0,
+      "computeUnits": 0
+    },
+    "options": {
+      "build": "latest",
+      "timeoutSecs": 0,
+      "memoryMbytes": 4096,
+      "maxTotalChargeUsd": 4.18320642586978,
+      "diskMbytes": 8192
+    },
+    "buildId": "GaWnkKd7zgD14whKX",
+    "defaultKeyValueStoreId": "FsgPTauEaZzps9tl6",
+    "defaultDatasetId": "Ye1xDA4j2ytGo3BfA",
+    "defaultRequestQueueId": "QxSMFrWeh5U0JKP2Y",
+    "pricingInfo": {
+      "pricingModel": "PAY_PER_EVENT",
+      "reasonForChange": "We are introducing Store pricing discounts for this Actor; more info in the follow-up email.",
+      "minimalMaxTotalChargeUsd": 0.5,
+      "createdAt": "2025-06-05T12:05:00.000Z",
+      "startedAt": "2025-06-05T12:05:00.000Z",
+      "apifyMarginPercentage": 0.2,
+      "notifiedAboutChangeAt": "2025-06-05T12:05:00.000Z",
+      "pricingPerEvent": {
+        "actorChargeEvents": {
+          "actor-start": {
+            "eventTitle": "Actor start",
+            "eventDescription": "Flat fee for starting an Actor run.",
+            "eventPriceUsd": 0.006
+          },
+          "result": {
+            "eventTitle": "Result",
+            "eventDescription": "Cost per result item returned.",
+            "eventPriceUsd": 0.0037
+          },
+          "filter-applied": {
+            "eventTitle": "Add-on: Date filter applied",
+            "eventDescription": "Extra cost when date filtering is used.",
+            "eventPriceUsd": 0.0013
+          },
+          "popularity-filter-applied": {
+            "eventTitle": "Add-on: Popularity filter applied",
+            "eventDescription": "Extra cost when filtering by popularity is used.",
+            "eventPriceUsd": 0.0013
+          },
+          "video-download": {
+            "eventTitle": "Add-on: Video download",
+            "eventDescription": "Extra cost when downloading video is enabled.",
+            "eventPriceUsd": 0.0013
+          },
+          "scrape-as-in-country": {
+            "eventTitle": "Add-on: Scrape as in [country]",
+            "eventDescription": "Extra cost for scraping as if in a specific country.",
+            "eventPriceUsd": 0.0013
+          }
+        }
+      }
+    },
+    "chargedEventCounts": {
+      "actor-start": 0,
+      "result": 0,
+      "filter-applied": 0,
+      "popularity-filter-applied": 0,
+      "video-download": 0,
+      "scrape-as-in-country": 0
+    },
+    "platformUsageBillingModel": "DEVELOPER",
+    "accountedChargedEventCounts": {
+      "actor-start": 0,
+      "result": 0,
+      "filter-applied": 0,
+      "popularity-filter-applied": 0,
+      "video-download": 0,
+      "scrape-as-in-country": 0
+    },
+    "generalAccess": "FOLLOW_USER_SETTING",
+    "buildNumber": "0.0.382",
+    "containerUrl": "https://vd3oteqgnstk.runs.apify.net",
+    "usageTotalUsd": 0
+  }
+]
