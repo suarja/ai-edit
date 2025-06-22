@@ -92,6 +92,12 @@ function DrawerLayoutContent() {
             title: 'Détails Vidéo',
           }}
         />
+        <Tabs.Screen
+          name="script-video-settings"
+          options={{
+            title: 'Configuration Vidéo',
+          }}
+        />
       </Tabs>
       <SidebarModal visible={isOpen} onClose={closeSidebar} />
     </>
