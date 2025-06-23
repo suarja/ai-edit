@@ -8,6 +8,7 @@ export const FULL_ONBOARDING_STEPS: OnboardingStep[] = [
   'welcome',
   'survey',
   'voice-recording',
+  'tiktok-analysis',
   'processing',
   'editorial-profile',
   'features',

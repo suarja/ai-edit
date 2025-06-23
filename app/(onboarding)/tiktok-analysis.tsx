@@ -11,102 +11,29 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
-import { TrendingUp, Search, Brain, Target, CheckCircle } from 'lucide-react-native';
+import { TrendingUp, Search, Brain, Target, CheckCircle, ArrowRight, Clock } from 'lucide-react-native';
 import { useTikTokAnalysis } from '@/hooks/useTikTokAnalysis';
 import { useRevenueCat } from '@/providers/RevenueCat';
+import { useOnboarding } from '@/components/providers/OnboardingProvider';
 
 /**
- * 🎯 ONBOARDING TIKTOK ANALYSIS
+ * 🎯 ONBOARDING TIKTOK ANALYSIS - VERSION ASYNCHRONE
  * 
- * Écran d'onboarding pour lancer l'analyse TikTok avec cérémonial
- * Intégré dans le flow d'onboarding après voice recording
+ * Écran d'onboarding pour lancer l'analyse TikTok de manière asynchrone
+ * L'utilisateur peut continuer l'onboarding pendant que l'analyse se déroule
  */
 export default function TikTokAnalysisOnboarding() {
   const [tiktokHandle, setTikTokHandle] = useState('');
-  const [showCeremony, setShowCeremony] = useState(false);
+  const [analysisStarted, setAnalysisStarted] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false);
   const { isPro, goPro } = useRevenueCat();
+  const { nextStep } = useOnboarding();
   
   const {
     startAnalysis,
     isAnalyzing,
-    progress,
-    status,
-    statusMessage,
     error,
-    clearError,
   } = useTikTokAnalysis();
-
-  // Animation pour le cérémonial
-  const [ceremonyStep, setCeremonyStep] = useState(0);
-  const fadeAnim = new Animated.Value(0);
-  const scaleAnim = new Animated.Value(0.8);
-
-  const ceremonySteps = [
-    {
-      icon: Search,
-      title: 'Analyse de votre profil',
-      description: 'Collecte de vos données TikTok...',
-      color: '#FF6B6B',
-    },
-    {
-      icon: Brain,
-      title: 'Intelligence artificielle',
-      description: 'Analyse de vos contenus et performances...',
-      color: '#4ECDC4',
-    },
-    {
-      icon: Target,
-      title: 'Stratégie personnalisée',
-      description: 'Génération de recommandations sur mesure...',
-      color: '#45B7D1',
-    },
-    {
-      icon: CheckCircle,
-      title: 'Profil éditorial créé',
-      description: 'Votre profil est maintenant optimisé !',
-      color: '#96CEB4',
-    },
-  ];
-
-  useEffect(() => {
-    if (showCeremony) {
-      startCeremonyAnimation();
-    }
-  }, [showCeremony]);
-
-  useEffect(() => {
-    if (isAnalyzing && !showCeremony) {
-      setShowCeremony(true);
-    }
-  }, [isAnalyzing]);
-
-  useEffect(() => {
-    // Mettre à jour l'étape du cérémonial selon le statut
-    if (status === 'scraping') setCeremonyStep(0);
-    else if (status === 'analyzing') setCeremonyStep(1);
-    else if (status === 'completed') {
-      setCeremonyStep(3);
-      // Attendre un peu puis rediriger
-      setTimeout(() => {
-        router.replace('/voice-clone');
-      }, 2000);
-    }
-  }, [status]);
-
-  const startCeremonyAnimation = () => {
-    Animated.parallel([
-      Animated.timing(fadeAnim, {
-        toValue: 1,
-        duration: 500,
-        useNativeDriver: true,
-      }),
-      Animated.timing(scaleAnim, {
-        toValue: 1,
-        duration: 500,
-        useNativeDriver: true,
-      }),
-    ]).start();
-  };
 
   const handleStartAnalysis = async () => {
     if (!tiktokHandle.trim()) {
@@ -117,7 +44,7 @@ export default function TikTokAnalysisOnboarding() {
     if (!isPro) {
       Alert.alert(
         'Fonctionnalité Pro',
-        'L\'analyse TikTok est une fonctionnalité Pro. Souhaitez-vous upgrader ?',
+        'L\'analyse TikTok est réservée aux utilisateurs Pro. Souhaitez-vous upgrader ?',
         [
           { text: 'Plus tard', style: 'cancel' },
           { text: 'Upgrader', onPress: () => goPro() },
@@ -127,76 +54,52 @@ export default function TikTokAnalysisOnboarding() {
     }
 
     try {
-      // Nettoyer le handle (enlever @ si présent)
-      const cleanHandle = tiktokHandle.replace('@', '').trim();
-      await startAnalysis(cleanHandle);
-    } catch (err: any) {
-      Alert.alert('Erreur', err.message);
+      console.log('🚀 Starting TikTok analysis for:', tiktokHandle);
+      await startAnalysis(tiktokHandle.replace('@', '').trim());
+      setAnalysisStarted(true);
+      setShowSuccess(true);
+      
+      // Auto-continue after showing success
+      setTimeout(() => {
+        nextStep();
+      }, 2000);
+      
+    } catch (error: any) {
+      console.error('❌ Analysis error:', error);
+      Alert.alert(
+        'Erreur',
+        'Impossible de démarrer l\'analyse. Veuillez réessayer.',
+        [{ text: 'OK' }]
+      );
     }
   };
 
   const handleSkip = () => {
-    router.replace('/voice-clone');
+    nextStep();
   };
 
-  if (showCeremony) {
-    const currentStep = ceremonySteps[ceremonyStep];
-    const IconComponent = currentStep.icon;
+  const handleContinue = () => {
+    nextStep();
+  };
 
+  if (showSuccess) {
     return (
       <SafeAreaView style={styles.container} edges={['top']}>
-        <Animated.View
-          style={[
-            styles.ceremonyContainer,
-            {
-              opacity: fadeAnim,
-              transform: [{ scale: scaleAnim }],
-            },
-          ]}
-        >
-          {/* Progress bar */}
-          <View style={styles.progressContainer}>
-            <View style={styles.progressTrack}>
-              <View
-                style={[
-                  styles.progressFill,
-                  { width: `${Math.max(progress, 25)}%` },
-                ]}
-              />
+        <View style={styles.content}>
+          <View style={styles.successContainer}>
+            <CheckCircle size={64} color="#4CAF50" />
+            <Text style={styles.successTitle}>Analyse Lancée !</Text>
+            <Text style={styles.successSubtitle}>
+              Votre analyse TikTok est en cours. Vous pourrez consulter les résultats dans l'onglet Account Chat une fois terminée.
+            </Text>
+            <View style={styles.processingInfo}>
+              <Clock size={16} color="#888" />
+              <Text style={styles.processingText}>
+                Temps estimé : 2-3 minutes
+              </Text>
             </View>
-            <Text style={styles.progressText}>{progress}%</Text>
           </View>
-
-          {/* Icône animée */}
-          <View style={[styles.iconContainer, { backgroundColor: currentStep.color }]}>
-            <IconComponent size={48} color="#fff" />
-          </View>
-
-          {/* Titre et description */}
-          <Text style={styles.ceremonyTitle}>{currentStep.title}</Text>
-          <Text style={styles.ceremonyDescription}>{currentStep.description}</Text>
-          
-          {/* Status message */}
-          <Text style={styles.statusMessage}>{statusMessage}</Text>
-
-          {/* Loading indicator */}
-          <ActivityIndicator size="large" color={currentStep.color} style={styles.loader} />
-
-          {/* Steps indicator */}
-          <View style={styles.stepsContainer}>
-            {ceremonySteps.map((_, index) => (
-              <View
-                key={index}
-                style={[
-                  styles.stepDot,
-                  {
-                    backgroundColor: index <= ceremonyStep ? currentStep.color : '#333',
-                  },
-                ]}
-              />
-            ))}
-          </View>
-        </Animated.View>
+        </View>
       </SafeAreaView>
     );
   }
@@ -204,84 +107,78 @@ export default function TikTokAnalysisOnboarding() {
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <View style={styles.content}>
-        {/* Header */}
         <View style={styles.header}>
-          <TrendingUp size={48} color="#FF6B6B" />
+          <TrendingUp size={48} color="#FF6B35" />
           <Text style={styles.title}>Analyse TikTok</Text>
           <Text style={styles.subtitle}>
-            Créons votre profil éditorial personnalisé basé sur votre compte TikTok
+            Créez votre profil éditorial personnalisé basé sur vos performances TikTok
           </Text>
         </View>
 
-        {/* Benefits */}
-        <View style={styles.benefitsContainer}>
-          <View style={styles.benefit}>
-            <Brain size={24} color="#4ECDC4" />
-            <Text style={styles.benefitText}>Analyse IA de vos contenus</Text>
+        <View style={styles.featuresContainer}>
+          <View style={styles.feature}>
+            <Brain size={24} color="#007AFF" />
+            <Text style={styles.featureText}>Analyse IA de votre contenu</Text>
           </View>
-          <View style={styles.benefit}>
-            <Target size={24} color="#45B7D1" />
-            <Text style={styles.benefitText}>Recommandations personnalisées</Text>
+          <View style={styles.feature}>
+            <Target size={24} color="#007AFF" />
+            <Text style={styles.featureText}>Recommandations personnalisées</Text>
           </View>
-          <View style={styles.benefit}>
-            <CheckCircle size={24} color="#96CEB4" />
-            <Text style={styles.benefitText}>Optimisation de votre stratégie</Text>
+          <View style={styles.feature}>
+            <Search size={24} color="#007AFF" />
+            <Text style={styles.featureText}>Insights d'audience</Text>
           </View>
         </View>
 
-        {/* Input */}
         <View style={styles.inputContainer}>
           <Text style={styles.inputLabel}>Votre handle TikTok</Text>
-          <TextInput
-            style={styles.input}
-            value={tiktokHandle}
-            onChangeText={setTikTokHandle}
-            placeholder="@votre_handle"
-            placeholderTextColor="#666"
-            autoCapitalize="none"
-            autoCorrect={false}
-          />
+          <View style={styles.inputWrapper}>
+            <Text style={styles.atSymbol}>@</Text>
+            <TextInput
+              style={styles.input}
+              value={tiktokHandle}
+              onChangeText={setTikTokHandle}
+              placeholder="votre_handle"
+              placeholderTextColor="#666"
+              autoCapitalize="none"
+              autoCorrect={false}
+            />
+          </View>
         </View>
 
-        {/* Error */}
-        {error && (
-          <View style={styles.errorContainer}>
-            <Text style={styles.errorText}>{error}</Text>
-            <TouchableOpacity onPress={clearError} style={styles.errorDismiss}>
-              <Text style={styles.errorDismissText}>OK</Text>
-            </TouchableOpacity>
+        {!isPro && (
+          <View style={styles.proNotice}>
+            <Text style={styles.proNoticeText}>
+              💎 Fonctionnalité Pro requise
+            </Text>
           </View>
         )}
 
-        {/* Actions */}
-        <View style={styles.actions}>
+        <View style={styles.buttonsContainer}>
           <TouchableOpacity
-            style={[styles.button, styles.primaryButton]}
+            style={[styles.primaryButton, isAnalyzing && styles.disabledButton]}
             onPress={handleStartAnalysis}
             disabled={isAnalyzing}
           >
             {isAnalyzing ? (
-              <ActivityIndicator color="#fff" />
+              <ActivityIndicator size="small" color="#fff" />
             ) : (
-              <Text style={styles.primaryButtonText}>Analyser mon TikTok</Text>
+              <>
+                <Brain size={20} color="#fff" />
+                <Text style={styles.primaryButtonText}>Analyser mon TikTok</Text>
+              </>
             )}
           </TouchableOpacity>
 
-          <TouchableOpacity
-            style={[styles.button, styles.secondaryButton]}
-            onPress={handleSkip}
-            disabled={isAnalyzing}
-          >
-            <Text style={styles.secondaryButtonText}>Passer cette étape</Text>
+          <TouchableOpacity style={styles.skipButton} onPress={handleSkip}>
+            <Text style={styles.skipButtonText}>Plus tard</Text>
+            <ArrowRight size={16} color="#888" />
           </TouchableOpacity>
         </View>
 
-        {/* Pro badge */}
-        {!isPro && (
-          <View style={styles.proBadge}>
-            <Text style={styles.proText}>✨ Fonctionnalité Pro</Text>
-          </View>
-        )}
+        <Text style={styles.disclaimer}>
+          L'analyse prendra 2-3 minutes. Vous pouvez continuer l'onboarding pendant ce temps.
+        </Text>
       </View>
     </SafeAreaView>
   );
@@ -312,18 +209,18 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#888',
     textAlign: 'center',
-    lineHeight: 24,
+    lineHeight: 22,
   },
-  benefitsContainer: {
-    marginBottom: 40,
+  featuresContainer: {
+    marginBottom: 32,
   },
-  benefit: {
+  feature: {
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: 16,
     paddingHorizontal: 16,
   },
-  benefitText: {
+  featureText: {
     fontSize: 16,
     color: '#fff',
     marginLeft: 12,
@@ -333,140 +230,112 @@ const styles = StyleSheet.create({
   },
   inputLabel: {
     fontSize: 16,
-    fontWeight: '600',
     color: '#fff',
     marginBottom: 8,
+    fontWeight: '600',
   },
-  input: {
+  inputWrapper: {
+    flexDirection: 'row',
+    alignItems: 'center',
     backgroundColor: '#1a1a1a',
     borderRadius: 12,
-    padding: 16,
-    fontSize: 16,
-    color: '#fff',
     borderWidth: 1,
     borderColor: '#333',
+    paddingHorizontal: 16,
+    height: 50,
   },
-  errorContainer: {
-    backgroundColor: '#FF6B6B',
-    padding: 12,
-    borderRadius: 8,
-    marginBottom: 24,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+  atSymbol: {
+    fontSize: 18,
+    color: '#007AFF',
+    fontWeight: '600',
+    marginRight: 4,
   },
-  errorText: {
-    color: '#fff',
+  input: {
     flex: 1,
-  },
-  errorDismiss: {
-    paddingHorizontal: 12,
-    paddingVertical: 4,
-  },
-  errorDismissText: {
+    fontSize: 16,
     color: '#fff',
-    fontWeight: 'bold',
+    paddingVertical: 0,
   },
-  actions: {
-    gap: 16,
-  },
-  button: {
+  proNotice: {
+    backgroundColor: 'rgba(255, 215, 0, 0.1)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 215, 0, 0.3)',
     borderRadius: 12,
-    padding: 16,
+    padding: 12,
+    marginBottom: 24,
     alignItems: 'center',
+  },
+  proNoticeText: {
+    color: '#FFD700',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  buttonsContainer: {
+    gap: 16,
+    marginBottom: 24,
   },
   primaryButton: {
-    backgroundColor: '#FF6B6B',
+    backgroundColor: '#007AFF',
+    borderRadius: 12,
+    padding: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+  },
+  disabledButton: {
+    opacity: 0.5,
   },
   primaryButtonText: {
     color: '#fff',
     fontSize: 16,
     fontWeight: '600',
   },
-  secondaryButton: {
-    backgroundColor: 'transparent',
-    borderWidth: 1,
-    borderColor: '#333',
+  skipButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    padding: 16,
   },
-  secondaryButtonText: {
+  skipButtonText: {
     color: '#888',
     fontSize: 16,
   },
-  proBadge: {
-    alignItems: 'center',
-    marginTop: 24,
-  },
-  proText: {
-    color: '#FFD700',
-    fontSize: 14,
-    fontWeight: '500',
-  },
-
-  // Ceremony styles
-  ceremonyContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 24,
-  },
-  progressContainer: {
-    width: '100%',
-    marginBottom: 40,
-    alignItems: 'center',
-  },
-  progressTrack: {
-    width: '100%',
-    height: 4,
-    backgroundColor: '#333',
-    borderRadius: 2,
-    marginBottom: 8,
-  },
-  progressFill: {
-    height: '100%',
-    backgroundColor: '#FF6B6B',
-    borderRadius: 2,
-  },
-  progressText: {
-    color: '#888',
-    fontSize: 14,
-  },
-  iconContainer: {
-    width: 96,
-    height: 96,
-    borderRadius: 48,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 24,
-  },
-  ceremonyTitle: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#fff',
-    textAlign: 'center',
-    marginBottom: 8,
-  },
-  ceremonyDescription: {
-    fontSize: 16,
-    color: '#888',
-    textAlign: 'center',
-    marginBottom: 16,
-  },
-  statusMessage: {
-    fontSize: 14,
+  disclaimer: {
+    fontSize: 12,
     color: '#666',
     textAlign: 'center',
+    lineHeight: 16,
+  },
+  successContainer: {
+    alignItems: 'center',
+  },
+  successTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#4CAF50',
+    marginTop: 16,
+    marginBottom: 8,
+  },
+  successSubtitle: {
+    fontSize: 16,
+    color: '#888',
+    textAlign: 'center',
+    lineHeight: 22,
     marginBottom: 24,
   },
-  loader: {
-    marginBottom: 40,
-  },
-  stepsContainer: {
+  processingInfo: {
     flexDirection: 'row',
+    alignItems: 'center',
     gap: 8,
+    backgroundColor: '#1a1a1a',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
   },
-  stepDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
+  processingText: {
+    fontSize: 14,
+    color: '#888',
   },
 }); 

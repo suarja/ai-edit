@@ -15,6 +15,7 @@ export type OnboardingStep =
   | 'welcome'
   | 'survey'
   | 'voice-recording'
+  | 'tiktok-analysis'
   | 'processing'
   | 'editorial-profile'
   | 'features'
@@ -58,6 +59,7 @@ const FULL_STEP_ORDER: OnboardingStep[] = [
   'welcome',
   'survey',
   'voice-recording',
+  'tiktok-analysis',
   'processing',
   'editorial-profile',
   'features',
@@ -71,6 +73,7 @@ const STEP_PATHS: Record<OnboardingStep, string> = {
   welcome: '/(onboarding)/welcome',
   survey: '/(onboarding)/survey',
   'voice-recording': '/(onboarding)/voice-recording',
+  'tiktok-analysis': '/(onboarding)/tiktok-analysis',
   processing: '/(onboarding)/processing',
   'editorial-profile': '/(onboarding)/editorial-profile',
   features: '/(onboarding)/features',
