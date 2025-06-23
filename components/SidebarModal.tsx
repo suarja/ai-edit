@@ -23,6 +23,8 @@ import {
   Plus,
   MessageCircle,
   X,
+  BarChart3,
+  TrendingUp,
 } from 'lucide-react-native';
 
 interface SidebarModalProps {
@@ -48,6 +50,26 @@ interface DrawerItem {
 export default function SidebarModal({ visible, onClose }: SidebarModalProps) {
   const insets = useSafeAreaInsets();
   const [folders, setFolders] = useState<DrawerFolder[]>([
+    {
+      id: 'account-analysis',
+      name: 'Analyse TikTok',
+      icon: BarChart3,
+      isExpanded: false,
+      items: [
+        {
+          id: 'account-chat',
+          name: 'Chat avec votre compte',
+          route: '/account-chat',
+          description: 'Analysez votre compte TikTok avec l\'IA',
+        },
+        {
+          id: 'account-insights',
+          name: 'Mes analyses',
+          route: '/account-insights',
+          description: 'Historique de vos analyses',
+        },
+      ],
+    },
     {
       id: 'scripts',
       name: 'Contenus',
@@ -180,7 +202,11 @@ export default function SidebarModal({ visible, onClose }: SidebarModalProps) {
         <TouchableOpacity
           style={styles.addButton}
           onPress={() => {
-            if (folder.id === 'scripts') {
+            if (folder.id === 'account-analysis') {
+              // Navigate to account chat for new analysis
+              router.push(`/account-chat?new=${Date.now()}`);
+              onClose();
+            } else if (folder.id === 'scripts') {
               // Force new chat with timestamp like in drawer layout
               router.push(`/chat?new=${Date.now()}`);
               onClose();
@@ -199,7 +225,8 @@ export default function SidebarModal({ visible, onClose }: SidebarModalProps) {
             <Plus size={16} color="#007AFF" />
           </View>
           <Text style={[styles.addButtonText, { color: '#007AFF' }]}>
-            {folder.id === 'scripts' ? 'Créer un script' :
+            {folder.id === 'account-analysis' ? 'Analyser compte' :
+             folder.id === 'scripts' ? 'Créer un script' :
              folder.id === 'videos' ? 'Générer vidéo' :
              folder.id === 'sources' ? 'Uploader média' :
              folder.id === 'legacy' ? 'Créer (Legacy)' :
