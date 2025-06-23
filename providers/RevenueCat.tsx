@@ -16,6 +16,9 @@ const APIKeys = {
   google: process.env.EXPO_PUBLIC_REVENUECAT_ANDROID_KEY as string,
 };
 
+// Check if we're in development mode
+const isDevelopment = __DEV__ || process.env.NODE_ENV === 'development';
+
 interface UserUsage {
   videos_generated: number;
   videos_limit: number;
@@ -37,6 +40,7 @@ interface RevenueCatProps {
   dynamicVideosLimit: number; // The actual limit based on subscription status
   showPaywall: boolean;
   setShowPaywall: (show: boolean) => void;
+  isDevMode: boolean; // Add development mode indicator
 }
 
 const RevenueCatContext = createContext<RevenueCatProps | null>(null);
@@ -70,6 +74,15 @@ export const RevenueCatProvider = ({ children }: any) => {
   useEffect(() => {
     const init = async () => {
       try {
+        // In development mode on simulator, we might not have proper RevenueCat setup
+        if (isDevelopment && Platform.OS === 'ios') {
+          console.log('🚧 Development mode detected - using fallback for RevenueCat');
+          setHasOfferingError(true);
+          setIsReady(true);
+          await loadUserUsage();
+          return;
+        }
+
         if (Platform.OS === 'android') {
           await Purchases.configure({ apiKey: APIKeys.google });
         } else {
@@ -77,7 +90,7 @@ export const RevenueCatProvider = ({ children }: any) => {
         }
 
         // Use more logging during debug if want!
-        Purchases.setLogLevel(LOG_LEVEL.ERROR);
+        Purchases.setLogLevel(isDevelopment ? LOG_LEVEL.DEBUG : LOG_LEVEL.ERROR);
 
         // Listen for customer updates
         Purchases.addCustomerInfoUpdateListener(async (info) => {
@@ -89,12 +102,15 @@ export const RevenueCatProvider = ({ children }: any) => {
 
         setIsReady(true);
       } catch (error) {
-        console.error('RevenueCat initialization error:', error);
+        console.error('🍎 RevenueCat initialization error:', error);
+        console.log(`🔄 Attempt ${initAttempts + 1}/${maxInitAttempts + 1}`);
 
         // If we've tried enough times, proceed with fallback
         if (initAttempts >= maxInitAttempts) {
+          console.log('🚧 Using fallback mode due to RevenueCat initialization failure');
           setHasOfferingError(true);
           setIsReady(true); // Still mark as ready so UI can render with fallbacks
+          await loadUserUsage(); // Still load usage from database
         } else {
           // Try again (but not too many times)
           setInitAttempts((prev) => prev + 1);
@@ -228,9 +244,20 @@ export const RevenueCatProvider = ({ children }: any) => {
   // Present paywall
   const goPro = async (): Promise<boolean> => {
     try {
-      // If we have offering errors, show a fallback alert instead
+      // If we have offering errors (common in development), show a fallback alert instead
       if (hasOfferingError) {
-        console.log('Using fallback purchase flow due to offering error');
+        console.log('🚧 Using fallback purchase flow due to offering error');
+        
+        if (isDevelopment) {
+          // In development mode, simulate Pro access for testing
+          console.log('🔧 Development mode: simulating Pro access');
+          setIsPro(true);
+          await syncUserLimitWithSubscription(true);
+          return true;
+        }
+        
+        // In production with offering errors, show helpful message
+        alert('Les forfaits ne sont pas disponibles actuellement. Veuillez réessayer plus tard.');
         return false;
       }
 
@@ -298,6 +325,7 @@ export const RevenueCatProvider = ({ children }: any) => {
     dynamicVideosLimit,
     showPaywall,
     setShowPaywall,
+    isDevMode: isDevelopment,
   };
 
   // We don't want to block rendering anymore if RevenueCat has issues

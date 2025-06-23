@@ -6,334 +6,325 @@ import {
   ScrollView,
   TouchableOpacity,
   ActivityIndicator,
-  RefreshControl,
   Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { router } from 'expo-router';
-import { BarChart3, MessageCircle, Clock, TrendingUp, Crown, Plus } from 'lucide-react-native';
-import { useAuth } from '@clerk/clerk-expo';
+import { useRouter } from 'expo-router';
+import { 
+  BarChart3, 
+  TrendingUp, 
+  Users, 
+  Eye, 
+  Heart, 
+  MessageCircle,
+  Crown,
+  Zap,
+  ChevronRight,
+  RefreshCw
+} from 'lucide-react-native';
 import { useRevenueCat } from '@/providers/RevenueCat';
+import { DebugRevenueCat } from '@/components/DebugRevenueCat';
 
-interface AccountInsight {
+// Types pour les données d'analyse
+interface AccountAnalysis {
   id: string;
-  tiktok_handle: string;
-  analysis_date: string;
-  status: 'completed' | 'processing' | 'failed';
-  insights_summary?: string;
-  metrics?: {
-    followers: number;
-    engagement_rate: number;
-    videos_analyzed: number;
-  };
+  account_handle: string;
+  engagement_rate: number;
+  followers_growth: number;
+  best_posting_times: string[];
+  top_content_themes: string[];
+  recommendations: string[];
+  created_at: string;
+}
+
+interface AccountStats {
+  followers_count: number;
+  following_count: number;
+  likes_count: number;
+  videos_count: number;
+  avg_views: number;
+  avg_engagement: number;
 }
 
 export default function AccountInsightsScreen() {
-  const { isSignedIn } = useAuth();
-  const { isPro, isReady } = useRevenueCat();
-  const [insights, setInsights] = useState<AccountInsight[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const router = useRouter();
+  const { isPro, goPro } = useRevenueCat();
+  const [analyses, setAnalyses] = useState<AccountAnalysis[]>([]);
+  const [stats, setStats] = useState<AccountStats | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
 
-  // Simulated data for now
   useEffect(() => {
-    loadInsights();
+    loadAccountData();
   }, []);
 
-  const loadInsights = async () => {
-    setIsLoading(true);
-    setError(null);
-    
+  const loadAccountData = async () => {
     try {
-      // TODO: Replace with real API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // Simulated data
-      const mockInsights: AccountInsight[] = [
+      setLoading(true);
+      // TODO: Charger les données d'analyse depuis l'API
+      // Données simulées pour l'instant
+      setAnalyses([
         {
           id: '1',
-          tiktok_handle: '@example_creator',
-          analysis_date: new Date(Date.now() - 86400000).toISOString(), // 1 day ago
-          status: 'completed',
-          insights_summary: 'Contenu lifestyle avec forte engagement. Audience 18-24 ans principalement.',
-          metrics: {
-            followers: 125000,
-            engagement_rate: 4.2,
-            videos_analyzed: 50,
-          },
-        },
-        {
-          id: '2',
-          tiktok_handle: '@tech_reviewer',
-          analysis_date: new Date(Date.now() - 172800000).toISOString(), // 2 days ago
-          status: 'completed',
-          insights_summary: 'Reviews tech avec audience masculine 25-35 ans. Croissance constante.',
-          metrics: {
-            followers: 89000,
-            engagement_rate: 3.8,
-            videos_analyzed: 32,
-          },
-        },
-      ];
-      
-      setInsights(mockInsights);
-    } catch (err) {
-      console.error('Error loading insights:', err);
-      setError('Impossible de charger les analyses');
+          account_handle: '@mon_compte',
+          engagement_rate: 4.2,
+          followers_growth: 15.8,
+          best_posting_times: ['18:00-20:00', '21:00-23:00'],
+          top_content_themes: ['Tutoriels', 'Behind the scenes', 'Tendances'],
+          recommendations: [
+            'Publier plus de contenu en soirée',
+            'Utiliser plus de hashtags tendance',
+            'Créer plus de contenu interactif'
+          ],
+          created_at: new Date().toISOString(),
+        }
+      ]);
+
+      setStats({
+        followers_count: 12500,
+        following_count: 890,
+        likes_count: 156000,
+        videos_count: 45,
+        avg_views: 8500,
+        avg_engagement: 4.2,
+      });
+    } catch (error) {
+      console.error('Erreur lors du chargement des données:', error);
+      Alert.alert('Erreur', 'Impossible de charger les données d\'analyse');
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
   };
 
-  const handleCreateNewAnalysis = () => {
-    if (!isPro) {
-      Alert.alert(
-        'Fonctionnalité PRO',
-        'L\'analyse de compte TikTok nécessite un abonnement PRO.',
-        [
-          { text: 'Plus tard' },
-          { text: 'Voir les plans', onPress: () => router.push('/subscription') },
-        ]
-      );
-      return;
-    }
-    
-    router.push(`/account-chat?new=${Date.now()}`);
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    await loadAccountData();
+    setRefreshing(false);
   };
 
-  const handleViewInsight = (insight: AccountInsight) => {
-    // Navigate to chat with this analysis loaded
-    router.push({
-      pathname: '/account-chat',
-      params: { analysisId: insight.id },
-    });
+  const navigateToAccountChat = () => {
+    router.push('/(drawer)/account-chat');
   };
 
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('fr-FR', {
-      day: 'numeric',
-      month: 'short',
-      hour: '2-digit',
-      minute: '2-digit',
-    });
-  };
-
-  const formatNumber = (num: number) => {
-    if (num >= 1000000) {
-      return `${(num / 1000000).toFixed(1)}M`;
-    }
-    if (num >= 1000) {
-      return `${(num / 1000).toFixed(1)}K`;
-    }
-    return num.toString();
-  };
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'completed':
-        return '#4CD964';
-      case 'processing':
-        return '#FF9500';
-      case 'failed':
-        return '#FF3B30';
-      default:
-        return '#888';
-    }
-  };
-
-  const getStatusText = (status: string) => {
-    switch (status) {
-      case 'completed':
-        return 'Terminé';
-      case 'processing':
-        return 'En cours';
-      case 'failed':
-        return 'Échec';
-      default:
-        return 'Inconnu';
-    }
-  };
-
-  if (!isSignedIn) {
+  // Show paywall for non-pro users
+  if (!isPro) {
     return (
-      <SafeAreaView style={styles.container} edges={[]}>
-        <View style={styles.centeredContainer}>
-          <MessageCircle size={48} color="#888" />
-          <Text style={styles.centeredText}>Connectez-vous pour voir vos analyses</Text>
+      <SafeAreaView style={styles.container} edges={['top']}>
+        <View style={styles.header}>
+          <Text style={styles.headerTitle}>Insights Compte</Text>
         </View>
+        
+        <ScrollView style={styles.scrollView}>
+          <View style={styles.paywallContainer}>
+            <View style={styles.paywallHeader}>
+              <Crown size={48} color="#FFD700" />
+              <Text style={styles.paywallTitle}>Insights Pro</Text>
+            </View>
+            
+            <Text style={styles.paywallDescription}>
+              Débloquez des analyses avancées de votre compte TikTok avec des insights 
+              personnalisés alimentés par l'IA pour optimiser votre stratégie de contenu.
+            </Text>
+            
+            <View style={styles.featuresList}>
+              <View style={styles.featureItem}>
+                <Text style={styles.checkmark}>✓</Text>
+                <Text style={styles.featureText}>Analyse complète de votre compte TikTok</Text>
+              </View>
+              <View style={styles.featureItem}>
+                <Text style={styles.checkmark}>✓</Text>
+                <Text style={styles.featureText}>Recommandations personnalisées par IA</Text>
+              </View>
+              <View style={styles.featureItem}>
+                <Text style={styles.checkmark}>✓</Text>
+                <Text style={styles.featureText}>Métriques d'engagement détaillées</Text>
+              </View>
+              <View style={styles.featureItem}>
+                <Text style={styles.checkmark}>✓</Text>
+                <Text style={styles.featureText}>Meilleurs moments de publication</Text>
+              </View>
+              <View style={styles.featureItem}>
+                <Text style={styles.checkmark}>✓</Text>
+                <Text style={styles.featureText}>Analyse des tendances de contenu</Text>
+              </View>
+              <View style={styles.featureItem}>
+                <Text style={styles.checkmark}>✓</Text>
+                <Text style={styles.featureText}>Chat IA pour conseils stratégiques</Text>
+              </View>
+            </View>
+
+            <TouchableOpacity
+              style={styles.upgradeButton}
+              onPress={goPro}
+            >
+              <Zap size={20} color="#fff" />
+              <Text style={styles.upgradeButtonText}>Passer Pro</Text>
+            </TouchableOpacity>
+            
+            <Text style={styles.paywallFooter}>
+              Retournez ici après votre mise à niveau pour accéder à vos insights.
+            </Text>
+          </View>
+        </ScrollView>
       </SafeAreaView>
     );
   }
 
-  if (!isReady) {
+  if (loading) {
     return (
-      <SafeAreaView style={styles.container} edges={[]}>
-        <View style={styles.centeredContainer}>
+      <SafeAreaView style={styles.container} edges={['top']}>
+        <View style={styles.header}>
+          <Text style={styles.headerTitle}>Insights Compte</Text>
+        </View>
+        <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#007AFF" />
-          <Text style={styles.centeredText}>Chargement...</Text>
+          <Text style={styles.loadingText}>Chargement de vos insights...</Text>
         </View>
       </SafeAreaView>
     );
   }
 
   return (
-    <SafeAreaView style={styles.container} edges={[]}>
-      {/* Header */}
+    <SafeAreaView style={styles.container} edges={['top']}>
       <View style={styles.header}>
-        <View style={styles.headerContent}>
-          <BarChart3 size={24} color="#007AFF" />
-          <Text style={styles.headerTitle}>Mes Analyses</Text>
-        </View>
-        {!isPro && (
-          <View style={styles.proRequired}>
-            <Crown size={16} color="#FFD700" />
-            <Text style={styles.proText}>PRO</Text>
-          </View>
-        )}
+        <Text style={styles.headerTitle}>Insights Compte</Text>
+        <TouchableOpacity 
+          onPress={handleRefresh}
+          style={styles.refreshButton}
+          disabled={refreshing}
+        >
+          <RefreshCw 
+            size={20} 
+            color="#007AFF" 
+            style={[refreshing && styles.rotating]} 
+          />
+        </TouchableOpacity>
       </View>
 
-      {/* Content */}
-      <ScrollView
-        style={styles.content}
-        showsVerticalScrollIndicator={false}
-        refreshControl={
-          <RefreshControl
-            refreshing={isLoading}
-            onRefresh={loadInsights}
-            tintColor="#007AFF"
-          />
-        }
-      >
-        {error && (
-          <View style={styles.errorContainer}>
-            <Text style={styles.errorText}>❌ {error}</Text>
-          </View>
-        )}
-
-        {/* Empty State */}
-        {!isLoading && (!insights || insights.length === 0) && (
-          <View style={styles.emptyState}>
-            <TrendingUp size={64} color="#666" />
-            <Text style={styles.emptyTitle}>Aucune analyse disponible</Text>
-            <Text style={styles.emptyDescription}>
-              {!isPro 
-                ? 'Passez PRO pour analyser des comptes TikTok'
-                : 'Commencez par analyser votre premier compte TikTok'
-              }
-            </Text>
-            <TouchableOpacity
-              style={[
-                styles.emptyButton,
-                !isPro && styles.emptyButtonDisabled
-              ]}
-              onPress={handleCreateNewAnalysis}
-            >
-              <Plus size={20} color={isPro ? "#007AFF" : "#666"} />
-              <Text style={[
-                styles.emptyButtonText,
-                !isPro && styles.emptyButtonTextDisabled
-              ]}>
-                {!isPro ? 'PRO Requis' : 'Analyser un compte'}
-              </Text>
-            </TouchableOpacity>
-          </View>
-        )}
-
-        {/* Loading State */}
-        {isLoading && insights.length === 0 && (
-          <View style={styles.loadingContainer}>
-            <ActivityIndicator size="large" color="#007AFF" />
-            <Text style={styles.loadingText}>Chargement des analyses...</Text>
-          </View>
-        )}
-
-        {/* Insights List */}
-        {insights.map((insight) => (
-          <TouchableOpacity
-            key={insight.id}
-            style={styles.insightCard}
-            onPress={() => handleViewInsight(insight)}
-          >
-            <View style={styles.insightHeader}>
-              <View style={styles.insightIcon}>
-                <BarChart3 size={20} color="#007AFF" />
+      <ScrollView style={styles.scrollView}>
+        {/* Stats Overview */}
+        {stats && (
+          <View style={styles.statsContainer}>
+            <Text style={styles.sectionTitle}>Vue d'ensemble</Text>
+            <View style={styles.statsGrid}>
+              <View style={styles.statCard}>
+                <Users size={24} color="#007AFF" />
+                <Text style={styles.statValue}>{stats.followers_count.toLocaleString()}</Text>
+                <Text style={styles.statLabel}>Abonnés</Text>
               </View>
-              <View style={styles.insightInfo}>
-                <Text style={styles.insightHandle} numberOfLines={1}>
-                  {insight.tiktok_handle}
-                </Text>
-                <View style={styles.insightMeta}>
-                  <Clock size={12} color="#888" />
-                  <Text style={styles.insightDate}>
-                    {formatDate(insight.analysis_date)}
-                  </Text>
+              <View style={styles.statCard}>
+                <Eye size={24} color="#10b981" />
+                <Text style={styles.statValue}>{stats.avg_views.toLocaleString()}</Text>
+                <Text style={styles.statLabel}>Vues moy.</Text>
+              </View>
+              <View style={styles.statCard}>
+                <Heart size={24} color="#ef4444" />
+                <Text style={styles.statValue}>{stats.avg_engagement.toFixed(1)}%</Text>
+                <Text style={styles.statLabel}>Engagement</Text>
+              </View>
+              <View style={styles.statCard}>
+                <BarChart3 size={24} color="#f59e0b" />
+                <Text style={styles.statValue}>{stats.videos_count}</Text>
+                <Text style={styles.statLabel}>Vidéos</Text>
+              </View>
+            </View>
+          </View>
+        )}
+
+        {/* Latest Analysis */}
+        {analyses.length > 0 && (
+          <View style={styles.analysisContainer}>
+            <Text style={styles.sectionTitle}>Dernière Analyse</Text>
+            {analyses.map((analysis) => (
+              <View key={analysis.id} style={styles.analysisCard}>
+                <View style={styles.analysisHeader}>
+                  <Text style={styles.analysisAccount}>{analysis.account_handle}</Text>
+                  <View style={styles.engagementBadge}>
+                    <TrendingUp size={16} color="#10b981" />
+                    <Text style={styles.engagementRate}>
+                      {analysis.engagement_rate}% engagement
+                    </Text>
+                  </View>
+                </View>
+
+                <View style={styles.analysisSection}>
+                  <Text style={styles.analysisSubtitle}>Meilleurs moments</Text>
+                  <View style={styles.timeSlots}>
+                    {analysis.best_posting_times.map((time, index) => (
+                      <View key={index} style={styles.timeSlot}>
+                        <Text style={styles.timeSlotText}>{time}</Text>
+                      </View>
+                    ))}
+                  </View>
+                </View>
+
+                <View style={styles.analysisSection}>
+                  <Text style={styles.analysisSubtitle}>Thèmes populaires</Text>
+                  <View style={styles.themes}>
+                    {analysis.top_content_themes.map((theme, index) => (
+                      <View key={index} style={styles.themeTag}>
+                        <Text style={styles.themeText}>{theme}</Text>
+                      </View>
+                    ))}
+                  </View>
+                </View>
+
+                <View style={styles.analysisSection}>
+                  <Text style={styles.analysisSubtitle}>Recommandations</Text>
+                  {analysis.recommendations.slice(0, 3).map((rec, index) => (
+                    <View key={index} style={styles.recommendation}>
+                      <Text style={styles.recommendationText}>• {rec}</Text>
+                    </View>
+                  ))}
                 </View>
               </View>
-              <View style={styles.insightStatus}>
-                <View
-                  style={[
-                    styles.statusDot,
-                    { backgroundColor: getStatusColor(insight.status) },
-                  ]}
-                />
-                <Text
-                  style={[
-                    styles.statusText,
-                    { color: getStatusColor(insight.status) },
-                  ]}
-                >
-                  {getStatusText(insight.status)}
+            ))}
+          </View>
+        )}
+
+        {/* Quick Actions */}
+        <View style={styles.actionsContainer}>
+          <Text style={styles.sectionTitle}>Actions rapides</Text>
+          
+          <TouchableOpacity 
+            style={styles.actionCard}
+            onPress={navigateToAccountChat}
+          >
+            <View style={styles.actionContent}>
+              <MessageCircle size={24} color="#007AFF" />
+              <View style={styles.actionText}>
+                <Text style={styles.actionTitle}>Chat Stratégique</Text>
+                <Text style={styles.actionSubtitle}>
+                  Discutez avec l'IA pour des conseils personnalisés
                 </Text>
               </View>
             </View>
-
-            {insight.insights_summary && (
-              <Text style={styles.insightSummary} numberOfLines={2}>
-                {insight.insights_summary}
-              </Text>
-            )}
-
-            {insight.metrics && (
-              <View style={styles.insightMetrics}>
-                <View style={styles.metric}>
-                  <Text style={styles.metricValue}>
-                    {formatNumber(insight.metrics.followers)}
-                  </Text>
-                  <Text style={styles.metricLabel}>Followers</Text>
-                </View>
-                <View style={styles.metric}>
-                  <Text style={styles.metricValue}>
-                    {insight.metrics.engagement_rate}%
-                  </Text>
-                  <Text style={styles.metricLabel}>Engagement</Text>
-                </View>
-                <View style={styles.metric}>
-                  <Text style={styles.metricValue}>
-                    {insight.metrics.videos_analyzed}
-                  </Text>
-                  <Text style={styles.metricLabel}>Vidéos</Text>
-                </View>
-              </View>
-            )}
+            <ChevronRight size={20} color="#666" />
           </TouchableOpacity>
-        ))}
-      </ScrollView>
 
-      {/* Floating Action Button */}
-      <TouchableOpacity
-        style={[
-          styles.floatingButton,
-          !isPro && styles.floatingButtonDisabled
-        ]}
-        onPress={handleCreateNewAnalysis}
-      >
-        {!isPro ? (
-          <Crown size={24} color="#666" />
-        ) : (
-          <Plus size={24} color="#fff" />
-        )}
-      </TouchableOpacity>
+          <TouchableOpacity 
+            style={styles.actionCard}
+            onPress={() => {
+              // TODO: Navigation vers nouvelle analyse
+              Alert.alert('Bientôt disponible', 'Fonctionnalité en cours de développement');
+            }}
+          >
+            <View style={styles.actionContent}>
+              <BarChart3 size={24} color="#10b981" />
+              <View style={styles.actionText}>
+                <Text style={styles.actionTitle}>Nouvelle Analyse</Text>
+                <Text style={styles.actionSubtitle}>
+                  Lancer une analyse fraîche de votre compte
+                </Text>
+              </View>
+            </View>
+            <ChevronRight size={20} color="#666" />
+          </TouchableOpacity>
+        </View>
+      </ScrollView>
+      
+      {/* Debug component - only shows in development */}
+      <DebugRevenueCat />
     </SafeAreaView>
   );
 }
@@ -343,220 +334,241 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#000',
   },
-  centeredContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    gap: 16,
-  },
-  centeredText: {
-    color: '#888',
-    fontSize: 16,
-    textAlign: 'center',
-  },
   header: {
     flexDirection: 'row',
-    alignItems: 'center',
     justifyContent: 'space-between',
+    alignItems: 'center',
     paddingHorizontal: 20,
     paddingVertical: 16,
     borderBottomWidth: 1,
     borderBottomColor: '#333',
   },
-  headerContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-  },
   headerTitle: {
-    fontSize: 18,
-    fontWeight: '600',
+    fontSize: 24,
+    fontWeight: 'bold',
     color: '#fff',
   },
-  proRequired: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: 'rgba(255, 215, 0, 0.1)',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 12,
-    gap: 4,
+  refreshButton: {
+    padding: 8,
   },
-  proText: {
-    color: '#FFD700',
-    fontSize: 12,
-    fontWeight: '600',
+  rotating: {
+    transform: [{ rotate: '360deg' }],
   },
-  content: {
+  scrollView: {
     flex: 1,
-    padding: 20,
-  },
-  errorContainer: {
-    backgroundColor: 'rgba(255, 59, 48, 0.1)',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 59, 48, 0.3)',
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 16,
-  },
-  errorText: {
-    color: '#FF3B30',
-    fontSize: 14,
-    textAlign: 'center',
   },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
     gap: 16,
-    paddingVertical: 60,
   },
   loadingText: {
-    color: '#888',
+    color: '#666',
     fontSize: 16,
   },
-  emptyState: {
-    flex: 1,
-    justifyContent: 'center',
+  paywallContainer: {
+    padding: 20,
+  },
+  paywallHeader: {
     alignItems: 'center',
-    paddingVertical: 60,
+    marginBottom: 20,
   },
-  emptyTitle: {
-    fontSize: 20,
-    fontWeight: '600',
+  paywallTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
     color: '#fff',
-    marginTop: 16,
+    marginTop: 12,
   },
-  emptyDescription: {
+  paywallDescription: {
+    color: '#fff',
     fontSize: 16,
-    color: '#888',
-    textAlign: 'center',
-    marginTop: 8,
+    marginBottom: 20,
+    lineHeight: 22,
+  },
+  featuresList: {
     marginBottom: 24,
   },
-  emptyButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: 'rgba(0, 122, 255, 0.1)',
-    borderWidth: 1,
-    borderColor: '#007AFF',
-    borderRadius: 12,
-    paddingHorizontal: 20,
-    paddingVertical: 12,
-    gap: 8,
-  },
-  emptyButtonDisabled: {
-    backgroundColor: 'rgba(102, 102, 102, 0.1)',
-    borderColor: '#666',
-  },
-  emptyButtonText: {
-    color: '#007AFF',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  emptyButtonTextDisabled: {
-    color: '#666',
-  },
-  insightCard: {
-    backgroundColor: '#1a1a1a',
-    borderRadius: 16,
-    padding: 16,
-    marginBottom: 16,
-    borderWidth: 1,
-    borderColor: '#333',
-  },
-  insightHeader: {
+  featureItem: {
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: 12,
   },
-  insightIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 10,
-    backgroundColor: 'rgba(0, 122, 255, 0.1)',
-    justifyContent: 'center',
-    alignItems: 'center',
+  checkmark: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#4CAF50',
     marginRight: 12,
   },
-  insightInfo: {
-    flex: 1,
+  featureText: {
+    color: '#fff',
+    fontSize: 16,
   },
-  insightHandle: {
+  upgradeButton: {
+    backgroundColor: '#FFD700',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 16,
+    borderRadius: 12,
+    gap: 8,
+    marginBottom: 16,
+  },
+  upgradeButtonText: {
+    color: '#000',
     fontSize: 16,
     fontWeight: '600',
-    color: '#fff',
-    marginBottom: 4,
   },
-  insightMeta: {
+  paywallFooter: {
+    color: '#888',
+    fontSize: 14,
+    textAlign: 'center',
+    fontStyle: 'italic',
+  },
+  statsContainer: {
+    padding: 20,
+  },
+  sectionTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#fff',
+    marginBottom: 16,
+  },
+  statsGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 12,
+  },
+  statCard: {
+    backgroundColor: '#1a1a1a',
+    borderRadius: 12,
+    padding: 16,
+    alignItems: 'center',
+    flex: 1,
+    minWidth: '45%',
+    gap: 8,
+  },
+  statValue: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#fff',
+  },
+  statLabel: {
+    fontSize: 12,
+    color: '#666',
+    textAlign: 'center',
+  },
+  analysisContainer: {
+    padding: 20,
+    paddingTop: 0,
+  },
+  analysisCard: {
+    backgroundColor: '#1a1a1a',
+    borderRadius: 16,
+    padding: 20,
+    gap: 16,
+  },
+  analysisHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  analysisAccount: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#fff',
+  },
+  engagementBadge: {
     flexDirection: 'row',
     alignItems: 'center',
+    backgroundColor: '#10b981',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 8,
     gap: 4,
   },
-  insightDate: {
+  engagementRate: {
+    color: '#fff',
     fontSize: 12,
-    color: '#888',
+    fontWeight: '600',
   },
-  insightStatus: {
+  analysisSection: {
+    gap: 8,
+  },
+  analysisSubtitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#007AFF',
+  },
+  timeSlots: {
     flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
+    gap: 8,
   },
-  statusDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
+  timeSlot: {
+    backgroundColor: '#333',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 8,
   },
-  statusText: {
+  timeSlotText: {
+    color: '#fff',
     fontSize: 12,
     fontWeight: '500',
   },
-  insightSummary: {
+  themes: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  themeTag: {
+    backgroundColor: '#007AFF',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 8,
+  },
+  themeText: {
+    color: '#fff',
+    fontSize: 12,
+    fontWeight: '500',
+  },
+  recommendation: {
+    paddingLeft: 8,
+  },
+  recommendationText: {
+    color: '#fff',
     fontSize: 14,
-    color: '#ccc',
     lineHeight: 20,
+  },
+  actionsContainer: {
+    padding: 20,
+    paddingTop: 0,
+  },
+  actionCard: {
+    backgroundColor: '#1a1a1a',
+    borderRadius: 12,
+    padding: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     marginBottom: 12,
   },
-  insightMetrics: {
+  actionContent: {
     flexDirection: 'row',
-    justifyContent: 'space-around',
-    borderTopWidth: 1,
-    borderTopColor: '#333',
-    paddingTop: 12,
-  },
-  metric: {
     alignItems: 'center',
+    flex: 1,
+    gap: 12,
   },
-  metricValue: {
+  actionText: {
+    flex: 1,
+  },
+  actionTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#007AFF',
+    color: '#fff',
     marginBottom: 2,
   },
-  metricLabel: {
-    fontSize: 12,
-    color: '#888',
-  },
-  floatingButton: {
-    position: 'absolute',
-    bottom: 30,
-    right: 20,
-    backgroundColor: '#007AFF',
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 4,
-    },
-    shadowOpacity: 0.3,
-    shadowRadius: 6,
-    elevation: 8,
-  },
-  floatingButtonDisabled: {
-    backgroundColor: '#333',
+  actionSubtitle: {
+    fontSize: 14,
+    color: '#666',
   },
 }); 
