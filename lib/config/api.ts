@@ -30,6 +30,15 @@ const API_CONFIGS = {
     voiceClone: '/api/voice-clone',
     onboarding: '/api/onboarding',
 
+    // TikTok Analyzer endpoints
+    tiktokAnalyzer: {
+      baseUrl: 'http://localhost:3001',
+      accountAnalysis: '/api/account-analysis',
+      accountAnalysisStatus: '/api/account-analysis/status',
+      accountAnalysisResult: '/api/account-analysis/result',
+      accountAnalysisChat: '/api/account-analysis/chat',
+    },
+
     // Supabase functions (still needed for some features)
     supabase: {
       baseUrl: process.env.EXPO_PUBLIC_SUPABASE_URL!,
@@ -53,6 +62,15 @@ const API_CONFIGS = {
     webhooksCreatomate: '/api/webhooks/creatomate',
     voiceClone: '/api/voice-clone',
     onboarding: '/api/onboarding',
+
+    // TikTok Analyzer endpoints
+    tiktokAnalyzer: {
+      baseUrl: 'http://localhost:3001',
+      accountAnalysis: '/api/account-analysis',
+      accountAnalysisStatus: '/api/account-analysis/status',
+      accountAnalysisResult: '/api/account-analysis/result',
+      accountAnalysisChat: '/api/account-analysis/chat',
+    },
 
     // Supabase functions (still needed for some features)
     supabase: {
@@ -79,6 +97,15 @@ const API_CONFIGS = {
     webhooksCreatomate: '/api/webhooks/creatomate',
     voiceClone: '/api/voice-clone',
     onboarding: '/api/onboarding',
+
+    // TikTok Analyzer endpoints
+    tiktokAnalyzer: {
+      baseUrl: process.env.EXPO_PUBLIC_TIKTOK_ANALYZER_URL || 'https://your-tiktok-analyzer-production-url.com',
+      accountAnalysis: '/api/account-analysis',
+      accountAnalysisStatus: '/api/account-analysis/status',
+      accountAnalysisResult: '/api/account-analysis/result',
+      accountAnalysisChat: '/api/account-analysis/chat',
+    },
 
     // Supabase functions (still needed for some features)
     supabase: {
@@ -175,6 +202,27 @@ export const API_ENDPOINTS = {
   ONBOARDING: () => {
     const config = getCurrentConfig();
     return config.baseUrl + config.onboarding;
+  },
+
+  // TikTok Analysis endpoints
+  TIKTOK_ANALYSIS_START: () => {
+    const config = getCurrentConfig();
+    return config.tiktokAnalyzer.baseUrl + config.tiktokAnalyzer.accountAnalysis;
+  },
+
+  TIKTOK_ANALYSIS_STATUS: (runId: string) => {
+    const config = getCurrentConfig();
+    return `${config.tiktokAnalyzer.baseUrl}${config.tiktokAnalyzer.accountAnalysisStatus}/${runId}`;
+  },
+
+  TIKTOK_ANALYSIS_RESULT: (runId: string) => {
+    const config = getCurrentConfig();
+    return `${config.tiktokAnalyzer.baseUrl}${config.tiktokAnalyzer.accountAnalysisResult}/${runId}`;
+  },
+
+  TIKTOK_ANALYSIS_CHAT: () => {
+    const config = getCurrentConfig();
+    return config.tiktokAnalyzer.baseUrl + config.tiktokAnalyzer.accountAnalysisChat;
   },
 
   // Supabase functions (still needed)

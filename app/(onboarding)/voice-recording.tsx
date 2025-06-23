@@ -172,7 +172,7 @@ export default function VoiceRecordingScreen() {
   };
 
   const handleContinue = () => {
-    nextStep();
+    router.replace('/(onboarding)/tiktok-analysis');
   };
 
   const handleStartRecording = () => {
@@ -261,8 +261,8 @@ export default function VoiceRecordingScreen() {
       // Auto-advance when skipping since user explicitly chose to skip
       // Add a small delay to ensure processing state is cleared
       setTimeout(() => {
-         console.log('Voice recording skip: auto-advancing to next step');
-        nextStep();
+         console.log('Voice recording skip: redirecting to TikTok analysis');
+        router.replace('/(onboarding)/tiktok-analysis');
       }, 100);
     }
   };

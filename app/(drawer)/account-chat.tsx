@@ -14,6 +14,7 @@ import { Send, MessageCircle, CheckCircle2, BarChart3, TrendingUp, Crown } from 
 import { useAuth } from '@clerk/clerk-expo';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useRevenueCat } from '@/providers/RevenueCat';
+import { useTikTokAnalysis } from '../../hooks/useTikTokAnalysis';
 
 /**
  * 🎯 ACCOUNT ANALYSIS CHAT - TikTok Account Intelligence
@@ -30,18 +31,60 @@ export default function AccountChatScreen() {
   const [inputMessage, setInputMessage] = useState('');
   const [tiktokHandle, setTiktokHandle] = useState('');
   const [showHandleInput, setShowHandleInput] = useState(true);
-  const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [messages, setMessages] = useState<any[]>([]);
-  const [currentAnalysis, setCurrentAnalysis] = useState<any>(null);
   const scrollViewRef = useRef<ScrollView>(null);
   
   // RevenueCat pour vérifier le statut PRO
   const { isPro, isReady } = useRevenueCat();
+  
+  // TikTok Analysis Hook
+  const {
+    startAnalysis,
+    isAnalyzing,
+    progress,
+    analysisResult,
+    jobStatus,
+    error: analysisError,
+    hasResult,
+    clearError,
+    reset
+  } = useTikTokAnalysis();
 
   // Auto-scroll vers le bas
   useEffect(() => {
     scrollViewRef.current?.scrollToEnd({ animated: true });
   }, [messages]);
+
+  // Surveiller les changements d'état de l'analyse
+  useEffect(() => {
+    if (hasResult && analysisResult) {
+      // Ajouter un message de succès avec les résultats
+      const successMessage = {
+        id: `msg_${Date.now()}_success`,
+        role: 'assistant',
+        content: `✅ Analyse du compte @${tiktokHandle} terminée !\n\n📊 **Résultats:**\n• ${analysisResult.account_analysis.followers.toLocaleString()} abonnés\n• ${analysisResult.account_analysis.videos_count} vidéos\n• ${analysisResult.account_analysis.engagement_rate}% d'engagement\n\n💡 **Résumé:** ${analysisResult.insights.performance_summary}\n\nJe peux maintenant répondre à vos questions sur ce compte !`,
+        timestamp: new Date().toISOString(),
+        metadata: { isSystemMessage: true, isComplete: true },
+      };
+      
+      setMessages(prev => [...prev, successMessage]);
+    }
+  }, [hasResult, analysisResult, tiktokHandle]);
+
+  // Surveiller les erreurs d'analyse
+  useEffect(() => {
+    if (analysisError) {
+      const errorMessage = {
+        id: `msg_${Date.now()}_error`,
+        role: 'assistant',
+        content: `❌ Erreur lors de l'analyse: ${analysisError}\n\nVeuillez réessayer avec un autre handle ou vérifier que le compte est public.`,
+        timestamp: new Date().toISOString(),
+        metadata: { isSystemMessage: true, isError: true },
+      };
+      
+      setMessages(prev => [...prev, errorMessage]);
+    }
+  }, [analysisError]);
 
   // Vérification du statut PRO
   useEffect(() => {
@@ -72,38 +115,32 @@ export default function AccountChatScreen() {
       return;
     }
 
-    setIsAnalyzing(true);
-    
     try {
-      // TODO: Appeler l'API d'analyse TikTok
-      console.log('Analyzing TikTok account:', tiktokHandle);
+      console.log('🎯 Starting TikTok analysis for:', tiktokHandle);
       
-      // Simulation pour l'instant
-      await new Promise(resolve => setTimeout(resolve, 3000));
+      // Démarrer l'analyse via notre API
+      await startAnalysis(tiktokHandle);
       
-      // Ajouter un message système
-      const systemMessage = {
-        id: `msg_${Date.now()}_system`,
+      // Ajouter un message système de démarrage
+      const startMessage = {
+        id: `msg_${Date.now()}_start`,
         role: 'assistant',
-        content: `✅ Analyse du compte @${tiktokHandle} terminée ! Je peux maintenant répondre à vos questions sur ce compte. Que souhaitez-vous savoir ?`,
+        content: `🔍 Analyse du compte @${tiktokHandle} en cours...\n\nJe vais analyser les vidéos, les statistiques d'engagement et générer des insights personnalisés. Cela peut prendre quelques minutes.`,
         timestamp: new Date().toISOString(),
-        metadata: { isSystemMessage: true },
+        metadata: { isSystemMessage: true, isProgress: true },
       };
       
-      setMessages([systemMessage]);
+      setMessages([startMessage]);
       setShowHandleInput(false);
-      setCurrentAnalysis({ handle: tiktokHandle, status: 'completed' });
       
     } catch (error) {
-      console.error('Error analyzing account:', error);
-      Alert.alert('Erreur', 'Impossible d\'analyser ce compte. Veuillez réessayer.');
-    } finally {
-      setIsAnalyzing(false);
+      console.error('❌ Error analyzing account:', error);
+      Alert.alert('Erreur', `Impossible d'analyser ce compte: ${error instanceof Error ? error.message : 'Erreur inconnue'}`);
     }
   };
 
   const handleSendMessage = async () => {
-    if (!inputMessage.trim() || !currentAnalysis) return;
+    if (!inputMessage.trim() || !hasResult) return;
     
     // Ajouter le message utilisateur
     const userMessage = {
@@ -114,14 +151,32 @@ export default function AccountChatScreen() {
     };
     
     setMessages(prev => [...prev, userMessage]);
+    const currentMessage = inputMessage.trim();
     setInputMessage('');
     
-    // Simulation de réponse IA
+    // Simulation de réponse IA basée sur l'analyse
     setTimeout(() => {
+      let response = '';
+      
+      if (analysisResult) {
+        // Générer une réponse contextuelle basée sur les données d'analyse
+        if (currentMessage.toLowerCase().includes('engagement')) {
+          response = `L'engagement de @${tiktokHandle} est de ${analysisResult.account_analysis.engagement_rate}%. ${analysisResult.insights.performance_summary}`;
+        } else if (currentMessage.toLowerCase().includes('recommandation')) {
+          response = `Voici mes recommandations pour @${tiktokHandle}:\n\n${analysisResult.insights.recommendations.map((rec, i) => `${i + 1}. ${rec}`).join('\n')}`;
+        } else if (currentMessage.toLowerCase().includes('stratégie')) {
+          response = `Stratégie de contenu pour @${tiktokHandle}:\n\n${analysisResult.insights.content_strategy}`;
+        } else {
+          response = `Concernant "${currentMessage}" pour le compte @${tiktokHandle}:\n\n${analysisResult.insights.performance_summary}\n\nPour plus de détails spécifiques, demandez-moi des informations sur l'engagement, les recommandations ou la stratégie de contenu !`;
+        }
+      } else {
+        response = `Je n'ai pas encore d'analyse complète pour répondre à cette question. Veuillez d'abord analyser un compte TikTok.`;
+      }
+      
       const aiMessage = {
         id: `msg_${Date.now()}_assistant`,
         role: 'assistant',
-        content: `Voici mon analyse concernant "${inputMessage.trim()}" pour le compte @${currentAnalysis.handle}:\n\nCette fonctionnalité sera bientôt connectée à notre système d'analyse TikTok complet !`,
+        content: response,
         timestamp: new Date().toISOString(),
       };
       setMessages(prev => [...prev, aiMessage]);
@@ -270,12 +325,25 @@ export default function AccountChatScreen() {
             <Text style={styles.loadingSubtext}>
               Scraping et analyse du compte @{tiktokHandle}
             </Text>
+            {progress > 0 && (
+              <View style={styles.progressContainer}>
+                <View style={styles.progressBar}>
+                  <View style={[styles.progressFill, { width: `${progress}%` }]} />
+                </View>
+                <Text style={styles.progressText}>{progress}%</Text>
+              </View>
+            )}
+            {jobStatus && (
+              <Text style={styles.statusText}>
+                Status: {jobStatus.status} • {jobStatus.job_type}
+              </Text>
+            )}
           </View>
         )}
       </ScrollView>
 
       {/* Input Section */}
-      {currentAnalysis && !showHandleInput && (
+      {hasResult && !showHandleInput && (
         <View style={styles.inputContainer}>
           <View style={styles.inputWrapper}>
             <View style={styles.inputRow}>
@@ -529,5 +597,34 @@ const styles = StyleSheet.create({
   },
   sendButtonDisabled: {
     backgroundColor: '#333',
+  },
+  progressContainer: {
+    width: '100%',
+    alignItems: 'center',
+    gap: 8,
+    marginTop: 16,
+  },
+  progressBar: {
+    width: '80%',
+    height: 4,
+    backgroundColor: '#333',
+    borderRadius: 2,
+    overflow: 'hidden',
+  },
+  progressFill: {
+    height: '100%',
+    backgroundColor: '#007AFF',
+    borderRadius: 2,
+  },
+  progressText: {
+    color: '#007AFF',
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  statusText: {
+    color: '#888',
+    fontSize: 12,
+    textAlign: 'center',
+    marginTop: 8,
   },
 }); 
