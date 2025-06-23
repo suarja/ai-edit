@@ -38,6 +38,7 @@ export interface ScriptChatRequest {
   outputLanguage: string;
   editorialProfileId?: string;
   conversationHistory?: ChatMessage[];
+  isPro?: boolean; // Send Pro status to backend
 }
 
 export interface ScriptChatResponse {
@@ -122,6 +123,7 @@ export const scriptChatRequestSchema = z.object({
   outputLanguage: z.string(),
   editorialProfileId: z.string().optional(),
   conversationHistory: z.array(chatMessageSchema).optional(),
+  isPro: z.boolean().optional(),
 });
 
 // Utility Functions

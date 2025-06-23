@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useAuth } from '@clerk/clerk-expo';
 import { useGetUser } from '@/lib/hooks/useGetUser';
+import { useRevenueCat } from '@/providers/RevenueCat';
 import { 
   ScriptDraft, 
   ChatMessage, 
@@ -50,6 +51,7 @@ interface UseScriptChatReturn {
 export function useScriptChat(options: UseScriptChatOptions = {}): UseScriptChatReturn {
   const { getToken } = useAuth();
   const { fetchUser } = useGetUser();
+  const { isPro } = useRevenueCat();
   
   // State
   const [scriptDraft, setScriptDraft] = useState<ScriptDraft | null>(null);
@@ -147,6 +149,7 @@ export function useScriptChat(options: UseScriptChatOptions = {}): UseScriptChat
         message,
         outputLanguage: options.outputLanguage || 'fr',
         editorialProfileId: options.editorialProfileId,
+        isPro: isPro,
       };
 
       const token = await getToken();

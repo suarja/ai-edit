@@ -35,7 +35,7 @@ export default function AccountChatScreen() {
   const scrollViewRef = useRef<ScrollView>(null);
   
   // RevenueCat pour vérifier le statut PRO
-  const { isPro, isReady } = useRevenueCat();
+  const { isPro, isReady, goPro } = useRevenueCat();
   
   // TikTok Analysis Hook
   const {
@@ -43,7 +43,7 @@ export default function AccountChatScreen() {
     isAnalyzing,
     progress,
     analysisResult,
-    jobStatus,
+    status,
     error: analysisError,
     hasResult,
     clearError,
@@ -86,7 +86,7 @@ export default function AccountChatScreen() {
     }
   }, [analysisError]);
 
-  // Vérification du statut PRO
+  // Vérification du statut PRO - utiliser goPro comme account-insights
   useEffect(() => {
     if (isReady && !isPro) {
       Alert.alert(
@@ -94,7 +94,7 @@ export default function AccountChatScreen() {
         'L\'analyse de compte TikTok nécessite un abonnement PRO. Souhaitez-vous mettre à niveau ?',
         [
           { text: 'Plus tard', onPress: () => router.back() },
-          { text: 'Voir les plans', onPress: () => router.push('/subscription') },
+          { text: 'Voir les plans', onPress: () => goPro() },
         ]
       );
     }
@@ -236,6 +236,66 @@ export default function AccountChatScreen() {
     );
   }
 
+  // Show paywall for non-pro users
+  if (isReady && !isPro) {
+    return (
+      <SafeAreaView style={styles.container} edges={['top']}>
+        <View style={styles.header}>
+          <Text style={styles.headerTitle}>Chat avec votre Compte</Text>
+        </View>
+        
+        <ScrollView style={styles.scrollView}>
+          <View style={styles.paywallContainer}>
+            <View style={styles.paywallHeader}>
+              <Crown size={48} color="#FFD700" />
+              <Text style={styles.paywallTitle}>Chat TikTok Pro</Text>
+            </View>
+            
+            <Text style={styles.paywallDescription}>
+              Analysez votre compte TikTok et discutez avec notre IA experte pour 
+              obtenir des conseils personnalisés et optimiser votre stratégie de contenu.
+            </Text>
+            
+            <View style={styles.featuresList}>
+              <View style={styles.featureItem}>
+                <Text style={styles.checkmark}>✓</Text>
+                <Text style={styles.featureText}>Analyse complète de votre compte TikTok</Text>
+              </View>
+              <View style={styles.featureItem}>
+                <Text style={styles.checkmark}>✓</Text>
+                <Text style={styles.featureText}>Chat intelligent avec votre expert IA</Text>
+              </View>
+              <View style={styles.featureItem}>
+                <Text style={styles.checkmark}>✓</Text>
+                <Text style={styles.featureText}>Recommandations personnalisées en temps réel</Text>
+              </View>
+              <View style={styles.featureItem}>
+                <Text style={styles.checkmark}>✓</Text>
+                <Text style={styles.featureText}>Stratégies d'engagement optimisées</Text>
+              </View>
+              <View style={styles.featureItem}>
+                <Text style={styles.checkmark}>✓</Text>
+                <Text style={styles.featureText}>Analyse des tendances de votre niche</Text>
+              </View>
+            </View>
+
+            <TouchableOpacity
+              style={styles.upgradeButton}
+              onPress={goPro}
+            >
+              <Crown size={20} color="#fff" />
+              <Text style={styles.upgradeButtonText}>Passer Pro</Text>
+            </TouchableOpacity>
+            
+            <Text style={styles.paywallFooter}>
+              Déverrouillez le chat TikTok avec votre abonnement Pro.
+            </Text>
+          </View>
+        </ScrollView>
+      </SafeAreaView>
+    );
+  }
+
   if (!isReady) {
     return (
       <SafeAreaView style={styles.container} edges={['top']}>
@@ -333,9 +393,9 @@ export default function AccountChatScreen() {
                 <Text style={styles.progressText}>{progress}%</Text>
               </View>
             )}
-            {jobStatus && (
+            {status && (
               <Text style={styles.statusText}>
-                Status: {jobStatus.status} • {jobStatus.job_type}
+                Status: {status}
               </Text>
             )}
           </View>
@@ -542,7 +602,10 @@ const styles = StyleSheet.create({
     color: '#888',
   },
   checkmark: {
-    marginLeft: 4,
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#4CAF50',
+    marginRight: 12,
   },
   loadingContainer: {
     alignItems: 'center',
@@ -626,5 +689,65 @@ const styles = StyleSheet.create({
     fontSize: 12,
     textAlign: 'center',
     marginTop: 8,
+  },
+  // Paywall styles
+  scrollView: {
+    flex: 1,
+  },
+  paywallContainer: {
+    padding: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+    flex: 1,
+  },
+  paywallHeader: {
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  paywallTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#fff',
+    marginTop: 12,
+  },
+  paywallDescription: {
+    color: '#fff',
+    fontSize: 16,
+    marginBottom: 20,
+    lineHeight: 22,
+    textAlign: 'center',
+  },
+  featuresList: {
+    marginBottom: 24,
+  },
+  featureItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  featureText: {
+    color: '#fff',
+    fontSize: 16,
+  },
+  upgradeButton: {
+    backgroundColor: '#FFD700',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 16,
+    borderRadius: 12,
+    gap: 8,
+    marginBottom: 16,
+  },
+  upgradeButtonText: {
+    color: '#000',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  paywallFooter: {
+    color: '#888',
+    fontSize: 14,
+    textAlign: 'center',
+    fontStyle: 'italic',
   },
 }); 
