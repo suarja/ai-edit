@@ -145,19 +145,33 @@ export function useTikTokAnalysis() {
   }, [effectiveIsPro, getToken, updateState]);
 
   /**
-   * Validate TikTok handle
+   * Update handle input (without validation)
    */
-  const validateHandle = useCallback(async (handle: string): Promise<boolean> => {
-    if (!handle.trim()) {
+  const updateHandleInput = useCallback((handle: string) => {
+    // Clean handle (remove @ and spaces)
+    const cleanHandle = handle.replace(/[@\s]/g, '');
+    updateState({ 
+      handleInput: cleanHandle,
+      handleError: null // Clear any previous errors when user types
+    });
+  }, [updateState]);
+
+  /**
+   * Validate TikTok handle (call this explicitly, not on every keystroke)
+   */
+  const validateHandle = useCallback(async (handle?: string): Promise<boolean> => {
+    const targetHandle = handle || state.handleInput;
+    
+    if (!targetHandle.trim()) {
       updateState({ handleError: 'Veuillez entrer un handle TikTok' });
       return false;
     }
 
     // Clean handle (remove @ and spaces)
-    const cleanHandle = handle.replace(/[@\s]/g, '');
+    const cleanHandle = targetHandle.replace(/[@\s]/g, '');
     
     if (cleanHandle.length < 2) {
-      updateState({ handleError: 'Handle trop court' });
+      updateState({ handleError: 'Handle trop court (minimum 2 caractères)' });
       return false;
     }
 
@@ -214,7 +228,7 @@ export function useTikTokAnalysis() {
       });
       return false;
     }
-  }, [getToken, updateState]);
+  }, [getToken, updateState, state.handleInput]);
 
   /**
    * Start new analysis
@@ -425,6 +439,7 @@ export function useTikTokAnalysis() {
   return {
     // Actions
     startAnalysis,
+    updateHandleInput,
     validateHandle,
     clearError,
     reset,

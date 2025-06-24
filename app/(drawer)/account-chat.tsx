@@ -63,6 +63,7 @@ export default function AccountChatScreen() {
     DEV_OVERRIDE_PRO,
     // Actions
     startAnalysis,
+    updateHandleInput,
     validateHandle,
     clearError,
     reset,
@@ -149,19 +150,33 @@ export default function AccountChatScreen() {
           
           <View style={styles.inputForm}>
             <Text style={styles.inputLabel}>Handle TikTok</Text>
-            <TextInput
-              style={[
-                styles.handleInput,
-                handleError && styles.handleInputError
-              ]}
-              value={handleInput}
-              onChangeText={(text) => validateHandle(text)}
-              placeholder="@username ou lien TikTok"
-              placeholderTextColor="#888"
-              editable={!isValidatingHandle}
-              autoCapitalize="none"
-              autoCorrect={false}
-            />
+            <View style={styles.inputWrapper}>
+              <TextInput
+                style={[
+                  styles.handleInput,
+                  handleError && styles.handleInputError,
+                  isValidatingHandle && styles.handleInputValidating
+                ]}
+                value={handleInput}
+                onChangeText={updateHandleInput}
+                onBlur={() => {
+                  // Validate when user finishes typing (loses focus)
+                  if (handleInput.trim()) {
+                    validateHandle();
+                  }
+                }}
+                placeholder="@username ou lien TikTok"
+                placeholderTextColor="#888"
+                editable={!isValidatingHandle}
+                autoCapitalize="none"
+                autoCorrect={false}
+              />
+              {isValidatingHandle && (
+                <View style={styles.validatingIndicator}>
+                  <ActivityIndicator size="small" color="#007AFF" />
+                </View>
+              )}
+            </View>
             
             {handleError && (
               <View style={styles.errorContainer}>
@@ -170,13 +185,23 @@ export default function AccountChatScreen() {
               </View>
             )}
             
+            <Text style={styles.inputHint}>
+              💡 La validation se fait automatiquement quand vous terminez de taper
+            </Text>
+            
             <TouchableOpacity
               style={[
                 styles.analyzeButton,
-                (!handleInput.trim() || isValidatingHandle || handleError) && styles.analyzeButtonDisabled
+                (!handleInput.trim() || isValidatingHandle) && styles.analyzeButtonDisabled
               ]}
-              onPress={() => startAnalysis()}
-              disabled={!handleInput.trim() || isValidatingHandle || !!handleError}
+              onPress={async () => {
+                // Validate first, then start analysis if valid
+                const isValid = await validateHandle();
+                if (isValid && !hasExistingAnalysis) {
+                  startAnalysis();
+                }
+              }}
+              disabled={!handleInput.trim() || isValidatingHandle}
             >
               {isValidatingHandle ? (
                 <ActivityIndicator size="small" color="#fff" />
@@ -691,11 +716,15 @@ const styles = StyleSheet.create({
     color: '#fff',
     marginBottom: 8,
   },
+  inputWrapper: {
+    position: 'relative',
+  },
   handleInput: {
     backgroundColor: '#1a1a1a',
     borderRadius: 12,
     paddingHorizontal: 16,
     paddingVertical: 16,
+    paddingRight: 48, // Make room for validation indicator
     color: '#fff',
     fontSize: 16,
     borderWidth: 1,
@@ -703,6 +732,22 @@ const styles = StyleSheet.create({
   },
   handleInputError: {
     borderColor: '#ff5555',
+  },
+  handleInputValidating: {
+    borderColor: '#007AFF',
+  },
+  validatingIndicator: {
+    position: 'absolute',
+    right: 12,
+    top: '50%',
+    transform: [{ translateY: -10 }],
+  },
+  inputHint: {
+    fontSize: 12,
+    color: '#666',
+    fontStyle: 'italic',
+    textAlign: 'center',
+    marginTop: -8,
   },
   errorContainer: {
     flexDirection: 'row',
