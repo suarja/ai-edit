@@ -78,7 +78,7 @@ export function useTikTokAnalysis() {
         status: 'starting',
         statusMessage: 'Initialisation de l\'analyse...',
       });
-
+// TODO: envoyer subscription 
       const token = await getToken();
       const response = await fetch(API_ENDPOINTS.TIKTOK_ANALYSIS_START(), {
         method: 'POST',
