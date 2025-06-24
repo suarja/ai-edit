@@ -24,6 +24,8 @@ import {
 } from 'lucide-react-native';
 import { useRevenueCat } from '@/providers/RevenueCat';
 import { DebugRevenueCat } from '@/components/DebugRevenueCat';
+import { useAuth } from '@clerk/clerk-expo';
+import { API_ENDPOINTS } from '@/lib/config/api';
 
 // Types pour les données d'analyse
 interface AccountAnalysis {
@@ -49,6 +51,7 @@ interface AccountStats {
 export default function AccountInsightsScreen() {
   const router = useRouter();
   const { isPro, goPro } = useRevenueCat();
+  const { getToken } = useAuth();
   const [analyses, setAnalyses] = useState<AccountAnalysis[]>([]);
   const [stats, setStats] = useState<AccountStats | null>(null);
   const [loading, setLoading] = useState(true);
@@ -61,36 +64,48 @@ export default function AccountInsightsScreen() {
   const loadAccountData = async () => {
     try {
       setLoading(true);
-      // TODO: Charger les données d'analyse depuis l'API
-      // Données simulées pour l'instant
-      setAnalyses([
-        {
-          id: '1',
-          account_handle: '@mon_compte',
-          engagement_rate: 4.2,
-          followers_growth: 15.8,
-          best_posting_times: ['18:00-20:00', '21:00-23:00'],
-          top_content_themes: ['Tutoriels', 'Behind the scenes', 'Tendances'],
-          recommendations: [
-            'Publier plus de contenu en soirée',
-            'Utiliser plus de hashtags tendance',
-            'Créer plus de contenu interactif'
-          ],
-          created_at: new Date().toISOString(),
-        }
-      ]);
-
-      setStats({
-        followers_count: 12500,
-        following_count: 890,
-        likes_count: 156000,
-        videos_count: 45,
-        avg_views: 8500,
-        avg_engagement: 4.2,
+      
+      // Check for existing completed analysis
+      const token = await getToken();
+      
+      const response = await fetch(API_ENDPOINTS.TIKTOK_ANALYSIS_EXISTING(), {
+        headers: { 'Authorization': `Bearer ${token}` },
       });
+
+      const data = await response.json();
+      if (data.success && data.data) {
+        const analysis = data.data;
+        
+        // Transform API data to component format
+        setAnalyses([{
+          id: analysis.id,
+          account_handle: analysis.tiktok_handle,
+          engagement_rate: analysis.result?.account_analysis?.engagement_rate || 0,
+          followers_growth: 0, // Not available from current API
+          best_posting_times: ['18:00-20:00', '21:00-23:00'], // Static for now
+          top_content_themes: ['Contenu analysé'], // Could be extracted from analysis
+          recommendations: analysis.result?.insights?.recommendations || [],
+          created_at: analysis.created_at,
+        }]);
+
+        setStats({
+          followers_count: analysis.result?.account_analysis?.followers || 0,
+          following_count: 0, // Not available from current API
+          likes_count: 0, // Not available from current API
+          videos_count: analysis.result?.account_analysis?.videos_count || 0,
+          avg_views: 0, // Not available from current API
+          avg_engagement: analysis.result?.account_analysis?.engagement_rate || 0,
+        });
+      } else {
+        // No analysis available - show empty state
+        setAnalyses([]);
+        setStats(null);
+      }
     } catch (error) {
       console.error('Erreur lors du chargement des données:', error);
-      Alert.alert('Erreur', 'Impossible de charger les données d\'analyse');
+      // Don't show error for missing analysis - it's expected for new users
+      setAnalyses([]);
+      setStats(null);
     } finally {
       setLoading(false);
     }
@@ -202,6 +217,24 @@ export default function AccountInsightsScreen() {
       </View>
 
       <ScrollView style={styles.scrollView}>
+        {/* No Analysis State */}
+        {!stats && !loading && (
+          <View style={styles.emptyStateContainer}>
+            <BarChart3 size={64} color="#666" />
+            <Text style={styles.emptyStateTitle}>Aucune analyse disponible</Text>
+            <Text style={styles.emptyStateDescription}>
+              Lancez une analyse de votre compte TikTok pour voir vos insights personnalisés.
+            </Text>
+            <TouchableOpacity 
+              style={styles.startAnalysisButton}
+              onPress={navigateToAccountChat}
+            >
+              <MessageCircle size={20} color="#fff" />
+              <Text style={styles.startAnalysisButtonText}>Commencer l'analyse</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+
         {/* Stats Overview */}
         {stats && (
           <View style={styles.statsContainer}>
@@ -570,5 +603,40 @@ const styles = StyleSheet.create({
   actionSubtitle: {
     fontSize: 14,
     color: '#666',
+  },
+  emptyStateContainer: {
+    padding: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: 400,
+  },
+  emptyStateTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#fff',
+    marginTop: 16,
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  emptyStateDescription: {
+    fontSize: 16,
+    color: '#888',
+    textAlign: 'center',
+    lineHeight: 22,
+    marginBottom: 24,
+  },
+  startAnalysisButton: {
+    backgroundColor: '#007AFF',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 16,
+    borderRadius: 12,
+    gap: 8,
+  },
+  startAnalysisButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
   },
 }); 

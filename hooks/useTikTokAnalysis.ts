@@ -3,6 +3,10 @@ import { useAuth } from '@clerk/clerk-expo';
 import { useRevenueCat } from '@/providers/RevenueCat';
 import { API_ENDPOINTS } from '@/lib/config/api';
 
+// Development override for RevenueCat (set to true to bypass Pro checks)
+// This is a simple code-level toggle for testing - not a UI feature
+const DEV_OVERRIDE_PRO = __DEV__ && true; // Change to false when testing Pro flow
+
 export interface TikTokAnalysisResult {
   account_analysis: {
     followers: number;
@@ -37,7 +41,21 @@ export interface TikTokAnalysisResult {
   };
 }
 
+export interface ExistingAnalysis {
+  id: string;
+  tiktok_handle: string;
+  status: 'pending' | 'scraping' | 'analyzing' | 'completed' | 'failed';
+  progress: number;
+  created_at: string;
+  completed_at?: string;
+  result?: TikTokAnalysisResult;
+}
+
 export interface TikTokAnalysisState {
+  // Flow state
+  currentStep: 'paywall' | 'input' | 'validating' | 'analyzing' | 'chat' | 'error';
+  
+  // Analysis state
   isAnalyzing: boolean;
   progress: number;
   status: 'idle' | 'starting' | 'scraping' | 'analyzing' | 'completed' | 'failed';
@@ -45,13 +63,26 @@ export interface TikTokAnalysisState {
   analysisResult: TikTokAnalysisResult | null;
   error: string | null;
   runId: string | null;
+  
+  // Handle validation
+  handleInput: string;
+  handleError: string | null;
+  isValidatingHandle: boolean;
+  
+  // Existing analysis
+  existingAnalysis: ExistingAnalysis | null;
+  hasExistingAnalysis: boolean;
 }
 
 export function useTikTokAnalysis() {
   const { getToken } = useAuth();
   const { isPro } = useRevenueCat();
   
+  // Effective Pro status (with dev override)
+  const effectiveIsPro = DEV_OVERRIDE_PRO || isPro;
+  
   const [state, setState] = useState<TikTokAnalysisState>({
+    currentStep: effectiveIsPro ? 'input' : 'paywall',
     isAnalyzing: false,
     progress: 0,
     status: 'idle',
@@ -59,26 +90,159 @@ export function useTikTokAnalysis() {
     analysisResult: null,
     error: null,
     runId: null,
+    handleInput: '',
+    handleError: null,
+    isValidatingHandle: false,
+    existingAnalysis: null,
+    hasExistingAnalysis: false,
   });
 
   const updateState = useCallback((updates: Partial<TikTokAnalysisState>) => {
     setState(prev => ({ ...prev, ...updates }));
   }, []);
 
-  const startAnalysis = useCallback(async (tiktokHandle: string) => {
-    if (!isPro) {
+  // Check for existing analysis on mount
+  useEffect(() => {
+    if (effectiveIsPro) {
+      checkExistingAnalysis();
+    }
+  }, [effectiveIsPro]);
+
+  // Update current step based on Pro status
+  useEffect(() => {
+    if (!effectiveIsPro && state.currentStep !== 'paywall') {
+      updateState({ currentStep: 'paywall' });
+    } else if (effectiveIsPro && state.currentStep === 'paywall') {
+      updateState({ currentStep: state.hasExistingAnalysis ? 'chat' : 'input' });
+    }
+  }, [effectiveIsPro, state.hasExistingAnalysis]);
+
+  /**
+   * Check if user has existing completed analysis
+   */
+  const checkExistingAnalysis = useCallback(async () => {
+    if (!effectiveIsPro) return;
+
+    try {
+      const token = await getToken();
+      const response = await fetch(API_ENDPOINTS.TIKTOK_ANALYSIS_EXISTING(), {
+        headers: { 'Authorization': `Bearer ${token}` },
+      });
+
+      const data = await response.json();
+      if (data.success && data.data) {
+        updateState({
+          existingAnalysis: data.data,
+          hasExistingAnalysis: true,
+          currentStep: 'chat',
+          analysisResult: data.data.result,
+          status: 'completed',
+        });
+      }
+    } catch (error) {
+      console.warn('Failed to check existing analysis:', error);
+    }
+  }, [effectiveIsPro, getToken, updateState]);
+
+  /**
+   * Validate TikTok handle
+   */
+  const validateHandle = useCallback(async (handle: string): Promise<boolean> => {
+    if (!handle.trim()) {
+      updateState({ handleError: 'Veuillez entrer un handle TikTok' });
+      return false;
+    }
+
+    // Clean handle (remove @ and spaces)
+    const cleanHandle = handle.replace(/[@\s]/g, '');
+    
+    if (cleanHandle.length < 2) {
+      updateState({ handleError: 'Handle trop court' });
+      return false;
+    }
+
+    updateState({ 
+      isValidatingHandle: true, 
+      handleError: null,
+      handleInput: cleanHandle 
+    });
+
+    try {
+      const token = await getToken();
+      const response = await fetch(API_ENDPOINTS.TIKTOK_HANDLE_VALIDATE(), {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({ tiktok_handle: cleanHandle }),
+      });
+
+      const data = await response.json();
+      
+      if (!data.success) {
+        updateState({ 
+          handleError: data.error || 'Handle invalide',
+          isValidatingHandle: false 
+        });
+        return false;
+      }
+
+      // Check if analysis already exists for this handle
+      if (data.data.hasExistingAnalysis) {
+        updateState({
+          existingAnalysis: data.data.analysis,
+          hasExistingAnalysis: true,
+          currentStep: 'chat',
+          analysisResult: data.data.analysis.result,
+          status: 'completed',
+          isValidatingHandle: false,
+        });
+        return true;
+      }
+
+      updateState({ 
+        isValidatingHandle: false,
+        handleError: null 
+      });
+      return true;
+
+    } catch (error) {
+      updateState({ 
+        handleError: 'Erreur de validation',
+        isValidatingHandle: false 
+      });
+      return false;
+    }
+  }, [getToken, updateState]);
+
+  /**
+   * Start new analysis
+   */
+  const startAnalysis = useCallback(async (tiktokHandle?: string) => {
+    const handle = tiktokHandle || state.handleInput;
+    
+    if (!effectiveIsPro) {
       throw new Error('Fonctionnalité Pro requise');
     }
 
+    // Validate handle first
+    const isValid = await validateHandle(handle);
+    if (!isValid) return;
+
+    // If existing analysis found during validation, don't start new one
+    if (state.hasExistingAnalysis) return;
+
     try {
       updateState({
+        currentStep: 'analyzing',
         isAnalyzing: true,
         error: null,
         progress: 5,
         status: 'starting',
         statusMessage: 'Initialisation de l\'analyse...',
       });
-// TODO: envoyer subscription 
+
       const token = await getToken();
       const response = await fetch(API_ENDPOINTS.TIKTOK_ANALYSIS_START(), {
         method: 'POST',
@@ -86,7 +250,10 @@ export function useTikTokAnalysis() {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`,
         },
-        body: JSON.stringify({ tiktok_handle: tiktokHandle }),
+        body: JSON.stringify({ 
+          tiktok_handle: handle,
+          is_pro: effectiveIsPro 
+        }),
       });
 
       const data = await response.json();
@@ -101,7 +268,7 @@ export function useTikTokAnalysis() {
         statusMessage: 'Collecte des données TikTok...',
       });
       
-      // Démarrer le polling pour suivre le progrès
+      // Start polling for progress
       startPolling(data.data.run_id);
 
     } catch (err: any) {
@@ -110,9 +277,10 @@ export function useTikTokAnalysis() {
         isAnalyzing: false,
         status: 'failed',
         statusMessage: 'Échec de l\'analyse',
+        currentStep: 'error',
       });
     }
-  }, [isPro, getToken, updateState]);
+  }, [effectiveIsPro, state.handleInput, state.hasExistingAnalysis, getToken, updateState, validateHandle]);
 
   const startPolling = useCallback((analysisRunId: string) => {
     let pollCount = 0;
@@ -131,7 +299,6 @@ export function useTikTokAnalysis() {
         if (data.success) {
           const jobData = data.data;
           
-          // Mise à jour du progrès et statut
           let progressValue = 10;
           let statusMessage = 'Analyse en cours...';
           let status: TikTokAnalysisState['status'] = 'scraping';
@@ -160,6 +327,7 @@ export function useTikTokAnalysis() {
               isAnalyzing: false,
               status: 'failed',
               statusMessage: 'Échec de l\'analyse',
+              currentStep: 'error',
             });
             return;
           }
@@ -171,7 +339,6 @@ export function useTikTokAnalysis() {
           });
         }
         
-        // Timeout de sécurité
         if (pollCount >= maxPolls) {
           clearInterval(pollInterval);
           updateState({
@@ -179,13 +346,13 @@ export function useTikTokAnalysis() {
             isAnalyzing: false,
             status: 'failed',
             statusMessage: 'Timeout de l\'analyse',
+            currentStep: 'error',
           });
         }
       } catch (err) {
         console.error('Polling error:', err);
-        // Continue polling en cas d'erreur réseau temporaire
       }
-    }, 3000); // Poll every 3 seconds
+    }, 3000);
   }, [getToken, updateState]);
 
   const fetchResult = useCallback(async (analysisRunId: string) => {
@@ -208,6 +375,7 @@ export function useTikTokAnalysis() {
           progress: 100,
           status: 'completed',
           statusMessage: 'Analyse terminée !',
+          currentStep: 'chat',
         });
       } else {
         throw new Error(data.error || 'Erreur lors de la récupération des résultats');
@@ -218,6 +386,7 @@ export function useTikTokAnalysis() {
         isAnalyzing: false,
         status: 'failed',
         statusMessage: 'Erreur de récupération',
+        currentStep: 'error',
       });
     }
   }, [getToken, updateState]);
@@ -228,6 +397,7 @@ export function useTikTokAnalysis() {
 
   const reset = useCallback(() => {
     setState({
+      currentStep: effectiveIsPro ? 'input' : 'paywall',
       isAnalyzing: false,
       progress: 0,
       status: 'idle',
@@ -235,16 +405,34 @@ export function useTikTokAnalysis() {
       analysisResult: null,
       error: null,
       runId: null,
+      handleInput: '',
+      handleError: null,
+      isValidatingHandle: false,
+      existingAnalysis: null,
+      hasExistingAnalysis: false,
     });
-  }, []);
+  }, [effectiveIsPro]);
+
+  const retryFromError = useCallback(() => {
+    updateState({ 
+      currentStep: 'input',
+      error: null,
+      status: 'idle',
+      isAnalyzing: false,
+    });
+  }, [updateState]);
 
   return {
     // Actions
     startAnalysis,
+    validateHandle,
     clearError,
     reset,
+    retryFromError,
+    checkExistingAnalysis,
     
     // State
+    currentStep: state.currentStep,
     isAnalyzing: state.isAnalyzing,
     progress: state.progress,
     status: state.status,
@@ -253,9 +441,22 @@ export function useTikTokAnalysis() {
     error: state.error,
     runId: state.runId,
     
+    // Handle validation
+    handleInput: state.handleInput,
+    handleError: state.handleError,
+    isValidatingHandle: state.isValidatingHandle,
+    
+    // Existing analysis
+    existingAnalysis: state.existingAnalysis,
+    hasExistingAnalysis: state.hasExistingAnalysis,
+    
     // Computed
     hasResult: !!state.analysisResult,
     isComplete: state.status === 'completed',
     isFailed: state.status === 'failed',
+    effectiveIsPro,
+    
+    // Dev overrides
+    DEV_OVERRIDE_PRO,
   };
 } 

@@ -10,182 +10,380 @@ import {
   Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Send, MessageCircle, CheckCircle2, BarChart3, TrendingUp, Crown } from 'lucide-react-native';
+import { 
+  Send, 
+  MessageCircle, 
+  CheckCircle2, 
+  BarChart3, 
+  TrendingUp, 
+  Crown,
+  AlertCircle,
+  RefreshCw,
+  ArrowLeft
+} from 'lucide-react-native';
 import { useAuth } from '@clerk/clerk-expo';
-import { router, useLocalSearchParams } from 'expo-router';
+import { router } from 'expo-router';
 import { useRevenueCat } from '@/providers/RevenueCat';
 import { useTikTokAnalysis } from '../../hooks/useTikTokAnalysis';
+import { API_ENDPOINTS } from '@/lib/config/api';
 
 /**
- * 🎯 ACCOUNT ANALYSIS CHAT - TikTok Account Intelligence
+ * 🎯 SIMPLIFIED TIKTOK ANALYSIS CHAT
  * 
- * Cette page permet de :
- * 1. Analyser un compte TikTok via handle/URL
- * 2. Converser avec l'IA sur les insights du compte
- * 3. Obtenir des recommandations personnalisées
- * 4. Nécessite un abonnement PRO
+ * Multi-step progressive flow:
+ * 1. Paywall (if not Pro)
+ * 2. Handle Input & Validation
+ * 3. Analysis Progress
+ * 4. Chat Interface
+ * 5. Error Handling
  */
 export default function AccountChatScreen() {
   const { isSignedIn } = useAuth();
-  const { new: isNewChat } = useLocalSearchParams<{ new?: string }>();
+  const { goPro } = useRevenueCat();
   const [inputMessage, setInputMessage] = useState('');
-  const [tiktokHandle, setTiktokHandle] = useState('');
-  const [showHandleInput, setShowHandleInput] = useState(true);
   const [messages, setMessages] = useState<any[]>([]);
+  const [isSendingMessage, setIsSendingMessage] = useState(false);
   const scrollViewRef = useRef<ScrollView>(null);
   
-  // RevenueCat pour vérifier le statut PRO
-  const { isPro, isReady, goPro } = useRevenueCat();
-  
-  // TikTok Analysis Hook
+  // TikTok Analysis Hook with all state management
   const {
-    startAnalysis,
+    currentStep,
     isAnalyzing,
     progress,
-    analysisResult,
     status,
-    error: analysisError,
-    hasResult,
+    statusMessage,
+    analysisResult,
+    error,
+    handleInput,
+    handleError,
+    isValidatingHandle,
+    existingAnalysis,
+    hasExistingAnalysis,
+    effectiveIsPro,
+    DEV_OVERRIDE_PRO,
+    // Actions
+    startAnalysis,
+    validateHandle,
     clearError,
-    reset
+    reset,
+    retryFromError,
   } = useTikTokAnalysis();
 
-  // Auto-scroll vers le bas
+  // Auto-scroll to bottom when messages change
   useEffect(() => {
     scrollViewRef.current?.scrollToEnd({ animated: true });
   }, [messages]);
 
-  // Surveiller les changements d'état de l'analyse
-  useEffect(() => {
-    if (hasResult && analysisResult) {
-      // Ajouter un message de succès avec les résultats
-      const successMessage = {
-        id: `msg_${Date.now()}_success`,
-        role: 'assistant',
-        content: `✅ Analyse du compte @${tiktokHandle} terminée !\n\n📊 **Résultats:**\n• ${analysisResult.account_analysis.followers.toLocaleString()} abonnés\n• ${analysisResult.account_analysis.videos_count} vidéos\n• ${analysisResult.account_analysis.engagement_rate}% d'engagement\n\n💡 **Résumé:** ${analysisResult.insights.performance_summary}\n\nJe peux maintenant répondre à vos questions sur ce compte !`,
-        timestamp: new Date().toISOString(),
-        metadata: { isSystemMessage: true, isComplete: true },
-      };
-      
-      setMessages(prev => [...prev, successMessage]);
-    }
-  }, [hasResult, analysisResult, tiktokHandle]);
+  // Handle authentication
+  if (!isSignedIn) {
+    return (
+      <SafeAreaView style={styles.container} edges={['top']}>
+        <View style={styles.centeredContainer}>
+          <MessageCircle size={48} color="#888" />
+          <Text style={styles.centeredText}>Connectez-vous pour analyser vos comptes TikTok</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
 
-  // Surveiller les erreurs d'analyse
-  useEffect(() => {
-    if (analysisError) {
-      const errorMessage = {
-        id: `msg_${Date.now()}_error`,
-        role: 'assistant',
-        content: `❌ Erreur lors de l'analyse: ${analysisError}\n\nVeuillez réessayer avec un autre handle ou vérifier que le compte est public.`,
-        timestamp: new Date().toISOString(),
-        metadata: { isSystemMessage: true, isError: true },
-      };
-      
-      setMessages(prev => [...prev, errorMessage]);
-    }
-  }, [analysisError]);
+  // STEP 1: Paywall for non-Pro users
+  if (currentStep === 'paywall') {
+    return (
+      <SafeAreaView style={styles.container} edges={['top']}>
+        <View style={styles.header}>
+          <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+            <ArrowLeft size={24} color="#fff" />
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>Chat TikTok</Text>
+          {DEV_OVERRIDE_PRO && (
+            <View style={styles.devBadge}>
+              <Text style={styles.devText}>DEV</Text>
+            </View>
+          )}
+        </View>
+        
+        <ScrollView style={styles.scrollView} contentContainerStyle={styles.paywallContainer}>
+          <View style={styles.paywallHeader}>
+            <Crown size={48} color="#FFD700" />
+            <Text style={styles.paywallTitle}>Chat TikTok Pro</Text>
+          </View>
+          
+          <Text style={styles.paywallDescription}>
+            Analysez votre compte TikTok et discutez avec notre IA experte pour 
+            obtenir des conseils personnalisés et optimiser votre stratégie de contenu.
+          </Text>
+          
+          <View style={styles.featuresList}>
+            <FeatureItem text="Analyse complète de votre compte TikTok" />
+            <FeatureItem text="Chat intelligent avec votre expert IA" />
+            <FeatureItem text="Recommandations personnalisées en temps réel" />
+            <FeatureItem text="Stratégies d'engagement optimisées" />
+            <FeatureItem text="Analyse des tendances de votre niche" />
+          </View>
 
-  // Vérification du statut PRO - utiliser goPro comme account-insights
-  useEffect(() => {
-    if (isReady && !isPro) {
-      Alert.alert(
-        'Fonctionnalité PRO',
-        'L\'analyse de compte TikTok nécessite un abonnement PRO. Souhaitez-vous mettre à niveau ?',
-        [
-          { text: 'Plus tard', onPress: () => router.back() },
-          { text: 'Voir les plans', onPress: () => goPro() },
-        ]
-      );
-    }
-  }, [isReady, isPro]);
+          <TouchableOpacity style={styles.upgradeButton} onPress={goPro}>
+            <Crown size={20} color="#fff" />
+            <Text style={styles.upgradeButtonText}>Passer Pro</Text>
+          </TouchableOpacity>
+          
+          <Text style={styles.paywallFooter}>
+            Déverrouillez le chat TikTok avec votre abonnement Pro.
+          </Text>
+        </ScrollView>
+      </SafeAreaView>
+    );
+  }
 
-  const handleAnalyzeAccount = async () => {
-    if (!tiktokHandle.trim()) {
-      Alert.alert('Erreur', 'Veuillez entrer un handle TikTok valide');
-      return;
-    }
+  // STEP 2: Handle Input & Validation
+  if (currentStep === 'input' || currentStep === 'validating') {
+    return (
+      <SafeAreaView style={styles.container} edges={['top']}>
+        <View style={styles.header}>
+          <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+            <ArrowLeft size={24} color="#fff" />
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>Analyser un Compte</Text>
+          {DEV_OVERRIDE_PRO && (
+            <View style={styles.devBadge}>
+              <Text style={styles.devText}>DEV</Text>
+            </View>
+          )}
+        </View>
 
-    if (!isPro) {
-      Alert.alert(
-        'Fonctionnalité PRO',
-        'Cette fonctionnalité nécessite un abonnement PRO.',
-        [{ text: 'OK' }]
-      );
-      return;
-    }
+        <ScrollView style={styles.scrollView} contentContainerStyle={styles.inputContainer}>
+          <View style={styles.inputHeader}>
+            <TrendingUp size={48} color="#007AFF" />
+            <Text style={styles.inputTitle}>Analyser un compte TikTok</Text>
+            <Text style={styles.inputSubtitle}>
+              Entrez le handle d'un compte pour obtenir des insights détaillés et commencer à chatter avec l'IA
+            </Text>
+          </View>
+          
+          <View style={styles.inputForm}>
+            <Text style={styles.inputLabel}>Handle TikTok</Text>
+            <TextInput
+              style={[
+                styles.handleInput,
+                handleError && styles.handleInputError
+              ]}
+              value={handleInput}
+              onChangeText={(text) => validateHandle(text)}
+              placeholder="@username ou lien TikTok"
+              placeholderTextColor="#888"
+              editable={!isValidatingHandle}
+              autoCapitalize="none"
+              autoCorrect={false}
+            />
+            
+            {handleError && (
+              <View style={styles.errorContainer}>
+                <AlertCircle size={16} color="#ff5555" />
+                <Text style={styles.errorText}>{handleError}</Text>
+              </View>
+            )}
+            
+            <TouchableOpacity
+              style={[
+                styles.analyzeButton,
+                (!handleInput.trim() || isValidatingHandle || handleError) && styles.analyzeButtonDisabled
+              ]}
+              onPress={() => startAnalysis()}
+              disabled={!handleInput.trim() || isValidatingHandle || !!handleError}
+            >
+              {isValidatingHandle ? (
+                <ActivityIndicator size="small" color="#fff" />
+              ) : (
+                <>
+                  <BarChart3 size={20} color="#fff" />
+                  <Text style={styles.analyzeButtonText}>Analyser</Text>
+                </>
+              )}
+            </TouchableOpacity>
+          </View>
+        </ScrollView>
+      </SafeAreaView>
+    );
+  }
 
-    try {
-      console.log('🎯 Starting TikTok analysis for:', tiktokHandle);
-      
-      // Démarrer l'analyse via notre API
-      await startAnalysis(tiktokHandle);
-      
-      // Ajouter un message système de démarrage
-      const startMessage = {
-        id: `msg_${Date.now()}_start`,
-        role: 'assistant',
-        content: `🔍 Analyse du compte @${tiktokHandle} en cours...\n\nJe vais analyser les vidéos, les statistiques d'engagement et générer des insights personnalisés. Cela peut prendre quelques minutes.`,
-        timestamp: new Date().toISOString(),
-        metadata: { isSystemMessage: true, isProgress: true },
-      };
-      
-      setMessages([startMessage]);
-      setShowHandleInput(false);
-      
-    } catch (error) {
-      console.error('❌ Error analyzing account:', error);
-      Alert.alert('Erreur', `Impossible d'analyser ce compte: ${error instanceof Error ? error.message : 'Erreur inconnue'}`);
-    }
-  };
+  // STEP 3: Analysis Progress
+  if (currentStep === 'analyzing') {
+    return (
+      <SafeAreaView style={styles.container} edges={['top']}>
+        <View style={styles.header}>
+          <Text style={styles.headerTitle}>Analyse en cours</Text>
+          {DEV_OVERRIDE_PRO && (
+            <View style={styles.devBadge}>
+              <Text style={styles.devText}>DEV</Text>
+            </View>
+          )}
+        </View>
 
-  const handleSendMessage = async () => {
-    if (!inputMessage.trim() || !hasResult) return;
-    
-    // Ajouter le message utilisateur
-    const userMessage = {
-      id: `msg_${Date.now()}_user`,
-      role: 'user',
-      content: inputMessage.trim(),
-      timestamp: new Date().toISOString(),
-    };
-    
-    setMessages(prev => [...prev, userMessage]);
-    const currentMessage = inputMessage.trim();
-    setInputMessage('');
-    
-    // Simulation de réponse IA basée sur l'analyse
-    setTimeout(() => {
-      let response = '';
-      
-      if (analysisResult) {
-        // Générer une réponse contextuelle basée sur les données d'analyse
-        if (currentMessage.toLowerCase().includes('engagement')) {
-          response = `L'engagement de @${tiktokHandle} est de ${analysisResult.account_analysis.engagement_rate}%. ${analysisResult.insights.performance_summary}`;
-        } else if (currentMessage.toLowerCase().includes('recommandation')) {
-          response = `Voici mes recommandations pour @${tiktokHandle}:\n\n${analysisResult.insights.recommendations.map((rec, i) => `${i + 1}. ${rec}`).join('\n')}`;
-        } else if (currentMessage.toLowerCase().includes('stratégie')) {
-          response = `Stratégie de contenu pour @${tiktokHandle}:\n\n${analysisResult.insights.content_strategy}`;
-        } else {
-          response = `Concernant "${currentMessage}" pour le compte @${tiktokHandle}:\n\n${analysisResult.insights.performance_summary}\n\nPour plus de détails spécifiques, demandez-moi des informations sur l'engagement, les recommandations ou la stratégie de contenu !`;
-        }
-      } else {
-        response = `Je n'ai pas encore d'analyse complète pour répondre à cette question. Veuillez d'abord analyser un compte TikTok.`;
-      }
-      
-      const aiMessage = {
-        id: `msg_${Date.now()}_assistant`,
-        role: 'assistant',
-        content: response,
-        timestamp: new Date().toISOString(),
-      };
-      setMessages(prev => [...prev, aiMessage]);
-    }, 1000);
-  };
+        <ScrollView style={styles.scrollView} contentContainerStyle={styles.analysisContainer}>
+          <View style={styles.analysisHeader}>
+            <BarChart3 size={64} color="#007AFF" />
+            <Text style={styles.analysisTitle}>Analyse de @{handleInput}</Text>
+            <Text style={styles.analysisSubtitle}>
+              Je collecte et analyse les données de votre compte TikTok...
+            </Text>
+          </View>
 
-  const renderMessage = (message: any) => {
+          <View style={styles.progressContainer}>
+            <View style={styles.progressBar}>
+              <View style={[styles.progressFill, { width: `${progress}%` }]} />
+            </View>
+            <Text style={styles.progressText}>{progress}%</Text>
+          </View>
+
+          <View style={styles.statusContainer}>
+            <Text style={styles.statusMessage}>{statusMessage}</Text>
+            <Text style={styles.statusDetails}>
+              {status === 'scraping' && 'Collecte des vidéos et métadonnées...'}
+              {status === 'analyzing' && 'Analyse IA des données collectées...'}
+              {status === 'starting' && 'Initialisation de l\'analyse...'}
+            </Text>
+          </View>
+
+          <View style={styles.analysisSteps}>
+            <AnalysisStep 
+              title="Collecte des données" 
+              completed={progress > 30}
+              current={status === 'scraping'}
+            />
+            <AnalysisStep 
+              title="Analyse IA" 
+              completed={progress > 70}
+              current={status === 'analyzing'}
+            />
+            <AnalysisStep 
+              title="Génération des insights" 
+              completed={progress > 90}
+              current={progress > 90}
+            />
+          </View>
+        </ScrollView>
+      </SafeAreaView>
+    );
+  }
+
+  // STEP 4: Chat Interface
+  if (currentStep === 'chat') {
+    return (
+      <SafeAreaView style={styles.container} edges={[]}>
+        <View style={styles.header}>
+          <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+            <ArrowLeft size={24} color="#fff" />
+          </TouchableOpacity>
+          <View style={styles.headerContent}>
+            <BarChart3 size={24} color="#007AFF" />
+            <Text style={styles.headerTitle}>
+              @{existingAnalysis?.tiktok_handle || handleInput}
+            </Text>
+          </View>
+          {DEV_OVERRIDE_PRO && (
+            <View style={styles.devBadge}>
+              <Text style={styles.devText}>DEV</Text>
+            </View>
+          )}
+        </View>
+
+        <ScrollView 
+          ref={scrollViewRef}
+          style={styles.messagesContainer}
+          showsVerticalScrollIndicator={false}
+        >
+          {/* Welcome message */}
+          <View style={styles.welcomeMessage}>
+            <CheckCircle2 size={24} color="#4CAF50" />
+            <Text style={styles.welcomeText}>
+              ✅ Analyse terminée ! Je connais maintenant votre compte TikTok et peux vous donner des conseils personnalisés.
+            </Text>
+          </View>
+
+          {/* Messages */}
+          {messages.map(renderMessage)}
+          
+          {/* Typing indicator */}
+          {isSendingMessage && (
+            <View style={styles.typingContainer}>
+              <ActivityIndicator size="small" color="#007AFF" />
+              <Text style={styles.typingText}>L'IA réfléchit...</Text>
+            </View>
+          )}
+        </ScrollView>
+
+        {/* Input Section */}
+        <View style={styles.chatInputContainer}>
+          <View style={styles.chatInputWrapper}>
+            <TextInput
+              style={styles.chatTextInput}
+              value={inputMessage}
+              onChangeText={setInputMessage}
+              placeholder="Posez une question sur votre compte..."
+              placeholderTextColor="#888"
+              multiline
+              maxLength={500}
+            />
+            
+            <TouchableOpacity
+              style={[
+                styles.sendButton,
+                !inputMessage.trim() && styles.sendButtonDisabled
+              ]}
+              onPress={handleSendMessage}
+              disabled={!inputMessage.trim() || isSendingMessage}
+            >
+              <Send size={18} color="#fff" />
+            </TouchableOpacity>
+          </View>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  // STEP 5: Error Handling
+  if (currentStep === 'error') {
+    return (
+      <SafeAreaView style={styles.container} edges={['top']}>
+        <View style={styles.header}>
+          <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+            <ArrowLeft size={24} color="#fff" />
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>Erreur</Text>
+        </View>
+
+        <ScrollView style={styles.scrollView} contentContainerStyle={styles.errorPageContainer}>
+          <AlertCircle size={64} color="#ff5555" />
+          <Text style={styles.errorTitle}>Oops ! Quelque chose s'est mal passé</Text>
+          <Text style={styles.errorMessage}>{error}</Text>
+          
+          <View style={styles.errorActions}>
+            <TouchableOpacity style={styles.retryButton} onPress={retryFromError}>
+              <RefreshCw size={20} color="#fff" />
+              <Text style={styles.retryButtonText}>Réessayer</Text>
+            </TouchableOpacity>
+            
+            <TouchableOpacity style={styles.resetButton} onPress={reset}>
+              <Text style={styles.resetButtonText}>Recommencer</Text>
+            </TouchableOpacity>
+          </View>
+        </ScrollView>
+      </SafeAreaView>
+    );
+  }
+
+  // Fallback (should not happen)
+  return (
+    <SafeAreaView style={styles.container} edges={['top']}>
+      <View style={styles.centeredContainer}>
+        <ActivityIndicator size="large" color="#007AFF" />
+        <Text style={styles.centeredText}>Chargement...</Text>
+      </View>
+    </SafeAreaView>
+  );
+
+  // Helper function to render chat messages
+  function renderMessage(message: any) {
     const isUser = message.role === 'user';
-    const isSystem = message.metadata?.isSystemMessage;
     
     return (
       <View key={message.id} style={[
@@ -194,14 +392,8 @@ export default function AccountChatScreen() {
       ]}>
         <View style={[
           styles.messageBubble,
-          isUser ? styles.userBubble : styles.assistantBubble,
-          isSystem && styles.systemBubble
+          isUser ? styles.userBubble : styles.assistantBubble
         ]}>
-          {isSystem && (
-            <View style={styles.systemIcon}>
-              <BarChart3 size={16} color="#4CAF50" />
-            </View>
-          )}
           <Text style={[
             styles.messageText,
             isUser ? styles.userText : styles.assistantText
@@ -223,216 +415,152 @@ export default function AccountChatScreen() {
         </View>
       </View>
     );
-  };
-
-  if (!isSignedIn) {
-    return (
-      <SafeAreaView style={styles.container} edges={['top']}>
-        <View style={styles.centeredContainer}>
-          <MessageCircle size={48} color="#888" />
-          <Text style={styles.centeredText}>Connectez-vous pour analyser vos comptes TikTok</Text>
-        </View>
-      </SafeAreaView>
-    );
   }
 
-  // Show paywall for non-pro users
-  if (isReady && !isPro) {
-    return (
-      <SafeAreaView style={styles.container} edges={['top']}>
-        <View style={styles.header}>
-          <Text style={styles.headerTitle}>Chat avec votre Compte</Text>
-        </View>
-        
-        <ScrollView style={styles.scrollView}>
-          <View style={styles.paywallContainer}>
-            <View style={styles.paywallHeader}>
-              <Crown size={48} color="#FFD700" />
-              <Text style={styles.paywallTitle}>Chat TikTok Pro</Text>
-            </View>
-            
-            <Text style={styles.paywallDescription}>
-              Analysez votre compte TikTok et discutez avec notre IA experte pour 
-              obtenir des conseils personnalisés et optimiser votre stratégie de contenu.
-            </Text>
-            
-            <View style={styles.featuresList}>
-              <View style={styles.featureItem}>
-                <Text style={styles.checkmark}>✓</Text>
-                <Text style={styles.featureText}>Analyse complète de votre compte TikTok</Text>
-              </View>
-              <View style={styles.featureItem}>
-                <Text style={styles.checkmark}>✓</Text>
-                <Text style={styles.featureText}>Chat intelligent avec votre expert IA</Text>
-              </View>
-              <View style={styles.featureItem}>
-                <Text style={styles.checkmark}>✓</Text>
-                <Text style={styles.featureText}>Recommandations personnalisées en temps réel</Text>
-              </View>
-              <View style={styles.featureItem}>
-                <Text style={styles.checkmark}>✓</Text>
-                <Text style={styles.featureText}>Stratégies d'engagement optimisées</Text>
-              </View>
-              <View style={styles.featureItem}>
-                <Text style={styles.checkmark}>✓</Text>
-                <Text style={styles.featureText}>Analyse des tendances de votre niche</Text>
-              </View>
-            </View>
+  // Handle sending chat messages
+  async function handleSendMessage() {
+    if (!inputMessage.trim() || isSendingMessage) return;
+    
+    const userMessage = {
+      id: `msg_${Date.now()}_user`,
+      role: 'user',
+      content: inputMessage.trim(),
+      timestamp: new Date().toISOString(),
+    };
+    
+    setMessages(prev => [...prev, userMessage]);
+    const currentMessage = inputMessage.trim();
+    setInputMessage('');
+    setIsSendingMessage(true);
+    
+    try {
+      // Call the real chat API with streaming
+      const { getToken } = useAuth();
+      const token = await getToken();
+      
+      const response = await fetch(API_ENDPOINTS.TIKTOK_ANALYSIS_CHAT(), {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+          'Accept': 'text/event-stream',
+        },
+                 body: JSON.stringify({
+           message: currentMessage,
+           run_id: existingAnalysis?.id || null,
+           tiktok_handle: handleInput,
+           streaming: true,
+         }),
+      });
 
-            <TouchableOpacity
-              style={styles.upgradeButton}
-              onPress={goPro}
-            >
-              <Crown size={20} color="#fff" />
-              <Text style={styles.upgradeButtonText}>Passer Pro</Text>
-            </TouchableOpacity>
-            
-            <Text style={styles.paywallFooter}>
-              Déverrouillez le chat TikTok avec votre abonnement Pro.
-            </Text>
-          </View>
-        </ScrollView>
-      </SafeAreaView>
-    );
+      if (!response.ok) {
+        throw new Error('Failed to send message');
+      }
+
+      // Handle streaming response
+      const reader = response.body?.getReader();
+      const decoder = new TextDecoder();
+      let assistantResponse = '';
+      
+      const assistantMessage = {
+        id: `msg_${Date.now()}_assistant`,
+        role: 'assistant',
+        content: '',
+        timestamp: new Date().toISOString(),
+      };
+      
+      setMessages(prev => [...prev, assistantMessage]);
+
+      if (reader) {
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+
+          const chunk = decoder.decode(value);
+          const lines = chunk.split('\n');
+
+          for (const line of lines) {
+            if (line.startsWith('data: ')) {
+              try {
+                const data = JSON.parse(line.slice(6));
+                
+                if (data.type === 'content_delta') {
+                  assistantResponse += data.content;
+                  setMessages(prev => 
+                    prev.map(msg => 
+                      msg.id === assistantMessage.id 
+                        ? { ...msg, content: assistantResponse }
+                        : msg
+                    )
+                  );
+                } else if (data.type === 'message_complete') {
+                  setMessages(prev => 
+                    prev.map(msg => 
+                      msg.id === assistantMessage.id 
+                        ? { ...msg, content: data.message.content }
+                        : msg
+                    )
+                  );
+                  break;
+                } else if (data.type === 'error') {
+                  throw new Error(data.error);
+                }
+              } catch (parseError) {
+                console.warn('Failed to parse SSE data:', parseError);
+              }
+            }
+          }
+        }
+      }
+
+      setIsSendingMessage(false);
+    } catch (error) {
+      console.error('Failed to send message:', error);
+      setIsSendingMessage(false);
+      Alert.alert('Erreur', 'Impossible d\'envoyer le message');
+      
+      // Remove the user message on error
+      setMessages(prev => prev.filter(msg => msg.id !== userMessage.id));
+    }
   }
+}
 
-  if (!isReady) {
-    return (
-      <SafeAreaView style={styles.container} edges={['top']}>
-        <View style={styles.centeredContainer}>
-          <ActivityIndicator size="large" color="#007AFF" />
-          <Text style={styles.centeredText}>Vérification de votre abonnement...</Text>
-        </View>
-      </SafeAreaView>
-    );
-  }
-
+// Helper Components
+function FeatureItem({ text }: { text: string }) {
   return (
-    <SafeAreaView style={styles.container} edges={[]}>
-      {/* Header */}
-      <View style={styles.header}>
-        <View style={styles.headerContent}>
-          <BarChart3 size={24} color="#007AFF" />
-          <Text style={styles.headerTitle}>Analyse TikTok</Text>
-        </View>
-        {!isPro && (
-          <View style={styles.proRequired}>
-            <Crown size={16} color="#FFD700" />
-            <Text style={styles.proText}>PRO</Text>
-          </View>
+    <View style={styles.featureItem}>
+      <Text style={styles.checkmark}>✓</Text>
+      <Text style={styles.featureText}>{text}</Text>
+    </View>
+  );
+}
+
+function AnalysisStep({ title, completed, current }: { 
+  title: string; 
+  completed: boolean; 
+  current: boolean; 
+}) {
+  return (
+    <View style={styles.analysisStep}>
+      <View style={[
+        styles.stepIndicator,
+        completed && styles.stepCompleted,
+        current && styles.stepCurrent
+      ]}>
+        {completed ? (
+          <CheckCircle2 size={16} color="#fff" />
+        ) : (
+          <View style={styles.stepDot} />
         )}
       </View>
-
-      {/* Messages */}
-      <ScrollView 
-        ref={scrollViewRef}
-        style={styles.messagesContainer}
-        showsVerticalScrollIndicator={false}
-      >
-        {/* Handle Input Section */}
-        {showHandleInput && (
-          <View style={styles.handleInputSection}>
-            <View style={styles.handleInputHeader}>
-              <TrendingUp size={32} color="#007AFF" />
-              <Text style={styles.handleInputTitle}>Analyser un compte TikTok</Text>
-              <Text style={styles.handleInputSubtitle}>
-                Entrez le handle d'un compte pour obtenir des insights détaillés
-              </Text>
-            </View>
-            
-            <View style={styles.handleInputContainer}>
-              <Text style={styles.handleInputLabel}>Handle TikTok</Text>
-              <TextInput
-                style={styles.handleInput}
-                value={tiktokHandle}
-                onChangeText={setTiktokHandle}
-                placeholder="@username ou lien TikTok"
-                placeholderTextColor="#888"
-                editable={!isAnalyzing && isPro}
-              />
-              
-              <TouchableOpacity
-                style={[
-                  styles.analyzeButton,
-                  (!tiktokHandle.trim() || isAnalyzing || !isPro) && styles.analyzeButtonDisabled
-                ]}
-                onPress={handleAnalyzeAccount}
-                disabled={!tiktokHandle.trim() || isAnalyzing || !isPro}
-              >
-                {isAnalyzing ? (
-                  <ActivityIndicator size="small" color="#fff" />
-                ) : (
-                  <>
-                    <BarChart3 size={20} color="#fff" />
-                    <Text style={styles.analyzeButtonText}>
-                      {!isPro ? 'PRO Requis' : 'Analyser'}
-                    </Text>
-                  </>
-                )}
-              </TouchableOpacity>
-            </View>
-          </View>
-        )}
-
-        {/* Messages */}
-        {messages.map(renderMessage)}
-        
-        {/* Loading indicator */}
-        {isAnalyzing && (
-          <View style={styles.loadingContainer}>
-            <ActivityIndicator size="large" color="#007AFF" />
-            <Text style={styles.loadingText}>Analyse en cours...</Text>
-            <Text style={styles.loadingSubtext}>
-              Scraping et analyse du compte @{tiktokHandle}
-            </Text>
-            {progress > 0 && (
-              <View style={styles.progressContainer}>
-                <View style={styles.progressBar}>
-                  <View style={[styles.progressFill, { width: `${progress}%` }]} />
-                </View>
-                <Text style={styles.progressText}>{progress}%</Text>
-              </View>
-            )}
-            {status && (
-              <Text style={styles.statusText}>
-                Status: {status}
-              </Text>
-            )}
-          </View>
-        )}
-      </ScrollView>
-
-      {/* Input Section */}
-      {hasResult && !showHandleInput && (
-        <View style={styles.inputContainer}>
-          <View style={styles.inputWrapper}>
-            <View style={styles.inputRow}>
-              <TextInput
-                style={styles.textInput}
-                value={inputMessage}
-                onChangeText={setInputMessage}
-                placeholder="Posez une question sur ce compte..."
-                placeholderTextColor="#888"
-                multiline
-                maxLength={500}
-                editable={isPro}
-              />
-              
-              <TouchableOpacity
-                style={[
-                  styles.sendButton,
-                  (!inputMessage.trim() || !isPro) && styles.sendButtonDisabled
-                ]}
-                onPress={handleSendMessage}
-                disabled={!inputMessage.trim() || !isPro}
-              >
-                <Send size={18} color="#fff" />
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-      )}
-    </SafeAreaView>
+      <Text style={[
+        styles.stepText,
+        completed && styles.stepTextCompleted,
+        current && styles.stepTextCurrent
+      ]}>
+        {title}
+      </Text>
+    </View>
   );
 }
 
@@ -461,77 +589,157 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: '#333',
   },
+  backButton: {
+    padding: 8,
+    marginLeft: -8,
+  },
   headerContent: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
+    flex: 1,
+    justifyContent: 'center',
   },
   headerTitle: {
     fontSize: 18,
     fontWeight: '600',
     color: '#fff',
   },
-  proRequired: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: 'rgba(255, 215, 0, 0.1)',
+  devBadge: {
+    backgroundColor: '#ff5555',
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 12,
-    gap: 4,
   },
-  proText: {
-    color: '#FFD700',
-    fontSize: 12,
+  devText: {
+    color: '#fff',
+    fontSize: 10,
     fontWeight: '600',
   },
-  messagesContainer: {
+  scrollView: {
     flex: 1,
-    padding: 16,
   },
-  handleInputSection: {
-    backgroundColor: '#1a1a1a',
-    borderRadius: 16,
-    padding: 24,
-    marginBottom: 20,
-    borderWidth: 1,
-    borderColor: '#333',
-  },
-  handleInputHeader: {
+
+  // Paywall Styles
+  paywallContainer: {
+    padding: 20,
     alignItems: 'center',
-    marginBottom: 24,
+    justifyContent: 'center',
+    minHeight: '80%',
   },
-  handleInputTitle: {
-    fontSize: 20,
-    fontWeight: '600',
+  paywallHeader: {
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  paywallTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
     color: '#fff',
     marginTop: 12,
+  },
+  paywallDescription: {
+    color: '#fff',
+    fontSize: 16,
+    marginBottom: 20,
+    lineHeight: 22,
+    textAlign: 'center',
+  },
+  featuresList: {
+    marginBottom: 24,
+    alignSelf: 'stretch',
+  },
+  featureItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  checkmark: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#4CAF50',
+    marginRight: 12,
+  },
+  featureText: {
+    color: '#fff',
+    fontSize: 16,
+  },
+  upgradeButton: {
+    backgroundColor: '#FFD700',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 16,
+    borderRadius: 12,
+    gap: 8,
+    marginBottom: 16,
+    alignSelf: 'stretch',
+  },
+  upgradeButtonText: {
+    color: '#000',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  paywallFooter: {
+    color: '#888',
+    fontSize: 14,
+    textAlign: 'center',
+    fontStyle: 'italic',
+  },
+
+  // Input Styles
+  inputContainer: {
+    padding: 20,
+    justifyContent: 'center',
+    minHeight: '80%',
+  },
+  inputHeader: {
+    alignItems: 'center',
+    marginBottom: 32,
+  },
+  inputTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#fff',
+    marginTop: 16,
     marginBottom: 8,
   },
-  handleInputSubtitle: {
-    fontSize: 14,
+  inputSubtitle: {
+    fontSize: 16,
     color: '#888',
     textAlign: 'center',
-    lineHeight: 20,
+    lineHeight: 22,
   },
-  handleInputContainer: {
+  inputForm: {
     gap: 16,
   },
-  handleInputLabel: {
-    fontSize: 14,
-    fontWeight: '500',
+  inputLabel: {
+    fontSize: 16,
+    fontWeight: '600',
     color: '#fff',
     marginBottom: 8,
   },
   handleInput: {
-    backgroundColor: '#2a2a2a',
+    backgroundColor: '#1a1a1a',
     borderRadius: 12,
     paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingVertical: 16,
     color: '#fff',
     fontSize: 16,
     borderWidth: 1,
     borderColor: '#333',
+  },
+  handleInputError: {
+    borderColor: '#ff5555',
+  },
+  errorContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginTop: 8,
+  },
+  errorText: {
+    color: '#ff5555',
+    fontSize: 14,
   },
   analyzeButton: {
     backgroundColor: '#007AFF',
@@ -541,6 +749,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
+    marginTop: 8,
   },
   analyzeButtonDisabled: {
     backgroundColor: '#333',
@@ -549,6 +758,130 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 16,
     fontWeight: '600',
+  },
+
+  // Analysis Styles
+  analysisContainer: {
+    padding: 20,
+    justifyContent: 'center',
+    minHeight: '80%',
+  },
+  analysisHeader: {
+    alignItems: 'center',
+    marginBottom: 32,
+  },
+  analysisTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#fff',
+    marginTop: 16,
+    marginBottom: 8,
+  },
+  analysisSubtitle: {
+    fontSize: 16,
+    color: '#888',
+    textAlign: 'center',
+    lineHeight: 22,
+  },
+  progressContainer: {
+    alignItems: 'center',
+    marginBottom: 32,
+  },
+  progressBar: {
+    width: '100%',
+    height: 8,
+    backgroundColor: '#333',
+    borderRadius: 4,
+    overflow: 'hidden',
+    marginBottom: 12,
+  },
+  progressFill: {
+    height: '100%',
+    backgroundColor: '#007AFF',
+    borderRadius: 4,
+  },
+  progressText: {
+    color: '#007AFF',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  statusContainer: {
+    alignItems: 'center',
+    marginBottom: 32,
+  },
+  statusMessage: {
+    color: '#fff',
+    fontSize: 18,
+    fontWeight: '600',
+    marginBottom: 8,
+  },
+  statusDetails: {
+    color: '#888',
+    fontSize: 14,
+    textAlign: 'center',
+  },
+  analysisSteps: {
+    gap: 16,
+  },
+  analysisStep: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  stepIndicator: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: '#333',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  stepCompleted: {
+    backgroundColor: '#4CAF50',
+  },
+  stepCurrent: {
+    backgroundColor: '#007AFF',
+  },
+  stepDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: '#666',
+  },
+  stepText: {
+    color: '#888',
+    fontSize: 16,
+  },
+  stepTextCompleted: {
+    color: '#4CAF50',
+    fontWeight: '600',
+  },
+  stepTextCurrent: {
+    color: '#007AFF',
+    fontWeight: '600',
+  },
+
+  // Chat Styles
+  messagesContainer: {
+    flex: 1,
+    padding: 16,
+  },
+  welcomeMessage: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(76, 175, 80, 0.1)',
+    padding: 16,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(76, 175, 80, 0.3)',
+    marginBottom: 20,
+    gap: 12,
+  },
+  welcomeText: {
+    color: '#fff',
+    fontSize: 14,
+    lineHeight: 20,
+    flex: 1,
   },
   messageContainer: {
     marginBottom: 16,
@@ -574,13 +907,6 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#333',
   },
-  systemBubble: {
-    backgroundColor: 'rgba(76, 175, 80, 0.1)',
-    borderColor: 'rgba(76, 175, 80, 0.3)',
-  },
-  systemIcon: {
-    marginBottom: 8,
-  },
   messageText: {
     fontSize: 16,
     lineHeight: 22,
@@ -601,45 +927,33 @@ const styles = StyleSheet.create({
     fontSize: 11,
     color: '#888',
   },
-  checkmark: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#4CAF50',
-    marginRight: 12,
-  },
-  loadingContainer: {
+  typingContainer: {
+    flexDirection: 'row',
     alignItems: 'center',
-    padding: 32,
-    gap: 12,
+    padding: 16,
+    gap: 8,
   },
-  loadingText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  loadingSubtext: {
+  typingText: {
     color: '#888',
     fontSize: 14,
-    textAlign: 'center',
+    fontStyle: 'italic',
   },
-  inputContainer: {
+  chatInputContainer: {
     padding: 20,
     paddingTop: 10,
   },
-  inputWrapper: {
+  chatInputWrapper: {
     backgroundColor: '#1a1a1a',
     borderRadius: 25,
     borderWidth: 1,
     borderColor: '#333',
     paddingHorizontal: 4,
     paddingVertical: 4,
-  },
-  inputRow: {
     flexDirection: 'row',
     alignItems: 'flex-end',
     gap: 12,
   },
-  textInput: {
+  chatTextInput: {
     flex: 1,
     backgroundColor: 'transparent',
     paddingHorizontal: 16,
@@ -661,93 +975,54 @@ const styles = StyleSheet.create({
   sendButtonDisabled: {
     backgroundColor: '#333',
   },
-  progressContainer: {
-    width: '100%',
-    alignItems: 'center',
-    gap: 8,
-    marginTop: 16,
-  },
-  progressBar: {
-    width: '80%',
-    height: 4,
-    backgroundColor: '#333',
-    borderRadius: 2,
-    overflow: 'hidden',
-  },
-  progressFill: {
-    height: '100%',
-    backgroundColor: '#007AFF',
-    borderRadius: 2,
-  },
-  progressText: {
-    color: '#007AFF',
-    fontSize: 12,
-    fontWeight: '600',
-  },
-  statusText: {
-    color: '#888',
-    fontSize: 12,
-    textAlign: 'center',
-    marginTop: 8,
-  },
-  // Paywall styles
-  scrollView: {
-    flex: 1,
-  },
-  paywallContainer: {
+
+  // Error Styles
+  errorPageContainer: {
     padding: 20,
     alignItems: 'center',
     justifyContent: 'center',
-    flex: 1,
+    minHeight: '80%',
   },
-  paywallHeader: {
-    alignItems: 'center',
-    marginBottom: 20,
-  },
-  paywallTitle: {
+  errorTitle: {
     fontSize: 24,
     fontWeight: 'bold',
     color: '#fff',
-    marginTop: 12,
-  },
-  paywallDescription: {
-    color: '#fff',
-    fontSize: 16,
-    marginBottom: 20,
-    lineHeight: 22,
+    marginTop: 16,
+    marginBottom: 8,
     textAlign: 'center',
   },
-  featuresList: {
-    marginBottom: 24,
-  },
-  featureItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  featureText: {
-    color: '#fff',
+  errorMessage: {
     fontSize: 16,
+    color: '#888',
+    textAlign: 'center',
+    lineHeight: 22,
+    marginBottom: 32,
   },
-  upgradeButton: {
-    backgroundColor: '#FFD700',
+  errorActions: {
+    gap: 16,
+    alignSelf: 'stretch',
+  },
+  retryButton: {
+    backgroundColor: '#007AFF',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     padding: 16,
     borderRadius: 12,
     gap: 8,
-    marginBottom: 16,
   },
-  upgradeButtonText: {
-    color: '#000',
+  retryButtonText: {
+    color: '#fff',
     fontSize: 16,
     fontWeight: '600',
   },
-  paywallFooter: {
+  resetButton: {
+    backgroundColor: 'transparent',
+    alignItems: 'center',
+    padding: 16,
+  },
+  resetButtonText: {
     color: '#888',
-    fontSize: 14,
-    textAlign: 'center',
-    fontStyle: 'italic',
+    fontSize: 16,
   },
 }); 

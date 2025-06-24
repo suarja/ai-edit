@@ -37,6 +37,8 @@ const API_CONFIGS = {
       accountAnalysisStatus: '/api/account-analysis/status',
       accountAnalysisResult: '/api/account-analysis/result',
       accountAnalysisChat: '/api/account-analysis/chat',
+      accountAnalysisExisting: '/api/account-analysis/existing',
+      handleValidate: '/api/account-analysis/validate-handle',
     },
 
     // Supabase functions (still needed for some features)
@@ -70,6 +72,8 @@ const API_CONFIGS = {
       accountAnalysisStatus: '/api/account-analysis/status',
       accountAnalysisResult: '/api/account-analysis/result',
       accountAnalysisChat: '/api/account-analysis/chat',
+      accountAnalysisExisting: '/api/account-analysis/existing',
+      handleValidate: '/api/account-analysis/validate-handle',
     },
 
     // Supabase functions (still needed for some features)
@@ -105,6 +109,8 @@ const API_CONFIGS = {
       accountAnalysisStatus: '/api/account-analysis/status',
       accountAnalysisResult: '/api/account-analysis/result',
       accountAnalysisChat: '/api/account-analysis/chat',
+      accountAnalysisExisting: '/api/account-analysis/existing',
+      handleValidate: '/api/account-analysis/validate-handle',
     },
 
     // Supabase functions (still needed for some features)
@@ -223,6 +229,16 @@ export const API_ENDPOINTS = {
   TIKTOK_ANALYSIS_CHAT: () => {
     const config = getCurrentConfig();
     return config.tiktokAnalyzer.baseUrl + config.tiktokAnalyzer.accountAnalysisChat;
+  },
+
+  TIKTOK_ANALYSIS_EXISTING: () => {
+    const config = getCurrentConfig();
+    return config.tiktokAnalyzer.baseUrl + config.tiktokAnalyzer.accountAnalysisExisting;
+  },
+
+  TIKTOK_HANDLE_VALIDATE: () => {
+    const config = getCurrentConfig();
+    return config.tiktokAnalyzer.baseUrl + config.tiktokAnalyzer.handleValidate;
   },
 
   // Supabase functions (still needed)
