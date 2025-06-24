@@ -63,6 +63,7 @@ export interface TikTokAnalysisState {
   analysisResult: TikTokAnalysisResult | null;
   error: string | null;
   runId: string | null;
+  accountId: string | null;
   
   // Handle validation
   handleInput: string;
@@ -92,6 +93,7 @@ export function useTikTokAnalysis() {
     analysisResult: null,
     error: null,
     runId: null,
+    accountId: null,
     handleInput: '',
     handleError: null,
     isValidatingHandle: false,
@@ -356,6 +358,7 @@ export function useTikTokAnalysis() {
 
       updateState({
         runId: data.data.run_id,
+        accountId: data.data.account_id,
         status: 'scraping',
         progress: 10,
         statusMessage: 'Collecte des données TikTok...',
@@ -498,6 +501,7 @@ export function useTikTokAnalysis() {
       analysisResult: null,
       error: null,
       runId: null,
+      accountId: null,
       handleInput: '',
       handleError: null,
       isValidatingHandle: false,
@@ -535,6 +539,7 @@ export function useTikTokAnalysis() {
     analysisResult: state.analysisResult,
     error: state.error,
     runId: state.runId,
+    accountId: state.accountId,
     
     // Handle validation
     handleInput: state.handleInput,
