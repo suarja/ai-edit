@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useAuth } from '@clerk/clerk-expo';
 import { useRevenueCat } from '@/providers/RevenueCat';
 import { API_ENDPOINTS } from '@/lib/config/api';
@@ -77,6 +77,7 @@ export interface TikTokAnalysisState {
 export function useTikTokAnalysis() {
   const { getToken } = useAuth();
   const { isPro } = useRevenueCat();
+  const validationTimeoutRef = useRef<number | null>(null);
   
   // Effective Pro status (with dev override)
   const effectiveIsPro = DEV_OVERRIDE_PRO || isPro;
@@ -117,6 +118,15 @@ export function useTikTokAnalysis() {
     }
   }, [effectiveIsPro, state.hasExistingAnalysis]);
 
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (validationTimeoutRef.current) {
+        clearTimeout(validationTimeoutRef.current);
+      }
+    };
+  }, []);
+
   /**
    * Check if user has existing completed analysis
    */
@@ -145,7 +155,7 @@ export function useTikTokAnalysis() {
   }, [effectiveIsPro, getToken, updateState]);
 
   /**
-   * Update handle input (without validation)
+   * Update handle input (with debounced validation)
    */
   const updateHandleInput = useCallback((handle: string) => {
     // Clean handle (remove @ and spaces)
@@ -154,7 +164,70 @@ export function useTikTokAnalysis() {
       handleInput: cleanHandle,
       handleError: null // Clear any previous errors when user types
     });
-  }, [updateState]);
+
+    // Clear existing timeout
+    if (validationTimeoutRef.current) {
+      clearTimeout(validationTimeoutRef.current);
+    }
+
+    // Set new timeout for validation (2 seconds after user stops typing)
+    if (cleanHandle.length >= 2) {
+      validationTimeoutRef.current = setTimeout(async () => {
+        // Inline validation to avoid dependency issues
+        if (cleanHandle.length < 2) return;
+        
+        updateState({ 
+          isValidatingHandle: true, 
+          handleError: null 
+        });
+
+        try {
+          const token = await getToken();
+          const response = await fetch(API_ENDPOINTS.TIKTOK_HANDLE_VALIDATE(), {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`,
+            },
+            body: JSON.stringify({ tiktok_handle: cleanHandle }),
+          });
+
+          const data = await response.json();
+          
+          if (!data.success) {
+            updateState({ 
+              handleError: data.error || 'Handle invalide',
+              isValidatingHandle: false 
+            });
+            return;
+          }
+
+          // Check if analysis already exists for this handle
+          if (data.data.hasExistingAnalysis) {
+            updateState({
+              existingAnalysis: data.data.analysis,
+              hasExistingAnalysis: true,
+              currentStep: 'chat',
+              analysisResult: data.data.analysis.result,
+              status: 'completed',
+              isValidatingHandle: false,
+            });
+            return;
+          }
+
+          updateState({ 
+            isValidatingHandle: false,
+            handleError: null 
+          });
+        } catch (error) {
+          updateState({ 
+            handleError: 'Erreur de validation',
+            isValidatingHandle: false 
+          });
+        }
+      }, 2000);
+    }
+  }, [updateState, getToken]);
 
   /**
    * Validate TikTok handle (call this explicitly, not on every keystroke)

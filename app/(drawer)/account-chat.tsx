@@ -159,17 +159,18 @@ export default function AccountChatScreen() {
                 ]}
                 value={handleInput}
                 onChangeText={updateHandleInput}
-                onBlur={() => {
-                  // Validate when user finishes typing (loses focus)
-                  if (handleInput.trim()) {
-                    validateHandle();
-                  }
-                }}
                 placeholder="@username ou lien TikTok"
                 placeholderTextColor="#888"
                 editable={!isValidatingHandle}
                 autoCapitalize="none"
                 autoCorrect={false}
+                returnKeyType="done"
+                onSubmitEditing={() => {
+                  // Validate when user presses "Done" on keyboard
+                  if (handleInput.trim()) {
+                    validateHandle();
+                  }
+                }}
               />
               {isValidatingHandle && (
                 <View style={styles.validatingIndicator}>
@@ -186,7 +187,7 @@ export default function AccountChatScreen() {
             )}
             
             <Text style={styles.inputHint}>
-              💡 La validation se fait automatiquement quand vous terminez de taper
+              Validation automatique après 2 secondes ou en appuyant sur "Analyser"
             </Text>
             
             <TouchableOpacity
