@@ -57,6 +57,7 @@ export default function AccountChatScreen() {
     handleInput,
     handleError,
     isValidatingHandle,
+    isHandleValid,
     existingAnalysis,
     hasExistingAnalysis,
     effectiveIsPro,
@@ -183,6 +184,13 @@ export default function AccountChatScreen() {
               <View style={styles.errorContainer}>
                 <AlertCircle size={16} color="#ff5555" />
                 <Text style={styles.errorText}>{handleError}</Text>
+              </View>
+            )}
+            
+            {!handleError && !isValidatingHandle && isHandleValid && (
+              <View style={styles.successContainer}>
+                <CheckCircle2 size={16} color="#4CAF50" />
+                <Text style={styles.successText}>Handle valide ✓</Text>
               </View>
             )}
             
@@ -759,6 +767,17 @@ const styles = StyleSheet.create({
   errorText: {
     color: '#ff5555',
     fontSize: 14,
+  },
+  successContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginTop: 8,
+  },
+  successText: {
+    color: '#4CAF50',
+    fontSize: 14,
+    fontWeight: '500',
   },
   analyzeButton: {
     backgroundColor: '#007AFF',

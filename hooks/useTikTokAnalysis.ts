@@ -68,6 +68,7 @@ export interface TikTokAnalysisState {
   handleInput: string;
   handleError: string | null;
   isValidatingHandle: boolean;
+  isHandleValid: boolean;
   
   // Existing analysis
   existingAnalysis: ExistingAnalysis | null;
@@ -94,6 +95,7 @@ export function useTikTokAnalysis() {
     handleInput: '',
     handleError: null,
     isValidatingHandle: false,
+    isHandleValid: false,
     existingAnalysis: null,
     hasExistingAnalysis: false,
   });
@@ -162,7 +164,8 @@ export function useTikTokAnalysis() {
     const cleanHandle = handle.replace(/[@\s]/g, '');
     updateState({ 
       handleInput: cleanHandle,
-      handleError: null // Clear any previous errors when user types
+      handleError: null, // Clear any previous errors when user types
+      isHandleValid: false // Reset validation state when typing
     });
 
     // Clear existing timeout
@@ -217,7 +220,8 @@ export function useTikTokAnalysis() {
 
           updateState({ 
             isValidatingHandle: false,
-            handleError: null 
+            handleError: null,
+            isHandleValid: true
           });
         } catch (error) {
           updateState({ 
@@ -270,7 +274,8 @@ export function useTikTokAnalysis() {
       if (!data.success) {
         updateState({ 
           handleError: data.error || 'Handle invalide',
-          isValidatingHandle: false 
+          isValidatingHandle: false,
+          isHandleValid: false
         });
         return false;
       }
@@ -297,7 +302,8 @@ export function useTikTokAnalysis() {
     } catch (error) {
       updateState({ 
         handleError: 'Erreur de validation',
-        isValidatingHandle: false 
+        isValidatingHandle: false,
+        isHandleValid: false
       });
       return false;
     }
@@ -495,6 +501,7 @@ export function useTikTokAnalysis() {
       handleInput: '',
       handleError: null,
       isValidatingHandle: false,
+      isHandleValid: false,
       existingAnalysis: null,
       hasExistingAnalysis: false,
     });
@@ -533,6 +540,7 @@ export function useTikTokAnalysis() {
     handleInput: state.handleInput,
     handleError: state.handleError,
     isValidatingHandle: state.isValidatingHandle,
+    isHandleValid: state.isHandleValid,
     
     // Existing analysis
     existingAnalysis: state.existingAnalysis,
