@@ -23,7 +23,6 @@ import {
   RefreshCw
 } from 'lucide-react-native';
 import { useRevenueCat } from '@/providers/RevenueCat';
-import { DebugRevenueCat } from '@/components/DebugRevenueCat';
 import { useAuth } from '@clerk/clerk-expo';
 import { API_ENDPOINTS } from '@/lib/config/api';
 
@@ -124,10 +123,8 @@ export default function AccountInsightsScreen() {
   // Show paywall for non-pro users
   if (!isPro) {
     return (
-      <SafeAreaView style={styles.container} edges={['top']}>
-        <View style={styles.header}>
-          <Text style={styles.headerTitle}>Insights Compte</Text>
-        </View>
+      <SafeAreaView style={styles.container} edges={[]}>
+        
         
         <ScrollView style={styles.scrollView}>
           <View style={styles.paywallContainer}>
@@ -187,10 +184,7 @@ export default function AccountInsightsScreen() {
 
   if (loading) {
     return (
-      <SafeAreaView style={styles.container} edges={['top']}>
-        <View style={styles.header}>
-          <Text style={styles.headerTitle}>Insights Compte</Text>
-        </View>
+      <SafeAreaView style={styles.container} edges={[]}>
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#007AFF" />
           <Text style={styles.loadingText}>Chargement de vos insights...</Text>
@@ -200,22 +194,7 @@ export default function AccountInsightsScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>Insights Compte</Text>
-        <TouchableOpacity 
-          onPress={handleRefresh}
-          style={styles.refreshButton}
-          disabled={refreshing}
-        >
-          <RefreshCw 
-            size={20} 
-            color="#007AFF" 
-            style={[refreshing && styles.rotating]} 
-          />
-        </TouchableOpacity>
-      </View>
-
+    <SafeAreaView style={styles.container} edges={[]}>
       <ScrollView style={styles.scrollView}>
         {/* No Analysis State */}
         {!stats && !loading && (
@@ -355,9 +334,6 @@ export default function AccountInsightsScreen() {
           </TouchableOpacity>
         </View>
       </ScrollView>
-      
-      {/* Debug component - only shows in development */}
-      <DebugRevenueCat />
     </SafeAreaView>
   );
 }
@@ -367,26 +343,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#000',
   },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#333',
-  },
-  headerTitle: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#fff',
-  },
-  refreshButton: {
-    padding: 8,
-  },
-  rotating: {
-    transform: [{ rotate: '360deg' }],
-  },
+
   scrollView: {
     flex: 1,
   },

@@ -77,7 +77,7 @@ export default function AccountChatScreen() {
   // Handle authentication
   if (!isSignedIn) {
     return (
-      <SafeAreaView style={styles.container} edges={['top']}>
+      <SafeAreaView style={styles.container} edges={[]}>
         <View style={styles.centeredContainer}>
           <MessageCircle size={48} color="#888" />
           <Text style={styles.centeredText}>Connectez-vous pour analyser vos comptes TikTok</Text>
@@ -89,18 +89,12 @@ export default function AccountChatScreen() {
   // STEP 1: Paywall for non-Pro users
   if (currentStep === 'paywall') {
     return (
-      <SafeAreaView style={styles.container} edges={['top']}>
-        <View style={styles.header}>
-          <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-            <ArrowLeft size={24} color="#fff" />
-          </TouchableOpacity>
-          <Text style={styles.headerTitle}>Chat TikTok</Text>
-          {DEV_OVERRIDE_PRO && (
-            <View style={styles.devBadge}>
-              <Text style={styles.devText}>DEV</Text>
-            </View>
-          )}
-        </View>
+      <SafeAreaView style={styles.container} edges={[]}>
+        {DEV_OVERRIDE_PRO && (
+          <View style={styles.devBadge}>
+            <Text style={styles.devText}>DEV</Text>
+          </View>
+        )}
         
         <ScrollView style={styles.scrollView} contentContainerStyle={styles.paywallContainer}>
           <View style={styles.paywallHeader}>
@@ -137,18 +131,12 @@ export default function AccountChatScreen() {
   // STEP 2: Handle Input & Validation
   if (currentStep === 'input' || currentStep === 'validating') {
     return (
-      <SafeAreaView style={styles.container} edges={['top']}>
-        <View style={styles.header}>
-          <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-            <ArrowLeft size={24} color="#fff" />
-          </TouchableOpacity>
-          <Text style={styles.headerTitle}>Analyser un Compte</Text>
-          {DEV_OVERRIDE_PRO && (
-            <View style={styles.devBadge}>
-              <Text style={styles.devText}>DEV</Text>
-            </View>
-          )}
-        </View>
+      <SafeAreaView style={styles.container} edges={[]}>
+        {DEV_OVERRIDE_PRO && (
+          <View style={styles.devBadge}>
+            <Text style={styles.devText}>DEV</Text>
+          </View>
+        )}
 
         <ScrollView style={styles.scrollView} contentContainerStyle={styles.inputContainer}>
           <View style={styles.inputHeader}>
@@ -208,15 +196,12 @@ export default function AccountChatScreen() {
   // STEP 3: Analysis Progress
   if (currentStep === 'analyzing') {
     return (
-      <SafeAreaView style={styles.container} edges={['top']}>
-        <View style={styles.header}>
-          <Text style={styles.headerTitle}>Analyse en cours</Text>
-          {DEV_OVERRIDE_PRO && (
-            <View style={styles.devBadge}>
-              <Text style={styles.devText}>DEV</Text>
-            </View>
-          )}
-        </View>
+      <SafeAreaView style={styles.container} edges={[]}>
+        {DEV_OVERRIDE_PRO && (
+          <View style={styles.devBadge}>
+            <Text style={styles.devText}>DEV</Text>
+          </View>
+        )}
 
         <ScrollView style={styles.scrollView} contentContainerStyle={styles.analysisContainer}>
           <View style={styles.analysisHeader}>
@@ -269,22 +254,11 @@ export default function AccountChatScreen() {
   if (currentStep === 'chat') {
     return (
       <SafeAreaView style={styles.container} edges={[]}>
-        <View style={styles.header}>
-          <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-            <ArrowLeft size={24} color="#fff" />
-          </TouchableOpacity>
-          <View style={styles.headerContent}>
-            <BarChart3 size={24} color="#007AFF" />
-            <Text style={styles.headerTitle}>
-              @{existingAnalysis?.tiktok_handle || handleInput}
-            </Text>
+        {DEV_OVERRIDE_PRO && (
+          <View style={styles.devBadge}>
+            <Text style={styles.devText}>DEV</Text>
           </View>
-          {DEV_OVERRIDE_PRO && (
-            <View style={styles.devBadge}>
-              <Text style={styles.devText}>DEV</Text>
-            </View>
-          )}
-        </View>
+        )}
 
         <ScrollView 
           ref={scrollViewRef}
@@ -343,13 +317,12 @@ export default function AccountChatScreen() {
   // STEP 5: Error Handling
   if (currentStep === 'error') {
     return (
-      <SafeAreaView style={styles.container} edges={['top']}>
-        <View style={styles.header}>
-          <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-            <ArrowLeft size={24} color="#fff" />
-          </TouchableOpacity>
-          <Text style={styles.headerTitle}>Erreur</Text>
-        </View>
+      <SafeAreaView style={styles.container} edges={[]}>
+        {DEV_OVERRIDE_PRO && (
+          <View style={styles.devBadge}>
+            <Text style={styles.devText}>DEV</Text>
+          </View>
+        )}
 
         <ScrollView style={styles.scrollView} contentContainerStyle={styles.errorPageContainer}>
           <AlertCircle size={64} color="#ff5555" />
@@ -373,7 +346,7 @@ export default function AccountChatScreen() {
 
   // Fallback (should not happen)
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
+    <SafeAreaView style={styles.container} edges={[]}>
       <View style={styles.centeredContainer}>
         <ActivityIndicator size="large" color="#007AFF" />
         <Text style={styles.centeredText}>Chargement...</Text>
