@@ -380,11 +380,16 @@ export function useTikTokAnalysis() {
 
   const startPolling = useCallback((analysisRunId: string) => {
     let pollCount = 0;
-    const maxPolls = 60; // 3 minutes max
+    const maxPolls = 30; // 5 minutes max with 10s intervals
     
     const pollInterval = setInterval(async () => {
       try {
         pollCount++;
+        
+        // Log only every 3rd poll to reduce noise
+        if (pollCount % 3 === 0) {
+          console.log(`🔄 Polling analysis status... (${pollCount}/${maxPolls})`);
+        }
         
         const token = await getToken();
         const response = await fetch(API_ENDPOINTS.TIKTOK_ANALYSIS_STATUS(analysisRunId), {
@@ -409,6 +414,7 @@ export function useTikTokAnalysis() {
             status = 'analyzing';
           } else if (jobData.status === 'completed') {
             clearInterval(pollInterval);
+            console.log('✅ Analysis completed, fetching results...');
             updateState({
               progress: 95,
               status: 'completed',
@@ -418,6 +424,7 @@ export function useTikTokAnalysis() {
             return;
           } else if (jobData.status === 'failed') {
             clearInterval(pollInterval);
+            console.error('❌ Analysis failed:', jobData.error_message);
             updateState({
               error: jobData.error_message || 'Analyse échouée',
               isAnalyzing: false,
@@ -437,6 +444,7 @@ export function useTikTokAnalysis() {
         
         if (pollCount >= maxPolls) {
           clearInterval(pollInterval);
+          console.error('⏰ Analysis timeout after 5 minutes');
           updateState({
             error: 'Timeout - l\'analyse prend trop de temps',
             isAnalyzing: false,
@@ -446,9 +454,11 @@ export function useTikTokAnalysis() {
           });
         }
       } catch (err) {
-        console.error('Polling error:', err);
+        if (pollCount % 5 === 0) { // Log errors only every 5th poll
+          console.error('❌ Polling error:', err);
+        }
       }
-    }, 3000);
+    }, 10000); // Increased from 3000ms to 10000ms (10 seconds)
   }, [getToken, updateState]);
 
   const fetchResult = useCallback(async (analysisRunId: string) => {
