@@ -38,7 +38,7 @@ import { API_ENDPOINTS } from '@/lib/config/api';
  * 5. Error Handling
  */
 export default function AccountChatScreen() {
-  const { isSignedIn } = useAuth();
+  const { isSignedIn, getToken } = useAuth();
   const { goPro } = useRevenueCat();
   const [inputMessage, setInputMessage] = useState('');
   const scrollViewRef = useRef<ScrollView>(null);
@@ -95,7 +95,7 @@ export default function AccountChatScreen() {
     setIsSendingMessage(true);
     
     try {
-      const { getToken } = useAuth();
+      console.log('🚀 Starting chat request...');
       const token = await getToken();
       
       const response = await fetch(API_ENDPOINTS.TIKTOK_ANALYSIS_CHAT(), {
