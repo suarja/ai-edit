@@ -87,14 +87,14 @@ export default function AccountInsightsScreen() {
           created_at: analysis.created_at,
         }]);
 
-        setStats({
+      setStats({
           followers_count: analysis.result?.account_analysis?.followers || 0,
           following_count: 0, // Not available from current API
           likes_count: 0, // Not available from current API
           videos_count: analysis.result?.account_analysis?.videos_count || 0,
           avg_views: 0, // Not available from current API
           avg_engagement: analysis.result?.account_analysis?.engagement_rate || 0,
-        });
+      });
       } else {
         // No analysis available - show empty state
         setAnalyses([]);
@@ -204,14 +204,14 @@ export default function AccountInsightsScreen() {
             <Text style={styles.emptyStateDescription}>
               Lancez une analyse de votre compte TikTok pour voir vos insights personnalisés.
             </Text>
-            <TouchableOpacity 
+        <TouchableOpacity 
               style={styles.startAnalysisButton}
               onPress={navigateToAccountChat}
-            >
+        >
               <MessageCircle size={20} color="#fff" />
               <Text style={styles.startAnalysisButtonText}>Commencer l'analyse</Text>
-            </TouchableOpacity>
-          </View>
+        </TouchableOpacity>
+      </View>
         )}
 
         {/* Stats Overview */}
