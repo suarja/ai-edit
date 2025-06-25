@@ -41,8 +41,6 @@ export default function AccountChatScreen() {
   const { isSignedIn } = useAuth();
   const { goPro } = useRevenueCat();
   const [inputMessage, setInputMessage] = useState('');
-  const [messages, setMessages] = useState<any[]>([]);
-  const [isSendingMessage, setIsSendingMessage] = useState(false);
   const scrollViewRef = useRef<ScrollView>(null);
   
   // TikTok Analysis Hook with all state management
@@ -71,10 +69,122 @@ export default function AccountChatScreen() {
     retryFromError,
   } = useTikTokAnalysis();
 
+  // Chat state management (simplified like other working chats)
+  const [messages, setMessages] = useState<any[]>([]);
+  const [isSendingMessage, setIsSendingMessage] = useState(false);
+
   // Auto-scroll to bottom when messages change
   useEffect(() => {
     scrollViewRef.current?.scrollToEnd({ animated: true });
   }, [messages]);
+
+  // Handle sending chat messages (using same logic as working chats)
+  const handleSendMessage = async () => {
+    if (!inputMessage.trim() || isSendingMessage) return;
+    
+    const userMessage = {
+      id: `msg_${Date.now()}_user`,
+      role: 'user',
+      content: inputMessage.trim(),
+      timestamp: new Date().toISOString(),
+    };
+    
+    setMessages(prev => [...prev, userMessage]);
+    const currentMessage = inputMessage.trim();
+    setInputMessage('');
+    setIsSendingMessage(true);
+    
+    try {
+      const { getToken } = useAuth();
+      const token = await getToken();
+      
+      const response = await fetch(API_ENDPOINTS.TIKTOK_ANALYSIS_CHAT(), {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+          'Accept': 'text/event-stream',
+        },
+        body: JSON.stringify({
+          message: currentMessage,
+          streaming: true,
+          run_id: existingAnalysis?.id,
+          tiktok_handle: handleInput,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      if (!response.body) {
+        throw new Error('No response stream available');
+      }
+
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      
+      // Create assistant message
+      const assistantMessageId = `msg_${Date.now()}_assistant`;
+      const assistantMessage = {
+        id: assistantMessageId,
+        role: 'assistant',
+        content: '',
+        timestamp: new Date().toISOString(),
+      };
+      
+      setMessages(prev => [...prev, assistantMessage]);
+      
+      let fullContent = '';
+      
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        
+        const chunk = decoder.decode(value);
+        const lines = chunk.split('\n');
+        
+        for (const line of lines) {
+          if (line.startsWith('data: ')) {
+            try {
+              const data = JSON.parse(line.slice(6));
+              
+              if (data.type === 'content_delta' && data.delta) {
+                fullContent += data.delta;
+                setMessages(prev => 
+                  prev.map(msg => 
+                    msg.id === assistantMessageId 
+                      ? { ...msg, content: fullContent }
+                      : msg
+                  )
+                );
+              } else if (data.type === 'message_complete' && data.content) {
+                setMessages(prev => 
+                  prev.map(msg => 
+                    msg.id === assistantMessageId 
+                      ? { ...msg, content: data.content }
+                      : msg
+                  )
+                );
+                break;
+              }
+            } catch (parseError) {
+              console.warn('Failed to parse SSE data:', parseError);
+            }
+          }
+        }
+      }
+      
+    } catch (error) {
+      console.error('Failed to send message:', error);
+      Alert.alert('Erreur', 'Impossible d\'envoyer le message');
+      
+      // Remove user message on error
+      setMessages(prev => prev.filter(msg => msg.id !== userMessage.id));
+    } finally {
+      setIsSendingMessage(false);
+    }
+  };
 
   // Handle authentication
   if (!isSignedIn) {
@@ -424,112 +534,6 @@ export default function AccountChatScreen() {
     );
   }
 
-  // Handle sending chat messages
-  async function handleSendMessage() {
-    if (!inputMessage.trim() || isSendingMessage) return;
-    
-    const userMessage = {
-      id: `msg_${Date.now()}_user`,
-      role: 'user',
-      content: inputMessage.trim(),
-      timestamp: new Date().toISOString(),
-    };
-    
-    setMessages(prev => [...prev, userMessage]);
-    const currentMessage = inputMessage.trim();
-    setInputMessage('');
-    setIsSendingMessage(true);
-    
-    try {
-      // Call the real chat API with streaming
-      const { getToken } = useAuth();
-      const token = await getToken();
-      
-      const response = await fetch(API_ENDPOINTS.TIKTOK_ANALYSIS_CHAT(), {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-          'Accept': 'text/event-stream',
-        },
-                 body: JSON.stringify({
-           message: currentMessage,
-           run_id: existingAnalysis?.id || null,
-           tiktok_handle: handleInput,
-           streaming: true,
-         }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to send message');
-      }
-
-      // Handle streaming response
-      const reader = response.body?.getReader();
-      const decoder = new TextDecoder();
-      let assistantResponse = '';
-      
-      const assistantMessage = {
-        id: `msg_${Date.now()}_assistant`,
-        role: 'assistant',
-        content: '',
-        timestamp: new Date().toISOString(),
-      };
-      
-      setMessages(prev => [...prev, assistantMessage]);
-
-      if (reader) {
-        while (true) {
-          const { done, value } = await reader.read();
-          if (done) break;
-
-          const chunk = decoder.decode(value);
-          const lines = chunk.split('\n');
-
-          for (const line of lines) {
-            if (line.startsWith('data: ')) {
-              try {
-                const data = JSON.parse(line.slice(6));
-                
-                if (data.type === 'content_delta') {
-                  assistantResponse += data.content;
-                  setMessages(prev => 
-                    prev.map(msg => 
-                      msg.id === assistantMessage.id 
-                        ? { ...msg, content: assistantResponse }
-                        : msg
-                    )
-                  );
-                } else if (data.type === 'message_complete') {
-                  setMessages(prev => 
-                    prev.map(msg => 
-                      msg.id === assistantMessage.id 
-                        ? { ...msg, content: data.message.content }
-                        : msg
-                    )
-                  );
-                  break;
-                } else if (data.type === 'error') {
-                  throw new Error(data.error);
-                }
-              } catch (parseError) {
-                console.warn('Failed to parse SSE data:', parseError);
-              }
-            }
-          }
-        }
-      }
-
-      setIsSendingMessage(false);
-    } catch (error) {
-      console.error('Failed to send message:', error);
-      setIsSendingMessage(false);
-      Alert.alert('Erreur', 'Impossible d\'envoyer le message');
-      
-      // Remove the user message on error
-      setMessages(prev => prev.filter(msg => msg.id !== userMessage.id));
-    }
-  }
 }
 
 // Helper Components
