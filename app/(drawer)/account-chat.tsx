@@ -46,6 +46,7 @@ export default function AccountChatScreen() {
     error,
     sendMessage,
     clearError,
+    existingAnalysis,
   } = useTikTokChatSimple();
 
   // Auto-scroll to bottom when messages change
@@ -165,7 +166,11 @@ export default function AccountChatScreen() {
           <View style={styles.welcomeMessage}>
             <TrendingUp size={24} color="#007AFF" />
             <Text style={styles.welcomeText}>
-              👋 Salut ! Je suis votre expert TikTok IA. Posez-moi des questions sur la stratégie de contenu, l'engagement, ou donnez-moi votre handle TikTok pour une analyse personnalisée.
+              {existingAnalysis ? (
+                `👋 Salut ! Je connais votre compte @${existingAnalysis.tiktok_handle} et peux vous donner des conseils personnalisés basés sur votre analyse TikTok.`
+              ) : (
+                `👋 Salut ! Je suis votre expert TikTok IA. Posez-moi des questions sur la stratégie de contenu, l'engagement, ou donnez-moi votre handle TikTok pour une analyse personnalisée.`
+              )}
             </Text>
           </View>
         )}
@@ -198,20 +203,41 @@ export default function AccountChatScreen() {
         {/* Suggestions for first message */}
         {messages.length === 0 && (
           <View style={styles.suggestionsContainer}>
-            <TouchableOpacity 
-              style={styles.suggestionCard}
-              onPress={() => setInputMessage("Analyse mon compte @username")}
-            >
-              <Text style={styles.suggestionTitle}>Analyser un compte</Text>
-              <Text style={styles.suggestionSubtitle}>@username pour analyse complète</Text>
-            </TouchableOpacity>
-            <TouchableOpacity 
-              style={styles.suggestionCard}
-              onPress={() => setInputMessage("Comment améliorer mon engagement ?")}
-            >
-              <Text style={styles.suggestionTitle}>Conseils d'engagement</Text>
-              <Text style={styles.suggestionSubtitle}>Stratégies personnalisées</Text>
-            </TouchableOpacity>
+            {existingAnalysis ? (
+              <>
+                <TouchableOpacity 
+                  style={styles.suggestionCard}
+                  onPress={() => setInputMessage(`Quels sont mes points forts sur @${existingAnalysis.tiktok_handle} ?`)}
+                >
+                  <Text style={styles.suggestionTitle}>Mes points forts</Text>
+                  <Text style={styles.suggestionSubtitle}>Analyse de mes forces</Text>
+                </TouchableOpacity>
+                <TouchableOpacity 
+                  style={styles.suggestionCard}
+                  onPress={() => setInputMessage("Comment améliorer mon engagement ?")}
+                >
+                  <Text style={styles.suggestionTitle}>Améliorer l'engagement</Text>
+                  <Text style={styles.suggestionSubtitle}>Conseils personnalisés</Text>
+                </TouchableOpacity>
+              </>
+            ) : (
+              <>
+                <TouchableOpacity 
+                  style={styles.suggestionCard}
+                  onPress={() => setInputMessage("Analyse mon compte @username")}
+                >
+                  <Text style={styles.suggestionTitle}>Analyser un compte</Text>
+                  <Text style={styles.suggestionSubtitle}>@username pour analyse complète</Text>
+                </TouchableOpacity>
+                <TouchableOpacity 
+                  style={styles.suggestionCard}
+                  onPress={() => setInputMessage("Comment améliorer mon engagement ?")}
+                >
+                  <Text style={styles.suggestionTitle}>Conseils d'engagement</Text>
+                  <Text style={styles.suggestionSubtitle}>Stratégies personnalisées</Text>
+                </TouchableOpacity>
+              </>
+            )}
           </View>
         )}
 
