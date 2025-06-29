@@ -31,19 +31,19 @@ interface AccountAnalysis {
   id: string;
   account_handle: string;
   engagement_rate: number;
-  followers_growth: number;
-  best_posting_times: string[];
-  top_content_themes: string[];
+  followers_growth?: number; // Optional
+  best_posting_times?: string[]; // Optional
+  top_content_themes?: string[]; // Optional
   recommendations: string[];
   created_at: string;
 }
 
 interface AccountStats {
   followers_count: number;
-  following_count: number;
-  likes_count: number;
+  following_count?: number; // Optional
+  likes_count?: number; // Optional
   videos_count: number;
-  avg_views: number;
+  avg_views?: number; // Optional
   avg_engagement: number;
 }
 
@@ -80,19 +80,19 @@ export default function AccountInsightsScreen() {
           id: analysis.id,
           account_handle: analysis.tiktok_handle,
           engagement_rate: analysis.result?.account_analysis?.engagement_rate || 0,
-          followers_growth: 0, // Not available from current API
-          best_posting_times: ['18:00-20:00', '21:00-23:00'], // Static for now
-          top_content_themes: ['Contenu analysé'], // Could be extracted from analysis
+          followers_growth: analysis.result?.insights?.followers_growth,
+          best_posting_times: analysis.result?.insights?.best_posting_times || [],
+          top_content_themes: analysis.result?.insights?.top_content_themes || [],
           recommendations: analysis.result?.insights?.recommendations || [],
           created_at: analysis.created_at,
         }]);
 
       setStats({
           followers_count: analysis.result?.account_analysis?.followers || 0,
-          following_count: 0, // Not available from current API
-          likes_count: 0, // Not available from current API
+          following_count: undefined, // Not available from current API
+          likes_count: undefined, // Not available from current API
           videos_count: analysis.result?.account_analysis?.videos_count || 0,
-          avg_views: 0, // Not available from current API
+          avg_views: undefined, // Not available from current API
           avg_engagement: analysis.result?.account_analysis?.engagement_rate || 0,
       });
       } else {
@@ -221,12 +221,12 @@ export default function AccountInsightsScreen() {
             <View style={styles.statsGrid}>
               <View style={styles.statCard}>
                 <Users size={24} color="#007AFF" />
-                <Text style={styles.statValue}>{stats.followers_count.toLocaleString()}</Text>
+                <Text style={styles.statValue}>{stats.followers_count?.toLocaleString() || 'N/A'}</Text>
                 <Text style={styles.statLabel}>Abonnés</Text>
               </View>
               <View style={styles.statCard}>
                 <Eye size={24} color="#10b981" />
-                <Text style={styles.statValue}>{stats.avg_views.toLocaleString()}</Text>
+                <Text style={styles.statValue}>{stats.avg_views?.toLocaleString() || 'N/A'}</Text>
                 <Text style={styles.statLabel}>Vues moy.</Text>
               </View>
               <View style={styles.statCard}>

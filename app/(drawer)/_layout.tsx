@@ -45,9 +45,15 @@ function DrawerLayoutContent() {
         }}
       >
         <Tabs.Screen
-          name="script-generation"
+          name="account-chat"
           options={{
-            title: 'Script Generation',
+            title: 'Account Chat',
+          }}
+        />
+        <Tabs.Screen
+          name="account-insights"
+          options={{
+            title: 'Account Insights',
           }}
         />
         <Tabs.Screen

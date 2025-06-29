@@ -25,6 +25,7 @@ import { useAuth } from '@clerk/clerk-expo';
 import { router } from 'expo-router';
 import { useRevenueCat } from '@/providers/RevenueCat';
 import { useTikTokAnalysis } from '../../hooks/useTikTokAnalysis';
+import { useTikTokChat } from '../../hooks/useTikTokChat'; // Import the hook
 import { API_ENDPOINTS } from '@/lib/config/api';
 
 /**
@@ -38,7 +39,7 @@ import { API_ENDPOINTS } from '@/lib/config/api';
  * 5. Error Handling
  */
 export default function AccountChatScreen() {
-  const { isSignedIn, getToken } = useAuth();
+  const { isSignedIn } = useAuth(); // Removed getToken as it's handled by useTikTokChat
   const { goPro } = useRevenueCat();
   const [inputMessage, setInputMessage] = useState('');
   const scrollViewRef = useRef<ScrollView>(null);
@@ -51,7 +52,7 @@ export default function AccountChatScreen() {
     status,
     statusMessage,
     analysisResult,
-    error,
+    error: analysisError, // Renamed to avoid conflict
     handleInput,
     handleError,
     isValidatingHandle,
@@ -64,125 +65,41 @@ export default function AccountChatScreen() {
     startAnalysis,
     updateHandleInput,
     validateHandle,
-    clearError,
+    clearError: clearAnalysisError, // Renamed to avoid conflict
     reset,
     retryFromError,
   } = useTikTokAnalysis();
 
-  // Chat state management (simplified like other working chats)
-  const [messages, setMessages] = useState<any[]>([]);
-  const [isSendingMessage, setIsSendingMessage] = useState(false);
+  // TikTok Chat Hook
+  const {
+    messages,
+    isStreaming,
+    error: chatError, // Renamed to avoid conflict
+    sendMessage,
+    clearMessages,
+    clearError: clearChatError, // Renamed to avoid conflict
+  } = useTikTokChat({
+    runId: existingAnalysis?.id,
+    tiktokHandle: handleInput,
+  });
 
   // Auto-scroll to bottom when messages change
   useEffect(() => {
     scrollViewRef.current?.scrollToEnd({ animated: true });
   }, [messages]);
 
-  // Handle sending chat messages (using same logic as working chats)
+  // Handle sending chat messages
   const handleSendMessage = async () => {
-    if (!inputMessage.trim() || isSendingMessage) return;
+    if (!inputMessage.trim() || isStreaming) return;
     
-    const userMessage = {
-      id: `msg_${Date.now()}_user`,
-      role: 'user',
-      content: inputMessage.trim(),
-      timestamp: new Date().toISOString(),
-    };
-    
-    setMessages(prev => [...prev, userMessage]);
     const currentMessage = inputMessage.trim();
     setInputMessage('');
-    setIsSendingMessage(true);
     
     try {
-      console.log('🚀 Starting chat request...');
-      const token = await getToken();
-      
-      const response = await fetch(API_ENDPOINTS.TIKTOK_ANALYSIS_CHAT(), {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-          'Accept': 'text/event-stream',
-        },
-        body: JSON.stringify({
-          message: currentMessage,
-          streaming: true,
-          run_id: existingAnalysis?.id,
-          tiktok_handle: handleInput,
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      if (!response.body) {
-        throw new Error('No response stream available');
-      }
-
-      const reader = response.body.getReader();
-      const decoder = new TextDecoder();
-      
-      // Create assistant message
-      const assistantMessageId = `msg_${Date.now()}_assistant`;
-      const assistantMessage = {
-        id: assistantMessageId,
-        role: 'assistant',
-        content: '',
-        timestamp: new Date().toISOString(),
-      };
-      
-      setMessages(prev => [...prev, assistantMessage]);
-      
-      let fullContent = '';
-      
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        
-        const chunk = decoder.decode(value);
-        const lines = chunk.split('\n');
-        
-        for (const line of lines) {
-          if (line.startsWith('data: ')) {
-            try {
-              const data = JSON.parse(line.slice(6));
-              
-              if (data.type === 'content_delta' && data.delta) {
-                fullContent += data.delta;
-                setMessages(prev => 
-                  prev.map(msg => 
-                    msg.id === assistantMessageId 
-                      ? { ...msg, content: fullContent }
-                      : msg
-                  )
-                );
-              } else if (data.type === 'message_complete' && data.content) {
-                setMessages(prev => 
-                  prev.map(msg => 
-                    msg.id === assistantMessageId 
-                      ? { ...msg, content: data.content }
-                      : msg
-                  )
-                );
-                break;
-              }
-            } catch (parseError) {
-              console.warn('Failed to parse SSE data:', parseError);
-            }
-          }
-        }
-      }
-      
-    } catch (error) {
-      console.error('Failed to send message:', error);
+      await sendMessage(currentMessage);
+    } catch (err) {
+      console.error('Error sending message:', err);
       Alert.alert('Erreur', 'Impossible d\'envoyer le message');
-      
-      // Remove user message on error
-      setMessages(prev => prev.filter(msg => msg.id !== userMessage.id));
-    } finally {
-      setIsSendingMessage(false);
     }
   };
 
@@ -421,7 +338,7 @@ export default function AccountChatScreen() {
           {messages.map(renderMessage)}
           
           {/* Typing indicator */}
-          {isSendingMessage && (
+          {isStreaming && (
             <View style={styles.typingContainer}>
               <ActivityIndicator size="small" color="#007AFF" />
               <Text style={styles.typingText}>L'IA réfléchit...</Text>
@@ -448,7 +365,7 @@ export default function AccountChatScreen() {
                 !inputMessage.trim() && styles.sendButtonDisabled
               ]}
               onPress={handleSendMessage}
-              disabled={!inputMessage.trim() || isSendingMessage}
+                                          disabled={!inputMessage.trim() || isStreaming}
             >
               <Send size={18} color="#fff" />
             </TouchableOpacity>
@@ -471,7 +388,7 @@ export default function AccountChatScreen() {
         <ScrollView style={styles.scrollView} contentContainerStyle={styles.errorPageContainer}>
           <AlertCircle size={64} color="#ff5555" />
           <Text style={styles.errorTitle}>Oops ! Quelque chose s'est mal passé</Text>
-          <Text style={styles.errorMessage}>{error}</Text>
+          <Text style={styles.errorMessage}>{analysisError || chatError}</Text>
           
           <View style={styles.errorActions}>
             <TouchableOpacity style={styles.retryButton} onPress={retryFromError}>
@@ -499,7 +416,7 @@ export default function AccountChatScreen() {
   );
 
   // Helper function to render chat messages
-  function renderMessage(message: any) {
+  function renderMessage(message: ChatMessage) {
     const isUser = message.role === 'user';
     
     return (
@@ -534,6 +451,18 @@ export default function AccountChatScreen() {
     );
   }
 
+}
+
+interface ChatMessage {
+  id: string;
+  role: 'user' | 'assistant';
+  content: string;
+  timestamp: string;
+  metadata?: {
+    isStreaming?: boolean;
+    isSystemMessage?: boolean;
+    isError?: boolean;
+  };
 }
 
 // Helper Components
