@@ -64,50 +64,106 @@ export default function AccountInsightsScreen() {
     try {
       setLoading(true);
       
-      // Check for existing completed analysis
       const token = await getToken();
       
-      const response = await fetch(API_ENDPOINTS.TIKTOK_ANALYSIS_EXISTING(), {
+      // 🔧 FIX: First check for existing analysis
+      const existingResponse = await fetch(API_ENDPOINTS.TIKTOK_ANALYSIS_EXISTING(), {
         headers: { 'Authorization': `Bearer ${token}` },
       });
 
-      const data = await response.json();
-      if (data.success && data.data) {
-        const analysis = data.data;
-        
-        // Transform API data to component format
-        setAnalyses([{
-          id: analysis.id,
-          account_handle: analysis.tiktok_handle,
-          engagement_rate: analysis.result?.account_analysis?.engagement_rate || 0,
-          followers_growth: analysis.result?.insights?.followers_growth,
-          best_posting_times: analysis.result?.insights?.best_posting_times || [],
-          top_content_themes: analysis.result?.insights?.top_content_themes || [],
-          recommendations: analysis.result?.insights?.recommendations || [],
-          created_at: analysis.created_at,
-        }]);
-
-      setStats({
-          followers_count: analysis.result?.account_analysis?.followers || 0,
-          following_count: undefined, // Not available from current API
-          likes_count: undefined, // Not available from current API
-          videos_count: analysis.result?.account_analysis?.videos_count || 0,
-          avg_views: undefined, // Not available from current API
-          avg_engagement: analysis.result?.account_analysis?.engagement_rate || 0,
-      });
-      } else {
+      const existingData = await existingResponse.json();
+      if (!existingData.success || !existingData.data) {
         // No analysis available - show empty state
         setAnalyses([]);
         setStats(null);
+        return;
+      }
+
+      const analysis = existingData.data;
+      
+      // 🆕 NEW: Get rich account data using the /result endpoint
+      try {
+        const resultResponse = await fetch(API_ENDPOINTS.TIKTOK_ANALYSIS_RESULT(analysis.id), {
+          headers: { 'Authorization': `Bearer ${token}` },
+        });
+
+        const resultData = await resultResponse.json();
+        if (resultData.success && resultData.results) {
+          const { results } = resultData;
+          
+          // Transform rich analysis data to component format
+          setAnalyses([{
+            id: analysis.id,
+            account_handle: results.account.handle,
+            engagement_rate: results.video_analysis.avg_engagement_rate || 0,
+            followers_growth: undefined, // Not available
+            best_posting_times: results.video_analysis.top_hashtags?.slice(0, 3) || [], // Use top hashtags as placeholder
+            top_content_themes: results.video_analysis.top_hashtags || [],
+            recommendations: [
+              `Taux d'engagement moyen: ${results.video_analysis.avg_engagement_rate?.toFixed(1)}%`,
+              `${results.video_analysis.total_videos} vidéos analysées`,
+              `Moyenne de ${results.video_analysis.avg_views?.toLocaleString()} vues par vidéo`
+            ],
+            created_at: analysis.created_at,
+          }]);
+
+          // 🆕 Set rich stats from video analysis
+          setStats({
+            followers_count: results.stats.followers || 0,
+            following_count: results.stats.following || undefined,
+            likes_count: results.stats.likes || undefined,
+            videos_count: results.video_analysis.total_videos || 0,
+            avg_views: results.video_analysis.avg_views || undefined,
+            avg_engagement: results.video_analysis.avg_engagement_rate || 0,
+          });
+          
+          console.log('✅ Rich account data loaded:', {
+            handle: results.account.handle,
+            followers: results.stats.followers,
+            videos: results.video_analysis.total_videos,
+            avgViews: results.video_analysis.avg_views,
+            engagement: results.video_analysis.avg_engagement_rate
+          });
+          
+        } else {
+          // Fallback to basic analysis data
+          console.log('⚠️ No rich data available, using basic analysis');
+          setBasicAnalysisData(analysis);
+        }
+      } catch (error) {
+        console.warn('⚠️ Could not fetch rich data, using basic analysis:', error);
+        setBasicAnalysisData(analysis);
       }
     } catch (error) {
       console.error('Erreur lors du chargement des données:', error);
-      // Don't show error for missing analysis - it's expected for new users
       setAnalyses([]);
       setStats(null);
     } finally {
       setLoading(false);
     }
+  };
+
+  // Helper function for basic data fallback
+  const setBasicAnalysisData = (analysis: any) => {
+    setAnalyses([{
+      id: analysis.id,
+      account_handle: analysis.tiktok_handle,
+      engagement_rate: analysis.result?.account_analysis?.engagement_rate || 0,
+      followers_growth: analysis.result?.insights?.followers_growth,
+      best_posting_times: analysis.result?.insights?.best_posting_times || [],
+      top_content_themes: analysis.result?.insights?.top_content_themes || [],
+      recommendations: analysis.result?.insights?.recommendations || [],
+      created_at: analysis.created_at,
+    }]);
+
+    setStats({
+      followers_count: analysis.result?.account_analysis?.followers || 0,
+      following_count: undefined,
+      likes_count: undefined,
+      videos_count: analysis.result?.account_analysis?.videos_count || 0,
+      avg_views: undefined,
+      avg_engagement: analysis.result?.account_analysis?.engagement_rate || 0,
+    });
   };
 
   const handleRefresh = async () => {
@@ -117,7 +173,7 @@ export default function AccountInsightsScreen() {
   };
 
   const navigateToAccountChat = () => {
-    router.push('/(drawer)/account-chat');
+    router.push('/(drawer)/account-conversations');
   };
 
   // Show paywall for non-pro users
@@ -209,7 +265,7 @@ export default function AccountInsightsScreen() {
               onPress={navigateToAccountChat}
         >
               <MessageCircle size={20} color="#fff" />
-              <Text style={styles.startAnalysisButtonText}>Commencer l'analyse</Text>
+              <Text style={styles.startAnalysisButtonText}>Chat TikTok</Text>
         </TouchableOpacity>
       </View>
         )}
@@ -262,7 +318,7 @@ export default function AccountInsightsScreen() {
                 <View style={styles.analysisSection}>
                   <Text style={styles.analysisSubtitle}>Meilleurs moments</Text>
                   <View style={styles.timeSlots}>
-                    {analysis.best_posting_times.map((time, index) => (
+                    {(analysis.best_posting_times || []).map((time, index) => (
                       <View key={index} style={styles.timeSlot}>
                         <Text style={styles.timeSlotText}>{time}</Text>
                       </View>
@@ -273,7 +329,7 @@ export default function AccountInsightsScreen() {
                 <View style={styles.analysisSection}>
                   <Text style={styles.analysisSubtitle}>Thèmes populaires</Text>
                   <View style={styles.themes}>
-                    {analysis.top_content_themes.map((theme, index) => (
+                    {(analysis.top_content_themes || []).map((theme, index) => (
                       <View key={index} style={styles.themeTag}>
                         <Text style={styles.themeText}>{theme}</Text>
                       </View>
@@ -305,9 +361,9 @@ export default function AccountInsightsScreen() {
             <View style={styles.actionContent}>
               <MessageCircle size={24} color="#007AFF" />
               <View style={styles.actionText}>
-                <Text style={styles.actionTitle}>Chat Stratégique</Text>
+                <Text style={styles.actionTitle}>Chat TikTok</Text>
                 <Text style={styles.actionSubtitle}>
-                  Discutez avec l'IA pour des conseils personnalisés
+                  Vos conversations avec l'expert IA TikTok
                 </Text>
               </View>
             </View>

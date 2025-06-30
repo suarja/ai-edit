@@ -241,6 +241,16 @@ export const API_ENDPOINTS = {
     return config.tiktokAnalyzer.baseUrl + config.tiktokAnalyzer.handleValidate;
   },
 
+  TIKTOK_CONVERSATIONS: () => {
+    const config = getCurrentConfig();
+    return `${config.tiktokAnalyzer.baseUrl}/api/account-analysis/conversations`;
+  },
+
+  TIKTOK_CONVERSATION_MESSAGES: (conversationId: string) => {
+    const config = getCurrentConfig();
+    return `${config.tiktokAnalyzer.baseUrl}/api/account-analysis/conversations/${conversationId}/messages`;
+  },
+
   // Supabase functions (still needed)
   SUPABASE_CREATE_VOICE_CLONE: () => {
     const config = getCurrentConfig();

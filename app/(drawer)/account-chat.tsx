@@ -21,7 +21,7 @@ import {
   RefreshCw
 } from 'lucide-react-native';
 import { useAuth } from '@clerk/clerk-expo';
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { useRevenueCat } from '@/providers/RevenueCat';
 import { useTikTokChatSimple } from '@/hooks/useTikTokChatSimple';
 
@@ -36,18 +36,24 @@ import { useTikTokChatSimple } from '@/hooks/useTikTokChatSimple';
 export default function AccountChatScreen() {
   const { isSignedIn } = useAuth();
   const { isPro, goPro } = useRevenueCat();
+  const { conversationId } = useLocalSearchParams<{ conversationId?: string }>();
   const [inputMessage, setInputMessage] = useState('');
   const scrollViewRef = useRef<ScrollView>(null);
 
-  // Use simplified TikTok chat hook
+  // Use TikTok chat hook with streaming enabled
   const {
     messages,
     isLoading,
+    isStreaming,
     error,
     sendMessage,
     clearError,
     existingAnalysis,
-  } = useTikTokChatSimple();
+    hasAnalysis,
+  } = useTikTokChatSimple({ 
+    enableStreaming: true,
+    conversationId: conversationId || undefined,
+  });
 
   // Auto-scroll to bottom when messages change
   useEffect(() => {
@@ -90,9 +96,9 @@ export default function AccountChatScreen() {
     );
   }
 
-  // Handle sending chat messages (simplified)
+  // Handle sending chat messages with streaming support
   const handleSendMessage = async () => {
-    if (!inputMessage.trim() || isLoading) return;
+    if (!inputMessage.trim() || isLoading || isStreaming) return;
     
     const currentMessage = inputMessage.trim();
     setInputMessage('');
@@ -189,11 +195,13 @@ export default function AccountChatScreen() {
         {/* Messages */}
         {messages.map(renderMessage)}
         
-        {/* Loading indicator */}
-        {isLoading && (
+        {/* Loading/Streaming indicator */}
+        {(isLoading || isStreaming) && (
           <View style={styles.typingContainer}>
             <ActivityIndicator size="small" color="#007AFF" />
-            <Text style={styles.typingText}>L'IA réfléchit...</Text>
+            <Text style={styles.typingText}>
+              {isStreaming ? 'L\'IA écrit...' : 'L\'IA réfléchit...'}
+            </Text>
           </View>
         )}
       </ScrollView>
@@ -250,18 +258,18 @@ export default function AccountChatScreen() {
             placeholderTextColor="#888"
             multiline
             maxLength={500}
-            editable={!isLoading}
+            editable={!isLoading && !isStreaming}
           />
           
           <TouchableOpacity
             style={[
               styles.sendButton,
-              (!inputMessage.trim() || isLoading) && styles.sendButtonDisabled
+              (!inputMessage.trim() || isLoading || isStreaming) && styles.sendButtonDisabled
             ]}
             onPress={handleSendMessage}
-            disabled={!inputMessage.trim() || isLoading}
+            disabled={!inputMessage.trim() || isLoading || isStreaming}
           >
-            {isLoading ? (
+            {(isLoading || isStreaming) ? (
               <ActivityIndicator size="small" color="#fff" />
             ) : (
               <Send size={18} color="#fff" />

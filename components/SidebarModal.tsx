@@ -57,10 +57,10 @@ export default function SidebarModal({ visible, onClose }: SidebarModalProps) {
       isExpanded: false,
       items: [
         {
-          id: 'account-chat',
-          name: 'Chat avec votre compte',
-          route: '/account-chat',
-          description: 'Analysez votre compte TikTok avec l\'IA',
+          id: 'account-conversations',
+          name: 'Chat TikTok',
+          route: '/account-conversations',
+          description: 'Conversations avec l\'expert IA TikTok',
         },
         {
           id: 'account-insights',
@@ -203,8 +203,8 @@ export default function SidebarModal({ visible, onClose }: SidebarModalProps) {
           style={styles.addButton}
           onPress={() => {
             if (folder.id === 'account-analysis') {
-              // Navigate to account chat for new analysis
-              router.push(`/account-chat?new=${Date.now()}`);
+              // Navigate to conversations list
+              router.push('/account-conversations');
               onClose();
             } else if (folder.id === 'scripts') {
               // Force new chat with timestamp like in drawer layout
@@ -225,7 +225,7 @@ export default function SidebarModal({ visible, onClose }: SidebarModalProps) {
             <Plus size={16} color="#007AFF" />
           </View>
           <Text style={[styles.addButtonText, { color: '#007AFF' }]}>
-            {folder.id === 'account-analysis' ? 'Analyser compte' :
+            {folder.id === 'account-analysis' ? 'Chat TikTok' :
              folder.id === 'scripts' ? 'Créer un script' :
              folder.id === 'videos' ? 'Générer vidéo' :
              folder.id === 'sources' ? 'Uploader média' :
