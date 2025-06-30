@@ -221,7 +221,7 @@ export default function AccountConversationsScreen() {
         )}
 
         {/* Header */}
-        <View style={styles.header}>
+      {/*   <View style={styles.header}>
           <View>
             <Text style={styles.title}>
               {'Chat TikTok'}
@@ -236,7 +236,7 @@ export default function AccountConversationsScreen() {
           >
             <Plus size={24} color="#fff" />
           </TouchableOpacity>
-        </View>
+        </View> */}
 
         {/* Empty State */}
         {!loading && conversations.length === 0 && (

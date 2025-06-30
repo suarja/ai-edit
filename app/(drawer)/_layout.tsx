@@ -48,6 +48,13 @@ function DrawerLayoutContent() {
           name="account-chat"
           options={{
             title: 'Account Chat',
+            headerShown: false,
+          }}
+        />
+        <Tabs.Screen
+          name="account-conversations"
+          options={{
+            title: 'Conversations',
           }}
         />
         <Tabs.Screen

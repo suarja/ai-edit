@@ -18,7 +18,9 @@ import {
   TrendingUp, 
   Crown,
   AlertCircle,
-  RefreshCw
+  RefreshCw,
+  ArrowLeft,
+  Plus
 } from 'lucide-react-native';
 import { useAuth } from '@clerk/clerk-expo';
 import { router, useLocalSearchParams } from 'expo-router';
@@ -170,10 +172,14 @@ export default function AccountChatScreen() {
     <SafeAreaView 
       key={conversationId || 'new'}
       style={styles.container} 
-      edges={[]}
+      edges={['top']}
     >
       {/* Header with reset button for testing */}
       <View style={styles.header}>
+        {/* back button */}
+        <TouchableOpacity onPress={() => router.push('/account-conversations')}>
+          <ArrowLeft size={24} color="#007AFF" />
+        </TouchableOpacity>
         <Text style={styles.headerTitle}>
           {conversationTitle ? conversationTitle : 'Nouveau chat'}
         </Text>
@@ -181,8 +187,7 @@ export default function AccountChatScreen() {
           style={styles.resetButton}
           onPress={resetConversation}
         >
-          <RefreshCw size={16} color="#007AFF" />
-          <Text style={styles.resetButtonText}>Reset</Text>
+          <Plus size={24} color="#007AFF" />
         </TouchableOpacity>
       </View>
 
@@ -572,6 +577,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     padding: 16,
+    gap: 16,
   },
   headerTitle: {
     color: '#fff',
