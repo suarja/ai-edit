@@ -36,7 +36,7 @@ import { useTikTokChatSimple } from '@/hooks/useTikTokChatSimple';
 export default function AccountChatScreen() {
   const { isSignedIn } = useAuth();
   const { isPro, goPro } = useRevenueCat();
-  const { conversationId } = useLocalSearchParams<{ conversationId?: string }>();
+  const { conversationId, conversationTitle } = useLocalSearchParams<{ conversationId?: string, conversationTitle?: string }>();
   const [inputMessage, setInputMessage] = useState('');
   const scrollViewRef = useRef<ScrollView>(null);
 
@@ -54,6 +54,7 @@ export default function AccountChatScreen() {
   } = useTikTokChatSimple({ 
     enableStreaming: false,
     conversationId: conversationId || undefined,
+    conversationTitle: conversationTitle || undefined,
   });
 
   // Auto-scroll to bottom when messages change
@@ -174,7 +175,7 @@ export default function AccountChatScreen() {
       {/* Header with reset button for testing */}
       <View style={styles.header}>
         <Text style={styles.headerTitle}>
-          {conversationId ? 'Chat existant' : 'Nouveau chat'}
+          {conversationTitle ? conversationTitle : 'Nouveau chat'}
         </Text>
         <TouchableOpacity 
           style={styles.resetButton}

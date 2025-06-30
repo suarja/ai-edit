@@ -90,11 +90,11 @@ export default function AccountConversationsScreen() {
     });
   };
 
-  const handleOpenConversation = (conversationId: string) => {
+  const handleOpenConversation = (conversation: Conversation) => {
     // Navigate to chat with conversationId (existing conversation)
     router.push({
       pathname: '/(drawer)/account-chat',
-      params: { conversationId },
+      params: { conversationId: conversation.id, conversationTitle: getConversationTitle(conversation) },
     });
   };
 
@@ -224,7 +224,7 @@ export default function AccountConversationsScreen() {
         <View style={styles.header}>
           <View>
             <Text style={styles.title}>
-              {getConversationTitle(conversations[0])}
+              {'Chat TikTok'}
             </Text>
             <Text style={styles.subtitle}>
               {conversations.length} conversation{conversations.length !== 1 ? 's' : ''}
@@ -261,7 +261,7 @@ export default function AccountConversationsScreen() {
           <TouchableOpacity
             key={conversation.id}
             style={styles.conversationCard}
-            onPress={() => handleOpenConversation(conversation.id)}
+            onPress={() => handleOpenConversation(conversation)}
           >
             <View style={styles.conversationHeader}>
               <View style={styles.conversationIcon}>

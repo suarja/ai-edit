@@ -27,6 +27,7 @@ interface TikTokAnalysis {
 interface UseTikTokChatProps {
   enableStreaming?: boolean;
   conversationId?: string;
+  conversationTitle?: string;
 }
 
 interface UseTikTokChatSimpleReturn {
@@ -48,7 +49,7 @@ interface UseTikTokChatSimpleReturn {
  * Now includes analysis context for proper LLM responses
  */
 export function useTikTokChatSimple(props: UseTikTokChatProps = {}): UseTikTokChatSimpleReturn {
-  const { enableStreaming = false, conversationId } = props;
+  const { enableStreaming = false, conversationId, conversationTitle } = props;
   const { getToken } = useAuth();
   const { isPro } = useRevenueCat();
   
@@ -184,142 +185,142 @@ export function useTikTokChatSimple(props: UseTikTokChatProps = {}): UseTikTokCh
   }, []);
 
   // 🆕 STREAMING VERSION
-  const sendMessageStreaming = async (message: string): Promise<void> => {
-    try {
-      setIsLoading(true);
-      setIsStreaming(true);
-      setError(null);
+  // const sendMessageStreaming = async (message: string): Promise<void> => {
+  //   try {
+  //     setIsLoading(true);
+  //     setIsStreaming(true);
+  //     setError(null);
 
-      const userMessage: ChatMessage = {
-        id: Date.now().toString(),
-        role: 'user',
-        content: message,
-        timestamp: new Date(),
-      };
+  //     const userMessage: ChatMessage = {
+  //       id: Date.now().toString(),
+  //       role: 'user',
+  //       content: message,
+  //       timestamp: new Date(),
+  //     };
 
-      setMessages(prev => [...prev, userMessage]);
+  //     setMessages(prev => [...prev, userMessage]);
 
-      const token = await getToken();
-      const payload = {
-        message,
-        streaming: true,
-        conversation_id: conversationId,
-        run_id: existingAnalysis?.id,
-        tiktok_handle: existingAnalysis?.tiktok_handle,
-      };
+  //     const token = await getToken();
+  //     const payload = {
+  //       message,
+  //       streaming: true,
+  //       conversation_id: conversationId,
+  //       run_id: existingAnalysis?.id,
+  //       tiktok_handle: existingAnalysis?.tiktok_handle,
+  //     };
 
-      console.log('🔄 Starting streaming chat request:', {
-        hasAnalysis: !!existingAnalysis,
-        handle: existingAnalysis?.tiktok_handle,
-      });
+  //     console.log('🔄 Starting streaming chat request:', {
+  //       hasAnalysis: !!existingAnalysis,
+  //       handle: existingAnalysis?.tiktok_handle,
+  //     });
 
-      const response = await fetch(API_ENDPOINTS.TIKTOK_ANALYSIS_CHAT(), {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(payload),
-      });
+  //     const response = await fetch(API_ENDPOINTS.TIKTOK_ANALYSIS_CHAT(), {
+  //       method: 'POST',
+  //       headers: {
+  //         'Authorization': `Bearer ${token}`,
+  //         'Content-Type': 'application/json',
+  //       },
+  //       body: JSON.stringify(payload),
+  //     });
 
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-      }
+  //     if (!response.ok) {
+  //       throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+  //     }
 
-      // Create assistant message placeholder
-      const assistantMessage: ChatMessage = {
-        id: (Date.now() + 1).toString(),
-        role: 'assistant',
-        content: '',
-        timestamp: new Date(),
-      };
+  //     // Create assistant message placeholder
+  //     const assistantMessage: ChatMessage = {
+  //       id: (Date.now() + 1).toString(),
+  //       role: 'assistant',
+  //       content: '',
+  //       timestamp: new Date(),
+  //     };
 
-      setMessages(prev => [...prev, assistantMessage]);
+  //     setMessages(prev => [...prev, assistantMessage]);
 
-      // Handle streaming response - improved error handling
-      if (!response.body) {
-        throw new Error('Response body is not available for streaming');
-      }
+  //     // Handle streaming response - improved error handling
+  //     if (!response.body) {
+  //       throw new Error('Response body is not available for streaming');
+  //     }
 
-      const reader = response.body.getReader();
-      const decoder = new TextDecoder();
-      let buffer = '';
+  //     const reader = response.body.getReader();
+  //     const decoder = new TextDecoder();
+  //     let buffer = '';
 
-      try {
-        while (true) {
-          const { done, value } = await reader.read();
-          if (done) {
-            console.log('✅ Streaming completed');
-            break;
-          }
+  //     try {
+  //       while (true) {
+  //         const { done, value } = await reader.read();
+  //         if (done) {
+  //           console.log('✅ Streaming completed');
+  //           break;
+  //         }
 
-          if (!value) continue;
+  //         if (!value) continue;
 
-          buffer += decoder.decode(value, { stream: true });
-          const lines = buffer.split('\n');
-          buffer = lines.pop() || '';
+  //         buffer += decoder.decode(value, { stream: true });
+  //         const lines = buffer.split('\n');
+  //         buffer = lines.pop() || '';
 
-          for (const line of lines) {
-            if (line.trim() === '') continue;
+  //         for (const line of lines) {
+  //           if (line.trim() === '') continue;
 
-            if (line.startsWith('data: ')) {
-              try {
-                const jsonStr = line.slice(6).trim();
-                if (jsonStr === '[DONE]') {
-                  console.log('✅ Streaming done signal received');
-                  break;
-                }
+  //           if (line.startsWith('data: ')) {
+  //             try {
+  //               const jsonStr = line.slice(6).trim();
+  //               if (jsonStr === '[DONE]') {
+  //                 console.log('✅ Streaming done signal received');
+  //                 break;
+  //               }
 
-                const data = JSON.parse(jsonStr);
+  //               const data = JSON.parse(jsonStr);
                 
-                if (data.type === 'content_delta' && data.content) {
-                  // Update assistant message content
-                  setMessages(prev => prev.map(msg => 
-                    msg.id === assistantMessage.id
-                      ? { ...msg, content: msg.content + data.content }
-                      : msg
-                  ));
-                } else if (data.type === 'error') {
-                  throw new Error(data.error || 'Streaming error');
-                } else if (data.type === 'status_update') {
-                  console.log('📡 Status:', data.message);
-                } else if (data.type === 'message_complete') {
-                  console.log('✅ Message complete received');
-                  // Update final message if needed
-                  if (data.message && data.message.content) {
-                    setMessages(prev => prev.map(msg => 
-                      msg.id === assistantMessage.id
-                        ? { ...msg, content: data.message.content }
-                        : msg
-                    ));
-                  }
-                }
-              } catch (parseError) {
-                console.warn('⚠️ Could not parse SSE data:', line, parseError);
-                // Continue processing other lines
-              }
-            }
-          }
-        }
-      } finally {
-        try {
-          reader.releaseLock();
-        } catch (releaseError) {
-          console.warn('⚠️ Could not release reader lock:', releaseError);
-        }
-      }
+  //               if (data.type === 'content_delta' && data.content) {
+  //                 // Update assistant message content
+  //                 setMessages(prev => prev.map(msg => 
+  //                   msg.id === assistantMessage.id
+  //                     ? { ...msg, content: msg.content + data.content }
+  //                     : msg
+  //                 ));
+  //               } else if (data.type === 'error') {
+  //                 throw new Error(data.error || 'Streaming error');
+  //               } else if (data.type === 'status_update') {
+  //                 console.log('📡 Status:', data.message);
+  //               } else if (data.type === 'message_complete') {
+  //                 console.log('✅ Message complete received');
+  //                 // Update final message if needed
+  //                 if (data.message && data.message.content) {
+  //                   setMessages(prev => prev.map(msg => 
+  //                     msg.id === assistantMessage.id
+  //                       ? { ...msg, content: data.message.content }
+  //                       : msg
+  //                   ));
+  //                 }
+  //               }
+  //             } catch (parseError) {
+  //               console.warn('⚠️ Could not parse SSE data:', line, parseError);
+  //               // Continue processing other lines
+  //             }
+  //           }
+  //         }
+  //       }
+  //     } finally {
+  //       try {
+  //         reader.releaseLock();
+  //       } catch (releaseError) {
+  //         console.warn('⚠️ Could not release reader lock:', releaseError);
+  //       }
+  //     }
 
-    } catch (error) {
-      console.error('❌ Streaming error:', error);
-      setError(error instanceof Error ? error.message : 'Unknown streaming error');
+  //   } catch (error) {
+  //     console.error('❌ Streaming error:', error);
+  //     setError(error instanceof Error ? error.message : 'Unknown streaming error');
       
-      // Remove any incomplete assistant message
-      setMessages(prev => prev.filter(msg => msg.role !== 'assistant' || msg.content.trim() !== ''));
-    } finally {
-      setIsLoading(false);
-      setIsStreaming(false);
-    }
-  };
+  //     // Remove any incomplete assistant message
+  //     setMessages(prev => prev.filter(msg => msg.role !== 'assistant' || msg.content.trim() !== ''));
+  //   } finally {
+  //     setIsLoading(false);
+  //     setIsStreaming(false);
+  //   }
+  // };
 
   // 🔄 NON-STREAMING VERSION (fallback)
   const sendMessageRegular = async (message: string): Promise<void> => {
@@ -345,6 +346,7 @@ export function useTikTokChatSimple(props: UseTikTokChatProps = {}): UseTikTokCh
         tiktok_handle: existingAnalysis?.tiktok_handle,
       };
 
+      console.log("sendMessageRegular", payload, "conversationId", conversationId);
       const response = await fetch(API_ENDPOINTS.TIKTOK_ANALYSIS_CHAT(), {
         method: 'POST',
         headers: {
@@ -394,7 +396,7 @@ export function useTikTokChatSimple(props: UseTikTokChatProps = {}): UseTikTokCh
   // 🎯 MAIN SEND MESSAGE FUNCTION
   const sendMessage = async (message: string): Promise<void> => {
     if (enableStreaming) {
-      await sendMessageStreaming(message);
+      // await sendMessageStreaming(message);
     } else {
       await sendMessageRegular(message);
     }
