@@ -52,7 +52,7 @@ export default function AccountChatScreen() {
     hasAnalysis,
     resetConversation,
   } = useTikTokChatSimple({ 
-    enableStreaming: true,
+    enableStreaming: false,
     conversationId: conversationId || undefined,
   });
 

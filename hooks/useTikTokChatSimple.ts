@@ -48,7 +48,7 @@ interface UseTikTokChatSimpleReturn {
  * Now includes analysis context for proper LLM responses
  */
 export function useTikTokChatSimple(props: UseTikTokChatProps = {}): UseTikTokChatSimpleReturn {
-  const { enableStreaming = true, conversationId } = props;
+  const { enableStreaming = false, conversationId } = props;
   const { getToken } = useAuth();
   const { isPro } = useRevenueCat();
   
@@ -81,8 +81,9 @@ export function useTikTokChatSimple(props: UseTikTokChatProps = {}): UseTikTokCh
       fetchExistingAnalysis();
       
       // Check if conversationId has actually changed
+      const isNewConversation = conversationId === undefined;
       const hasConversationChanged = previousConversationIdRef.current !== conversationId;
-      
+
       if (hasConversationChanged) {
         console.log('🔄 Conversation changed:', {
           from: previousConversationIdRef.current,
