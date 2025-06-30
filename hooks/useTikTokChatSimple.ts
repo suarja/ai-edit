@@ -41,6 +41,7 @@ interface UseTikTokChatSimpleReturn {
   hasAnalysis: boolean;
   refreshAnalysis: () => Promise<void>;
   resetConversation: () => void;
+  chatTitle: string | null;
 }
 
 /**
@@ -59,6 +60,7 @@ export function useTikTokChatSimple(props: UseTikTokChatProps = {}): UseTikTokCh
   const [isStreaming, setIsStreaming] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [existingAnalysis, setExistingAnalysis] = useState<TikTokAnalysis | null>(null);
+  const [chatTitle, setChatTitle] = useState<string | null>(conversationTitle || null);
   
   // Track previous conversationId to detect changes
   const previousConversationIdRef = useRef<string | undefined>(conversationId);
@@ -82,7 +84,6 @@ export function useTikTokChatSimple(props: UseTikTokChatProps = {}): UseTikTokCh
       fetchExistingAnalysis();
       
       // Check if conversationId has actually changed
-      const isNewConversation = conversationId === undefined;
       const hasConversationChanged = previousConversationIdRef.current !== conversationId;
 
       if (hasConversationChanged) {
@@ -362,6 +363,8 @@ export function useTikTokChatSimple(props: UseTikTokChatProps = {}): UseTikTokCh
         throw new Error(result.error || 'Failed to send message');
       }
 
+      console.log("result changeTitle", result.data.changeTitle);
+
       // Handle different response formats
       let assistantContent = '';
       if (result.data?.data?.message?.content) {
@@ -374,6 +377,10 @@ export function useTikTokChatSimple(props: UseTikTokChatProps = {}): UseTikTokCh
         assistantContent = result.data;
       } else {
         throw new Error('Invalid response format');
+      }
+
+      if (result.data.changeTitle) {
+        setChatTitle(result.data.newTitle);
       }
 
       const assistantMessage: ChatMessage = {
@@ -413,5 +420,6 @@ export function useTikTokChatSimple(props: UseTikTokChatProps = {}): UseTikTokCh
     hasAnalysis: !!existingAnalysis,
     refreshAnalysis: fetchExistingAnalysis,
     resetConversation,
+    chatTitle,
   };
 } 

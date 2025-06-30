@@ -41,7 +41,7 @@ export default function AccountChatScreen() {
   const { conversationId, conversationTitle } = useLocalSearchParams<{ conversationId?: string, conversationTitle?: string }>();
   const [inputMessage, setInputMessage] = useState('');
   const scrollViewRef = useRef<ScrollView>(null);
-
+  const [chatTitle, setChatTitle] = useState<string | null>(conversationTitle || null);
   // Use TikTok chat hook with streaming enabled
   const {
     messages,
@@ -53,11 +53,16 @@ export default function AccountChatScreen() {
     existingAnalysis,
     hasAnalysis,
     resetConversation,
+    chatTitle: chatTitleHook,
   } = useTikTokChatSimple({ 
     enableStreaming: false,
     conversationId: conversationId || undefined,
     conversationTitle: conversationTitle || undefined,
   });
+
+  useEffect(() => {
+    setChatTitle(chatTitleHook);
+  }, [chatTitleHook]);
 
   // Auto-scroll to bottom when messages change
   useEffect(() => {
@@ -67,6 +72,8 @@ export default function AccountChatScreen() {
   // Reset input when conversation changes
   useEffect(() => {
     setInputMessage('');
+    console.log("conversationId", conversationId);
+    console.log("conversationTitle", conversationTitle);
   }, [conversationId]);
 
   // Helper function to render chat messages (same as working chat.tsx)
@@ -181,14 +188,9 @@ export default function AccountChatScreen() {
           <ArrowLeft size={24} color="#007AFF" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>
-          {conversationTitle ? conversationTitle : 'Nouveau chat'}
+          {chatTitle ? chatTitle : 'Nouveau chat'}
         </Text>
-        <TouchableOpacity 
-          style={styles.resetButton}
-          onPress={resetConversation}
-        >
-          <Plus size={24} color="#007AFF" />
-        </TouchableOpacity>
+
       </View>
 
       {/* Messages */}
