@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useAuth } from '@clerk/clerk-expo';
 import { useRevenueCat } from '@/providers/RevenueCat';
 import { API_ENDPOINTS } from '@/lib/config/api';
@@ -39,6 +39,7 @@ interface UseTikTokChatSimpleReturn {
   existingAnalysis: TikTokAnalysis | null;
   hasAnalysis: boolean;
   refreshAnalysis: () => Promise<void>;
+  resetConversation: () => void;
 }
 
 /**
@@ -57,20 +58,52 @@ export function useTikTokChatSimple(props: UseTikTokChatProps = {}): UseTikTokCh
   const [isStreaming, setIsStreaming] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [existingAnalysis, setExistingAnalysis] = useState<TikTokAnalysis | null>(null);
+  
+  // Track previous conversationId to detect changes
+  const previousConversationIdRef = useRef<string | undefined>(conversationId);
+
+  // Initialize ref on mount
+  useEffect(() => {
+    console.log('🚀 Hook initialized with conversationId:', conversationId);
+    previousConversationIdRef.current = conversationId;
+  }, []);
 
   // Handle conversation changes (existing or new)
   useEffect(() => {
+    console.log('🔄 useEffect triggered:', {
+      isPro,
+      conversationId,
+      previousConversationId: previousConversationIdRef.current,
+      messagesCount: messages.length
+    });
+    
     if (isPro) {
       fetchExistingAnalysis();
-      if (conversationId) {
-        console.log('📂 Loading existing conversation:', conversationId);
-        loadConversationMessages(conversationId);
+      
+      // Check if conversationId has actually changed
+      const hasConversationChanged = previousConversationIdRef.current !== conversationId;
+      
+      if (hasConversationChanged) {
+        console.log('🔄 Conversation changed:', {
+          from: previousConversationIdRef.current,
+          to: conversationId,
+          messagesBeforeReset: messages.length
+        });
+        
+        // Reset state for conversation change
+        resetConversation();
+        
+        // Update ref
+        previousConversationIdRef.current = conversationId;
+        
+        if (conversationId) {
+          console.log('📂 Loading existing conversation:', conversationId);
+          loadConversationMessages(conversationId);
+        } else {
+          console.log('🆕 Starting new conversation');
+        }
       } else {
-        console.log('🆕 Starting new conversation');
-        setMessages([]);
-        setError(null);
-        setIsLoading(false);
-        setIsStreaming(false);
+        console.log('📋 No conversation change detected');
       }
     }
   }, [isPro, conversationId]);
@@ -136,6 +169,17 @@ export function useTikTokChatSimple(props: UseTikTokChatProps = {}): UseTikTokCh
    */
   const clearError = useCallback(() => {
     setError(null);
+  }, []);
+
+  /**
+   * Reset conversation state
+   */
+  const resetConversation = useCallback(() => {
+    console.log('🔄 Resetting conversation state');
+    setMessages([]);
+    setError(null);
+    setIsLoading(false);
+    setIsStreaming(false);
   }, []);
 
   // 🆕 STREAMING VERSION
@@ -355,8 +399,6 @@ export function useTikTokChatSimple(props: UseTikTokChatProps = {}): UseTikTokCh
     }
   };
 
-
-
   return {
     messages,
     isLoading,
@@ -367,5 +409,6 @@ export function useTikTokChatSimple(props: UseTikTokChatProps = {}): UseTikTokCh
     existingAnalysis,
     hasAnalysis: !!existingAnalysis,
     refreshAnalysis: fetchExistingAnalysis,
+    resetConversation,
   };
 } 

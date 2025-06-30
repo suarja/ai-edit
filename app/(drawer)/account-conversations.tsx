@@ -223,7 +223,9 @@ export default function AccountConversationsScreen() {
         {/* Header */}
         <View style={styles.header}>
           <View>
-            <Text style={styles.title}>Chat TikTok</Text>
+            <Text style={styles.title}>
+              {getConversationTitle(conversations[0])}
+            </Text>
             <Text style={styles.subtitle}>
               {conversations.length} conversation{conversations.length !== 1 ? 's' : ''}
             </Text>

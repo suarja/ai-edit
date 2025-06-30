@@ -50,6 +50,7 @@ export default function AccountChatScreen() {
     clearError,
     existingAnalysis,
     hasAnalysis,
+    resetConversation,
   } = useTikTokChatSimple({ 
     enableStreaming: true,
     conversationId: conversationId || undefined,
@@ -59,6 +60,11 @@ export default function AccountChatScreen() {
   useEffect(() => {
     scrollViewRef.current?.scrollToEnd({ animated: true });
   }, [messages]);
+
+  // Reset input when conversation changes
+  useEffect(() => {
+    setInputMessage('');
+  }, [conversationId]);
 
   // Helper function to render chat messages (same as working chat.tsx)
   function renderMessage(message: any) {
@@ -160,7 +166,25 @@ export default function AccountChatScreen() {
 
   // Main chat interface (simplified like chat.tsx)
   return (
-    <SafeAreaView style={styles.container} edges={[]}>
+    <SafeAreaView 
+      key={conversationId || 'new'}
+      style={styles.container} 
+      edges={[]}
+    >
+      {/* Header with reset button for testing */}
+      <View style={styles.header}>
+        <Text style={styles.headerTitle}>
+          {conversationId ? 'Chat existant' : 'Nouveau chat'}
+        </Text>
+        <TouchableOpacity 
+          style={styles.resetButton}
+          onPress={resetConversation}
+        >
+          <RefreshCw size={16} color="#007AFF" />
+          <Text style={styles.resetButtonText}>Reset</Text>
+        </TouchableOpacity>
+      </View>
+
       {/* Messages */}
       <ScrollView 
         ref={scrollViewRef}
@@ -540,5 +564,28 @@ const styles = StyleSheet.create({
   },
   sendButtonDisabled: {
     backgroundColor: '#333',
+  },
+
+  // Header Styles
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 16,
+  },
+  headerTitle: {
+    color: '#fff',
+    fontSize: 18,
+    fontWeight: 'bold',
+    flex: 1,
+  },
+  resetButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  resetButtonText: {
+    color: '#007AFF',
+    fontSize: 14,
+    fontWeight: '600',
   },
 }); 
