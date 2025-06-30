@@ -58,12 +58,19 @@ export function useTikTokChatSimple(props: UseTikTokChatProps = {}): UseTikTokCh
   const [error, setError] = useState<string | null>(null);
   const [existingAnalysis, setExistingAnalysis] = useState<TikTokAnalysis | null>(null);
 
-  // Fetch existing analysis and conversation messages on mount
+  // Handle conversation changes (existing or new)
   useEffect(() => {
     if (isPro) {
       fetchExistingAnalysis();
       if (conversationId) {
+        console.log('📂 Loading existing conversation:', conversationId);
         loadConversationMessages(conversationId);
+      } else {
+        console.log('🆕 Starting new conversation');
+        setMessages([]);
+        setError(null);
+        setIsLoading(false);
+        setIsStreaming(false);
       }
     }
   }, [isPro, conversationId]);

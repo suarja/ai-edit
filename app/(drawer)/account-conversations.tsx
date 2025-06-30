@@ -84,7 +84,10 @@ export default function AccountConversationsScreen() {
 
   const handleCreateNewConversation = () => {
     // Navigate to chat without conversationId (new conversation)
-    router.push('/(drawer)/account-chat');
+    router.push({
+      pathname: '/(drawer)/account-chat',
+      params: {}, // Explicitly clear any previous params
+    });
   };
 
   const handleOpenConversation = (conversationId: string) => {
