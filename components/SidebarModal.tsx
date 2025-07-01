@@ -59,13 +59,13 @@ export default function SidebarModal({ visible, onClose }: SidebarModalProps) {
         {
           id: 'account-conversations',
           name: 'Chat TikTok',
-          route: '/account-conversations',
+          route: '(analysis)/account-conversations',
           description: 'Conversations avec l\'expert IA TikTok',
         },
         {
           id: 'account-insights',
           name: 'Mes analyses',
-          route: '/account-insights',
+          route: '(analysis)/account-insights',
           description: 'Historique de vos analyses',
         },
       ],

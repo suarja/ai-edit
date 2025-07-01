@@ -22,6 +22,7 @@ import { useAuth } from '@clerk/clerk-expo';
 import { useRevenueCat } from '@/providers/RevenueCat';
 import { API_ENDPOINTS } from '@/lib/config/api';
 import ProPaywall from '@/components/analysis/ProPaywall';
+import AnalysisHeader from '@/components/analysis/AnalysisHeader';
 
 interface Conversation {
   id: string;
@@ -160,7 +161,7 @@ export default function AccountConversationsScreen() {
 
   if (loading) {
     return (
-      <SafeAreaView style={styles.container} edges={[]}>
+      <SafeAreaView style={styles.container} edges={['top']}>
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#007AFF" />
           <Text style={styles.loadingText}>Chargement des conversations...</Text>
@@ -170,7 +171,11 @@ export default function AccountConversationsScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.container} edges={[]}>
+    <SafeAreaView style={styles.container} edges={['top']}>
+         <AnalysisHeader 
+        title={'Conversations'}
+        onBack={() => router.back()}
+      />
       <ScrollView
         style={styles.content}
         showsVerticalScrollIndicator={false}

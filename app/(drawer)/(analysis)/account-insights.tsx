@@ -197,7 +197,11 @@ export default function AccountInsightsScreen() {
   const { account, stats, aggregates, insights } = context;
 
   return (
-    <SafeAreaView style={styles.container} edges={[]}>
+    <SafeAreaView style={styles.container} edges={["top"]}>
+      <AnalysisHeader 
+        title={'Insights'}
+        onBack={() => router.back()}
+      />
       <ScrollView 
         style={styles.scrollView}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor="#fff" />}

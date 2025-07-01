@@ -156,7 +156,7 @@ export default function AccountChatScreen() {
     <SafeAreaView 
       key={conversationId || 'new'}
       style={styles.container} 
-      edges={[]}
+      edges={['top']}
     >
       {/* Header with reset button for testing */}
       <AnalysisHeader 
