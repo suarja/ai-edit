@@ -30,7 +30,7 @@ import {
 import { useRevenueCat } from '@/providers/RevenueCat';
 import { useAuth } from '@clerk/clerk-expo';
 import { API_ENDPOINTS } from '@/lib/config/api';
-import useAccountAnalysis from '@/hooks/useAccountAnalysis'; // Import the hook
+import { useAccountAnalysis } from '@/hooks/useAccountAnalysis';
 
 // Updated types to match the new comprehensive context
 interface AccountData {
@@ -93,7 +93,7 @@ export default function AccountInsightsScreen() {
 
   useEffect(() => {
     if (analysis) {
-      loadAccountContext(analysis.id);
+      loadAccountContext(analysis.account_id);
     } else if (!isAnalysisLoading) {
       // If analysis is done loading and it's null, we stop loading.
       // The guard should have redirected, but this is a safeguard.
@@ -102,6 +102,7 @@ export default function AccountInsightsScreen() {
   }, [analysis, isAnalysisLoading]);
 
   const loadAccountContext = async (accountId: string) => {
+    console.log('🔄 loadAccountContext: Loading account context for accountId:', accountId);
     try {
       setLoading(true);
       const token = await getToken();
@@ -138,7 +139,7 @@ export default function AccountInsightsScreen() {
 
   const navigateToAccountChat = () => {
     // Navigate to the list of conversations
-    router.push('/(drawer)/account-conversations');
+    router.push('/(drawer)/(analysis)/account-conversations');
   };
 
   // Paywall is still relevant

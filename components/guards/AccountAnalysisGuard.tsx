@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { View, ActivityIndicator, Text, StyleSheet } from 'react-native';
-import { useAccountAnalysis } from '@/hooks/useAccountAnalysis';
+import { JobType, useAccountAnalysis } from '@/hooks/useAccountAnalysis';
 import StartAnalysisScreen from '../analysis/StartAnalysisScreen';
 import AnalysisInProgressScreen from '../analysis/AnalysisInProgressScreen';
 import { router } from 'expo-router';
@@ -11,6 +11,12 @@ interface AccountAnalysisGuardProps {
 
 const AccountAnalysisGuard: React.FC<AccountAnalysisGuardProps> = ({ children }) => {
   const { analysis, activeJob, isLoading, error, refreshAnalysis } = useAccountAnalysis();
+
+  const handleAnalysisStart = (job: JobType) => {
+    refreshAnalysis(job);
+    // No need to push here, the guard will re-evaluate and show AnalysisInProgressScreen
+    // because useAccountAnalysis will now return an activeJob.
+  };
 
   useEffect(() => {
     // Optional: handle errors, e.g., show a toast message
@@ -34,7 +40,7 @@ const AccountAnalysisGuard: React.FC<AccountAnalysisGuardProps> = ({ children })
 
   // If there's no analysis, show the start screen
   if (!analysis) {
-    return <StartAnalysisScreen onAnalysisStart={refreshAnalysis} />;
+    return <StartAnalysisScreen onAnalysisStart={handleAnalysisStart} />;
   }
   
   // If analysis exists, let user see the content

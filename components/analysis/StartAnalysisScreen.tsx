@@ -13,6 +13,10 @@ import {
 import { useAuth } from '@clerk/clerk-expo';
 import { API_ENDPOINTS } from '@/lib/config/api';
 import Icon from 'react-native-vector-icons/Ionicons';
+import { useGetUser } from '@/lib/hooks/useGetUser';
+import { router } from 'expo-router';
+import z from 'zod';
+import { JobType } from '@/hooks/useAccountAnalysis';
 
 // Local interface for clarity, though it's simpler now
 export interface HandleValidationResult {
@@ -22,11 +26,38 @@ export interface HandleValidationResult {
 }
 
 interface StartAnalysisScreenProps {
-  onAnalysisStart: () => void;
+  onAnalysisStart: (job: JobType) => void;
 }
+/* {
+      success: true,
+      message: 'TikTok analysis started',
+      data: {
+        run_id: scrapingJob.id,
+        status: scrapingJob.status,
+        progress: scrapingJob.progress,
+        tiktok_handle: cleanHandle,
+        account_id: accountId, // 🆕 Include account_id in response
+        started_at: scrapingJob.started_at
+      }
+    } */
 
+      const ResponseSchema = z.object({
+        success: z.boolean(),
+        message: z.string(),
+        data: z.object({
+          run_id: z.string(),
+          status: z.string(),
+          progress: z.number(),
+          tiktok_handle: z.string(),
+          account_id: z.string(),
+          started_at: z.string(),
+        }),
+      });
+
+      type ResponseType = z.infer<typeof ResponseSchema>;
 const StartAnalysisScreen: React.FC<StartAnalysisScreenProps> = ({ onAnalysisStart }) => {
-  const { getToken, userId } = useAuth(); // Get userId from Clerk
+  const { fetchUser } = useGetUser(); // Get userId from Clerk
+  const { getToken } = useAuth();
 
   const [tiktokHandle, setTiktokHandle] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -42,15 +73,20 @@ const StartAnalysisScreen: React.FC<StartAnalysisScreenProps> = ({ onAnalysisSta
     setSubmitError(null);
 
     try {
-        const token = await getToken();
+        const user = await fetchUser();
+        if (!user) {
+            setSubmitError("Utilisateur non trouvé.");
+            router.push('/(auth)/sign-in');
+            return;
+        }
         // Step 1: Check for existing analysis silently
         const validationResponse = await fetch(API_ENDPOINTS.TIKTOK_ANALYSIS_VALIDATE(), {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                Authorization: `Bearer ${token}`,
+                Authorization: `Bearer ${await getToken()}`,
             },
-            body: JSON.stringify({ tiktokHandle: tiktokHandle, userId }),
+            body: JSON.stringify({ tiktokHandle: tiktokHandle, userId: user.id }),
         });
 
         const validationData: HandleValidationResult = await validationResponse.json();
@@ -88,14 +124,15 @@ const StartAnalysisScreen: React.FC<StartAnalysisScreenProps> = ({ onAnalysisSta
         body: JSON.stringify({ tiktok_handle: tiktokHandle, is_pro: true }),
       });
 
-      const result = await response.json();
+      const data: ResponseType = await response.json();
+      const parsedData = ResponseSchema.safeParse(data);
 
-      if (!result.success) {
-        throw new Error(result.error || 'Failed to start analysis.');
+      if (!parsedData.success) {
+        throw new Error(parsedData.error.message || 'Failed to start analysis.');
       }
 
-      console.log('🚀 Analysis started:', result.data.run_id);
-      onAnalysisStart();
+      console.log('🚀 Analysis started:', parsedData.data.data.run_id);
+      onAnalysisStart(parsedData.data.data);
 
     } catch (err: any) {
       setSubmitError(err.message);

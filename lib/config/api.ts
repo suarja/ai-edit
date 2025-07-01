@@ -228,7 +228,7 @@ export const API_ENDPOINTS = {
 
   TIKTOK_ACCOUNT_CONTEXT: (accountId: string) => {
     const config = getCurrentConfig();
-    return `${config.tiktokAnalyzer.baseUrl}/api/v1/account-context/${accountId}`;
+    return `${config.tiktokAnalyzer.baseUrl}/api/account-context/${accountId}`;
   },
 
   TIKTOK_ANALYSIS_CHAT: () => {

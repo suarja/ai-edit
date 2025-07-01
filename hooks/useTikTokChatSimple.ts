@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { useAuth } from '@clerk/clerk-expo';
 import { useRevenueCat } from '@/providers/RevenueCat';
 import { API_ENDPOINTS } from '@/lib/config/api';
-import useAccountAnalysis from './useAccountAnalysis';
+import { useAccountAnalysis } from './useAccountAnalysis';
 
 interface ChatMessage {
   id: string;
@@ -26,6 +26,8 @@ interface UseTikTokChatSimpleReturn {
   clearError: () => void;
   resetConversation: () => void;
   chatTitle: string | null;
+  existingAnalysis: any | null;
+  hasAnalysis: boolean;
 }
 
 export function useTikTokChatSimple(props: UseTikTokChatProps = {}): UseTikTokChatSimpleReturn {
@@ -162,6 +164,8 @@ export function useTikTokChatSimple(props: UseTikTokChatProps = {}): UseTikTokCh
     sendMessage,
     clearError,
     resetConversation,
+    existingAnalysis,
+    hasAnalysis: !!existingAnalysis,
     chatTitle,
   };
 }

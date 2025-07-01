@@ -1,12 +1,14 @@
 import { useState, useCallback, useEffect } from 'react';
 import { useAuth } from '@clerk/clerk-expo';
 import { API_ENDPOINTS } from '@/lib/config/api';
+import { z } from 'zod';
 
 interface TikTokAnalysis {
   id: string;
   tiktok_handle: string;
   status: 'completed' | 'pending' | 'failed';
   result?: any;
+  account_id: string;
 }
 
 interface UseAccountAnalysisReturn {
@@ -14,17 +16,28 @@ interface UseAccountAnalysisReturn {
   activeJob: any | null;
   isLoading: boolean;
   error: string | null;
-  refreshAnalysis: () => void;
+  refreshAnalysis: (job?: JobType) => void;
 }
+
+const JobSchema = z.object({
+  run_id: z.string(),
+  status: z.string(),
+  progress: z.number(),
+  tiktok_handle: z.string(),
+  account_id: z.string(),
+  started_at: z.string(),
+})
+
+export type JobType = z.infer<typeof JobSchema>;
 
 export function useAccountAnalysis(): UseAccountAnalysisReturn {
   const { getToken } = useAuth();
   const [analysis, setAnalysis] = useState<TikTokAnalysis | null>(null);
-  const [activeJob, setActiveJob] = useState<any | null>(null);
+  const [activeJob, setActiveJob] = useState<JobType | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchAnalysis = useCallback(async () => {
+  const fetchAnalysis = useCallback(async (job?: JobType) => {
     console.log('🔄 useAccountAnalysis: Fetching analysis data...');
     setIsLoading(true);
     setError(null);
@@ -36,9 +49,12 @@ export function useAccountAnalysis(): UseAccountAnalysisReturn {
         throw new Error('Authentication token not available.');
       }
 
-      const activeJobResponse = await fetch(`${API_ENDPOINTS.TIKTOK_ANALYSIS_START().replace('/account-analysis', '')}/account-analysis/active-job`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      if (job) {
+       setActiveJob(job);
+      } else {
+       const activeJobResponse = await fetch(`${API_ENDPOINTS.TIKTOK_ANALYSIS_START().replace('/account-analysis', '')}/account-analysis/active-job`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
 
       if (activeJobResponse.ok) {
         const activeJobData = await activeJobResponse.json();
@@ -51,6 +67,7 @@ export function useAccountAnalysis(): UseAccountAnalysisReturn {
         }
       } else {
         console.warn('⚠️ Could not check for active job, proceeding...');
+      }
       }
 
       const response = await fetch(API_ENDPOINTS.TIKTOK_ANALYSIS_EXISTING(), {
