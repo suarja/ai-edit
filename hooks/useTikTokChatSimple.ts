@@ -42,6 +42,7 @@ interface UseTikTokChatSimpleReturn {
   chatTitle: string | null;
   existingAnalysis: any | null;
   hasAnalysis: boolean;
+  isLoadingMessages: boolean;
 }
 
 /**
@@ -60,6 +61,8 @@ export function useTikTokChatSimple(props: UseTikTokChatProps = {}): UseTikTokCh
   // State
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [isLoadingMessages, setIsLoadingMessages] = useState(false);
+
   const [isStreaming, setIsStreaming] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [chatTitle, setChatTitle] = useState<string | null>(conversationTitle || null);
@@ -108,6 +111,7 @@ export function useTikTokChatSimple(props: UseTikTokChatProps = {}): UseTikTokCh
     try {
       console.log('📥 Loading conversation messages:', convId);
       const token = await getToken();
+      setIsLoadingMessages(true);
       const response = await fetch(API_ENDPOINTS.TIKTOK_CONVERSATION_MESSAGES(convId), {
         headers: { 'Authorization': `Bearer ${token}` },
       });
@@ -125,16 +129,16 @@ export function useTikTokChatSimple(props: UseTikTokChatProps = {}): UseTikTokCh
         setMessages(loadedMessages);
         console.log(`✅ Loaded ${loadedMessages.length} messages for conversation ${convId}`);
       } else {
-        console.log('📭 No messages found for conversation:', convId);
-        setMessages([]); // Ensure messages are cleared if a conversation is empty
+          console.log('📭 No messages found for conversation:', convId);
+          setMessages([]); // Ensure messages are cleared if a conversation is empty
       }
     } catch (error) {
       console.warn('⚠️ Failed to load conversation messages:', error);
-      setMessages([]); // Clear messages on error too
-      // Don't set error state for this - just continue with empty conversation
+      setMessages([]);
     } finally {
         // Mark this conversation as loaded
         setLoadedConversationId(convId);
+        setIsLoadingMessages(false);
     }
   }, [getToken]);
 
@@ -257,5 +261,6 @@ export function useTikTokChatSimple(props: UseTikTokChatProps = {}): UseTikTokCh
     chatTitle,
     existingAnalysis: existingAnalysis || null,
     hasAnalysis: !!existingAnalysis,
+    isLoadingMessages,
   };
 } 

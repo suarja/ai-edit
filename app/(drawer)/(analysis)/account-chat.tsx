@@ -50,12 +50,11 @@ export default function AccountChatScreen() {
     messages,
     isLoading,
     isStreaming,
+    isLoadingMessages,
     error,
     sendMessage,
     clearError,
     existingAnalysis,
-    hasAnalysis,
-    resetConversation,
     chatTitle: chatTitleHook,
   } = useTikTokChatSimple({ 
     enableStreaming: false,
@@ -171,7 +170,7 @@ export default function AccountChatScreen() {
         showsVerticalScrollIndicator={false}
       >
         {/* Welcome message */}
-        {messages.length === 0 && (
+        {messages.length === 0 && !isLoadingMessages && (
           <View style={styles.welcomeMessage}>
             <TrendingUp size={24} color="#007AFF" />
             <Text style={styles.welcomeText}>
@@ -181,6 +180,12 @@ export default function AccountChatScreen() {
                 `👋 Salut ! Je suis votre expert TikTok IA. Posez-moi des questions sur la stratégie de contenu, l'engagement, ou donnez-moi votre handle TikTok pour une analyse personnalisée.`
               )}
             </Text>
+          </View>
+        )}
+
+        {isLoadingMessages && (
+          <View style={styles.loadingMessagesContainer}>
+            <ActivityIndicator size="small" color="#007AFF" />
           </View>
         )}
 
@@ -379,6 +384,12 @@ const styles = StyleSheet.create({
     fontSize: 14,
     lineHeight: 20,
     flex: 1,
+  },
+  loadingMessagesContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 16,
   },
   errorContainer: {
     flexDirection: 'row',

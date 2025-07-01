@@ -2,6 +2,8 @@ import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Crown, Zap } from 'lucide-react-native';
+import { router } from 'expo-router';
+import AnalysisHeader from './AnalysisHeader';
 
 interface ProPaywallProps {
   title: string;
@@ -21,7 +23,11 @@ function FeatureItem({ text }: { text: string }) {
 
 export default function ProPaywall({ title, description, features, onUpgrade }: ProPaywallProps) {
   return (
-    <SafeAreaView style={styles.container} edges={[]}>
+    <SafeAreaView style={styles.container} edges={['top']}>
+      <AnalysisHeader 
+        title={'Passer Pro'}
+        onBack={() => router.back()}
+      />
       <ScrollView style={styles.scrollView} contentContainerStyle={styles.paywallContainer}>
         <View style={styles.paywallHeader}>
           <Crown size={48} color="#FFD700" />
