@@ -268,6 +268,12 @@ export const API_ENDPOINTS = {
       config.supabase.baseUrl + config.supabase.functions.processOnboarding
     );
   },
+
+  // New TikTok Analysis endpoints
+  TIKTOK_ANALYSIS_VALIDATE: () => {
+    const config = getCurrentConfig();
+    return config.tiktokAnalyzer.baseUrl + config.tiktokAnalyzer.handleValidate;
+  },
 };
 
 /**
