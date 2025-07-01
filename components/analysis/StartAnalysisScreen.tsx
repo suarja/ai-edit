@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -15,149 +15,126 @@ import { BarChart3, ChevronRight, CheckCircle2, XCircle, AlertCircle } from 'luc
 import { useAuth } from '@clerk/clerk-expo';
 import { API_ENDPOINTS } from '@/lib/config/api';
 import { router } from 'expo-router';
+import { useTheme } from '@react-navigation/native';
+import Icon from 'react-native-vector-icons/Ionicons';
 
-// Make the screen accept props to control its state externally
-interface StartAnalysisScreenProps {
-  isLoading: boolean;
-  error: string | null;
-  refreshAnalysis: () => void;
-}
-
-// 🆕 Validation result type
-interface ValidationResult {
+// 🆕 Local interface to avoid direct dependency
+export interface HandleValidationResult {
   exists: boolean | 'unknown';
   message: string;
+  details?: any;
   hasCompletedAnalysisForUser?: boolean;
 }
 
-export default function StartAnalysisScreen({ isLoading, error: initialError, refreshAnalysis }: StartAnalysisScreenProps) {
+// Make the screen accept props to control its state externally
+interface StartAnalysisScreenProps {
+  onAnalysisStart: () => void;
+}
+
+const StartAnalysisScreen: React.FC<StartAnalysisScreenProps> = ({ onAnalysisStart }) => {
   const { getToken } = useAuth();
+  const { colors } = useTheme();
+
   const [tiktokHandle, setTiktokHandle] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
 
-  // 🆕 State for live validation
+  // State for live validation
   const [isValidating, setIsValidating] = useState(false);
-  const [validationResult, setValidationResult] = useState<ValidationResult | null>(null);
-  const [validationError, setValidationError] = useState<string | null>(null);
+  const [validationResult, setValidationResult] = useState<HandleValidationResult | null>(null);
+
+  const validateHandle = useCallback(async (handle: string) => {
+    if (handle.length < 2) {
+      setValidationResult(null);
+      return;
+    }
+    setIsValidating(true);
+    setValidationResult(null);
+    try {
+      const token = await getToken();
+      const response = await fetch(API_ENDPOINTS.TIKTOK_ANALYSIS_VALIDATE(), {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ tiktokHandle: handle, userId: 'user_placeholder' }), // TODO: Get real user ID from auth
+      });
+      const data: HandleValidationResult = await response.json();
+      setValidationResult(data);
+    } catch (error) {
+      setValidationResult({ exists: 'unknown', message: 'Validation failed' });
+    } finally {
+      setIsValidating(false);
+    }
+  }, [getToken]);
 
   const handleStartAnalysis = async () => {
-    if (!tiktokHandle.trim()) {
-      setSubmitError('Veuillez entrer un nom d\'utilisateur TikTok.');
+    if (!tiktokHandle || validationResult?.exists === false) {
+      setSubmitError("Veuillez entrer un nom d'utilisateur TikTok valide.");
       return;
     }
     
+    if (validationResult?.hasCompletedAnalysisForUser) {
+        Alert.alert(
+            "Analyse Existante",
+            "Vous avez déjà une analyse complétée pour ce compte. Voulez-vous la remplacer par une nouvelle ?",
+            [
+                { text: "Annuler", style: "cancel" },
+                { text: "Continuer", onPress: () => proceedWithAnalysis() }
+            ]
+        );
+        return;
+    }
+
+    proceedWithAnalysis();
+  };
+
+  const proceedWithAnalysis = async () => {
     setIsSubmitting(true);
     setSubmitError(null);
-    
     try {
       const token = await getToken();
-      const handle = tiktokHandle.startsWith('@') ? tiktokHandle.substring(1) : tiktokHandle;
-
       const response = await fetch(API_ENDPOINTS.TIKTOK_ANALYSIS_START(), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
+          Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ tiktokHandle: handle }),
+        body: JSON.stringify({ tiktok_handle: tiktokHandle, is_pro: true }),
       });
 
       const result = await response.json();
 
-      if (!response.ok || !result.success) {
-        throw new Error(result.error || 'Une erreur est survenue lors du lancement de l\'analyse.');
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to start analysis.');
       }
 
-      // Analysis started successfully. The backend will process it.
-      // We can now redirect the user. A good place might be a "pending" screen,
-      // but for now, we'll just reload the current route which will be handled
-      // by the guard to show the main layout.
-      Alert.alert(
-        'Analyse Lancée !',
-        `L'analyse pour @${handle} a commencé. Cela peut prendre quelques minutes. Vous serez notifié lorsque c'est prêt.`
-      );
-      
-      // Instead of navigating, just refresh the analysis state
-      // The guard will then re-evaluate and render the correct component
-      refreshAnalysis();
+      console.log('🚀 Analysis started:', result.data.run_id);
+      onAnalysisStart();
 
     } catch (err: any) {
-      setSubmitError(err.message || 'Impossible de contacter le serveur.');
-      console.error('Failed to start analysis:', err);
+      setSubmitError(err.message);
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  // 🆕 Debounced effect for handle validation
-  useEffect(() => {
-    const handler = setTimeout(() => {
-      if (tiktokHandle.trim().length > 2) {
-        validateHandle(tiktokHandle.trim());
-      } else {
-        setValidationResult(null);
-        setValidationError(null);
-      }
-    }, 500); // 500ms debounce delay
+  const renderValidationIcon = () => {
+    if (isValidating) return <ActivityIndicator size="small" />;
+    if (!validationResult) return null;
 
-    return () => {
-      clearTimeout(handler);
-    };
-  }, [tiktokHandle]);
-
-  // 🆕 Function to call the validation endpoint
-  const validateHandle = async (handle: string) => {
-    setIsValidating(true);
-    setValidationError(null);
-    setValidationResult(null);
-
-    try {
-      const token = await getToken();
-      const response = await fetch(`${API_ENDPOINTS.TIKTOK_ANALYSIS_START().replace('/account-analysis', '')}/account-analysis/validate-handle`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-        },
-        body: JSON.stringify({ tiktok_handle: handle }),
-      });
-
-      const result = await response.json();
-
-      if (!response.ok || !result.success) {
-        throw new Error(result.error || 'Erreur de validation.');
-      }
-      
-      setValidationResult(result.data);
-
-    } catch (err: any) {
-      setValidationError(err.message || 'Impossible de vérifier le nom d\'utilisateur.');
-    } finally {
-      setIsValidating(false);
+    switch (validationResult.exists) {
+      case true:
+        return <Icon name="checkmark-circle" size={20} color="green" />;
+      case false:
+        return <Icon name="close-circle" size={20} color="red" />;
+      case 'unknown':
+        return <Icon name="warning" size={20} color="orange" />;
+      default:
+        return null;
     }
   };
-
-  // If the guard is loading, show a full-screen loader
-  if (isLoading) {
-    return (
-      <View style={[styles.container, { justifyContent: 'center' }]}>
-        <ActivityIndicator size="large" color="#007AFF" />
-      </View>
-    );
-  }
-
-  // If the guard has an error (e.g., network), show it
-  if (initialError) {
-     return (
-      <View style={[styles.container, { justifyContent: 'center', padding: 20 }]}>
-        <Text style={styles.errorText}>Erreur de chargement: {initialError}</Text>
-        <TouchableOpacity style={styles.button} onPress={refreshAnalysis}>
-            <Text style={styles.buttonText}>Réessayer</Text>
-        </TouchableOpacity>
-      </View>
-    );
-  }
 
   return (
     <SafeAreaView style={styles.container}>
@@ -177,26 +154,23 @@ export default function StartAnalysisScreen({ isLoading, error: initialError, re
           <View style={styles.inputContainer}>
             <View style={styles.inputWrapper}>
               <TextInput
-                style={styles.input}
+                style={[
+                  styles.input,
+                  { color: colors.text, borderColor: colors.border, backgroundColor: colors.card }
+                ]}
                 placeholder="@username"
-                placeholderTextColor="#555"
+                placeholderTextColor={colors.text}
                 value={tiktokHandle}
-                onChangeText={setTiktokHandle}
+                onChangeText={(text) => {
+                  const cleanText = text.replace(/^@/, '');
+                  setTiktokHandle(cleanText);
+                  validateHandle(cleanText);
+                }}
                 autoCapitalize="none"
                 autoCorrect={false}
               />
               <View style={styles.iconWrapper}>
-                {isValidating ? (
-                  <ActivityIndicator color="#888" />
-                ) : validationResult ? (
-                  validationResult.exists === true ? (
-                    <CheckCircle2 color="#2ecc71" size={24} />
-                  ) : validationResult.exists === false ? (
-                    <XCircle color="#e74c3c" size={24} />
-                  ) : (
-                    <AlertCircle color="#f39c12" size={24} />
-                  )
-                ) : null}
+                {renderValidationIcon()}
               </View>
             </View>
 
@@ -240,7 +214,7 @@ export default function StartAnalysisScreen({ isLoading, error: initialError, re
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
-}
+};
 
 const styles = StyleSheet.create({
   container: {
@@ -342,4 +316,6 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginTop: 4,
   }
-}); 
+});
+
+export default StartAnalysisScreen; 

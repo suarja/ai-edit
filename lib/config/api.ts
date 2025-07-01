@@ -274,6 +274,11 @@ export const API_ENDPOINTS = {
     const config = getCurrentConfig();
     return config.tiktokAnalyzer.baseUrl + config.tiktokAnalyzer.handleValidate;
   },
+
+  TIKTOK_ANALYSIS_ACTIVE_JOB: () => {
+    const config = getCurrentConfig();
+    return `${config.tiktokAnalyzer.baseUrl}/account-analysis/active-job`;
+  },
 };
 
 /**

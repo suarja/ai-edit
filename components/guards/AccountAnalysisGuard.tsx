@@ -1,43 +1,47 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { View, ActivityIndicator, Text, StyleSheet } from 'react-native';
-import useAccountAnalysis from '@/hooks/useAccountAnalysis';
-import StartAnalysisScreen from '@/components/analysis/StartAnalysisScreen';
+import { useAccountAnalysis } from '@/hooks/useAccountAnalysis';
+import StartAnalysisScreen from '../analysis/StartAnalysisScreen';
+import AnalysisInProgressScreen from '../analysis/AnalysisInProgressScreen';
+import { router } from 'expo-router';
 
 interface AccountAnalysisGuardProps {
   children: React.ReactNode;
 }
 
-export default function AccountAnalysisGuard({ children }: AccountAnalysisGuardProps) {
-  const { analysis, isLoading, error, refreshAnalysis } = useAccountAnalysis();
+const AccountAnalysisGuard: React.FC<AccountAnalysisGuardProps> = ({ children }) => {
+  const { analysis, activeJob, isLoading, error, refreshAnalysis } = useAccountAnalysis();
+
+  useEffect(() => {
+    // Optional: handle errors, e.g., show a toast message
+    if (error) {
+      console.error("AccountAnalysisGuard Error:", error);
+    }
+  }, [error]);
 
   if (isLoading) {
     return (
-      <View style={styles.container}>
-        <ActivityIndicator size="large" color="#007AFF" />
-        <Text style={styles.text}>Vérification de l'analyse...</Text>
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+        <ActivityIndicator size="large" />
       </View>
     );
   }
 
-  if (error) {
-    return (
-      <View style={styles.container}>
-        <Text style={styles.text}>Erreur: {error}</Text>
-      </View>
-    );
+  // 🆕 If there is an active job, show the progress screen
+  if (activeJob) {
+    return <AnalysisInProgressScreen initialJob={activeJob} onAnalysisComplete={refreshAnalysis} />;
   }
 
-  if (!analysis || analysis.status !== 'completed') {
-    return <StartAnalysisScreen 
-      isLoading={isLoading} 
-      error={error} 
-      refreshAnalysis={refreshAnalysis} 
-    />;
+  // If there's no analysis, show the start screen
+  if (!analysis) {
+    return <StartAnalysisScreen onAnalysisStart={refreshAnalysis} />;
   }
-
-  // Analysis is found and completed, allow access to the protected route.
+  
+  // If analysis exists, let user see the content
   return <>{children}</>;
-}
+};
+
+export default AccountAnalysisGuard;
 
 const styles = StyleSheet.create({
   container: {

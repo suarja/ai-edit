@@ -11,48 +11,68 @@ interface TikTokAnalysis {
 
 interface UseAccountAnalysisReturn {
   analysis: TikTokAnalysis | null;
+  activeJob: any | null;
   isLoading: boolean;
   error: string | null;
   refreshAnalysis: () => void;
 }
 
-export default function useAccountAnalysis(): UseAccountAnalysisReturn {
+export function useAccountAnalysis(): UseAccountAnalysisReturn {
   const { getToken } = useAuth();
   const [analysis, setAnalysis] = useState<TikTokAnalysis | null>(null);
+  const [activeJob, setActiveJob] = useState<any | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const fetchAnalysis = useCallback(async () => {
-    // Don't refetch if already loading
-    if (isLoading && analysis) return;
-
+    console.log('🔄 useAccountAnalysis: Fetching analysis data...');
     setIsLoading(true);
     setError(null);
+    setActiveJob(null);
+
     try {
       const token = await getToken();
       if (!token) {
-        throw new Error('User not authenticated.');
+        throw new Error('Authentication token not available.');
       }
+
+      const activeJobResponse = await fetch(`${API_ENDPOINTS.TIKTOK_ANALYSIS_START().replace('/account-analysis', '')}/account-analysis/active-job`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      if (activeJobResponse.ok) {
+        const activeJobData = await activeJobResponse.json();
+        if (activeJobData) {
+          console.log('✅ Found an active job:', activeJobData);
+          setActiveJob(activeJobData);
+          setAnalysis(null);
+          setIsLoading(false);
+          return;
+        }
+      } else {
+        console.warn('⚠️ Could not check for active job, proceeding...');
+      }
+
       const response = await fetch(API_ENDPOINTS.TIKTOK_ANALYSIS_EXISTING(), {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        headers: { Authorization: `Bearer ${token}` },
       });
 
       if (!response.ok) {
-        if (response.status === 404) {
-          setAnalysis(null);
-        } else {
-          const errorData = await response.json();
-          throw new Error(errorData.error || 'Failed to fetch analysis status');
-        }
+        throw new Error('Failed to fetch analysis status. Please try again.');
+      }
+
+      const result = await response.json();
+
+      if (result.success && result.data) {
+        console.log('✅ Existing analysis found:', result.data);
+        setAnalysis(result.data);
       } else {
-        const data = await response.json();
-        setAnalysis(data);
+        console.log('ℹ️ No existing analysis found.');
+        setAnalysis(null);
       }
     } catch (e: any) {
-      setError(e.message);
-      setAnalysis(null);
+      console.error('❌ useAccountAnalysis: Error fetching analysis:', e);
+      setError(e.message || 'An unknown error occurred.');
     } finally {
       setIsLoading(false);
     }
@@ -62,5 +82,5 @@ export default function useAccountAnalysis(): UseAccountAnalysisReturn {
     fetchAnalysis();
   }, []);
 
-  return { analysis, isLoading, error, refreshAnalysis: fetchAnalysis };
+  return { analysis, activeJob, isLoading, error, refreshAnalysis: fetchAnalysis };
 } 
