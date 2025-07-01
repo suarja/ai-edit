@@ -226,6 +226,11 @@ export const API_ENDPOINTS = {
     return `${config.tiktokAnalyzer.baseUrl}${config.tiktokAnalyzer.accountAnalysisResult}/${runId}`;
   },
 
+  TIKTOK_ACCOUNT_CONTEXT: (accountId: string) => {
+    const config = getCurrentConfig();
+    return `${config.tiktokAnalyzer.baseUrl}/api/v1/account-context/${accountId}`;
+  },
+
   TIKTOK_ANALYSIS_CHAT: () => {
     const config = getCurrentConfig();
     return config.tiktokAnalyzer.baseUrl + config.tiktokAnalyzer.accountAnalysisChat;
