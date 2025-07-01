@@ -186,8 +186,6 @@ export default function EditorialScreen() {
         />
         <KeyboardAvoidingView 
           style={styles.keyboardContainer}
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-          keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
         >
           <EditorialProfileForm
             profile={profile}

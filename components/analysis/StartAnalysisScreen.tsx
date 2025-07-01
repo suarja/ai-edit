@@ -144,8 +144,6 @@ const StartAnalysisScreen: React.FC<StartAnalysisScreenProps> = ({ onAnalysisSta
   return (
     <KeyboardAvoidingView
       style={styles.container}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      keyboardVerticalOffset={100}
     >
       <View style={styles.content}>
         <View style={styles.header}>
@@ -156,10 +154,9 @@ const StartAnalysisScreen: React.FC<StartAnalysisScreenProps> = ({ onAnalysisSta
           Lancez une analyse IA de n'importe quel compte TikTok pour obtenir des insights de croissance.
         </Text>
         <View style={styles.inputContainer}>
-          <Text style={styles.atSymbol}>@</Text>
           <TextInput
             style={styles.input}
-            placeholder="nomdutilisateur"
+            placeholder="@handle"
             placeholderTextColor="#888"
             value={tiktokHandle}
             onChangeText={(text) => setTiktokHandle(text.replace(/[^a-zA-Z0-9._]/g, '').toLowerCase())}
@@ -235,6 +232,9 @@ const styles = StyleSheet.create({
   },
   input: {
     flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    textAlign: 'center',
     height: 56,
     fontSize: 18,
     fontWeight: '500',

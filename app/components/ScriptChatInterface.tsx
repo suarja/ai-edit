@@ -74,7 +74,6 @@ export const ScriptChatInterface: React.FC<ScriptChatInterfaceProps> = ({
   return (
     <KeyboardAvoidingView 
       style={styles.container}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
       {/* Header with script info */}
       <View style={styles.header}>
