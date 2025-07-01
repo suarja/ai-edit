@@ -19,14 +19,23 @@ interface UseAccountAnalysisReturn {
   refreshAnalysis: (job?: JobType) => void;
 }
 
+const LogEventSchema = z.object({
+  event: z.string(),
+  timestamp: z.string(),
+}).passthrough(); // Allows other properties not explicitly defined
+
 const JobSchema = z.object({
   run_id: z.string(),
   status: z.string(),
-  progress: z.number(),
-  tiktok_handle: z.string(),
-  account_id: z.string(),
-  started_at: z.string(),
-})
+  progress: z.number().optional(),
+  tiktok_handle: z.string().optional(),
+  account_id: z.string().optional(),
+  started_at: z.string().optional(),
+  error_message: z.string().optional(),
+  logs: z.object({
+    events: z.array(LogEventSchema).optional()
+  }).optional(),
+}).passthrough();
 
 export type JobType = z.infer<typeof JobSchema>;
 

@@ -9,6 +9,7 @@ import {
   Alert,
   KeyboardAvoidingView,
   Platform,
+  SafeAreaView,
 } from 'react-native';
 import { useAuth } from '@clerk/clerk-expo';
 import { API_ENDPOINTS } from '@/lib/config/api';
@@ -17,6 +18,7 @@ import { useGetUser } from '@/lib/hooks/useGetUser';
 import { router } from 'expo-router';
 import z from 'zod';
 import { JobType } from '@/hooks/useAccountAnalysis';
+import AnalysisHeader from './AnalysisHeader';
 
 // Local interface for clarity, though it's simpler now
 export interface HandleValidationResult {
@@ -142,13 +144,17 @@ const StartAnalysisScreen: React.FC<StartAnalysisScreenProps> = ({ onAnalysisSta
   };
 
   return (
+    <SafeAreaView style={styles.container}>
     <KeyboardAvoidingView
       style={styles.container}
     >
+      <AnalysisHeader
+        title={'Lancer une analyse'}
+        onBack={() => router.back()}
+      />
       <View style={styles.content}>
         <View style={styles.header}>
           <Icon name="logo-tiktok" size={32} color="#fff" />
-          <Text style={styles.title}>Analyse TikTok</Text>
         </View>
         <Text style={styles.subtitle}>
           Lancez une analyse IA de n'importe quel compte TikTok pour obtenir des insights de croissance.
@@ -181,6 +187,7 @@ const StartAnalysisScreen: React.FC<StartAnalysisScreenProps> = ({ onAnalysisSta
         {submitError && <Text style={styles.errorText}>{submitError}</Text>}
       </View>
     </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 };
 
