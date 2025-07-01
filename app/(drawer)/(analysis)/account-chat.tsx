@@ -28,6 +28,7 @@ import { useRevenueCat } from '@/providers/RevenueCat';
 import { useTikTokChatSimple } from '@/hooks/useTikTokChatSimple';
 import AnalysisHeader from '@/components/analysis/AnalysisHeader';
 import Markdown from 'react-native-markdown-display';
+import ProPaywall from '@/components/analysis/ProPaywall';
 
 /**
  * 🎯 SIMPLIFIED TIKTOK ANALYSIS CHAT
@@ -131,51 +132,22 @@ export default function AccountChatScreen() {
     }
   };
 
-  // Handle authentication
-  if (!isSignedIn) {
-    return (
-      <SafeAreaView style={styles.container} edges={[]}>
-        <View style={styles.centeredContainer}>
-          <MessageCircle size={48} color="#888" />
-          <Text style={styles.centeredText}>Connectez-vous pour analyser vos comptes TikTok</Text>
-        </View>
-      </SafeAreaView>
-    );
-  }
 
   // Paywall for non-Pro users (simplified)
   if (!isPro) {
     return (
-      <SafeAreaView style={styles.container} edges={[]}>
-        <ScrollView style={styles.scrollView} contentContainerStyle={styles.paywallContainer}>
-          <View style={styles.paywallHeader}>
-            <Crown size={48} color="#FFD700" />
-            <Text style={styles.paywallTitle}>Chat TikTok Pro</Text>
-          </View>
-          
-          <Text style={styles.paywallDescription}>
-            Analysez votre compte TikTok et discutez avec notre IA experte pour 
-            obtenir des conseils personnalisés et optimiser votre stratégie de contenu.
-          </Text>
-          
-          <View style={styles.featuresList}>
-            <FeatureItem text="Analyse complète de votre compte TikTok" />
-            <FeatureItem text="Chat intelligent avec votre expert IA" />
-            <FeatureItem text="Recommandations personnalisées en temps réel" />
-            <FeatureItem text="Stratégies d'engagement optimisées" />
-            <FeatureItem text="Analyse des tendances de votre niche" />
-          </View>
-
-          <TouchableOpacity style={styles.upgradeButton} onPress={goPro}>
-            <Crown size={20} color="#fff" />
-            <Text style={styles.upgradeButtonText}>Passer Pro</Text>
-          </TouchableOpacity>
-          
-          <Text style={styles.paywallFooter}>
-            Déverrouillez le chat TikTok avec votre abonnement Pro.
-          </Text>
-        </ScrollView>
-      </SafeAreaView>
+      <ProPaywall
+        title="Chat TikTok Pro"
+        description="Analysez votre compte TikTok et discutez avec notre IA experte pour obtenir des conseils personnalisés et optimiser votre stratégie de contenu."
+        features={[
+          "Analyse complète de votre compte TikTok",
+          "Chat intelligent avec votre expert IA",
+          "Recommandations personnalisées en temps réel",
+          "Stratégies d'engagement optimisées",
+          "Analyse des tendances de votre niche",
+        ]}
+        onUpgrade={goPro}
+      />
     );
   }
 
@@ -184,7 +156,7 @@ export default function AccountChatScreen() {
     <SafeAreaView 
       key={conversationId || 'new'}
       style={styles.container} 
-      edges={['top']}
+      edges={[]}
     >
       {/* Header with reset button for testing */}
       <AnalysisHeader 
@@ -366,16 +338,6 @@ const markdownStyles = StyleSheet.create({
   },
 });
 
-// Helper Components
-function FeatureItem({ text }: { text: string }) {
-  return (
-    <View style={styles.featureItem}>
-      <Text style={styles.checkmark}>✓</Text>
-      <Text style={styles.featureText}>{text}</Text>
-    </View>
-  );
-}
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -394,72 +356,6 @@ const styles = StyleSheet.create({
   },
   scrollView: {
     flex: 1,
-  },
-
-  // Paywall Styles (simplified)
-  paywallContainer: {
-    padding: 20,
-    alignItems: 'center',
-    justifyContent: 'center',
-    minHeight: '80%',
-  },
-  paywallHeader: {
-    alignItems: 'center',
-    marginBottom: 20,
-  },
-  paywallTitle: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#fff',
-    marginTop: 12,
-  },
-  paywallDescription: {
-    color: '#fff',
-    fontSize: 16,
-    marginBottom: 20,
-    lineHeight: 22,
-    textAlign: 'center',
-  },
-  featuresList: {
-    marginBottom: 24,
-    alignSelf: 'stretch',
-  },
-  featureItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  checkmark: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#4CAF50',
-    marginRight: 12,
-  },
-  featureText: {
-    color: '#fff',
-    fontSize: 16,
-  },
-  upgradeButton: {
-    backgroundColor: '#FFD700',
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: 16,
-    borderRadius: 12,
-    gap: 8,
-    marginBottom: 16,
-    alignSelf: 'stretch',
-  },
-  upgradeButtonText: {
-    color: '#000',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  paywallFooter: {
-    color: '#888',
-    fontSize: 14,
-    textAlign: 'center',
-    fontStyle: 'italic',
   },
 
   // Chat Styles (like working chat.tsx)
@@ -649,5 +545,23 @@ const styles = StyleSheet.create({
     color: '#007AFF',
     fontSize: 14,
     fontWeight: '600',
+  },
+  checkmark: {
+    marginLeft: 4,
+  },
+  featuresList: {
+    marginBottom: 24,
+    alignSelf: 'stretch',
+  },
+  featureItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  featureText: {
+    color: '#fff',
+    fontSize: 16,
+  },
+  upgradeButton: {
   },
 }); 

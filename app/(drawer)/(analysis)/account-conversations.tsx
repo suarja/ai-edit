@@ -16,13 +16,12 @@ import {
   Clock, 
   TrendingUp, 
   Users,
-  Crown,
   ChevronRight
 } from 'lucide-react-native';
 import { useAuth } from '@clerk/clerk-expo';
 import { useRevenueCat } from '@/providers/RevenueCat';
 import { API_ENDPOINTS } from '@/lib/config/api';
-import AnalysisHeader from '@/components/analysis/AnalysisHeader';
+import ProPaywall from '@/components/analysis/ProPaywall';
 
 interface Conversation {
   id: string;
@@ -145,49 +144,17 @@ export default function AccountConversationsScreen() {
   // Show paywall for non-pro users
   if (!isPro) {
     return (
-      <SafeAreaView style={styles.container} edges={[]}>
-        <ScrollView style={styles.scrollView}>
-          <View style={styles.paywallContainer}>
-            <View style={styles.paywallHeader}>
-              <Crown size={48} color="#FFD700" />
-              <Text style={styles.paywallTitle}>Chat TikTok Pro</Text>
-            </View>
-            
-            <Text style={styles.paywallDescription}>
-              Accédez à vos conversations avec l'IA experte TikTok. Obtenez des conseils 
-              personnalisés et optimisez votre stratégie de contenu.
-            </Text>
-            
-            <View style={styles.featuresList}>
-              <View style={styles.featureItem}>
-                <Text style={styles.checkmark}>✓</Text>
-                <Text style={styles.featureText}>Conversations illimitées avec l'IA TikTok</Text>
-              </View>
-              <View style={styles.featureItem}>
-                <Text style={styles.checkmark}>✓</Text>
-                <Text style={styles.featureText}>Conseils personnalisés basés sur vos analyses</Text>
-              </View>
-              <View style={styles.featureItem}>
-                <Text style={styles.checkmark}>✓</Text>
-                <Text style={styles.featureText}>Historique complet de vos discussions</Text>
-              </View>
-              <View style={styles.featureItem}>
-                <Text style={styles.checkmark}>✓</Text>
-                <Text style={styles.featureText}>Streaming en temps réel</Text>
-              </View>
-            </View>
-
-            <TouchableOpacity style={styles.upgradeButton} onPress={goPro}>
-              <Crown size={20} color="#fff" />
-              <Text style={styles.upgradeButtonText}>Passer Pro</Text>
-            </TouchableOpacity>
-            
-            <Text style={styles.paywallFooter}>
-              Débloquez le chat TikTok avec votre abonnement Pro.
-            </Text>
-          </View>
-        </ScrollView>
-      </SafeAreaView>
+      <ProPaywall
+        title="Chat TikTok Pro"
+        description="Accédez à vos conversations avec l'IA experte TikTok. Obtenez des conseils personnalisés et optimisez votre stratégie de contenu."
+        features={[
+          "Conversations illimitées avec l'IA TikTok",
+          "Conseils personnalisés basés sur vos analyses",
+          "Historique complet de vos discussions",
+          "Streaming en temps réel",
+        ]}
+        onUpgrade={goPro}
+      />
     );
   }
 
@@ -203,11 +170,7 @@ export default function AccountConversationsScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
-      <AnalysisHeader 
-        title="Conversations"
-        onBack={() => router.push('/(drawer)/(analysis)/account-insights')}
-      />
+    <SafeAreaView style={styles.container} edges={[]}>
       <ScrollView
         style={styles.content}
         showsVerticalScrollIndicator={false}
@@ -402,32 +365,6 @@ const styles = StyleSheet.create({
     color: '#FF3B30',
     fontSize: 14,
     textAlign: 'center',
-  },
-
-  // Header
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 24,
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: '#fff',
-  },
-  subtitle: {
-    fontSize: 16,
-    color: '#888',
-    marginTop: 4,
-  },
-  newChatButton: {
-    backgroundColor: '#007AFF',
-    borderRadius: 12,
-    width: 48,
-    height: 48,
-    justifyContent: 'center',
-    alignItems: 'center',
   },
 
   // Empty State

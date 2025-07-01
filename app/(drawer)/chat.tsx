@@ -16,6 +16,7 @@ import { useAuth } from '@clerk/clerk-expo';
 import { router, useLocalSearchParams } from 'expo-router';
 import ScriptActionsModal from '@/components/ScriptActionsModal';
 import StreamingStatus from '@/components/StreamingStatus';
+import Markdown from 'react-native-markdown-display';
 
 /**
  * 🎯 SCRIPT CHAT AVEC VRAIE API ET PROFIL ÉDITORIAL
@@ -136,12 +137,15 @@ export default function ScriptChatDemo() {
           styles.messageBubble,
           isUser ? styles.userBubble : styles.assistantBubble
         ]}>
-          <Text style={[
-            styles.messageText,
-            isUser ? styles.userText : styles.assistantText
-          ]}>
-            {message.content}
-          </Text>
+          {isUser ? (
+            <Text style={styles.messageText}>
+              {message.content}
+            </Text>
+          ) : (
+            <Markdown style={markdownStyles}>
+              {message.content}
+            </Markdown>
+          )}
           
           {/* Indicateur de streaming */}
           {message.metadata?.isStreaming && (
@@ -311,6 +315,60 @@ export default function ScriptChatDemo() {
     </SafeAreaView>
   );
 }
+
+const markdownStyles = StyleSheet.create({
+  body: {
+    color: '#fff',
+    fontSize: 16,
+    lineHeight: 22,
+  },
+  heading1: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#fff',
+    marginTop: 16,
+    marginBottom: 8,
+    borderBottomWidth: 1,
+    borderColor: '#333',
+    paddingBottom: 4,
+  },
+  heading2: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#fff',
+    marginTop: 12,
+    marginBottom: 6,
+  },
+  list_item: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    marginVertical: 4,
+  },
+  bullet_list_icon: {
+    color: '#007AFF',
+    fontSize: 16,
+    lineHeight: 22,
+    marginRight: 8,
+    fontWeight: 'bold',
+  },
+  ordered_list_icon: {
+    color: '#007AFF',
+    fontSize: 16,
+    lineHeight: 22,
+    marginRight: 8,
+    fontWeight: 'bold',
+  },
+  strong: {
+    fontWeight: 'bold',
+  },
+  em: {
+    fontStyle: 'italic',
+  },
+  link: {
+    color: '#007AFF',
+    textDecorationLine: 'underline',
+  },
+});
 
 const styles = StyleSheet.create({
   container: {
