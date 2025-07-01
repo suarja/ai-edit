@@ -22,6 +22,7 @@ import {
 import { useAuth } from '@clerk/clerk-expo';
 import { useRevenueCat } from '@/providers/RevenueCat';
 import { API_ENDPOINTS } from '@/lib/config/api';
+import AnalysisHeader from '@/components/analysis/AnalysisHeader';
 
 interface Conversation {
   id: string;
@@ -85,7 +86,7 @@ export default function AccountConversationsScreen() {
   const handleCreateNewConversation = () => {
     // Navigate to chat without conversationId (new conversation)
     router.push({
-      pathname: '/(drawer)/account-chat',
+      pathname: '/(drawer)/(analysis)/account-chat',
       params: {}, // Explicitly clear any previous params
     });
   };
@@ -93,7 +94,7 @@ export default function AccountConversationsScreen() {
   const handleOpenConversation = (conversation: Conversation) => {
     // Navigate to chat with conversationId (existing conversation)
     router.push({
-      pathname: '/(drawer)/account-chat',
+      pathname: '/(drawer)/(analysis)/account-chat',
       params: { conversationId: conversation.id, conversationTitle: getConversationTitle(conversation) },
     });
   };
@@ -202,7 +203,11 @@ export default function AccountConversationsScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.container} edges={[]}>
+    <SafeAreaView style={styles.container} edges={['top']}>
+      <AnalysisHeader 
+        title="Conversations"
+        onBack={() => router.push('/(drawer)/(analysis)/account-insights')}
+      />
       <ScrollView
         style={styles.content}
         showsVerticalScrollIndicator={false}
@@ -219,24 +224,6 @@ export default function AccountConversationsScreen() {
             <Text style={styles.errorText}>❌ {error}</Text>
           </View>
         )}
-
-        {/* Header */}
-      {/*   <View style={styles.header}>
-          <View>
-            <Text style={styles.title}>
-              {'Chat TikTok'}
-            </Text>
-            <Text style={styles.subtitle}>
-              {conversations.length} conversation{conversations.length !== 1 ? 's' : ''}
-            </Text>
-          </View>
-          <TouchableOpacity
-            style={styles.newChatButton}
-            onPress={handleCreateNewConversation}
-          >
-            <Plus size={24} color="#fff" />
-          </TouchableOpacity>
-        </View> */}
 
         {/* Empty State */}
         {!loading && conversations.length === 0 && (

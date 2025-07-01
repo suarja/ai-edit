@@ -26,6 +26,8 @@ import { useAuth } from '@clerk/clerk-expo';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useRevenueCat } from '@/providers/RevenueCat';
 import { useTikTokChatSimple } from '@/hooks/useTikTokChatSimple';
+import AnalysisHeader from '@/components/analysis/AnalysisHeader';
+import Markdown from 'react-native-markdown-display';
 
 /**
  * 🎯 SIMPLIFIED TIKTOK ANALYSIS CHAT
@@ -89,12 +91,15 @@ export default function AccountChatScreen() {
           styles.messageBubble,
           isUser ? styles.userBubble : styles.assistantBubble
         ]}>
-          <Text style={[
-            styles.messageText,
-            isUser ? styles.userText : styles.assistantText
-          ]}>
-            {message.content}
-          </Text>
+          {isUser ? (
+            <Text style={styles.messageText}>
+              {message.content}
+            </Text>
+          ) : (
+            <Markdown style={markdownStyles}>
+              {message.content}
+            </Markdown>
+          )}
           
           <View style={styles.messageFooter}>
             <Text style={styles.timestamp}>
@@ -182,16 +187,10 @@ export default function AccountChatScreen() {
       edges={['top']}
     >
       {/* Header with reset button for testing */}
-      <View style={styles.header}>
-        {/* back button */}
-        <TouchableOpacity onPress={() => router.push('/account-conversations')}>
-          <ArrowLeft size={24} color="#007AFF" />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>
-          {chatTitle ? chatTitle : 'Nouveau chat'}
-        </Text>
-
-      </View>
+      <AnalysisHeader 
+        title={chatTitle || 'Nouveau Chat'}
+        onBack={() => router.push('/(drawer)/(analysis)/account-conversations')}
+      />
 
       {/* Messages */}
       <ScrollView 
@@ -312,6 +311,60 @@ export default function AccountChatScreen() {
     </SafeAreaView>
   );
 }
+
+const markdownStyles = StyleSheet.create({
+  body: {
+    color: '#fff',
+    fontSize: 16,
+    lineHeight: 22,
+  },
+  heading1: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#fff',
+    marginTop: 16,
+    marginBottom: 8,
+    borderBottomWidth: 1,
+    borderColor: '#333',
+    paddingBottom: 4,
+  },
+  heading2: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#fff',
+    marginTop: 12,
+    marginBottom: 6,
+  },
+  list_item: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    marginVertical: 4,
+  },
+  bullet_list_icon: {
+    color: '#007AFF',
+    fontSize: 16,
+    lineHeight: 22,
+    marginRight: 8,
+    fontWeight: 'bold',
+  },
+  ordered_list_icon: {
+    color: '#007AFF',
+    fontSize: 16,
+    lineHeight: 22,
+    marginRight: 8,
+    fontWeight: 'bold',
+  },
+  strong: {
+    fontWeight: 'bold',
+  },
+  em: {
+    fontStyle: 'italic',
+  },
+  link: {
+    color: '#007AFF',
+    textDecorationLine: 'underline',
+  },
+});
 
 // Helper Components
 function FeatureItem({ text }: { text: string }) {

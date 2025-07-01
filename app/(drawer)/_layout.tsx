@@ -50,25 +50,7 @@ function DrawerLayoutContent() {
             href: null,
           }}
         />
-        <Tabs.Screen
-          name="(analysis)/account-chat"
-          options={{
-            title: 'Chat avec l\'Expert',
-            href: null,
-          }}
-        />
-        <Tabs.Screen
-          name="(analysis)/account-conversations"
-          options={{
-            title: 'Conversations TikTok',
-          }}
-        />
-        <Tabs.Screen
-          name="(analysis)/account-insights"
-          options={{
-            title: 'Analyses TikTok',
-          }}
-        />
+        <Tabs.Screen name="(analysis)" options={{ headerShown: false }} />
         <Tabs.Screen
           name="scripts"
           options={{

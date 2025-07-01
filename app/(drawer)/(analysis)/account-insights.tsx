@@ -31,6 +31,7 @@ import { useRevenueCat } from '@/providers/RevenueCat';
 import { useAuth } from '@clerk/clerk-expo';
 import { API_ENDPOINTS } from '@/lib/config/api';
 import { useAccountAnalysis } from '@/hooks/useAccountAnalysis';
+import AnalysisHeader from '@/components/analysis/AnalysisHeader';
 
 // Updated types to match the new comprehensive context
 interface AccountData {
@@ -236,7 +237,8 @@ export default function AccountInsightsScreen() {
   const { account, stats, aggregates, insights } = context;
 
   return (
-    <SafeAreaView style={styles.container} edges={[]}>
+    <SafeAreaView style={styles.container} edges={['top']}>
+      <AnalysisHeader title="Analyse de Compte" />
       <ScrollView 
         style={styles.scrollView}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor="#fff" />}
