@@ -11,7 +11,7 @@ import {
   Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { BarChart3, ChevronRight, CheckCircle2, XCircle } from 'lucide-react-native';
+import { BarChart3, ChevronRight, CheckCircle2, XCircle, AlertCircle } from 'lucide-react-native';
 import { useAuth } from '@clerk/clerk-expo';
 import { API_ENDPOINTS } from '@/lib/config/api';
 import { router } from 'expo-router';
@@ -25,12 +25,9 @@ interface StartAnalysisScreenProps {
 
 // 🆕 Validation result type
 interface ValidationResult {
-  handle: string;
-  isValid: boolean;
-  isInDatabase: boolean;
-  hasCompletedAnalysisForUser: boolean;
-  message?: string;
-  analysis?: any;
+  exists: boolean | 'unknown';
+  message: string;
+  hasCompletedAnalysisForUser?: boolean;
 }
 
 export default function StartAnalysisScreen({ isLoading, error: initialError, refreshAnalysis }: StartAnalysisScreenProps) {
@@ -188,52 +185,54 @@ export default function StartAnalysisScreen({ isLoading, error: initialError, re
                 autoCapitalize="none"
                 autoCorrect={false}
               />
-              <View style={styles.inputIcon}>
-                {isValidating && <ActivityIndicator color="#888" />}
-                {validationResult && validationResult.isValid && !validationError && (
-                  <CheckCircle2 color="#28a745" size={24} />
-                )}
-                {(validationError || (validationResult && !validationResult.isValid)) && (
-                  <XCircle color="#dc3545" size={24} />
-                )}
+              <View style={styles.iconWrapper}>
+                {isValidating ? (
+                  <ActivityIndicator color="#888" />
+                ) : validationResult ? (
+                  validationResult.exists === true ? (
+                    <CheckCircle2 color="#2ecc71" size={24} />
+                  ) : validationResult.exists === false ? (
+                    <XCircle color="#e74c3c" size={24} />
+                  ) : (
+                    <AlertCircle color="#f39c12" size={24} />
+                  )
+                ) : null}
               </View>
             </View>
 
-            {validationError && <Text style={styles.errorText}>{validationError}</Text>}
-            {validationResult && !validationResult.isValid && (
-              <Text style={styles.errorText}>
-                {validationResult.message || 'Ce nom d\'utilisateur ne semble pas valide.'}
+            {validationResult && (
+              <Text 
+                style={[
+                  styles.messageText, 
+                  validationResult.exists === false ? styles.errorText : 
+                  validationResult.exists === 'unknown' ? styles.warningText : styles.successText
+                ]}
+              >
+                {validationResult.message}
               </Text>
             )}
+
             {validationResult?.hasCompletedAnalysisForUser && (
                 <TouchableOpacity style={styles.infoBox} /* onPress={() => router.push('/(drawer)/account-insights')} */>
                     <Text style={styles.infoText}>Une analyse pour ce compte existe déjà.</Text>
                     <Text style={styles.infoLink}>Voir les résultats</Text>
                 </TouchableOpacity>
             )}
-            {validationResult?.isInDatabase && !validationResult?.hasCompletedAnalysisForUser && (
-                <View style={styles.infoBox}>
-                    <Text style={styles.infoText}>Ce compte est en cours d'analyse par un autre utilisateur. Veuillez réessayer plus tard.</Text>
-                </View>
-            )}
             
             {submitError && <Text style={styles.errorText}>{submitError}</Text>}
 
-            <TouchableOpacity 
+            <TouchableOpacity
               style={[
-                styles.button, 
-                (isSubmitting || isValidating || !validationResult?.isValid || validationResult?.hasCompletedAnalysisForUser) && styles.buttonDisabled
-              ]} 
+                styles.button,
+                (validationResult?.exists === false || isSubmitting) && styles.buttonDisabled,
+              ]}
               onPress={handleStartAnalysis}
-              disabled={isSubmitting || isValidating || !validationResult?.isValid || validationResult?.hasCompletedAnalysisForUser}
+              disabled={validationResult?.exists === false || isSubmitting}
             >
               {isSubmitting ? (
                 <ActivityIndicator color="#fff" />
               ) : (
-                <>
-                  <Text style={styles.buttonText}>Lancer l'analyse</Text>
-                  <ChevronRight size={20} color="#fff" />
-                </>
+                <Text style={styles.buttonText}>Démarrer l'analyse</Text>
               )}
             </TouchableOpacity>
           </View>
@@ -291,7 +290,7 @@ const styles = StyleSheet.create({
     fontSize: 18,
     textAlign: 'center',
   },
-  inputIcon: {
+  iconWrapper: {
     paddingRight: 16,
   },
   button: {
@@ -311,10 +310,21 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '600',
   },
-  errorText: {
-    color: '#ff5555',
+  messageText: {
+    marginTop: 8,
     textAlign: 'center',
-    marginBottom: 12,
+    fontSize: 14,
+  },
+  successText: {
+    color: '#2ecc71',
+  },
+  errorText: {
+    color: '#e74c3c',
+    marginTop: 8,
+    textAlign: 'center',
+  },
+  warningText: {
+    color: '#f39c12',
   },
   infoBox: {
     backgroundColor: 'rgba(0, 122, 255, 0.1)',
