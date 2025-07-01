@@ -5,6 +5,7 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
+  Image,
   ActivityIndicator,
   Alert,
   RefreshControl
@@ -114,6 +115,7 @@ export default function AccountInsightsScreen() {
       });
 
       const data = await response.json();
+      console.log('🔄 data:', JSON.stringify(data, null, 2));
       
       if (!response.ok) {
         throw new Error(data.error || "Failed to fetch account context");
@@ -209,8 +211,8 @@ export default function AccountInsightsScreen() {
         {/* Header with profile pic and handle */}
         <View style={styles.profileHeader}>
             {/* Image component would go here */}
-            <View style={styles.profilePicPlaceholder} /> 
-            <View>
+            <Image source={{ uri: account.profile_pic_url }} style={styles.profilePic} />
+            <View style={styles.profileInfo}>
                 <Text style={styles.profileHandle}>@{account.tiktok_handle}</Text>
                 <Text style={styles.profileUsername}>{account.username}</Text>
             </View>
@@ -315,19 +317,23 @@ const styles = StyleSheet.create({
   },
   // Profile Header
   profileHeader: {
-    flexDirection: 'row',
+    flexDirection: 'column',
     alignItems: 'center',
+    justifyContent: 'center',
     padding: 20,
     gap: 16,
-    backgroundColor: '#1a1a1a',
-    borderBottomWidth: 1,
-    borderColor: '#333'
+    backgroundColor: '#000',
   },
   profilePicPlaceholder: {
     width: 64,
     height: 64,
     borderRadius: 32,
     backgroundColor: '#333',
+  },
+  profilePic: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
   },
   profileHandle: {
     color: '#fff',
@@ -337,6 +343,10 @@ const styles = StyleSheet.create({
   profileUsername: {
       color: '#888',
       fontSize: 14,
+  },
+  profileInfo: {
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   // Common
   sectionTitle: {
