@@ -6,10 +6,13 @@ import {
   CheckCircle2,
   ChevronsRight,
   FileText,
-  Loader,
+  Database,
+  Search,
+  Cpu,
   PlayCircle,
   MessageSquare,
-  Icon,
+  Sparkles,
+  Zap,
 } from 'lucide-react-native';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
@@ -18,6 +21,7 @@ import { fr } from 'date-fns/locale';
 interface LogEvent {
   event: string;
   timestamp: string;
+  message?: string;
   [key: string]: any;
 }
 
@@ -25,38 +29,56 @@ interface AnalysisLogsProps {
   events: LogEvent[];
 }
 
+// NEW: More descriptive and flexible event configuration
 const EVENT_CONFIG: {
-  [key: string]: { icon: React.ElementType<any>; color: string; getTitle: (e: LogEvent) => string };
+  [key: string]: { icon: React.ElementType<any>; color: string };
 } = {
-  apify_started: {
-    icon: PlayCircle,
-    color: '#34D399', // Emerald 400
-    getTitle: (e) => `Scraping started for @${e.tiktok_handle}`,
-  },
-  phase_transition: {
-    icon: ChevronsRight,
-    color: '#60A5FA', // Blue 400
-    getTitle: (e) => `Phase changed from '${e.from}' to '${e.to}'`,
-  },
-  message: {
-    icon: MessageSquare,
-    color: '#A78BFA', // Violet 400
-    getTitle: (e) => e.message,
-  },
-  job_failed: {
-    icon: AlertCircle,
-    color: '#F87171', // Red 400
-    getTitle: (e) => `Error: ${e.error}`,
-  },
-  default: {
-    icon: FileText,
-    color: '#9CA3AF', // Gray 400
-    getTitle: (e) => `Event: ${e.event}`,
-  },
+  // Scraping Phase
+  apify_started: { icon: PlayCircle, color: '#34D399' },
+  phase_transition: { icon: ChevronsRight, color: '#60A5FA' },
+  
+  // Data Fetching & Storing
+  fetch_videos_start: { icon: Search, color: '#A78BFA' },
+  fetch_videos_complete: { icon: Database, color: '#A78BFA' },
+  
+  // Analysis Phase
+  identify_top_videos_start: { icon: Search, color: '#FBBF24' },
+  identify_top_videos_complete: { icon: Sparkles, color: '#FBBF24' },
+  llm_analysis_start: { icon: Cpu, color: '#FBBF24'},
+  llm_analysis_complete: { icon: Sparkles, color: '#FBBF24'},
+  
+  // Job Status
+  job_completed: { icon: CheckCircle2, color: '#34D399' },
+  job_failed: { icon: AlertCircle, color: '#F87171' },
+
+  // Generic Levels
+  info: { icon: MessageSquare, color: '#9CA3AF' },
+  warn: { icon: AlertCircle, color: '#FBBF24'}, // Warning color
+  default: { icon: FileText, color: '#9CA3AF' },
+};
+
+// NEW: Flexible title generation
+const getLogTitle = (item: LogEvent): string => {
+  if (item.message) {
+    return item.message;
+  }
+  // Fallback titles for events without a message
+  switch (item.event) {
+    case 'apify_started':
+      return `Démarrage du scraping pour @${item.tiktok_handle}`;
+    case 'phase_transition':
+      return `Changement de phase: ${item.from} -> ${item.to}`;
+    case 'job_failed':
+      return `Erreur: ${item.error || 'Inconnue'}`;
+    default:
+      return item.event.replace(/_/g, ' '); // Format event name nicely
+  }
 };
 
 const LogItem: React.FC<{ item: LogEvent }> = ({ item }) => {
-  const config = EVENT_CONFIG[item.event] || EVENT_CONFIG.default;
+  // Use event for config, but level for 'warn' and 'info' events
+  const configKey = item.level || item.event || 'default';
+  const config = EVENT_CONFIG[configKey] || EVENT_CONFIG.default;
   const IconComponent = config.icon;
 
   const formattedTimestamp = item.timestamp
@@ -69,7 +91,7 @@ const LogItem: React.FC<{ item: LogEvent }> = ({ item }) => {
         <IconComponent size={16} color={config.color} />
       </View>
       <View style={styles.logContent}>
-        <Text style={styles.logTitle}>{config.getTitle(item)}</Text>
+        <Text style={styles.logTitle}>{getLogTitle(item)}</Text>
         <Text style={styles.logTimestamp}>{formattedTimestamp}</Text>
       </View>
     </View>
