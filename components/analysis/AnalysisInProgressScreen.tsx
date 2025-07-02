@@ -315,7 +315,7 @@ const styles = StyleSheet.create({
   
   // Status display with modern design
   statusCard: {
-    backgroundColor: '#000000',
+    backgroundColor: '#1a1a1a',
     borderRadius: 24,
     padding: 24,
     marginBottom: 20,
@@ -325,7 +325,7 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 2,
     borderWidth: 1,
-    borderColor: '#f1f5f9',
+    borderColor: '#333',
   },
   
   statusHeader: {
@@ -344,15 +344,15 @@ const styles = StyleSheet.create({
   },
   
   statusIconProcessing: {
-    backgroundColor: '#dbeafe',
+    backgroundColor: 'rgba(0, 122, 255, 0.15)',
   },
   
   statusIconCompleted: {
-    backgroundColor: '#dcfce7',
+    backgroundColor: 'rgba(16, 185, 129, 0.15)',
   },
   
   statusIconFailed: {
-    backgroundColor: '#fee2e2',
+    backgroundColor: 'rgba(239, 68, 68, 0.15)',
   },
   
   statusTextContainer: {
@@ -368,7 +368,7 @@ const styles = StyleSheet.create({
   
   statusSubtitle: {
     fontSize: 14,
-        color: '#ffffff',
+    color: '#888888',
     lineHeight: 20,
   },
   
@@ -379,7 +379,7 @@ const styles = StyleSheet.create({
   
   progressBar: {
     height: 6,
-    backgroundColor: '#ffffff',
+    backgroundColor: '#333',
     borderRadius: 8,
     overflow: 'hidden',
     marginBottom: 8,
@@ -387,43 +387,40 @@ const styles = StyleSheet.create({
   
   progressFill: {
     height: '100%',
-    backgroundColor: '#3b82f6',
+    backgroundColor: '#007AFF',
     borderRadius: 8,
   },
   
   progressText: {
     fontSize: 12,
-    color: '#ffffff',
+    color: '#888888',
     textAlign: 'center',
     fontWeight: '500',
   },
   
   progressTrack: {
     height: 6,
-    backgroundColor: '#ffffff',
+    backgroundColor: '#333',
     borderRadius: 8,
     overflow: 'hidden',
   },
   
   // Waiting message with elegant design
   waitingMessageCard: {
-    backgroundColor: '#000000',
+    backgroundColor: '#1a1a1a',
     borderRadius: 20,
     padding: 20,
     marginBottom: 20,
     borderLeftWidth: 4,
-    borderLeftColor: '#8b5cf6',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.03,
-    shadowRadius: 4,
-    elevation: 1,
+    borderLeftColor: '#007AFF',
+    borderWidth: 1,
+    borderColor: '#333',
   },
   
   waitingMessageTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#7c3aed',
+    color: '#007AFF',
     marginBottom: 8,
   },
   
@@ -435,15 +432,12 @@ const styles = StyleSheet.create({
   
   // Quick actions with modern card design
   quickActionsCard: {
-    backgroundColor: '#000000',
+    backgroundColor: '#1a1a1a',
     borderRadius: 20,
     padding: 20,
     marginBottom: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.03,
-    shadowRadius: 4,
-    elevation: 1,
+    borderWidth: 1,
+    borderColor: '#333',
   },
   
   quickActionsTitle: {
@@ -462,19 +456,14 @@ const styles = StyleSheet.create({
   },
   
   quickActionButton: {
-    backgroundColor: '#000000',
+    backgroundColor: '#1a1a1a',
     paddingVertical: 14,
     paddingHorizontal: 18,
     borderRadius: 16,
     alignItems: 'center',
     minWidth: 80,
     borderWidth: 1,
-    borderColor: '#ffffff',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.02,
-    shadowRadius: 2,
-    elevation: 1,
+    borderColor: '#333',
   },
   
   quickActionEmoji: {
@@ -491,18 +480,18 @@ const styles = StyleSheet.create({
   
   // Error handling with improved design
   errorCard: {
-        backgroundColor: '#000000',
+    backgroundColor: '#1a1a1a',
     borderRadius: 20,
     padding: 20,
     marginBottom: 20,
     borderWidth: 1,
-    borderColor: '#ffffff',
+    borderColor: '#ef4444',
   },
   
   errorTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#dc2626',
+    color: '#ef4444',
     marginBottom: 12,
     textAlign: 'center',
   },
@@ -524,26 +513,21 @@ const styles = StyleSheet.create({
   
   actionButton: {
     flex: 1,
-    backgroundColor: '#3b82f6',
+    backgroundColor: '#007AFF',
     paddingVertical: 14,
     paddingHorizontal: 20,
     borderRadius: 16,
     alignItems: 'center',
-    shadowColor: '#3b82f6',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.15,
-    shadowRadius: 4,
-    elevation: 3,
   },
   
   supportButton: {
-    backgroundColor: '#6b7280',
-    shadowColor: '#6b7280',
+    backgroundColor: '#1a1a1a',
+    borderWidth: 1,
+    borderColor: '#333',
   },
   
   supportButtonSent: {
     backgroundColor: '#10b981',
-    shadowColor: '#10b981',
   },
   
   actionButtonText: {
@@ -554,15 +538,12 @@ const styles = StyleSheet.create({
   
   // Logs section with cleaner design
   logsCard: {
-    backgroundColor: '#000000',
+    backgroundColor: '#1a1a1a',
     borderRadius: 20,
     padding: 20,
     marginBottom: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.03,
-    shadowRadius: 4,
-    elevation: 1,
+    borderWidth: 1,
+    borderColor: '#333',
   },
   
   logsTitle: {
@@ -574,8 +555,9 @@ const styles = StyleSheet.create({
   
   quickActionsSubtext: {
     fontSize: 14,
-    color: '#ffffff',
+    color: '#888888',
     marginTop: 16,
+    textAlign: 'center',
   },
 });
 
