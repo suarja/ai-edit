@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ActivityIndicator, SafeAreaView, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, ActivityIndicator, SafeAreaView, ScrollView, TouchableOpacity } from 'react-native';
 import { useTheme } from '@react-navigation/native';
 import { API_ENDPOINTS } from '@/lib/config/api';
 import { useAuth } from '@clerk/clerk-expo';
@@ -20,6 +20,7 @@ interface Job {
 interface AnalysisInProgressScreenProps {
   initialJob: JobType;
   onAnalysisComplete: () => void;
+  onRetry: () => void;
 }
 
 const ProgressBar: React.FC<{ progress: number; color: string }> = ({ progress, color }) => (
@@ -28,7 +29,7 @@ const ProgressBar: React.FC<{ progress: number; color: string }> = ({ progress, 
   </View>
 );
 
-const AnalysisInProgressScreen: React.FC<AnalysisInProgressScreenProps> = ({ initialJob, onAnalysisComplete }) => {
+const AnalysisInProgressScreen: React.FC<AnalysisInProgressScreenProps> = ({ initialJob, onAnalysisComplete, onRetry }) => {
   const { colors } = useTheme();
   const { getToken } = useAuth();
   const [currentJob, setCurrentJob] = useState<JobType>(initialJob);
@@ -126,6 +127,18 @@ const AnalysisInProgressScreen: React.FC<AnalysisInProgressScreenProps> = ({ ini
               )}
             </View>
 
+            {/* Failure Actions */}
+            {currentJob.status === 'failed' && (
+              <View style={styles.actionsContainer}>
+                <TouchableOpacity style={styles.actionButton} onPress={onRetry}>
+                  <Text style={styles.actionButtonText}>Réessayer</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={[styles.actionButton, styles.supportButton]}>
+                  <Text style={styles.actionButtonText}>Contacter le support</Text>
+                </TouchableOpacity>
+              </View>
+            )}
+
             {/* Logs Component */}
             <AnalysisLogs events={currentJob.logs?.events || []} />
 
@@ -198,6 +211,27 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(248, 113, 113, 0.1)',
     padding: 8,
     borderRadius: 8,
+  },
+  actionsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: 16,
+    marginTop: 20,
+    width: '100%',
+  },
+  actionButton: {
+    backgroundColor: '#007AFF',
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 25,
+  },
+  supportButton: {
+    backgroundColor: '#333',
+  },
+  actionButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
   },
   errorContainer: {
     flexDirection: 'row',

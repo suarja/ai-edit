@@ -14,8 +14,15 @@ const AccountAnalysisGuard: React.FC<AccountAnalysisGuardProps> = ({ children })
 
   const handleAnalysisStart = (job: JobType) => {
     refreshAnalysis(job);
-    // No need to push here, the guard will re-evaluate and show AnalysisInProgressScreen
-    // because useAccountAnalysis will now return an activeJob.
+  };
+
+  const handleRetry = () => {
+    // To retry, we can simply call refreshAnalysis without arguments.
+    // It will clear the current job and re-evaluate, 
+    // likely showing the StartAnalysisScreen again.
+    // A more sophisticated retry would re-trigger the last failed job.
+    // For now, let's reset.
+    refreshAnalysis();
   };
 
   useEffect(() => {
@@ -35,7 +42,11 @@ const AccountAnalysisGuard: React.FC<AccountAnalysisGuardProps> = ({ children })
 
   // 🆕 If there is an active job, show the progress screen
   if (activeJob) {
-    return <AnalysisInProgressScreen initialJob={activeJob} onAnalysisComplete={refreshAnalysis} />;
+    return <AnalysisInProgressScreen 
+      initialJob={activeJob} 
+      onAnalysisComplete={refreshAnalysis} 
+      onRetry={handleRetry}
+    />;
   }
 
   // If there's no analysis, show the start screen
