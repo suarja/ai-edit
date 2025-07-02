@@ -60,42 +60,48 @@ export function useAccountAnalysis(): UseAccountAnalysisReturn {
 
       if (job) {
        setActiveJob(job);
-      } else {
-       const activeJobResponse = await fetch(`${API_ENDPOINTS.TIKTOK_ANALYSIS_START().replace('/account-analysis', '')}/account-analysis/active-job`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+       setIsLoading(false);
+       return;
+      }
+
+      // STEP 1: First check for existing completed analysis
+      // This ensures we prioritize showing results over the start screen
+      const analysisResponse = await fetch(API_ENDPOINTS.TIKTOK_ANALYSIS_EXISTING(), {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      if (analysisResponse.ok) {
+        const analysisResult = await analysisResponse.json();
+        if (analysisResult.success && analysisResult.data) {
+          console.log('✅ Existing analysis found, showing results:', analysisResult.data);
+          setAnalysis(analysisResult.data);
+          setIsLoading(false);
+          return; // Exit early - show the analysis results
+        }
+      }
+
+      // STEP 2: No completed analysis found, check for active job
+      const activeJobResponse = await fetch(`${API_ENDPOINTS.TIKTOK_ANALYSIS_START().replace('/account-analysis', '')}/account-analysis/active-job`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
 
       if (activeJobResponse.ok) {
         const activeJobData = await activeJobResponse.json();
         if (activeJobData) {
-          console.log('✅ Found an active job:', activeJobData);
+          console.log('✅ Found an active job, showing progress screen:', activeJobData);
           setActiveJob(activeJobData);
           setAnalysis(null);
           setIsLoading(false);
-          return;
+          return; // Exit early - show the progress screen
         }
       } else {
-        console.warn('⚠️ Could not check for active job, proceeding...');
-      }
-      }
-
-      const response = await fetch(API_ENDPOINTS.TIKTOK_ANALYSIS_EXISTING(), {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to fetch analysis status. Please try again.');
+        console.warn('⚠️ Could not check for active job, proceeding to start screen...');
       }
 
-      const result = await response.json();
+      // STEP 3: Neither completed analysis nor active job found
+      console.log('ℹ️ No existing analysis or active job found, showing start screen.');
+      setAnalysis(null);
 
-      if (result.success && result.data) {
-        console.log('✅ Existing analysis found:', result.data);
-        setAnalysis(result.data);
-      } else {
-        console.log('ℹ️ No existing analysis found.');
-        setAnalysis(null);
-      }
     } catch (e: any) {
       console.error('❌ useAccountAnalysis: Error fetching analysis:', e);
       setError(e.message || 'An unknown error occurred.');

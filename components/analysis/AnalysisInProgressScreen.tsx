@@ -37,11 +37,20 @@ const AnalysisInProgressScreen: React.FC<AnalysisInProgressScreenProps> = ({ ini
   const [currentJob, setCurrentJob] = useState<JobType>(initialJob);
   const [error, setError] = useState<string | null>(null);
   const [waitingMessage, setWaitingMessage] = useState<{ title: string, message: string } | null>(null);
+  const [reportSent, setReportSent] = useState<boolean>(false); // Track if report has been sent
 
   const { status, run_id } = currentJob;
 
   // Function to handle reporting an issue
   const handleReportIssue = async () => {
+    if (reportSent) {
+      Alert.alert(
+        "Rapport déjà envoyé", 
+        "Nous avons déjà reçu votre rapport pour cette analyse. Notre équipe examine le problème. Merci de votre patience !"
+      );
+      return;
+    }
+
     try {
       const token = await getToken();
       if (!token) {
@@ -55,6 +64,7 @@ const AnalysisInProgressScreen: React.FC<AnalysisInProgressScreenProps> = ({ ini
         token,
       });
 
+      setReportSent(true); // Mark report as sent
       Alert.alert("Rapport envoyé", "Notre équipe a été notifiée et va examiner le problème. Merci !");
     } catch (e: any) {
       Alert.alert("Échec de l'envoi", e.message);
@@ -188,14 +198,71 @@ const AnalysisInProgressScreen: React.FC<AnalysisInProgressScreenProps> = ({ ini
               </View>
             )}
 
+            {/* Quick Actions While Waiting */}
+            {status !== 'completed' && status !== 'failed' && (
+              <View style={styles.quickActionsCard}>
+                <Text style={styles.quickActionsTitle}>⚡ Pendant l'attente</Text>
+                <View style={styles.quickActionsGrid}>
+                  <TouchableOpacity 
+                    style={styles.quickActionButton}
+                    onPress={() => router.push('/')}
+                  >
+                    <Text style={styles.quickActionEmoji}>🏠</Text>
+                    <Text style={styles.quickActionText}>Accueil</Text>
+                  </TouchableOpacity>
+                  
+                  <TouchableOpacity 
+                    style={styles.quickActionButton}
+                    onPress={() => router.back()}
+                  >
+                    <Text style={styles.quickActionEmoji}>↩️</Text>
+                    <Text style={styles.quickActionText}>Retour</Text>
+                  </TouchableOpacity>
+                  
+                  <TouchableOpacity 
+                    style={styles.quickActionButton}
+                    onPress={() => {
+                      Alert.alert(
+                        "Restez connecté", 
+                        "Votre analyse continue en arrière-plan. Vous recevrez une notification dès qu'elle sera terminée !",
+                        [{ text: "Compris", style: "default" }]
+                      );
+                    }}
+                  >
+                    <Text style={styles.quickActionEmoji}>💡</Text>
+                    <Text style={styles.quickActionText}>Conseils</Text>
+                  </TouchableOpacity>
+                  
+                  <TouchableOpacity 
+                    style={styles.quickActionButton}
+                    onPress={() => router.replace('/')}
+                  >
+                    <Text style={styles.quickActionEmoji}>📱</Text>
+                    <Text style={styles.quickActionText}>Menu</Text>
+                  </TouchableOpacity>
+                </View>
+                <Text style={styles.quickActionsSubtext}>
+                  💡 Vous pouvez fermer l'app et revenir plus tard, votre analyse continuera !
+                </Text>
+              </View>
+            )}
+
             {/* Failure Actions */}
             {status === 'failed' && (
               <View style={styles.actionsContainer}>
                 <TouchableOpacity style={styles.actionButton} onPress={onRetry}>
                   <Text style={styles.actionButtonText}>Réessayer</Text>
                 </TouchableOpacity>
-                <TouchableOpacity style={[styles.actionButton, styles.supportButton]} onPress={handleReportIssue}>
-                  <Text style={styles.actionButtonText}>Contacter le support</Text>
+                <TouchableOpacity 
+                  style={[
+                    styles.actionButton, 
+                    reportSent ? styles.supportButtonSent : styles.supportButton
+                  ]} 
+                  onPress={handleReportIssue}
+                >
+                  <Text style={styles.actionButtonText}>
+                    {reportSent ? "Rapport envoyé ✓" : "Contacter le support"}
+                  </Text>
                 </TouchableOpacity>
               </View>
             )}
@@ -309,6 +376,9 @@ const styles = StyleSheet.create({
   supportButton: {
     backgroundColor: '#333',
   },
+  supportButtonSent: {
+    backgroundColor: '#34D399',
+  },
   actionButtonText: {
     color: '#fff',
     fontSize: 16,
@@ -326,7 +396,53 @@ const styles = StyleSheet.create({
   errorText: {
     color: '#F87171',
     flex: 1,
-  }
+  },
+  quickActionsCard: {
+    marginTop: 20,
+    backgroundColor: '#1a1a1a',
+    borderRadius: 16,
+    padding: 20,
+    width: '100%',
+    borderWidth: 1,
+    borderColor: '#333',
+  },
+  quickActionsTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#E5E7EB',
+    marginBottom: 16,
+  },
+  quickActionsGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-around',
+    gap: 12,
+  },
+  quickActionButton: {
+    backgroundColor: '#333',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 20,
+    alignItems: 'center',
+    minWidth: 70,
+    borderWidth: 1,
+    borderColor: '#444',
+  },
+  quickActionEmoji: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#E5E7EB',
+    marginBottom: 8,
+  },
+  quickActionText: {
+    fontSize: 14,
+    color: '#E5E7EB',
+  },
+  quickActionsSubtext: {
+    fontSize: 14,
+    color: '#9CA3AF',
+    marginTop: 16,
+  },
 });
 
 export default AnalysisInProgressScreen; 
