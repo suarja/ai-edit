@@ -37,7 +37,6 @@ const AnalysisInProgressScreen: React.FC<AnalysisInProgressScreenProps> = ({ ini
   const [currentJob, setCurrentJob] = useState<JobType>(initialJob);
   const [error, setError] = useState<string | null>(null);
   const [waitingMessage, setWaitingMessage] = useState<{ title: string, message: string } | null>(null);
-  const messageIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const { status, run_id } = currentJob;
 
@@ -62,30 +61,15 @@ const AnalysisInProgressScreen: React.FC<AnalysisInProgressScreenProps> = ({ ini
     }
   };
 
+  // --- Polling logic for job status ---
   useEffect(() => {
-    // Clear any existing intervals when status changes
-    if (messageIntervalRef.current) {
-      clearInterval(messageIntervalRef.current);
-      messageIntervalRef.current = null;
-    }
-
     if (status === 'completed' || status === 'failed') {
       if (status === 'completed') {
         setTimeout(onAnalysisComplete, 1500); // Wait a moment before refreshing
       }
-      setWaitingMessage(null); // Clear waiting message on final state
-      return;
+      return; // Stop polling
     }
 
-    // Set initial message
-    setWaitingMessage(WaitingMessagesService.getNextMessage());
-
-    // Start interval for random messages
-    messageIntervalRef.current = setInterval(() => {
-      setWaitingMessage(WaitingMessagesService.getNextMessage());
-    }, 7000); // Change message every 7 seconds
-
-    // Polling logic
     const pollingInterval = setInterval(async () => {
       try {
         const token = await getToken();
@@ -120,11 +104,28 @@ const AnalysisInProgressScreen: React.FC<AnalysisInProgressScreenProps> = ({ ini
 
     return () => {
       clearInterval(pollingInterval);
-      if (messageIntervalRef.current) {
-        clearInterval(messageIntervalRef.current);
-      }
     };
   }, [status, run_id, getToken, onAnalysisComplete]);
+
+  // --- Waiting message logic ---
+  useEffect(() => {
+    if (status === 'completed' || status === 'failed') {
+      setWaitingMessage(null); // Clear waiting message on final state
+      return;
+    }
+
+    // Set initial message
+    setWaitingMessage(WaitingMessagesService.getNextMessage());
+
+    // Start interval for random messages
+    const messageInterval = setInterval(() => {
+      setWaitingMessage(WaitingMessagesService.getNextMessage());
+    }, 7000); // Change message every 7 seconds
+
+    return () => {
+      clearInterval(messageInterval);
+    };
+  }, [status]);
 
   // Dynamically determine the status message and color
   const getDynamicStatus = (): { message: string; color: string } => {
