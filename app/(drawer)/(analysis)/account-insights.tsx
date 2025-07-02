@@ -181,7 +181,11 @@ export default function AccountInsightsScreen() {
   // because the guard handles the no-analysis case.
   if (!context) {
     return (
-      <SafeAreaView style={styles.container} edges={[]}>
+      <SafeAreaView style={styles.container} edges={["top"]}>
+        <AnalysisHeader 
+          title={'Insights'}
+          onBack={() => router.back()}
+        />
         <ScrollView 
           contentContainerStyle={styles.emptyStateContainer}
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />}

@@ -126,15 +126,22 @@ const StartAnalysisScreen: React.FC<StartAnalysisScreenProps> = ({ onAnalysisSta
         body: JSON.stringify({ tiktok_handle: tiktokHandle, is_pro: true }),
       });
 
-      const data: ResponseType = await response.json();
+      const data = await response.json();
+      
+      // Use safeParse to validate the response against the schema
       const parsedData = ResponseSchema.safeParse(data);
 
-      if (!parsedData.success) {
-        throw new Error(parsedData.error.message || 'Failed to start analysis.');
+      if (parsedData.success) {
+        // On success, proceed with the data
+        console.log('🚀 Analysis started:', parsedData.data.data.run_id);
+        onAnalysisStart(parsedData.data.data);
+      } else {
+        // On failure, format a user-friendly error from the Zod issues
+        console.error("Zod validation error:", parsedData.error.issues);
+        const firstError = parsedData.error.errors[0];
+        const errorMessage = `Erreur de données : ${firstError.message} pour le champ '${firstError.path.join('.')}'.`;
+        throw new Error(errorMessage);
       }
-
-      console.log('🚀 Analysis started:', parsedData.data.data.run_id);
-      onAnalysisStart(parsedData.data.data);
 
     } catch (err: any) {
       setSubmitError(err.message);
