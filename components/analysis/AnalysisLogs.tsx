@@ -129,6 +129,7 @@ const AnalysisLogs: React.FC<AnalysisLogsProps> = ({ events }) => {
 const styles = StyleSheet.create({
   container: {
     marginTop: 24,
+    marginBottom: 12,
     backgroundColor: '#1a1a1a',
     borderRadius: 16,
     padding: 16,
