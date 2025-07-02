@@ -198,6 +198,7 @@ export function useTikTokChatSimple(props: UseTikTokChatProps = {}): UseTikTokCh
       const result = await response.json();
 
       if (!result.success) {
+        console.log("result", result);
         throw new Error(result.error || 'Failed to send message');
       }
 

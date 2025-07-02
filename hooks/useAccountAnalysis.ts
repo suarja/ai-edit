@@ -45,6 +45,7 @@ export function useAccountAnalysis(): UseAccountAnalysisReturn {
   const [activeJob, setActiveJob] = useState<JobType | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
 
   const fetchAnalysis = useCallback(async (job?: JobType) => {
     console.log('🔄 useAccountAnalysis: Fetching analysis data...');
@@ -81,7 +82,8 @@ export function useAccountAnalysis(): UseAccountAnalysisReturn {
       }
 
       // STEP 2: No completed analysis found, check for active job
-      const activeJobResponse = await fetch(`${API_ENDPOINTS.TIKTOK_ANALYSIS_START().replace('/account-analysis', '')}/account-analysis/active-job`, {
+      console.log('🔍 No completed analysis found, checking for active jobs...');
+      const activeJobResponse = await fetch(API_ENDPOINTS.TIKTOK_ANALYSIS_ACTIVE_JOB(), {
         headers: { Authorization: `Bearer ${token}` },
       });
 
@@ -93,9 +95,11 @@ export function useAccountAnalysis(): UseAccountAnalysisReturn {
           setAnalysis(null);
           setIsLoading(false);
           return; // Exit early - show the progress screen
+        } else {
+          console.log('ℹ️ No active job found in response');
         }
       } else {
-        console.warn('⚠️ Could not check for active job, proceeding to start screen...');
+        console.warn('⚠️ Could not check for active job:', activeJobResponse.status, activeJobResponse.statusText);
       }
 
       // STEP 3: Neither completed analysis nor active job found
@@ -110,9 +114,20 @@ export function useAccountAnalysis(): UseAccountAnalysisReturn {
     }
   }, [getToken]);
 
+  // Enhanced refreshAnalysis function that forces a refresh
+  const refreshAnalysis = useCallback((job?: JobType) => {
+    if (job) {
+      fetchAnalysis(job);
+    } else {
+      // Force a fresh check by updating the trigger
+      setRefreshTrigger(prev => prev + 1);
+    }
+  }, [fetchAnalysis]);
+
+  // useEffect that responds to refreshTrigger changes
   useEffect(() => {
     fetchAnalysis();
-  }, []);
+  }, [refreshTrigger]);
 
-  return { analysis, activeJob, isLoading, error, refreshAnalysis: fetchAnalysis };
+  return { analysis, activeJob, isLoading, error, refreshAnalysis };
 } 

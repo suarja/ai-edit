@@ -166,27 +166,41 @@ const AnalysisInProgressScreen: React.FC<AnalysisInProgressScreenProps> = ({ ini
           onBack={() => router.back()}
         />
         <ScrollView style={styles.container}>
-          <View style={styles.content}> 
+          <View style={styles.scrollContent}>
             {/* Status Card */}
             <View style={styles.statusCard}>
               <View style={styles.statusHeader}>
-                {status === 'failed' ? (
-                  <AlertCircle size={24} color={statusColor} />
-                ) : status === 'completed' ? (
-                  <CheckCircle size={24} color={statusColor} />
-                ) : (
-                  <ActivityIndicator size="small" color={statusColor} />
-                )}
-                <Text style={[styles.statusText, { color: statusColor }]}>
-                  {statusMessage}
-                </Text>
+                <View style={[
+                  styles.statusIcon,
+                  status === 'completed' ? styles.statusIconCompleted :
+                  status === 'failed' ? styles.statusIconFailed :
+                  styles.statusIconProcessing
+                ]}>
+                  {status === 'completed' ? (
+                    <Text style={{ fontSize: 24, color: '#10b981' }}>✓</Text>
+                  ) : status === 'failed' ? (
+                    <Text style={{ fontSize: 24, color: '#ef4444' }}>✕</Text>
+                  ) : (
+                    <ActivityIndicator size="small" color="#3b82f6" />
+                  )}
+                </View>
+                <View style={styles.statusTextContainer}>
+                  <Text style={styles.statusTitle}>{statusMessage}</Text>
+                  <Text style={styles.statusSubtitle}>
+                    {status === 'completed' ? 'Analyse terminée avec succès' : 
+                     status === 'failed' ? 'Une erreur est survenue' :
+                     'Traitement en cours...'}
+                  </Text>
+                </View>
               </View>
-              <ProgressBar progress={progress} color={statusColor} />
-              <Text style={styles.progressText}>
-                {progress}%
-              </Text>
+              <View style={styles.progressContainer}>
+                <View style={styles.progressBar}>
+                  <View style={[styles.progressFill, { width: `${progress}%` }]} />
+                </View>
+                <Text style={styles.progressText}>{progress}%</Text>
+              </View>
               {status === 'failed' && currentJob.error_message && (
-                <Text style={styles.errorMessageDetail}>{currentJob.error_message}</Text>
+                <Text style={styles.errorMessage}>{currentJob.error_message}</Text>
               )}
             </View>
 
@@ -198,8 +212,39 @@ const AnalysisInProgressScreen: React.FC<AnalysisInProgressScreenProps> = ({ ini
               </View>
             )}
 
-            {/* Quick Actions While Waiting */}
-            {status !== 'completed' && status !== 'failed' && (
+         
+            {/* Failure Actions */}
+            {status === 'failed' && (
+              <View style={styles.actionsContainer}>
+                <TouchableOpacity style={styles.actionButton} onPress={onRetry}>
+                  <Text style={styles.actionButtonText}>Réessayer</Text>
+                </TouchableOpacity>
+                <TouchableOpacity 
+                  style={[
+                    styles.actionButton, 
+                    reportSent ? styles.supportButtonSent : styles.supportButton
+                  ]} 
+                  onPress={handleReportIssue}
+                >
+                  <Text style={styles.actionButtonText}>
+                    {reportSent ? "Rapport envoyé ✓" : "Contacter le support"}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            )}
+
+            {/* Logs Component */}
+            <AnalysisLogs events={currentJob.logs?.events || []} />
+
+            {/* Polling Error */}
+            {error && (
+              <View style={styles.errorCard}>
+                <Text style={styles.errorTitle}>Erreur</Text>
+                <Text style={styles.errorMessage}>{error}</Text>
+              </View>
+            )}
+               {/* Quick Actions While Waiting */}
+               {status !== 'completed' && status !== 'failed' && (
               <View style={styles.quickActionsCard}>
                 <Text style={styles.quickActionsTitle}>⚡ Pendant l'attente</Text>
                 <View style={styles.quickActionsGrid}>
@@ -247,38 +292,6 @@ const AnalysisInProgressScreen: React.FC<AnalysisInProgressScreenProps> = ({ ini
               </View>
             )}
 
-            {/* Failure Actions */}
-            {status === 'failed' && (
-              <View style={styles.actionsContainer}>
-                <TouchableOpacity style={styles.actionButton} onPress={onRetry}>
-                  <Text style={styles.actionButtonText}>Réessayer</Text>
-                </TouchableOpacity>
-                <TouchableOpacity 
-                  style={[
-                    styles.actionButton, 
-                    reportSent ? styles.supportButtonSent : styles.supportButton
-                  ]} 
-                  onPress={handleReportIssue}
-                >
-                  <Text style={styles.actionButtonText}>
-                    {reportSent ? "Rapport envoyé ✓" : "Contacter le support"}
-                  </Text>
-                </TouchableOpacity>
-              </View>
-            )}
-
-            {/* Logs Component */}
-            <AnalysisLogs events={currentJob.logs?.events || []} />
-
-            {/* Polling Error */}
-            {error && (
-              <View style={styles.errorContainer}>
-                <AlertCircle size={16} color="#F87171" />
-                <Text style={styles.errorText}>
-                  Error polling status: {error}
-                </Text>
-              </View>
-            )}
           </View>
         </ScrollView>
     </SafeAreaView>
@@ -288,159 +301,280 @@ const AnalysisInProgressScreen: React.FC<AnalysisInProgressScreenProps> = ({ ini
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#000',
+    backgroundColor: '#000000',
   },
   container: {
     flex: 1,
   },
-  content: {
-    padding: 20,
-    alignItems: 'center',
+  scrollContent: {
+    flexGrow: 1,
+    paddingHorizontal: 20,
+    paddingTop: 20,
+    paddingBottom: 100,
   },
+  
+  // Status display with modern design
   statusCard: {
-    backgroundColor: '#1a1a1a',
-    borderRadius: 16,
-    padding: 20,
-    width: '100%',
+    backgroundColor: '#000000',
+    borderRadius: 24,
+    padding: 24,
+    marginBottom: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.04,
+    shadowRadius: 8,
+    elevation: 2,
     borderWidth: 1,
-    borderColor: '#333',
+    borderColor: '#f1f5f9',
   },
+  
   statusHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
     marginBottom: 16,
   },
-  statusText: {
-    fontSize: 16,
-    fontWeight: '600',
+  
+  statusIcon: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 16,
   },
-  progressTrack: {
-    height: 8,
-    backgroundColor: '#333',
-    borderRadius: 4,
+  
+  statusIconProcessing: {
+    backgroundColor: '#dbeafe',
+  },
+  
+  statusIconCompleted: {
+    backgroundColor: '#dcfce7',
+  },
+  
+  statusIconFailed: {
+    backgroundColor: '#fee2e2',
+  },
+  
+  statusTextContainer: {
+    flex: 1,
+  },
+  
+  statusTitle: {
+    fontSize: 20,
+    fontWeight: '600',
+    color: '#ffffff',
+    marginBottom: 4,
+  },
+  
+  statusSubtitle: {
+    fontSize: 14,
+        color: '#ffffff',
+    lineHeight: 20,
+  },
+  
+  // Progress bar with modern styling
+  progressContainer: {
+    marginBottom: 20,
+  },
+  
+  progressBar: {
+    height: 6,
+    backgroundColor: '#ffffff',
+    borderRadius: 8,
     overflow: 'hidden',
     marginBottom: 8,
   },
-  progressBar: {
+  
+  progressFill: {
     height: '100%',
-    borderRadius: 4,
-  },
-  progressText: {
-    fontSize: 12,
-    color: '#9CA3AF',
-    textAlign: 'right',
-  },
-  errorMessageDetail: {
-    fontSize: 14,
-    color: '#F87171',
-    marginTop: 12,
-    textAlign: 'center',
-    backgroundColor: 'rgba(248, 113, 113, 0.1)',
-    padding: 8,
+    backgroundColor: '#3b82f6',
     borderRadius: 8,
   },
-  waitingMessageCard: {
-    marginTop: 20,
-    backgroundColor: '#1a1a1a',
-    borderRadius: 16,
-    padding: 20,
-    width: '100%',
-    borderWidth: 1,
-    borderColor: '#333',
+  
+  progressText: {
+    fontSize: 12,
+    color: '#ffffff',
+    textAlign: 'center',
+    fontWeight: '500',
   },
+  
+  progressTrack: {
+    height: 6,
+    backgroundColor: '#ffffff',
+    borderRadius: 8,
+    overflow: 'hidden',
+  },
+  
+  // Waiting message with elegant design
+  waitingMessageCard: {
+    backgroundColor: '#000000',
+    borderRadius: 20,
+    padding: 20,
+    marginBottom: 20,
+    borderLeftWidth: 4,
+    borderLeftColor: '#8b5cf6',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.03,
+    shadowRadius: 4,
+    elevation: 1,
+  },
+  
   waitingMessageTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#E5E7EB',
+    color: '#7c3aed',
     marginBottom: 8,
   },
+  
   waitingMessageText: {
     fontSize: 14,
-    color: '#9CA3AF',
+    color: '#ffffff',
     lineHeight: 20,
   },
-  actionsContainer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    gap: 16,
-    marginTop: 20,
-    width: '100%',
-  },
-  actionButton: {
-    backgroundColor: '#007AFF',
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-    borderRadius: 25,
-  },
-  supportButton: {
-    backgroundColor: '#333',
-  },
-  supportButtonSent: {
-    backgroundColor: '#34D399',
-  },
-  actionButtonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  errorContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    marginTop: 24,
-    backgroundColor: 'rgba(248, 113, 113, 0.1)',
-    padding: 12,
-    borderRadius: 12,
-  },
-  errorText: {
-    color: '#F87171',
-    flex: 1,
-  },
+  
+  // Quick actions with modern card design
   quickActionsCard: {
-    marginTop: 20,
-    backgroundColor: '#1a1a1a',
-    borderRadius: 16,
+    backgroundColor: '#000000',
+    borderRadius: 20,
     padding: 20,
-    width: '100%',
-    borderWidth: 1,
-    borderColor: '#333',
+    marginBottom: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.03,
+    shadowRadius: 4,
+    elevation: 1,
   },
+  
   quickActionsTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#E5E7EB',
+    color: '#ffffff',
     marginBottom: 16,
+    textAlign: 'center',
   },
+  
   quickActionsGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    justifyContent: 'space-around',
+    justifyContent: 'center',
     gap: 12,
   },
+  
   quickActionButton: {
-    backgroundColor: '#333',
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    borderRadius: 20,
+    backgroundColor: '#000000',
+    paddingVertical: 14,
+    paddingHorizontal: 18,
+    borderRadius: 16,
     alignItems: 'center',
-    minWidth: 70,
+    minWidth: 80,
     borderWidth: 1,
-    borderColor: '#444',
+    borderColor: '#ffffff',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.02,
+    shadowRadius: 2,
+    elevation: 1,
   },
+  
   quickActionEmoji: {
+    fontSize: 24,
+    marginBottom: 6,
+  },
+  
+  quickActionText: {
+    fontSize: 12,
+    color: '#ffffff',
+    fontWeight: '500',
+    textAlign: 'center',
+  },
+  
+  // Error handling with improved design
+  errorCard: {
+        backgroundColor: '#000000',
+    borderRadius: 20,
+    padding: 20,
+    marginBottom: 20,
+    borderWidth: 1,
+    borderColor: '#ffffff',
+  },
+  
+  errorTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#dc2626',
+    marginBottom: 12,
+    textAlign: 'center',
+  },
+  
+  errorMessage: {
+    fontSize: 14,
+    color: '#ffffff',
+    textAlign: 'center',
+    lineHeight: 20,
+    marginBottom: 20,
+  },
+  
+  // Action buttons with modern styling
+  actionsContainer: {
+    flexDirection: 'row',
+    gap: 12,
+    marginTop: 16,
+  },
+  
+  actionButton: {
+    flex: 1,
+    backgroundColor: '#3b82f6',
+    paddingVertical: 14,
+    paddingHorizontal: 20,
+    borderRadius: 16,
+    alignItems: 'center',
+    shadowColor: '#3b82f6',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  
+  supportButton: {
+    backgroundColor: '#6b7280',
+    shadowColor: '#6b7280',
+  },
+  
+  supportButtonSent: {
+    backgroundColor: '#10b981',
+    shadowColor: '#10b981',
+  },
+  
+  actionButtonText: {
+    color: '#ffffff',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  
+  // Logs section with cleaner design
+  logsCard: {
+    backgroundColor: '#000000',
+    borderRadius: 20,
+    padding: 20,
+    marginBottom: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.03,
+    shadowRadius: 4,
+    elevation: 1,
+  },
+  
+  logsTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#E5E7EB',
-    marginBottom: 8,
+    color: '#ffffff',
+    marginBottom: 16,
   },
-  quickActionText: {
-    fontSize: 14,
-    color: '#E5E7EB',
-  },
+  
   quickActionsSubtext: {
     fontSize: 14,
-    color: '#9CA3AF',
+    color: '#ffffff',
     marginTop: 16,
   },
 });
