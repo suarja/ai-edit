@@ -181,9 +181,11 @@ export function useTikTokChatSimple(props: UseTikTokChatProps = {}): UseTikTokCh
         message,
         streaming: false,
         conversation_id: conversationId,
-        run_id: existingAnalysis?.id,
+        analysisId: existingAnalysis?.id,
         tiktok_handle: existingAnalysis?.tiktok_handle,
       };
+
+      
 
       console.log("sendMessageRegular", payload, "conversationId", conversationId);
       const response = await fetch(API_ENDPOINTS.TIKTOK_ANALYSIS_CHAT(), {

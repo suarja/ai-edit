@@ -229,54 +229,72 @@ export default function AccountInsightsScreen() {
             <StatCard icon={<Users size={24} color="#007AFF" />} value={stats.followers_count?.toLocaleString() || 'N/A'} label="Abonnés" />
             <StatCard icon={<Eye size={24} color="#10b981" />} value={aggregates.avg_views?.toLocaleString(undefined, { maximumFractionDigits: 0 }) || 'N/A'} label="Vues moy." />
             <StatCard icon={<Heart size={24} color="#ef4444" />} value={`${(aggregates.avg_views && aggregates.avg_likes ? (aggregates.avg_likes / aggregates.avg_views * 100) : 0).toFixed(1)}%`} label="Taux de Likes" />
-            <StatCard icon={<BarChart3 size={24} color="#f59e0b" />} value={stats.videos_count?.toLocaleString() || 'N/A'} label="Vidéos" />
+            <StatCard icon={<Video size={24} color="#f59e0b" />} value={stats.videos_count?.toLocaleString() || 'N/A'} label="Vidéos" />
           </View>
         </View>
         
-        {/* Aggregates Section */}
+        {/* EditIA Insights */}
         <View style={styles.analysisContainer}>
-            <Text style={styles.sectionTitle}>Indicateurs Clés</Text>
-            <View style={styles.aggregatesGrid}>
-                <AggregateCard icon={<Clock size={20} color="#fff" />} label="Meilleur moment" value={aggregates.best_posting_time || 'N/A'} />
-                <AggregateCard icon={<Briefcase size={20} color="#fff" />} label="Ratio Sponsorisé" value={`${((aggregates.sponsored_ratio || 0) * 100).toFixed(0)}%`} />
-                <AggregateCard icon={<Music size={20} color="#fff" />} label="Musique Originale" value={`${((aggregates.music_usage_stats?.original_music_ratio || 0) * 100).toFixed(0)}%`} />
-                <AggregateCard icon={<Hash size={20} color="#fff" />} label="Hashtags (Top 3)" value={aggregates.top_hashtags?.slice(0,3).join(', ') || 'N/A'} />
-            </View>
-        </View>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>Analyse EditIA</Text>
+            <TouchableOpacity style={styles.chatButton} onPress={navigateToAccountChat}>
+              <MessageCircle size={20} color="#007AFF" />
+              <Text style={styles.chatButtonText}>Chat IA</Text>
+            </TouchableOpacity>
+          </View>
 
-        {/* Recommendations */}
-        <View style={styles.analysisContainer}>
-          <Text style={styles.sectionTitle}>Recommandations de l'IA</Text>
           <View style={styles.recommendationCard}>
             <Text style={styles.analysisSubtitle}>Forces Principales</Text>
-            {(insights.profile_summary?.strengths || ["Analyse en cours..."]).slice(0, 2).map((rec, index) => (
+            {(insights.profile_summary?.strengths || ["Analyse en cours..."]).map((strength, index) => (
               <View key={index} style={styles.recommendation}>
-                <Text style={styles.recommendationText}>• {rec}</Text>
+                <Text style={styles.recommendationText}>• {strength}</Text>
               </View>
             ))}
+          </View>
+
+          <View style={[styles.recommendationCard, styles.marginTop]}>
             <Text style={styles.analysisSubtitle}>Axes d'Amélioration</Text>
-            {(insights.profile_summary?.weaknesses || ["Analyse en cours..."]).slice(0, 2).map((rec, index) => (
+            {(insights.profile_summary?.weaknesses || ["Analyse en cours..."]).map((weakness, index) => (
               <View key={index} style={styles.recommendation}>
-                <Text style={styles.recommendationText}>• {rec}</Text>
+                <Text style={styles.recommendationText}>• {weakness}</Text>
               </View>
             ))}
           </View>
         </View>
 
-        {/* Quick Actions */}
-        <View style={styles.actionsContainer}>
-          <Text style={styles.sectionTitle}>Actions rapides</Text>
-          <TouchableOpacity style={styles.actionCard} onPress={navigateToAccountChat}>
-            <View style={styles.actionContent}>
-              <MessageCircle size={24} color="#007AFF" />
-              <View style={styles.actionText}>
-                <Text style={styles.actionTitle}>Chat IA Approfondi</Text>
-                <Text style={styles.actionSubtitle}>Discutez de ces insights avec l'expert IA</Text>
-              </View>
-            </View>
-            <ChevronRight size={20} color="#666" />
-          </TouchableOpacity>
+        {/* Performance Metrics */}
+        <View style={styles.analysisContainer}>
+          <Text style={styles.sectionTitle}>Métriques de Performance</Text>
+          <View style={styles.metricsGrid}>
+            <MetricCard
+              icon={<Clock size={20} color="#fff" />}
+              label="Meilleur moment de publication"
+              value={aggregates.best_posting_time || 'N/A'}
+              description="Horaire optimal pour l'engagement"
+            />
+            <MetricCard
+              icon={<Music size={20} color="#fff" />}
+              label="Musique Originale"
+              value={`${((aggregates.music_usage_stats?.original_music_ratio || 0) * 100).toFixed(0)}%`}
+              description="Ratio de sons originaux utilisés"
+            />
+          </View>
         </View>
+
+        {/* Hashtag Analysis */}
+        {aggregates.top_hashtags && aggregates.top_hashtags.length > 0 && (
+          <View style={styles.analysisContainer}>
+            <Text style={styles.sectionTitle}>Analyse des Hashtags</Text>
+            <View style={styles.hashtagsContainer}>
+              {aggregates.top_hashtags.map((hashtag, index) => (
+                <View key={index} style={styles.hashtagPill}>
+                  <Hash size={16} color="#007AFF" />
+                  <Text style={styles.hashtagText}>{hashtag}</Text>
+                </View>
+              ))}
+            </View>
+          </View>
+        )}
       </ScrollView>
     </SafeAreaView>
   );
@@ -291,14 +309,20 @@ const StatCard = ({ icon, value, label }: { icon: React.ReactNode, value: string
     </View>
 );
 
-const AggregateCard = ({ icon, value, label }: { icon: React.ReactNode, value: string, label: string }) => (
-    <View style={styles.aggregateCard}>
-        <View style={styles.aggregateIcon}>{icon}</View>
-        <View>
-            <Text style={styles.aggregateLabel}>{label}</Text>
-            <Text style={styles.aggregateValue}>{value}</Text>
-        </View>
+const MetricCard = ({ icon, label, value, description }: { 
+  icon: React.ReactNode, 
+  label: string, 
+  value: string,
+  description: string 
+}) => (
+  <View style={styles.metricCard}>
+    <View style={styles.metricHeader}>
+      <View style={styles.metricIcon}>{icon}</View>
+      <Text style={styles.metricLabel}>{label}</Text>
     </View>
+    <Text style={styles.metricValue}>{value}</Text>
+    <Text style={styles.metricDescription}>{description}</Text>
+  </View>
 );
 
 const styles = StyleSheet.create({
@@ -393,38 +417,29 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingBottom: 20,
   },
-  aggregatesGrid: {
+  sectionHeader: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
-    margin: -6,
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
   },
-  aggregateCard: {
+  chatButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#1a1a1a',
-    borderRadius: 12,
-    padding: 16,
-    flexGrow: 1,
-    flexBasis: '40%',
-    margin: 6,
-    gap: 12,
+    backgroundColor: 'rgba(0, 122, 255, 0.1)',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 20,
+    gap: 6,
   },
-  aggregateIcon: {
-      backgroundColor: 'rgba(255,255,255,0.1)',
-      padding: 8,
-      borderRadius: 8,
+  chatButtonText: {
+    color: '#007AFF',
+    fontSize: 14,
+    fontWeight: '600',
   },
-  aggregateLabel: {
-      fontSize: 12,
-      color: '#888',
-      marginBottom: 2
+  marginTop: {
+    marginTop: 16,
   },
-  aggregateValue: {
-      fontSize: 14,
-      fontWeight: '600',
-      color: '#fff',
-  },
-  // Recommendations
   recommendationCard: {
     backgroundColor: '#1a1a1a',
     borderRadius: 16,
@@ -445,38 +460,61 @@ const styles = StyleSheet.create({
     fontSize: 14,
     lineHeight: 20,
   },
-  // Actions
-  actionsContainer: {
-    paddingHorizontal: 20,
-    paddingBottom: 40,
-  },
-  actionCard: {
-    backgroundColor: '#1a1a1a',
-    borderRadius: 12,
-    padding: 16,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: 12,
-  },
-  actionContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flex: 1,
+  // Metrics
+  metricsGrid: {
     gap: 12,
   },
-  actionText: {
-    flex: 1,
+  metricCard: {
+    backgroundColor: '#1a1a1a',
+    borderRadius: 16,
+    padding: 20,
   },
-  actionTitle: {
+  metricHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    marginBottom: 12,
+  },
+  metricIcon: {
+    backgroundColor: 'rgba(255,255,255,0.1)',
+    padding: 8,
+    borderRadius: 8,
+  },
+  metricLabel: {
     fontSize: 16,
     fontWeight: '600',
     color: '#fff',
-    marginBottom: 2,
+    flex: 1,
   },
-  actionSubtitle: {
+  metricValue: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#fff',
+    marginBottom: 8,
+  },
+  metricDescription: {
     fontSize: 14,
     color: '#666',
+  },
+  // Hashtags
+  hashtagsContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  hashtagPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 122, 255, 0.1)',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 20,
+    gap: 6,
+  },
+  hashtagText: {
+    color: '#007AFF',
+    fontSize: 14,
+    fontWeight: '500',
   },
   // Empty State
   emptyStateContainer: {
