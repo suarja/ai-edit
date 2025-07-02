@@ -64,7 +64,7 @@ const API_CONFIGS = {
     webhooksCreatomate: '/api/webhooks/creatomate',
     voiceClone: '/api/voice-clone',
     onboarding: '/api/onboarding',
-
+    support: '/api/support',  
     // TikTok Analyzer endpoints
     tiktokAnalyzer: {
       baseUrl: 'http://localhost:3001',
@@ -101,6 +101,7 @@ const API_CONFIGS = {
     webhooksCreatomate: '/api/webhooks/creatomate',
     voiceClone: '/api/voice-clone',
     onboarding: '/api/onboarding',
+    support: '/api/support',
 
     // TikTok Analyzer endpoints
     tiktokAnalyzer: {
@@ -279,6 +280,14 @@ export const API_ENDPOINTS = {
     const config = getCurrentConfig();
     return `${config.tiktokAnalyzer.baseUrl}/account-analysis/active-job`;
   },
+
+  // Support
+  SUPPORT_REPORT_ISSUE: () => {
+    const config = getCurrentConfig();
+    return config.baseUrl + config.support + '/report-issue';
+  },
+
+  
 };
 
 /**
