@@ -7,7 +7,7 @@ import { JobType } from '@/hooks/useAccountAnalysis';
 import AnalysisHeader from './AnalysisHeader';
 import { router } from 'expo-router';
 import AnalysisLogs from './AnalysisLogs';
-import { AlertCircle } from 'lucide-react-native';
+import { AlertCircle, CheckCircle } from 'lucide-react-native';
 
 // 🆕 Local Job interface to avoid direct dependency
 interface Job {
@@ -21,26 +21,6 @@ interface AnalysisInProgressScreenProps {
   initialJob: JobType;
   onAnalysisComplete: () => void;
 }
-
-const getStatusInfo = (status: string): { message: string, color: string } => {
-  switch (status) {
-    case 'pending':
-      return { message: 'En attente de démarrage...', color: '#60A5FA' };
-    case 'running':
-    case 'fetching_data':
-      return { message: 'Récupération des données... (1/4)', color: '#60A5FA' };
-    case 'storing_data':
-      return { message: 'Sauvegarde des données... (2/4)', color: '#A78BFA' };
-    case 'analyzing_data':
-      return { message: 'Analyse par l\'IA en cours... (3/4)', color: '#FBBF24' };
-    case 'completed':
-      return { message: 'Analyse terminée !', color: '#34D399' };
-    case 'failed':
-      return { message: 'L\'analyse a échoué', color: '#F87171' };
-    default:
-      return { message: 'Statut inconnu...', color: '#9CA3AF' };
-  }
-};
 
 const ProgressBar: React.FC<{ progress: number; color: string }> = ({ progress, color }) => (
   <View style={styles.progressTrack}>
@@ -97,7 +77,25 @@ const AnalysisInProgressScreen: React.FC<AnalysisInProgressScreenProps> = ({ ini
     return () => clearInterval(interval);
   }, [currentJob, getToken, onAnalysisComplete]);
 
-  const { message: statusMessage, color: statusColor } = getStatusInfo(currentJob.status);
+  // Dynamically determine the status message and color
+  const getDynamicStatus = () => {
+    if (currentJob.status === 'failed') {
+      return { message: "L'analyse a échoué", color: '#F87171' };
+    }
+    if (currentJob.status === 'completed') {
+      return { message: 'Analyse terminée !', color: '#34D399' };
+    }
+
+    const lastEvent = currentJob.logs?.events?.[currentJob.logs.events.length - 1];
+    const message = lastEvent?.message || `Analyse en cours... (${currentJob.status})`;
+    
+    // Determine color based on job status for consistency
+    const color = currentJob.status === 'analyzing_data' ? '#FBBF24' : '#60A5FA';
+
+    return { message, color };
+  };
+
+  const { message: statusMessage, color: statusColor } = getDynamicStatus();
   const progress = currentJob.status === 'completed' ? 100 : (currentJob.progress || 0);
 
   return (
@@ -110,18 +108,15 @@ const AnalysisInProgressScreen: React.FC<AnalysisInProgressScreenProps> = ({ ini
           <View style={styles.content}> 
             {/* Status Card */}
             <View style={styles.statusCard}>
-              <View style={styles.statusHeader}>
-                {currentJob.status === 'running' || currentJob.status === 'pending' ? (
-                  <ActivityIndicator size="small" color={statusColor} />
-                ) : currentJob.status === 'failed' ? (
+              <View style={styles.statusHeader}> 
+            {currentJob.status === 'failed' ? (
                   <AlertCircle size={20} color={statusColor} />
+                ) : currentJob.status === 'completed' ? (
+                  <CheckCircle size={20} color={statusColor} />
                 ) : (
                   <ActivityIndicator size="small" color={statusColor} />
                 )}
-                <Text style={[styles.statusText, { color: statusColor }]}>
-                  {statusMessage}
-                </Text>
-              </View>
+                </View>
               <ProgressBar progress={progress} color={statusColor} />
               <Text style={styles.progressText}>
                 {progress}%
