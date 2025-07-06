@@ -8,7 +8,6 @@ import {
   ScrollView,
   ActivityIndicator,
   RefreshControl,
-  Alert,
 } from 'react-native';
 import { router } from 'expo-router';
 import {
@@ -48,9 +47,9 @@ export default function SourceVideosScreen() {
   const [savingMetadata, setSavingMetadata] = useState(false);
 
   // Use the same pattern as settings.tsx and videos.tsx
-  const { fetchUser, clerkUser, clerkLoaded, isSignedIn } = useGetUser();
+  const { fetchUser, clerkLoaded, isSignedIn } = useGetUser();
   const { client: supabase } = useClerkSupabaseClient();
-  
+
   // Get subscription info for free tier limits
   const { isPro, isReady: revenueCatReady } = useRevenueCat();
 
@@ -266,7 +265,8 @@ export default function SourceVideosScreen() {
         {revenueCatReady && !isPro && (
           <View style={styles.planInfoContainer}>
             <Text style={styles.planInfoText}>
-              {videos.length}/{FREE_TIER_SOURCE_VIDEOS_LIMIT} vidéos (Plan gratuit)
+              {videos.length}/{FREE_TIER_SOURCE_VIDEOS_LIMIT} vidéos (Plan
+              gratuit)
             </Text>
           </View>
         )}
@@ -287,8 +287,9 @@ export default function SourceVideosScreen() {
                 Limite de vidéos sources atteinte
               </Text>
               <Text style={styles.limitDescription}>
-                Vous avez atteint la limite de {FREE_TIER_SOURCE_VIDEOS_LIMIT} vidéos sources du plan gratuit. 
-                Passez Pro pour uploader plus de vidéos.
+                Vous avez atteint la limite de {FREE_TIER_SOURCE_VIDEOS_LIMIT}{' '}
+                vidéos sources du plan gratuit. Passez Pro pour uploader plus de
+                vidéos.
               </Text>
             </View>
           </View>
@@ -375,7 +376,8 @@ export default function SourceVideosScreen() {
                 <TouchableOpacity
                   style={[
                     styles.button,
-                    (!editingVideo.title || savingMetadata) && styles.buttonDisabled,
+                    (!editingVideo.title || savingMetadata) &&
+                      styles.buttonDisabled,
                   ]}
                   onPress={updateVideoMetadata}
                   disabled={!editingVideo.title || savingMetadata}
@@ -403,7 +405,6 @@ export default function SourceVideosScreen() {
             </View>
           ) : (
             videos.map((video, index) => {
-
               return (
                 <VideoCard
                   key={video.id}

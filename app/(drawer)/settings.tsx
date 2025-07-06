@@ -4,7 +4,6 @@ import {
   Text,
   StyleSheet,
   TouchableOpacity,
-  Switch,
   Image,
   ActivityIndicator,
   ScrollView,
@@ -14,12 +13,7 @@ import {
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
-  Bell,
-  Key,
-  Shield,
-  CircleHelp as HelpCircle,
   LogOut,
-  Globe,
   CircleAlert as AlertCircle,
   Check,
   X,
@@ -32,7 +26,6 @@ import {
 } from 'lucide-react-native';
 import AdminUsageControl from '@/components/AdminUsageControl';
 import { SubscriptionManager } from '@/components/SubscriptionManager';
-import { useClerkAuth } from '@/hooks/useClerkAuth';
 import { useClerkSupabaseClient } from '@/lib/supabase-clerk';
 import { useClerk } from '@clerk/clerk-expo';
 import { useGetUser } from '@/lib/hooks/useGetUser';
@@ -91,7 +84,7 @@ export default function SettingsScreen() {
   const { client: supabase } = useClerkSupabaseClient();
   const { signOut } = useClerk();
 
-  const { fetchUser, clerkUser, clerkLoaded, isSignedIn } = useGetUser();
+  const { fetchUser, clerkLoaded, isSignedIn } = useGetUser();
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
@@ -137,7 +130,6 @@ export default function SettingsScreen() {
       if (isAdmin) {
         await ensureAdminRoleEntry(user.id); // Use the database ID from fetchUser
       }
-
     } catch (err) {
       console.error('Error fetching profile:', err);
       setError('Échec du chargement du profil');
