@@ -61,10 +61,12 @@ export default function SourceVideosScreen() {
   const { client: supabase } = useClerkSupabaseClient();
 
   // Get subscription info for free tier limits
-  const { isPro, isReady: revenueCatReady } = useRevenueCat();
-
-  // Constants for free tier limits
-  const FREE_TIER_SOURCE_VIDEOS_LIMIT = 30;
+  const {
+    isPro,
+    isReady: revenueCatReady,
+    userUsage,
+    sourceVideosRemaining,
+  } = useRevenueCat();
 
   // Reset error when user interacts with the app
   const clearError = useCallback(() => {
@@ -141,11 +143,13 @@ export default function SourceVideosScreen() {
     try {
       clearError();
 
-      if (!isPro && videos.length >= FREE_TIER_SOURCE_VIDEOS_LIMIT) {
+      if (!isPro && sourceVideosRemaining <= 0) {
         setError(
-          `Limite atteinte : ${FREE_TIER_SOURCE_VIDEOS_LIMIT} vidéos maximum pour le plan gratuit. Passez Pro pour uploader plus de vidéos.`
+          `Limite atteinte : ${
+            userUsage?.source_videos_limit || 0
+          } vidéos sources maximum pour votre plan. Passez Pro pour en uploader plus.`
         );
-        throw new Error('Free tier limit reached');
+        throw new Error('Source video limit reached');
       }
 
       const user = await fetchUser();
@@ -401,7 +405,7 @@ export default function SourceVideosScreen() {
   };
 
   // Check if user can upload more videos
-  const canUploadMore = isPro || videos.length < FREE_TIER_SOURCE_VIDEOS_LIMIT;
+  const canUploadMore = isPro || sourceVideosRemaining > 0;
 
   // Add new function to handle support contact
 
@@ -479,11 +483,11 @@ export default function SourceVideosScreen() {
           />
         }
       >
-        {revenueCatReady && !isPro && (
+        {revenueCatReady && userUsage && !isPro && (
           <View style={styles.planInfoContainer}>
             <Text style={styles.planInfoText}>
-              {videos.length}/{FREE_TIER_SOURCE_VIDEOS_LIMIT} vidéos (Plan
-              gratuit)
+              {userUsage.source_videos_used}/{userUsage.source_videos_limit}{' '}
+              vidéos sources (Plan Gratuit)
             </Text>
           </View>
         )}
@@ -517,7 +521,7 @@ export default function SourceVideosScreen() {
         )}
 
         {/* Free tier limit warning */}
-        {!isPro && !canUploadMore && (
+        {revenueCatReady && !canUploadMore && (
           <View style={styles.limitContainer}>
             <Crown size={20} color="#FFD700" />
             <View style={styles.limitTextContainer}>
@@ -525,9 +529,9 @@ export default function SourceVideosScreen() {
                 Limite de vidéos sources atteinte
               </Text>
               <Text style={styles.limitDescription}>
-                Vous avez atteint la limite de {FREE_TIER_SOURCE_VIDEOS_LIMIT}{' '}
-                vidéos sources du plan gratuit. Passez Pro pour uploader plus de
-                vidéos.
+                Vous avez atteint la limite de{' '}
+                {userUsage?.source_videos_limit || 0} vidéos sources du plan
+                gratuit. Passez Pro pour uploader plus de vidéos.
               </Text>
             </View>
           </View>
