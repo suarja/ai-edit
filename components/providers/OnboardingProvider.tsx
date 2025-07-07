@@ -54,17 +54,12 @@ interface OnboardingProviderProps {
   initialSurveyAnswers?: SurveyAnswers;
 }
 
-// Full step order
+// Full step order - NEW SIMPLIFIED FLOW
 const FULL_STEP_ORDER: OnboardingStep[] = [
   'welcome',
   'survey',
-  'voice-recording',
-  'tiktok-analysis',
-  'processing',
-  'editorial-profile',
   'features',
-  'trial-offer',
-  'subscription',
+  'processing',
   'success',
 ];
 
@@ -82,9 +77,14 @@ const STEP_PATHS: Record<OnboardingStep, string> = {
   success: '/(onboarding)/success',
 };
 
-// Subscription-related steps
-const SUBSCRIPTION_STEPS: OnboardingStep[] = ['subscription'];
-const TRIAL_STEPS: OnboardingStep[] = ['trial-offer'];
+// Subscription-related steps to be filtered out by feature flags if needed
+const SUBSCRIPTION_STEPS: OnboardingStep[] = [
+  'subscription',
+  'trial-offer',
+  'voice-recording',
+  'tiktok-analysis',
+  'editorial-profile',
+];
 
 export const OnboardingProvider = ({
   children,
@@ -98,9 +98,6 @@ export const OnboardingProvider = ({
       SUBSCRIPTION_STEPS.includes(step) &&
       !features.enableSubscriptionScreens
     ) {
-      return false;
-    }
-    if (TRIAL_STEPS.includes(step) && !features.enableTrialOfferScreen) {
       return false;
     }
     return true;

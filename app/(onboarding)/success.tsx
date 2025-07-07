@@ -43,12 +43,7 @@ export default function SuccessScreen() {
       setIsNavigating(true);
 
       // Use the safe navigation function to navigate to settings
-      const success = await safeNavigate(
-        router,
-        '/scripts',
-        'replace',
-        500
-      );
+      const success = await safeNavigate(router, '/scripts', 'replace', 500);
 
       if (!success) {
         // If navigation failed, show error and reset state
@@ -69,16 +64,7 @@ export default function SuccessScreen() {
       <ProgressBar
         steps={onboardingSteps}
         currentStep="success"
-        completedSteps={[
-          'welcome',
-          'survey',
-          'voice-recording',
-          'processing',
-          'editorial-profile',
-          'features',
-          'trial-offer',
-          'subscription',
-        ]}
+        completedSteps={['welcome', 'survey', 'features', 'processing']}
       />
 
       <View style={styles.content}>

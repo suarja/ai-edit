@@ -1,3 +1,4 @@
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -6,15 +7,52 @@ import {
   Image,
   ActivityIndicator,
 } from 'react-native';
-import { router } from 'expo-router';
-import { Mic, ArrowRight } from 'lucide-react-native';
+import { router, useRouter } from 'expo-router';
+import { Mic, ArrowRight, ChevronLeft, CheckCircle } from 'lucide-react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFeatureAccess } from '@/hooks/useFeatureAccess';
 import { ProFeatureLock } from '@/components/guards/ProFeatureLock';
+import { useClerkSupabaseClient } from '@/lib/supabase-clerk';
+import { useGetUser } from '@/lib/hooks/useGetUser';
 
-export default function OnboardingVoiceCloneScreen() {
-  const { hasAccess, isLoading, isPro, remainingUsage } =
-    useFeatureAccess('voice_clone');
+export default function VoiceCloneOnboardingScreen() {
+  const router = useRouter();
+  const {
+    hasAccess,
+    isLoading: isAccessLoading,
+    isPro,
+    remainingUsage,
+  } = useFeatureAccess('voice_clone');
+  const { client: supabase } = useClerkSupabaseClient();
+  const { fetchUser } = useGetUser();
+
+  const [isLoading, setIsLoading] = useState(true);
+  const [existingClone, setExistingClone] = useState<any | null>(null);
+
+  useEffect(() => {
+    const checkExistingClone = async () => {
+      setIsLoading(true);
+      const user = await fetchUser();
+      if (!user) {
+        setIsLoading(false);
+        return;
+      }
+
+      const { data, error } = await supabase
+        .from('voice_clones')
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('status', 'ready')
+        .maybeSingle();
+
+      if (data) {
+        setExistingClone(data);
+      }
+      setIsLoading(false);
+    };
+
+    checkExistingClone();
+  }, []);
 
   const handleContinueToRecording = () => {
     router.push('/(onboarding)/voice-recording');
@@ -24,9 +62,9 @@ export default function OnboardingVoiceCloneScreen() {
     router.push('/(onboarding)/tiktok-analysis');
   };
 
-  if (isLoading) {
+  if (isAccessLoading || isLoading) {
     return (
-      <SafeAreaView style={styles.container}>
+      <SafeAreaView style={styles.container} edges={['top']}>
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" />
         </View>
@@ -36,12 +74,46 @@ export default function OnboardingVoiceCloneScreen() {
 
   if (!hasAccess) {
     return (
-      <SafeAreaView style={styles.container}>
-        <ProFeatureLock
-          featureTitle="Clonage Vocal"
-          featureDescription="Le clonage vocal est une fonctionnalité exclusive pour les abonnés Pro. Passez au niveau supérieur pour créer une voix IA unique."
-          onSkip={handleSkip}
-        />
+      <ProFeatureLock
+        featureTitle="Clonage Vocal Professionnel"
+        featureDescription="Créez une version IA de votre voix pour générer des narrations audio de haute qualité pour toutes vos vidéos."
+      />
+    );
+  }
+
+  if (existingClone) {
+    return (
+      <SafeAreaView style={styles.container} edges={['top']}>
+        <View style={styles.header}>
+          <TouchableOpacity
+            onPress={() => router.back()}
+            style={styles.backButton}
+          >
+            <ChevronLeft size={24} color="#fff" />
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>Clonage Vocal</Text>
+        </View>
+        <View style={styles.content}>
+          <View
+            style={[
+              styles.iconContainer,
+              { backgroundColor: 'rgba(76, 175, 80, 0.1)' },
+            ]}
+          >
+            <CheckCircle size={64} color="#4CAF50" />
+          </View>
+          <Text style={styles.title}>Clone Vocal Déjà Actif</Text>
+          <Text style={styles.description}>
+            Nous avons détecté que vous avez déjà un clone vocal prêt à
+            l'emploi. Vous pouvez continuer.
+          </Text>
+          <TouchableOpacity
+            style={[styles.startButton, { backgroundColor: '#4CAF50' }]}
+            onPress={() => router.back()}
+          >
+            <Text style={styles.startButtonText}>Retour</Text>
+          </TouchableOpacity>
+        </View>
       </SafeAreaView>
     );
   }
@@ -71,54 +143,30 @@ export default function OnboardingVoiceCloneScreen() {
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <View style={styles.header}>
-        <Image
-          source={{
-            uri: 'https://images.pexels.com/photos/3756878/pexels-photo-3756878.jpeg',
-          }}
-          style={styles.headerImage}
-        />
-        <View style={styles.overlay} />
-        <Text style={styles.title}>Clone Your Voice</Text>
-        <Text style={styles.subtitle}>
-          Create a unique AI voice that sounds just like you
-        </Text>
+        <TouchableOpacity
+          onPress={() => router.back()}
+          style={styles.backButton}
+        >
+          <ChevronLeft size={24} color="#fff" />
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>Clonage Vocal</Text>
       </View>
 
       <View style={styles.content}>
-        <View style={styles.benefits}>
-          <View style={styles.benefit}>
-            <Mic size={32} color="#007AFF" />
-            <View style={styles.benefitContent}>
-              <Text style={styles.benefitTitle}>Personalized Voice</Text>
-              <Text style={styles.benefitDescription}>
-                Your AI-generated videos will use your own voice, making your
-                content more authentic and engaging
-              </Text>
-            </View>
-          </View>
-
-          <View style={styles.infoBox}>
-            <Text style={styles.infoTitle}>Quick and Easy</Text>
-            <Text style={styles.infoText}>
-              Just record or upload a few short audio samples, and we&apos;ll
-              create a perfect clone of your voice
-            </Text>
-          </View>
+        <View style={styles.iconContainer}>
+          <Mic size={64} color="#007AFF" />
         </View>
-
-        <View style={styles.footer}>
-          <TouchableOpacity style={styles.skipButton} onPress={handleSkip}>
-            <Text style={styles.skipButtonText}>Skip for now</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={styles.button}
-            onPress={handleContinueToRecording}
-          >
-            <Text style={styles.buttonText}>Create Voice Clone</Text>
-            <ArrowRight size={24} color="#fff" />
-          </TouchableOpacity>
-        </View>
+        <Text style={styles.title}>Créez votre clone vocal</Text>
+        <Text style={styles.description}>
+          Enregistrez quelques secondes de votre voix pour permettre à l'IA de
+          générer des narrations avec votre propre timbre.
+        </Text>
+        <TouchableOpacity
+          style={styles.startButton}
+          onPress={handleContinueToRecording}
+        >
+          <Text style={styles.startButtonText}>Commencer l'enregistrement</Text>
+        </TouchableOpacity>
       </View>
     </SafeAreaView>
   );
@@ -128,12 +176,68 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#000',
-    justifyContent: 'center',
   },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    position: 'relative',
+    justifyContent: 'center',
+  },
+  backButton: {
+    position: 'absolute',
+    left: 16,
+  },
+  headerTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#fff',
+  },
+  content: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  iconContainer: {
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    backgroundColor: 'rgba(0, 122, 255, 0.1)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 32,
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#fff',
+    textAlign: 'center',
+    marginBottom: 16,
+  },
+  description: {
+    fontSize: 16,
+    color: '#888',
+    textAlign: 'center',
+    marginBottom: 32,
+    lineHeight: 24,
+  },
+  startButton: {
+    backgroundColor: '#007AFF',
+    paddingVertical: 16,
+    paddingHorizontal: 32,
+    borderRadius: 12,
+  },
+  startButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
   },
   proLockContainer: {
     flex: 1,
@@ -164,108 +268,6 @@ const styles = StyleSheet.create({
     marginTop: 16,
   },
   upgradeButtonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  header: {
-    height: 300,
-    justifyContent: 'flex-end',
-    padding: 20,
-  },
-  headerImage: {
-    ...StyleSheet.absoluteFillObject,
-    width: '100%',
-    height: 300,
-  },
-  overlay: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0,0,0,0.6)',
-  },
-  title: {
-    fontSize: 32,
-    fontWeight: 'bold',
-    color: '#fff',
-    marginBottom: 8,
-  },
-  subtitle: {
-    fontSize: 16,
-    color: '#888',
-    marginBottom: 20,
-  },
-  content: {
-    flex: 1,
-    padding: 20,
-    justifyContent: 'space-between',
-  },
-  benefits: {
-    gap: 24,
-  },
-  benefit: {
-    flexDirection: 'row',
-    gap: 16,
-    backgroundColor: '#1a1a1a',
-    padding: 20,
-    borderRadius: 16,
-  },
-  benefitContent: {
-    flex: 1,
-    gap: 8,
-  },
-  benefitTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#fff',
-  },
-  benefitDescription: {
-    fontSize: 14,
-    color: '#888',
-    lineHeight: 20,
-  },
-  infoBox: {
-    backgroundColor: '#1a1a1a',
-    padding: 20,
-    borderRadius: 16,
-    gap: 8,
-  },
-  infoTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#fff',
-  },
-  infoText: {
-    fontSize: 14,
-    color: '#888',
-    lineHeight: 20,
-  },
-  footer: {
-    flexDirection: 'row',
-    gap: 12,
-  },
-  skipButton: {
-    flex: 1,
-    backgroundColor: '#333',
-    padding: 16,
-    borderRadius: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  skipButtonText: {
-    color: '#888',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  button: {
-    flex: 2,
-    backgroundColor: '#007AFF',
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: 16,
-    borderRadius: 12,
-    gap: 8,
-  },
-  buttonText: {
     color: '#fff',
     fontSize: 16,
     fontWeight: '600',

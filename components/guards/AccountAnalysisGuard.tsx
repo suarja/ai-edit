@@ -13,11 +13,8 @@ interface AccountAnalysisGuardProps {
 const AccountAnalysisGuard: React.FC<AccountAnalysisGuardProps> = ({
   children,
 }) => {
-  const {
-    hasAccess,
-    isLoading: isAccessLoading,
-    remainingUsage,
-  } = useFeatureAccess('account_analysis');
+  const { hasAccess, isLoading: isAccessLoading } =
+    useFeatureAccess('account_analysis');
   const {
     analysis,
     activeJob,

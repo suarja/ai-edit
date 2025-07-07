@@ -27,7 +27,6 @@ interface UserUsage {
   account_analysis_used: number;
   account_analysis_limit: number;
   next_reset_date: string;
-  is_early_adopter?: boolean;
 }
 
 interface RevenueCatProps {
@@ -38,7 +37,6 @@ interface RevenueCatProps {
   sourceVideosRemaining: number;
   voiceClonesRemaining: number;
   accountAnalysisRemaining: number;
-  isEarlyAdopter: boolean;
   goPro: () => Promise<boolean>;
   refreshUsage: () => Promise<void>;
   hasOfferingError: boolean;
@@ -57,7 +55,6 @@ export const RevenueCatProvider = ({ children }: any) => {
   const [isReady, setIsReady] = useState(false);
   const [isPro, setIsPro] = useState(false);
   const [userUsage, setUserUsage] = useState<UserUsage | null>(null);
-  const [isEarlyAdopter, setIsEarlyAdopter] = useState(false);
   const [hasOfferingError, setHasOfferingError] = useState(false);
   const [initAttempts, setInitAttempts] = useState(0);
   const [showPaywall, setShowPaywall] = useState(false);
@@ -168,8 +165,7 @@ export const RevenueCatProvider = ({ children }: any) => {
           voice_clones_limit,
           account_analysis_used,
           account_analysis_limit,
-          next_reset_date,
-          is_early_adopter
+          next_reset_date
         `
         )
         .eq('user_id', user.id)
@@ -187,7 +183,6 @@ export const RevenueCatProvider = ({ children }: any) => {
       }
 
       setUserUsage(usage);
-      setIsEarlyAdopter(usage.is_early_adopter || false);
     } catch (error) {
       console.error('Error loading user usage:', error);
     }
@@ -221,7 +216,6 @@ export const RevenueCatProvider = ({ children }: any) => {
             voice_clones_limit: planData.voice_clones_limit,
             account_analysis_used: 0,
             account_analysis_limit: planData.account_analysis_limit,
-            is_early_adopter: false,
             next_reset_date: new Date(
               Date.now() + 30 * 24 * 60 * 60 * 1000
             ).toISOString(), // 30 days from now
@@ -237,8 +231,7 @@ export const RevenueCatProvider = ({ children }: any) => {
           voice_clones_limit,
           account_analysis_used,
           account_analysis_limit,
-          next_reset_date,
-          is_early_adopter
+          next_reset_date
         `
         )
         .single();
@@ -249,7 +242,6 @@ export const RevenueCatProvider = ({ children }: any) => {
       }
 
       setUserUsage(data);
-      setIsEarlyAdopter(data.is_early_adopter || false);
     } catch (error) {
       console.error('Error creating usage record:', error);
     }
@@ -402,7 +394,6 @@ export const RevenueCatProvider = ({ children }: any) => {
     sourceVideosRemaining,
     voiceClonesRemaining,
     accountAnalysisRemaining,
-    isEarlyAdopter,
     goPro,
     refreshUsage,
     hasOfferingError,

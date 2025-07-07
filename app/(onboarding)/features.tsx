@@ -1,33 +1,24 @@
-import { useOnboardingSteps } from '@/components/onboarding/OnboardingSteps';
 import React from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  ScrollView,
-} from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useRouter } from 'expo-router';
+import { Mic, UserSearch, ArrowRight } from 'lucide-react-native';
 import { useOnboarding } from '@/components/providers/OnboardingProvider';
 import { ProgressBar } from '@/components/onboarding/ProgressBar';
-import { Upload, Mic, User, Video, ArrowRight } from 'lucide-react-native';
-import * as Haptics from 'expo-haptics';
+import { useOnboardingSteps } from '@/components/onboarding/OnboardingSteps';
 
 export default function FeaturesScreen() {
+  const router = useRouter();
   const onboardingSteps = useOnboardingSteps();
   const { nextStep, markStepCompleted } = useOnboarding();
 
-  const handleContinue = () => {
+  const handleNavigate = (path: string) => {
+    router.push(path as any);
+  };
+
+  const handleFinishOnboarding = () => {
     markStepCompleted('features');
-
-    // Provide haptic feedback
-    try {
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    } catch (error) {
-      console.log('Haptics not available');
-    }
-
-    nextStep();
+    nextStep(); // This will navigate to 'success' screen
   };
 
   return (
@@ -35,128 +26,60 @@ export default function FeaturesScreen() {
       <ProgressBar
         steps={onboardingSteps}
         currentStep="features"
-        completedSteps={[
-          'welcome',
-          'survey',
-          'voice-recording',
-          'processing',
-          'editorial-profile',
-        ]}
+        completedSteps={['welcome', 'survey']}
       />
 
       <View style={styles.header}>
-        <Text style={styles.title}>Fonctionnalités clés</Text>
-        <Text style={styles.subtitle}>Votre studio de création tout-en-un</Text>
+        <Text style={styles.title}>Configurez vos Super-Pouvoirs</Text>
+        <Text style={styles.subtitle}>
+          Lancez-vous avec nos fonctionnalités Pro pour un impact maximum.
+        </Text>
       </View>
 
-      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        <View style={styles.featureItem}>
-          <View
-            style={[
-              styles.iconContainer,
-              { backgroundColor: 'rgba(0, 122, 255, 0.1)' },
-            ]}
-          >
-            <Upload size={32} color="#007AFF" />
-          </View>
-          <View style={styles.featureTextContainer}>
-            <Text style={styles.featureTitle}>Vidéos sources illimitées</Text>
-            <Text style={styles.featureDescription}>
-              Uploadez autant de vidéos que vous voulez pour créer votre
-              bibliothèque de contenu personnel.
-            </Text>
-          </View>
-        </View>
-
-        <View style={styles.featureItem}>
-          <View
-            style={[
-              styles.iconContainer,
-              { backgroundColor: 'rgba(239, 68, 68, 0.1)' },
-            ]}
-          >
-            <Video size={32} color="#ef4444" />
-          </View>
-          <View style={styles.featureTextContainer}>
-            <Text style={styles.featureTitle}>
-              Génération IA de vidéos courtes
-            </Text>
-            <Text style={styles.featureDescription}>
-              Créez des vidéos courtes engageantes avec l&apos;IA en décrivant
-              simplement ce que vous voulez.
-            </Text>
-          </View>
-        </View>
-
-        <View style={styles.featureItem}>
-          <View
-            style={[
-              styles.iconContainer,
-              { backgroundColor: 'rgba(76, 175, 80, 0.1)' },
-            ]}
-          >
+      <View style={styles.content}>
+        <TouchableOpacity
+          style={styles.featureCard}
+          onPress={() => handleNavigate('/(onboarding)/voice-clone')}
+        >
+          <View style={styles.iconContainer}>
             <Mic size={32} color="#4CAF50" />
           </View>
           <View style={styles.featureTextContainer}>
-            <Text style={styles.featureTitle}>Clonage vocal IA</Text>
+            <Text style={styles.featureTitle}>Configurer mon Clone Vocal</Text>
             <Text style={styles.featureDescription}>
-              Utilisez votre propre voix dans vos vidéos grâce à notre
-              technologie de clonage vocal 11Labs.
+              Créez une version IA de votre voix pour des narrations parfaites.
+              (Recommandé)
             </Text>
           </View>
-        </View>
+          <ArrowRight size={24} color="#555" />
+        </TouchableOpacity>
 
-        <View style={styles.featureItem}>
-          <View
-            style={[
-              styles.iconContainer,
-              { backgroundColor: 'rgba(255, 193, 7, 0.1)' },
-            ]}
-          >
-            <User size={32} color="#FFC107" />
+        <TouchableOpacity
+          style={styles.featureCard}
+          onPress={() => handleNavigate('/(onboarding)/tiktok-analysis')}
+        >
+          <View style={styles.iconContainer}>
+            <UserSearch size={32} color="#007AFF" />
           </View>
           <View style={styles.featureTextContainer}>
             <Text style={styles.featureTitle}>
-              Profil éditorial personnalisé
+              Lancer une Analyse de Compte
             </Text>
             <Text style={styles.featureDescription}>
-              L&apos;IA apprend votre style de création pour générer du contenu
-              qui vous ressemble vraiment.
+              Analysez un compte TikTok pour découvrir des stratégies de contenu
+              virales.
             </Text>
           </View>
-        </View>
-
-        <View style={styles.statsContainer}>
-          <Text style={styles.statsTitle}>
-            La nouvelle façon de créer du contenu
-          </Text>
-
-          <View style={styles.stats}>
-            <View style={styles.statItem}>
-              <Text style={styles.statNumber}>30</Text>
-              <Text style={styles.statLabel}>Vidéos/mois Pro</Text>
-            </View>
-
-            <View style={styles.statItem}>
-              <Text style={styles.statNumber}>€5</Text>
-              <Text style={styles.statLabel}>Early Adopter</Text>
-            </View>
-
-            <View style={styles.statItem}>
-              <Text style={styles.statNumber}>€10</Text>
-              <Text style={styles.statLabel}>Prix régulier</Text>
-            </View>
-          </View>
-        </View>
-      </ScrollView>
+          <ArrowRight size={24} color="#555" />
+        </TouchableOpacity>
+      </View>
 
       <View style={styles.footer}>
         <TouchableOpacity
-          style={styles.continueButton}
-          onPress={handleContinue}
+          style={styles.finishButton}
+          onPress={handleFinishOnboarding}
         >
-          <Text style={styles.continueText}>Continuer</Text>
-          <ArrowRight size={20} color="#fff" />
+          <Text style={styles.finishButtonText}>Terminer</Text>
         </TouchableOpacity>
       </View>
     </SafeAreaView>
@@ -169,101 +92,65 @@ const styles = StyleSheet.create({
     backgroundColor: '#000',
   },
   header: {
-    paddingTop: 16,
-    paddingHorizontal: 20,
-    paddingBottom: 16,
+    padding: 20,
+    paddingTop: 32,
     borderBottomWidth: 1,
-    borderBottomColor: '#333',
+    borderBottomColor: '#222',
   },
   title: {
-    fontSize: 24,
+    fontSize: 28,
     fontWeight: 'bold',
     color: '#fff',
-    marginBottom: 4,
+    textAlign: 'center',
+    marginBottom: 8,
   },
   subtitle: {
     fontSize: 16,
     color: '#888',
+    textAlign: 'center',
   },
   content: {
     flex: 1,
     padding: 20,
+    gap: 16,
   },
-  featureItem: {
+  featureCard: {
     flexDirection: 'row',
-    backgroundColor: '#1a1a1a',
-    borderRadius: 16,
-    padding: 16,
-    marginBottom: 16,
     alignItems: 'center',
+    backgroundColor: '#1a1a1a',
+    padding: 20,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: '#333',
   },
   iconContainer: {
-    width: 64,
-    height: 64,
-    borderRadius: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
     marginRight: 16,
   },
   featureTextContainer: {
     flex: 1,
+    gap: 4,
   },
   featureTitle: {
     fontSize: 18,
     fontWeight: '600',
     color: '#fff',
-    marginBottom: 8,
   },
   featureDescription: {
     fontSize: 14,
-    color: '#888',
-    lineHeight: 20,
-  },
-  statsContainer: {
-    backgroundColor: '#1a1a1a',
-    borderRadius: 16,
-    padding: 20,
-    marginBottom: 16,
-  },
-  statsTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#fff',
-    marginBottom: 16,
-    textAlign: 'center',
-  },
-  stats: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-  statItem: {
-    alignItems: 'center',
-  },
-  statNumber: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#007AFF',
-    marginBottom: 4,
-  },
-  statLabel: {
-    fontSize: 12,
     color: '#888',
   },
   footer: {
     padding: 20,
     borderTopWidth: 1,
-    borderTopColor: '#333',
+    borderTopColor: '#222',
   },
-  continueButton: {
-    backgroundColor: '#007AFF',
-    borderRadius: 12,
+  finishButton: {
+    backgroundColor: '#333',
     padding: 16,
+    borderRadius: 12,
     alignItems: 'center',
-    flexDirection: 'row',
-    justifyContent: 'center',
-    gap: 8,
   },
-  continueText: {
+  finishButtonText: {
     color: '#fff',
     fontSize: 16,
     fontWeight: '600',

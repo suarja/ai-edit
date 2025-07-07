@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -9,7 +9,7 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { router } from 'expo-router';
+import { useRouter } from 'expo-router';
 import {
   TrendingUp,
   Search,
@@ -18,11 +18,16 @@ import {
   CheckCircle,
   ArrowRight,
   Clock,
+  ChevronLeft,
+  UserSearch,
+  Sparkles,
 } from 'lucide-react-native';
 import { useTikTokAnalysis } from '@/hooks/useTikTokAnalysis';
 import { useOnboarding } from '@/components/providers/OnboardingProvider';
 import { useFeatureAccess } from '@/hooks/useFeatureAccess';
 import { ProFeatureLock } from '@/components/guards/ProFeatureLock';
+import { useAccountAnalysisApi } from '@/hooks/useAccountAnalysisApi';
+import { useAccountAnalysis } from '@/hooks/useAccountAnalysis';
 
 /**
  * 🎯 ONBOARDING TIKTOK ANALYSIS - VERSION ASYNCHRONE
@@ -30,38 +35,36 @@ import { ProFeatureLock } from '@/components/guards/ProFeatureLock';
  * Écran d'onboarding pour lancer l'analyse TikTok de manière asynchrone
  * L'utilisateur peut continuer l'onboarding pendant que l'analyse se déroule
  */
-export default function TikTokAnalysisOnboarding() {
-  const [tiktokHandle, setTikTokHandle] = useState('');
-  const [analysisStarted, setAnalysisStarted] = useState(false);
-  const [showSuccess, setShowSuccess] = useState(false);
+export default function TikTokAnalysisScreen() {
+  const router = useRouter();
+  const [handle, setHandle] = useState('');
+  const { hasAccess, isLoading: isAccessLoading } =
+    useFeatureAccess('account_analysis');
+  const { startAnalysis, isLoading: isApiLoading } = useAccountAnalysisApi();
+  const { analysis: existingAnalysis, isLoading: isAnalysisLoading } =
+    useAccountAnalysis();
   const { nextStep } = useOnboarding();
 
-  const { startAnalysis, isAnalyzing, error } = useTikTokAnalysis();
-  const { hasAccess, isLoading, isPro, remainingUsage } =
-    useFeatureAccess('account_analysis');
+  const { isAnalyzing, error } = useTikTokAnalysis();
 
   const handleStartAnalysis = async () => {
-    if (!tiktokHandle.trim()) {
-      Alert.alert('Handle requis', 'Veuillez entrer votre handle TikTok');
+    if (!handle.trim()) {
+      Alert.alert('Erreur', 'Veuillez entrer un nom de compte TikTok.');
       return;
     }
 
     try {
-      console.log('🚀 Starting TikTok analysis for:', tiktokHandle);
-      await startAnalysis(tiktokHandle.replace('@', '').trim());
-      setAnalysisStarted(true);
-      setShowSuccess(true);
-
-      // Auto-continue after showing success
-      setTimeout(() => {
-        nextStep();
-      }, 2000);
-    } catch (error: any) {
-      console.error('❌ Analysis error:', error);
+      await startAnalysis(handle.trim());
       Alert.alert(
-        'Erreur',
-        "Impossible de démarrer l'analyse. Veuillez réessayer.",
-        [{ text: 'OK' }]
+        'Analyse Lancée !',
+        `Nous avons commencé à analyser le compte @${handle.trim()}. Nous vous notifierons quand le rapport sera prêt.`
+      );
+      // Navigate to the end of onboarding
+      router.push('/(onboarding)/success');
+    } catch (error: any) {
+      Alert.alert(
+        "Erreur d'API",
+        error.message || "Impossible de lancer l'analyse."
       );
     }
   };
@@ -70,9 +73,9 @@ export default function TikTokAnalysisOnboarding() {
     nextStep();
   };
 
-  if (isLoading) {
+  if (isAccessLoading || isAnalysisLoading) {
     return (
-      <SafeAreaView style={styles.container}>
+      <SafeAreaView style={styles.container} edges={['top']}>
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" />
         </View>
@@ -82,56 +85,45 @@ export default function TikTokAnalysisOnboarding() {
 
   if (!hasAccess) {
     return (
-      <SafeAreaView style={styles.container}>
-        <ProFeatureLock
-          featureTitle="Analyse de Compte TikTok"
-          featureDescription="Obtenez une analyse détaillée de votre compte et des recommandations personnalisées pour faire décoller votre contenu. Exclusif pour les membres Pro."
-          onSkip={handleSkip}
-        />
-      </SafeAreaView>
+      <ProFeatureLock
+        featureTitle="Analyse de Compte Approfondie"
+        featureDescription="Obtenez une analyse complète de n'importe quel compte TikTok, identifiez les stratégies virales et recevez des recommandations personnalisées."
+      />
     );
   }
 
-  // Si l'utilisateur est Pro mais a déjà utilisé ses analyses
-  if (isPro && remainingUsage <= 0) {
-    return (
-      <SafeAreaView style={styles.container}>
-        <View style={styles.loadingContainer}>
-          <Brain size={48} color="#007AFF" />
-          <Text style={styles.title}>Analyses Épuisées</Text>
-          <Text style={styles.subtitle}>
-            Vous avez utilisé toutes vos analyses pour ce mois-ci. Vos crédits
-            seront renouvelés à la prochaine date de facturation.
-          </Text>
-          <TouchableOpacity
-            style={styles.primaryButton}
-            onPress={() => router.push('/(tabs)/')}
-          >
-            <Text style={styles.primaryButtonText}>Terminer</Text>
-          </TouchableOpacity>
-        </View>
-      </SafeAreaView>
-    );
-  }
-
-  if (showSuccess) {
+  if (existingAnalysis) {
     return (
       <SafeAreaView style={styles.container} edges={['top']}>
+        <View style={styles.header}>
+          <TouchableOpacity
+            onPress={() => router.back()}
+            style={styles.backButton}
+          >
+            <ChevronLeft size={24} color="#fff" />
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>Analyse de Compte</Text>
+        </View>
         <View style={styles.content}>
-          <View style={styles.successContainer}>
+          <View
+            style={[
+              styles.iconContainer,
+              { backgroundColor: 'rgba(76, 175, 80, 0.1)' },
+            ]}
+          >
             <CheckCircle size={64} color="#4CAF50" />
-            <Text style={styles.successTitle}>Analyse Lancée !</Text>
-            <Text style={styles.successSubtitle}>
-              Votre analyse TikTok est en cours. Vous pourrez consulter les
-              résultats dans l'onglet Account Chat une fois terminée.
-            </Text>
-            <View style={styles.processingInfo}>
-              <Clock size={16} color="#888" />
-              <Text style={styles.processingText}>
-                Temps estimé : 2-3 minutes
-              </Text>
-            </View>
           </View>
+          <Text style={styles.title}>Analyse Déjà Effectuée</Text>
+          <Text style={styles.description}>
+            Vous avez déjà une analyse de compte active. Vous pouvez la
+            consulter dans la section "Analyse".
+          </Text>
+          <TouchableOpacity
+            style={[styles.startButton, { backgroundColor: '#4CAF50' }]}
+            onPress={() => router.back()}
+          >
+            <Text style={styles.startButtonText}>Retour</Text>
+          </TouchableOpacity>
         </View>
       </SafeAreaView>
     );
@@ -139,77 +131,50 @@ export default function TikTokAnalysisOnboarding() {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
+      <View style={styles.header}>
+        <TouchableOpacity
+          onPress={() => router.back()}
+          style={styles.backButton}
+        >
+          <ChevronLeft size={24} color="#fff" />
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>Analyse de Compte</Text>
+      </View>
+
       <View style={styles.content}>
-        <View style={styles.header}>
-          <TrendingUp size={48} color="#FF6B35" />
-          <Text style={styles.title}>Analyse TikTok</Text>
-          <Text style={styles.subtitle}>
-            Créez votre profil éditorial personnalisé basé sur vos performances
-            TikTok
-          </Text>
+        <View style={styles.iconContainer}>
+          <UserSearch size={64} color="#007AFF" />
         </View>
-
-        <View style={styles.featuresContainer}>
-          <View style={styles.feature}>
-            <Brain size={24} color="#007AFF" />
-            <Text style={styles.featureText}>Analyse IA de votre contenu</Text>
-          </View>
-          <View style={styles.feature}>
-            <Target size={24} color="#007AFF" />
-            <Text style={styles.featureText}>
-              Recommandations personnalisées
-            </Text>
-          </View>
-          <View style={styles.feature}>
-            <Search size={24} color="#007AFF" />
-            <Text style={styles.featureText}>Insights d'audience</Text>
-          </View>
-        </View>
-
-        <View style={styles.inputContainer}>
-          <Text style={styles.inputLabel}>Votre handle TikTok</Text>
-          <View style={styles.inputWrapper}>
-            <Text style={styles.atSymbol}>@</Text>
-            <TextInput
-              style={styles.input}
-              value={tiktokHandle}
-              onChangeText={setTikTokHandle}
-              placeholder="votre_handle"
-              placeholderTextColor="#666"
-              autoCapitalize="none"
-              autoCorrect={false}
-            />
-          </View>
-        </View>
-
-        <View style={styles.buttonsContainer}>
-          <TouchableOpacity
-            style={[styles.primaryButton, isAnalyzing && styles.disabledButton]}
-            onPress={handleStartAnalysis}
-            disabled={isAnalyzing}
-          >
-            {isAnalyzing ? (
-              <ActivityIndicator size="small" color="#fff" />
-            ) : (
-              <>
-                <Brain size={20} color="#fff" />
-                <Text style={styles.primaryButtonText}>
-                  Analyser mon TikTok
-                </Text>
-              </>
-            )}
-          </TouchableOpacity>
-
-          <TouchableOpacity style={styles.skipButton} onPress={handleSkip}>
-            <Text style={styles.skipButtonText}>Plus tard</Text>
-            <ArrowRight size={16} color="#888" />
-          </TouchableOpacity>
-        </View>
-
-        <Text style={styles.disclaimer}>
-          L'analyse prendra 2-3 minutes. Vous pouvez continuer l'onboarding
-          pendant ce temps.
+        <Text style={styles.title}>Analysez un Compte TikTok</Text>
+        <Text style={styles.description}>
+          Entrez le @handle d'un compte pour que notre IA analyse sa stratégie
+          de contenu, ses performances et ses métriques d'audience.
         </Text>
+        <View style={styles.inputContainer}>
+          <Text style={styles.atSymbol}>@</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="nomducompte"
+            placeholderTextColor="#666"
+            value={handle}
+            onChangeText={setHandle}
+            autoCapitalize="none"
+          />
+        </View>
+        <TouchableOpacity
+          style={[styles.startButton, isApiLoading && styles.buttonDisabled]}
+          onPress={handleStartAnalysis}
+          disabled={isApiLoading}
+        >
+          {isApiLoading ? (
+            <ActivityIndicator color="#fff" />
+          ) : (
+            <>
+              <Sparkles size={20} color="#fff" />
+              <Text style={styles.startButtonText}>Lancer l'Analyse</Text>
+            </>
+          )}
+        </TouchableOpacity>
       </View>
     </SafeAreaView>
   );
@@ -224,141 +189,88 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 24,
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    position: 'relative',
+    justifyContent: 'center',
+  },
+  backButton: {
+    position: 'absolute',
+    left: 16,
+  },
+  headerTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#fff',
   },
   content: {
     flex: 1,
-    padding: 24,
     justifyContent: 'center',
-  },
-  header: {
     alignItems: 'center',
-    marginBottom: 40,
+    padding: 20,
+  },
+  iconContainer: {
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    backgroundColor: 'rgba(0, 122, 255, 0.1)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 32,
   },
   title: {
-    fontSize: 28,
+    fontSize: 24,
     fontWeight: 'bold',
     color: '#fff',
-    marginTop: 16,
-    marginBottom: 8,
+    textAlign: 'center',
+    marginBottom: 16,
   },
-  subtitle: {
+  description: {
     fontSize: 16,
     color: '#888',
     textAlign: 'center',
-    lineHeight: 22,
-  },
-  featuresContainer: {
     marginBottom: 32,
-  },
-  feature: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 16,
-    paddingHorizontal: 16,
-  },
-  featureText: {
-    fontSize: 16,
-    color: '#fff',
-    marginLeft: 12,
+    lineHeight: 24,
   },
   inputContainer: {
-    marginBottom: 24,
-  },
-  inputLabel: {
-    fontSize: 16,
-    color: '#fff',
-    marginBottom: 8,
-    fontWeight: '600',
-  },
-  inputWrapper: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#1a1a1a',
     borderRadius: 12,
-    borderWidth: 1,
-    borderColor: '#333',
     paddingHorizontal: 16,
-    height: 50,
+    width: '100%',
+    marginBottom: 24,
   },
   atSymbol: {
+    color: '#888',
     fontSize: 18,
-    color: '#007AFF',
-    fontWeight: '600',
     marginRight: 4,
   },
   input: {
     flex: 1,
-    fontSize: 16,
     color: '#fff',
-    paddingVertical: 0,
+    fontSize: 18,
+    paddingVertical: 16,
   },
-  buttonsContainer: {
-    gap: 16,
-    marginBottom: 24,
-  },
-  primaryButton: {
+  startButton: {
     backgroundColor: '#007AFF',
+    paddingVertical: 16,
+    paddingHorizontal: 32,
     borderRadius: 12,
-    padding: 16,
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
     gap: 8,
   },
-  disabledButton: {
-    opacity: 0.5,
+  buttonDisabled: {
+    opacity: 0.7,
   },
-  primaryButtonText: {
+  startButtonText: {
     color: '#fff',
     fontSize: 16,
     fontWeight: '600',
-  },
-  skipButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-    padding: 16,
-  },
-  skipButtonText: {
-    color: '#888',
-    fontSize: 16,
-  },
-  disclaimer: {
-    fontSize: 12,
-    color: '#666',
-    textAlign: 'center',
-    lineHeight: 16,
-  },
-  successContainer: {
-    alignItems: 'center',
-  },
-  successTitle: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#4CAF50',
-    marginTop: 16,
-    marginBottom: 8,
-  },
-  successSubtitle: {
-    fontSize: 16,
-    color: '#888',
-    textAlign: 'center',
-    lineHeight: 22,
-    marginBottom: 24,
-  },
-  processingInfo: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    backgroundColor: '#1a1a1a',
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 20,
-  },
-  processingText: {
-    fontSize: 14,
-    color: '#888',
   },
 });

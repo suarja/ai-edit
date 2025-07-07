@@ -28,7 +28,7 @@ export default function ProcessingScreenContainer() {
       <ProgressBar
         steps={onboardingSteps}
         currentStep="processing"
-        completedSteps={['welcome', 'survey', 'voice-recording']}
+        completedSteps={['welcome', 'survey', 'features']}
       />
 
       <ProcessingScreen
