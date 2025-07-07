@@ -6,6 +6,7 @@ import React from 'react';
 import { useClerkSupabaseClient } from '@/lib/supabase-clerk';
 import { useGetUser } from '@/lib/hooks/useGetUser';
 import { CustomPaywall } from '@/components/CustomPaywall';
+import { updateUserLimits } from '@/services/usageTrackingService';
 
 // Use keys from your RevenueCat API Keys
 const APIKeys = {
@@ -19,6 +20,12 @@ const isDevelopment = __DEV__ || process.env.NODE_ENV === 'development';
 interface UserUsage {
   videos_generated: number;
   videos_limit: number;
+  source_videos_used: number;
+  source_videos_limit: number;
+  voice_clones_used: number;
+  voice_clones_limit: number;
+  account_analysis_used: number;
+  account_analysis_limit: number;
   next_reset_date: string;
   is_early_adopter?: boolean;
 }
@@ -28,6 +35,9 @@ interface RevenueCatProps {
   isReady: boolean;
   userUsage: UserUsage | null;
   videosRemaining: number;
+  sourceVideosRemaining: number;
+  voiceClonesRemaining: number;
+  accountAnalysisRemaining: number;
   isEarlyAdopter: boolean;
   goPro: () => Promise<boolean>;
   refreshUsage: () => Promise<void>;
@@ -41,18 +51,6 @@ interface RevenueCatProps {
 }
 
 const RevenueCatContext = createContext<RevenueCatProps | null>(null);
-
-// Plan configuration
-const PLAN_LIMITS = {
-  free: 3,
-  pro: 30,
-} as const;
-
-// Default pricing for fallback when offerings can't be loaded
-const DEFAULT_PRICES = {
-  regular: '9,99€',
-  earlyAdopter: '4,99€',
-};
 
 // Provide RevenueCat functions to our app
 export const RevenueCatProvider = ({ children }: any) => {
@@ -160,7 +158,20 @@ export const RevenueCatProvider = ({ children }: any) => {
 
       const { data: usage, error } = await supabase
         .from('user_usage')
-        .select('videos_generated, videos_limit, next_reset_date')
+        .select(
+          `
+          videos_generated, 
+          videos_limit, 
+          source_videos_used,
+          source_videos_limit,
+          voice_clones_used,
+          voice_clones_limit,
+          account_analysis_used,
+          account_analysis_limit,
+          next_reset_date,
+          is_early_adopter
+        `
+        )
         .eq('user_id', user.id)
         .single();
 
@@ -176,7 +187,7 @@ export const RevenueCatProvider = ({ children }: any) => {
       }
 
       setUserUsage(usage);
-      setIsEarlyAdopter(true); // Default to early adopter for now
+      setIsEarlyAdopter(usage.is_early_adopter || false);
     } catch (error) {
       console.error('Error loading user usage:', error);
     }
@@ -185,20 +196,51 @@ export const RevenueCatProvider = ({ children }: any) => {
   // Create initial usage record for new users
   const createUsageRecord = async (userId: string) => {
     try {
+      // Récupérer les limites du plan gratuit depuis la base de données
+      const { data: planData, error: planError } = await supabase
+        .from('subscription_plans')
+        .select('*')
+        .eq('id', 'free')
+        .single();
+
+      if (planError) {
+        console.error('Failed to fetch plan limits:', planError);
+        return;
+      }
+
       const { data, error } = await supabase
         .from('user_usage')
         .insert([
           {
             user_id: userId,
             videos_generated: 0,
-            videos_limit: PLAN_LIMITS.free, // Start with free plan
-            is_early_adopter: true,
+            videos_limit: planData.videos_limit,
+            source_videos_used: 0,
+            source_videos_limit: planData.source_videos_limit,
+            voice_clones_used: 0,
+            voice_clones_limit: planData.voice_clones_limit,
+            account_analysis_used: 0,
+            account_analysis_limit: planData.account_analysis_limit,
+            is_early_adopter: false,
             next_reset_date: new Date(
               Date.now() + 30 * 24 * 60 * 60 * 1000
             ).toISOString(), // 30 days from now
           },
         ])
-        .select('videos_generated, videos_limit, next_reset_date')
+        .select(
+          `
+          videos_generated, 
+          videos_limit, 
+          source_videos_used,
+          source_videos_limit,
+          voice_clones_used,
+          voice_clones_limit,
+          account_analysis_used,
+          account_analysis_limit,
+          next_reset_date,
+          is_early_adopter
+        `
+        )
         .single();
 
       if (error) {
@@ -207,40 +249,53 @@ export const RevenueCatProvider = ({ children }: any) => {
       }
 
       setUserUsage(data);
+      setIsEarlyAdopter(data.is_early_adopter || false);
     } catch (error) {
       console.error('Error creating usage record:', error);
     }
   };
 
-  // Sync user's video limit with their subscription status
+  // Sync user's limits with their subscription status
   const syncUserLimitWithSubscription = async (isProUser: boolean) => {
     try {
       const user = await fetchUser();
       if (!user) return;
 
-      const newLimit = isProUser ? PLAN_LIMITS.pro : PLAN_LIMITS.free;
+      const planId = isProUser ? 'pro' : 'free';
 
+      // Récupérer les limites du plan depuis la base de données
+      const { data: planData, error: planError } = await supabase
+        .from('subscription_plans')
+        .select('*')
+        .eq('id', planId)
+        .single();
+
+      if (planError) {
+        console.error('Failed to fetch plan limits:', planError);
+        return;
+      }
+
+      // Mettre à jour les limites de l'utilisateur
       const { error } = await supabase
         .from('user_usage')
         .update({
-          videos_limit: newLimit,
+          videos_limit: planData.videos_limit,
+          source_videos_limit: planData.source_videos_limit,
+          voice_clones_limit: planData.voice_clones_limit,
+          account_analysis_limit: planData.account_analysis_limit,
           updated_at: new Date().toISOString(),
         })
         .eq('user_id', user.id);
 
       if (error) {
-        console.error('Failed to sync user limit:', error);
+        console.error('Failed to sync user limits:', error);
       } else {
-        console.log(
-          `User limit synced to: ${newLimit} videos (${
-            isProUser ? 'PRO' : 'FREE'
-          })`
-        );
+        console.log(`User limits synced to ${planId} plan`);
         // Reload usage after update
         await loadUserUsage();
       }
     } catch (error) {
-      console.error('Error syncing user limit:', error);
+      console.error('Error syncing user limits:', error);
     }
   };
 
@@ -308,12 +363,35 @@ export const RevenueCatProvider = ({ children }: any) => {
   // Calculate current plan
   const currentPlan: 'free' | 'pro' = isPro ? 'pro' : 'free';
 
-  // Get dynamic video limit based on subscription status
-  const dynamicVideosLimit = isPro ? PLAN_LIMITS.pro : PLAN_LIMITS.free;
+  // Calculate dynamic limits based on current plan
+  const dynamicVideosLimit = userUsage ? userUsage.videos_limit : 0;
 
-  // Calculate videos remaining based on dynamic limit
+  // Calculate remaining resources
   const videosRemaining = userUsage
-    ? Math.max(0, dynamicVideosLimit - userUsage.videos_generated)
+    ? Math.max(0, userUsage.videos_limit - userUsage.videos_generated)
+    : 0;
+
+  const sourceVideosRemaining = userUsage
+    ? Math.max(
+        0,
+        (userUsage.source_videos_limit || 0) -
+          (userUsage.source_videos_used || 0)
+      )
+    : 0;
+
+  const voiceClonesRemaining = userUsage
+    ? Math.max(
+        0,
+        (userUsage.voice_clones_limit || 0) - (userUsage.voice_clones_used || 0)
+      )
+    : 0;
+
+  const accountAnalysisRemaining = userUsage
+    ? Math.max(
+        0,
+        (userUsage.account_analysis_limit || 0) -
+          (userUsage.account_analysis_used || 0)
+      )
     : 0;
 
   const value = {
@@ -321,6 +399,9 @@ export const RevenueCatProvider = ({ children }: any) => {
     isReady,
     userUsage,
     videosRemaining,
+    sourceVideosRemaining,
+    voiceClonesRemaining,
+    accountAnalysisRemaining,
     isEarlyAdopter,
     goPro,
     refreshUsage,
