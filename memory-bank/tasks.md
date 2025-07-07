@@ -605,6 +605,7 @@ Improve the source videos upload user experience by addressing several UI/UX iss
 ## Requirements Analysis
 
 ### UI/UX Improvements Needed
+
 - Add loading state for metadata save operations
 - Replace technical messages with user-friendly text
 - Reduce alert pop-ups to essential ones only
@@ -612,6 +613,7 @@ Improve the source videos upload user experience by addressing several UI/UX iss
 - Implement free tier upload restrictions
 
 ### Free Tier Implementation
+
 - Maximum 5 videos for free tier users
 - Prevent new uploads when limit reached
 - Allow existing videos to remain (grandfathering)
@@ -620,12 +622,14 @@ Improve the source videos upload user experience by addressing several UI/UX iss
 ## Level 2 Implementation Plan
 
 ### Phase 1: Planning ✅
+
 - [x] Analyze current issues in source-videos upload flow
 - [x] Define user-friendly messaging strategy
 - [x] Plan error state management improvements
 - [x] Design free tier limitation approach
 
 ### Phase 2: Implementation ✅
+
 - [x] Add loading state for metadata save operations
 - [x] Replace S3-specific messages with generic upload messages
 - [x] Remove unnecessary alert pop-ups
@@ -634,6 +638,7 @@ Improve the source videos upload user experience by addressing several UI/UX iss
 - [x] Add subscription upgrade prompts for free tier limits
 
 ### Phase 3: Testing
+
 - [ ] Test metadata save loading indicator
 - [ ] Verify user-friendly messages display correctly
 - [ ] Test error state reset functionality
@@ -648,18 +653,21 @@ Improve the source videos upload user experience by addressing several UI/UX iss
 ## Implementation Details
 
 ### Files Modified ✅
+
 - `app/(tabs)/source-videos.tsx`: Main upload page improvements
 - `components/VideoUploader.tsx`: Upload message improvements
 
 ### Key Changes Implemented ✅
 
 #### 1. **Metadata Save Loading State** ✅
+
 - Added `savingMetadata` state to track loading
 - Button shows ActivityIndicator while saving
 - Button disabled during save operation
 - Proper loading feedback for users
 
 #### 2. **User-Friendly Upload Messages** ✅
+
 - Removed all S3 technical references
 - "Téléchargement vers S3" → "Téléchargement en cours"
 - "Génération de l'URL de téléchargement" → "Préparation du téléchargement"
@@ -667,12 +675,14 @@ Improve the source videos upload user experience by addressing several UI/UX iss
 - All error messages translated to French
 
 #### 3. **Alert Reduction** ✅
+
 - Removed success alert after video upload completion
 - Removed success alert after metadata save
 - Kept only critical authentication errors
 - Users see feedback through UI states instead of disruptive alerts
 
 #### 4. **Error State Reset** ✅
+
 - Added `clearError` callback function
 - Errors clear on any user interaction:
   - Text input changes
@@ -682,6 +692,7 @@ Improve the source videos upload user experience by addressing several UI/UX iss
   - Navigation actions
 
 #### 5. **Free Tier Limits** ✅
+
 - Implemented 5-video limit for source videos (free tier)
 - Upload blocked when limit reached
 - Clear messaging about upgrade options
@@ -691,6 +702,7 @@ Improve the source videos upload user experience by addressing several UI/UX iss
 - Integration with RevenueCat subscription status
 
 #### 6. **UI/UX Improvements** ✅
+
 - Added limit counter in header for free tier users
 - Warning card when approaching/reaching limits
 - Crown icon for premium messaging
@@ -717,11 +729,13 @@ Fix two critical UI accessibility issues that prevent users from accessing impor
 ## Requirements Analysis
 
 ### Editorial Profile Fix
+
 - Add proper keyboard avoidance behavior
 - Ensure all text inputs remain accessible when keyboard is open
 - Maintain smooth scrolling experience
 
-### Video Details Fix  
+### Video Details Fix
+
 - Make the entire page scrollable
 - Ensure all content including action buttons are accessible
 - Maintain proper layout and spacing
@@ -729,16 +743,19 @@ Fix two critical UI accessibility issues that prevent users from accessing impor
 ## Level 1 Implementation Plan
 
 ### Phase 1: Planning ✅
+
 - [x] Identify specific UI accessibility issues
 - [x] Plan keyboard avoidance solution for editorial form
 - [x] Plan scrollable solution for video details page
 
 ### Phase 2: Implementation ✅
+
 - [x] Fix editorial profile form keyboard accessibility
 - [x] Make video details page fully scrollable
 - [x] Test both fixes on mobile
 
 ### Phase 3: Testing
+
 - [ ] Test keyboard behavior in editorial form
 - [ ] Test scroll behavior in video details
 - [ ] Verify all elements are accessible
@@ -751,23 +768,26 @@ Fix two critical UI accessibility issues that prevent users from accessing impor
 ## Implementation Details
 
 ### Files to Modify
+
 - `app/(settings)/editorial.tsx`: Add KeyboardAvoidingView for form
 - `app/(tabs)/videos/[id].tsx`: Add ScrollView for full page content
 
 ### Key Changes Implemented ✅
 
 #### 1. **Editorial Profile Form Keyboard Accessibility** ✅
+
 - **KeyboardAvoidingView**: Added wrapper with platform-specific behavior
   - iOS: 'padding' behavior with proper offset
-  - Android: 'height' behavior 
+  - Android: 'height' behavior
 - **Auto-scroll to focused input**: Implemented programmatic scrolling
-  - Uses TextInput refs and measureLayout for precise positioning  
+  - Uses TextInput refs and measureLayout for precise positioning
   - 300ms delay to wait for keyboard animation
   - Scrolls with 100px padding above focused field
 - **Enhanced ScrollView**: Added contentContainerStyle and keyboardShouldPersistTaps
 - **Extra bottom padding**: 40px to ensure last field is fully accessible
 
 #### 2. **Video Details Page Scrollability** ✅
+
 - **ScrollView wrapper**: Wrapped entire content in ScrollView
 - **Proper styling**: Added scrollContainer and scrollContent styles
 - **Content spacing**: Added 20px gap between elements and bottom padding
@@ -775,6 +795,7 @@ Fix two critical UI accessibility issues that prevent users from accessing impor
 - **Hidden scroll indicator**: showsVerticalScrollIndicator={false} for clean UI
 
 ### Technical Details ✅
+
 - **Platform compatibility**: Solutions work on both iOS and Android
 - **TypeScript compliance**: All refs and handlers properly typed
 - **Performance optimized**: Minimal re-renders and efficient scrolling
@@ -783,11 +804,13 @@ Fix two critical UI accessibility issues that prevent users from accessing impor
 # VOICE CLONE PAYWALL IMPLEMENTATION
 
 ## Objectif
+
 Implémenter un paywall pour le clonage vocal tout en permettant l'enregistrement pour le profil éditorial.
 
 ## Changements Implémentés
 
 ### 1. Frontend - Voice Recording Onboarding (`voice-recording.tsx`)
+
 - ✅ Ajout du hook `useRevenueCat` pour détecter le statut pro
 - ✅ Nouveau state `showVoiceClonePaywall` pour gérer l'affichage du paywall
 - ✅ Nouveau state `wantsVoiceClone` pour tracker l'intention de l'utilisateur
@@ -800,10 +823,12 @@ Implémenter un paywall pour le clonage vocal tout en permettant l'enregistremen
 - ✅ Passage du paramètre `enableVoiceClone` au backend
 
 ### 2. Client API (`voice-recording-client.ts`)
+
 - ✅ Ajout du paramètre `enableVoiceClone` à l'interface `OnboardingSubmissionData`
 - ✅ Transmission du paramètre au backend via FormData
 
 ### 3. Backend - Onboarding API (`onboarding.ts`)
+
 - ✅ Lecture du paramètre `enable_voice_clone` depuis la request
 - ✅ Logique conditionnelle pour créer le clone vocal seulement si :
   - L'utilisateur n'a pas déjà un clone vocal ET
@@ -811,6 +836,7 @@ Implémenter un paywall pour le clonage vocal tout en permettant l'enregistremen
 - ✅ Logging approprié pour tracer les décisions
 
 ### 4. Settings - Voice Clone Page (`voice-clone.tsx`)
+
 - ✅ Ajout du hook `useRevenueCat` pour vérifier le statut pro
 - ✅ Paywall complet pour les utilisateurs non-pro avec :
   - Features du clonage vocal
@@ -821,6 +847,7 @@ Implémenter un paywall pour le clonage vocal tout en permettant l'enregistremen
 ## Flow Utilisateur
 
 ### Utilisateur Gratuit
+
 1. Arrive sur l'écran d'enregistrement vocal
 2. Voit deux options : Clonage Vocal (avec badge PRO) et Profil Éditorial
 3. S'il clique sur Clonage Vocal → Paywall s'affiche
@@ -830,6 +857,7 @@ Implémenter un paywall pour le clonage vocal tout en permettant l'enregistremen
 5. Dans Settings → Paywall complet pour Voice Clone
 
 ### Utilisateur Pro
+
 1. Arrive sur l'écran d'enregistrement vocal
 2. Voit les deux options sans restriction
 3. Peut créer son clone vocal directement
@@ -869,3 +897,115 @@ ELSE:
 - Le clonage vocal est maintenant une feature premium
 - Pas de migration de données nécessaire
 - Compatible avec le flow d'onboarding existant
+
+## Additional Implementation: Video Deletion System & UI Simplification
+
+### Problem Identified ✅
+
+**Video Deletion Issue**: Videos were only deleted from Supabase database, leaving orphaned files in AWS S3 storage, causing storage waste and potential cost issues.
+
+**UI Complexity**: Video details page had both "Copy Link" and "Share" buttons, creating redundancy since iOS share dialog already includes copy option.
+
+### Solution Implemented ✅
+
+#### 1. Complete Video Deletion System
+
+**New Backend Endpoint**: `server-primary/src/routes/api/videoDelete.ts`
+
+```typescript
+// Key Features:
+- Authenticates user with Clerk
+- Fetches video details with ownership verification
+- Deletes video from S3 using AWS SDK
+- Deletes database record from Supabase
+- Handles partial failures gracefully
+- Returns detailed success/failure information
+```
+
+**API Route Added**: `DELETE /api/videos`
+
+- Added to `server-primary/src/routes/api/index.ts`
+- Health check endpoint: `GET /api/video-delete/health`
+
+**Mobile Integration**: Updated `mobile/lib/config/api.ts`
+
+- Added `VIDEO_DELETE()` endpoint
+- Works with existing API environment configuration
+
+#### 2. Updated Video Details Screen
+
+**File**: `mobile/app/video-details/[id].tsx`
+
+```typescript
+// Changes:
+- Uses new video deletion API endpoint
+- Removed copyVideoUrl function (no longer needed)
+- Enhanced delete confirmation with better error handling
+- Added proper authentication token management
+```
+
+#### 3. Simplified UI Interface
+
+**Video Action Buttons**: Updated `VideoActionButtons.tsx` usage
+
+- Set `showCopyLink={false}` in video details
+- Keeps only essential actions: Download, Share, Edit, Delete
+- iOS Share dialog provides copy functionality automatically
+
+### Key Technical Improvements ✅
+
+1. **Complete Resource Cleanup**: Both S3 storage and database records are removed
+2. **Security**: User can only delete their own videos (double verification)
+3. **Error Handling**: Graceful handling of partial failures (S3 vs DB)
+4. **Cost Efficiency**: Prevents orphaned S3 files accumulating storage costs
+5. **UX Simplification**: Removed redundant copy button, leverages native sharing
+
+### Build Details ✅
+
+**Directory Structure**:
+
+- `/server-primary/src/routes/api/videoDelete.ts`: New deletion endpoint
+- `/mobile/lib/config/api.ts`: Updated API configuration
+- `/mobile/app/video-details/[id].tsx`: Enhanced deletion handling
+- `/mobile/components/VideoActionButtons.tsx`: Simplified UI usage
+
+**API Flow**:
+
+1. Client authenticates with Clerk token
+2. Server verifies user and video ownership
+3. S3 deletion using AWS SDK
+4. Database deletion using Supabase
+5. Success response with cleanup details
+
+**Error Handling Strategy**:
+
+- Continue DB deletion even if S3 fails (prevents orphaned records)
+- Detailed error logging for troubleshooting
+- User-friendly error messages
+- Development vs production error reporting
+
+### Testing Considerations ✅
+
+**Manual Testing Required**:
+
+- Upload a video through mobile app
+- Verify S3 file exists in AWS console
+- Delete video through new endpoint
+- Confirm both S3 file and DB record removed
+
+**Edge Cases Handled**:
+
+- Missing storage path (S3 deletion skipped)
+- S3 deletion failure (DB deletion continues)
+- Authentication failures
+- Video ownership verification
+- Non-existent video IDs
+
+### Status: ✅ IMPLEMENTATION COMPLETE
+
+**Backend**: ✅ Video deletion endpoint with S3 and DB cleanup
+**Frontend**: ✅ Enhanced deletion with better error handling  
+**UI**: ✅ Simplified interface removing redundant copy button
+**Integration**: ✅ Full API integration with existing auth system
+
+The video deletion system now provides complete resource cleanup while maintaining security and providing a simplified, intuitive user interface.

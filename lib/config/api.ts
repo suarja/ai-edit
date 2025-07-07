@@ -174,6 +174,12 @@ export const API_ENDPOINTS = {
     return config.baseUrl + '/api/video-analysis';
   },
 
+  // Video deletion
+  VIDEO_DELETE: () => {
+    const config = getCurrentConfig();
+    return config.baseUrl + '/api/videos';
+  },
+
   // Prompt enhancement
   PROMPTS_ENHANCE: () => {
     const config = getCurrentConfig();

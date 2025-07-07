@@ -16,6 +16,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useGetUser } from '@/lib/hooks/useGetUser';
 import { useClerkSupabaseClient } from '@/lib/supabase-clerk';
 import { Check, X } from 'lucide-react-native';
+import { API_ENDPOINTS, API_HEADERS } from '@/lib/config/api';
+import { useAuth } from '@clerk/clerk-expo';
 
 import { UploadedVideoType } from '@/types/video';
 import * as FileSystem from 'expo-file-system';
@@ -133,8 +135,9 @@ export default function UploadedVideoDetailScreen() {
   const [error, setError] = useState<string | null>(null);
 
   // Use Clerk authentication instead of Supabase
-  const { fetchUser,clerkLoaded, isSignedIn } = useGetUser();
+  const { fetchUser, clerkLoaded, isSignedIn } = useGetUser();
   const { client: supabase } = useClerkSupabaseClient();
+  const { getToken } = useAuth();
 
   // TEMPORARILY DISABLED FOR ANDROID CRASH FIX
   // const player = useVideoPlayer(
@@ -255,18 +258,40 @@ export default function UploadedVideoDetailScreen() {
           style: 'destructive',
           onPress: async () => {
             try {
-              const { error: deleteError } = await supabase
-                .from('videos')
-                .delete()
-                .eq('id', video?.id);
+              // Get authentication token
+              const clerkToken = await getToken();
+              if (!clerkToken) {
+                Alert.alert('Error', 'Authentication required');
+                return;
+              }
 
-              if (deleteError) throw deleteError;
+              // Call the new video deletion endpoint
+              const response = await fetch(API_ENDPOINTS.VIDEO_DELETE(), {
+                method: 'DELETE',
+                headers: API_HEADERS.CLERK_AUTH(clerkToken),
+                body: JSON.stringify({
+                  videoId: video?.id,
+                }),
+              });
 
-              Alert.alert('Success', 'Video deleted successfully');
+              const result = await response.json();
+
+              if (!response.ok || !result.success) {
+                throw new Error(result.error || 'Failed to delete video');
+              }
+
+              console.log('✅ Video deleted successfully:', result.data);
+              Alert.alert(
+                'Success',
+                'Video deleted successfully from both storage and database'
+              );
               router.back();
             } catch (error) {
               console.error('Error deleting video:', error);
-              Alert.alert('Error', 'Failed to delete video');
+              Alert.alert(
+                'Error',
+                'Failed to delete video completely. Please try again.'
+              );
             }
           },
         },
@@ -370,27 +395,6 @@ export default function UploadedVideoDetailScreen() {
     }
   };
 
-  const copyVideoUrl = async () => {
-    if (video?.upload_url) {
-      try {
-        if (typeof navigator !== 'undefined' && navigator.clipboard) {
-          await navigator.clipboard.writeText(video.upload_url);
-          Alert.alert('Succès', 'URL copiée dans le presse-papiers');
-        } else {
-          Alert.alert('URL de la vidéo', video.upload_url, [
-            { text: 'Fermer', style: 'cancel' },
-            {
-              text: 'Ouvrir',
-              onPress: () => Linking.openURL(video.upload_url),
-            },
-          ]);
-        }
-      } catch (error) {
-        Alert.alert('Erreur', "Impossible de copier l'URL");
-      }
-    }
-  };
-
   const formatDuration = (seconds: number) => {
     if (!seconds) return '0:00';
     const minutes = Math.floor(seconds / 60);
@@ -435,7 +439,7 @@ export default function UploadedVideoDetailScreen() {
           layout="column"
           showEdit={true}
           showDelete={true}
-          showCopyLink={true}
+          showCopyLink={false}
           onEdit={handleEdit}
           onDelete={handleDelete}
         />
