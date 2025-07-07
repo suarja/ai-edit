@@ -3,6 +3,8 @@ import { View, ActivityIndicator, StyleSheet } from 'react-native';
 import { JobType, useAccountAnalysis } from '@/hooks/useAccountAnalysis';
 import StartAnalysisScreen from '../analysis/StartAnalysisScreen';
 import AnalysisInProgressScreen from '../analysis/AnalysisInProgressScreen';
+import { useFeatureAccess } from '@/hooks/useFeatureAccess';
+import { ProFeatureLock } from './ProFeatureLock';
 
 interface AccountAnalysisGuardProps {
   children: React.ReactNode;
@@ -11,8 +13,18 @@ interface AccountAnalysisGuardProps {
 const AccountAnalysisGuard: React.FC<AccountAnalysisGuardProps> = ({
   children,
 }) => {
-  const { analysis, activeJob, isLoading, error, refreshAnalysis } =
-    useAccountAnalysis();
+  const {
+    hasAccess,
+    isLoading: isAccessLoading,
+    remainingUsage,
+  } = useFeatureAccess('account_analysis');
+  const {
+    analysis,
+    activeJob,
+    isLoading: isAnalysisLoading,
+    error,
+    refreshAnalysis,
+  } = useAccountAnalysis();
 
   const handleAnalysisStart = (job: JobType) => {
     refreshAnalysis(job);
@@ -34,7 +46,7 @@ const AccountAnalysisGuard: React.FC<AccountAnalysisGuardProps> = ({
     }
   }, [error]);
 
-  if (isLoading) {
+  if (isAccessLoading || isAnalysisLoading) {
     return (
       <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
         <ActivityIndicator size="large" />
@@ -42,7 +54,17 @@ const AccountAnalysisGuard: React.FC<AccountAnalysisGuardProps> = ({
     );
   }
 
-  // 🆕 If there is an active job, show the progress screen
+  // 🆕 If user doesn't have access, show the lock screen.
+  if (!hasAccess) {
+    return (
+      <ProFeatureLock
+        featureTitle="Analyse de Compte Approfondie"
+        featureDescription="Obtenez une analyse complète de n'importe quel compte TikTok, identifiez les stratégies virales et recevez des recommandations personnalisées."
+      />
+    );
+  }
+
+  // If there is an active job, show the progress screen
   if (activeJob) {
     return (
       <AnalysisInProgressScreen
