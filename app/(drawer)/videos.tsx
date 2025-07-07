@@ -17,7 +17,6 @@ import { useClerkSupabaseClient } from '@/lib/supabase-clerk';
 import { CircleAlert as AlertCircle, Plus } from 'lucide-react-native';
 import GeneratedVideoCard from '@/components/GeneratedVideoCard';
 import EmptyGeneratedVideos from '@/components/EmptyGeneratedVideos';
-import VideoHeader from '@/components/VideoHeader';
 import { API_ENDPOINTS } from '@/lib/config/api';
 import { useAuth } from '@clerk/clerk-expo';
 
@@ -135,7 +134,7 @@ export default function GeneratedVideosScreen() {
       }
 
       const data: VideoRequest = (await response.json()).data;
-      
+
       // Update video in state if status changed
       setVideos((prev) =>
         prev.map((v) => (v.id === videoId ? { ...v, ...data } : v))

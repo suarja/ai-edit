@@ -10,28 +10,14 @@ import {
   Alert,
   Linking,
   Platform,
-  Share,
 } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useGetUser } from '@/lib/hooks/useGetUser';
 import { useClerkSupabaseClient } from '@/lib/supabase-clerk';
-import {
-  ArrowLeft,
-  Edit3,
-  Trash2,
-  Download,
-  ExternalLink,
-  Check,
-  X,
-  Clock,
-  Tag,
-  Save,
-  FileVideo,
-} from 'lucide-react-native';
-// TEMPORARILY DISABLED FOR ANDROID CRASH FIX
-// import { useVideoPlayer, VideoView } from 'expo-video';
-import { UploadedVideoType, VideoType, isUploadedVideo } from '@/types/video';
+import { Check, X } from 'lucide-react-native';
+
+import { UploadedVideoType } from '@/types/video';
 import * as FileSystem from 'expo-file-system';
 import * as Sharing from 'expo-sharing';
 import * as MediaLibrary from 'expo-media-library';
@@ -147,7 +133,7 @@ export default function UploadedVideoDetailScreen() {
   const [error, setError] = useState<string | null>(null);
 
   // Use Clerk authentication instead of Supabase
-  const { fetchUser, clerkUser, clerkLoaded, isSignedIn } = useGetUser();
+  const { fetchUser,clerkLoaded, isSignedIn } = useGetUser();
   const { client: supabase } = useClerkSupabaseClient();
 
   // TEMPORARILY DISABLED FOR ANDROID CRASH FIX
@@ -329,7 +315,7 @@ export default function UploadedVideoDetailScreen() {
           const progress =
             downloadProgress.totalBytesWritten /
             downloadProgress.totalBytesExpectedToWrite;
-          // You could update a progress state here if you want to show a progress bar  
+          // You could update a progress state here if you want to show a progress bar
         }
       );
 

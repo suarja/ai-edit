@@ -1,5 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { View, StyleSheet, ActivityIndicator, Text, ScrollView } from 'react-native';
+import {
+  View,
+  StyleSheet,
+  ActivityIndicator,
+  Text,
+  ScrollView,
+} from 'react-native';
 import { useLocalSearchParams, router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import VideoPlayer from '@/components/VideoPlayer';
@@ -36,7 +42,7 @@ export default function GeneratedVideoDetailScreen() {
   const [error, setError] = useState<string | null>(null);
 
   // Use Clerk authentication instead of direct Supabase
-  const { fetchUser, clerkUser, clerkLoaded, isSignedIn } = useGetUser();
+  const { fetchUser, clerkLoaded, isSignedIn } = useGetUser();
   const { client: supabase } = useClerkSupabaseClient();
   const { getToken } = useAuth();
 
@@ -230,8 +236,6 @@ export default function GeneratedVideoDetailScreen() {
     }
   };
 
-  
-
   // Render thumbnail for rendering videos
   const renderThumbnail = () => {
     if (!video) return null;
@@ -261,8 +265,6 @@ export default function GeneratedVideoDetailScreen() {
     return null;
   };
 
-
-
   if (loading) {
     return (
       <SafeAreaView style={styles.container} edges={[]}>
@@ -276,7 +278,7 @@ export default function GeneratedVideoDetailScreen() {
 
   return (
     <SafeAreaView style={styles.container} edges={[]}>
-      <ScrollView 
+      <ScrollView
         style={styles.scrollContainer}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
