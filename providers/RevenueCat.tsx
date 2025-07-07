@@ -1,9 +1,6 @@
 import { createContext, useContext, useEffect, useState } from 'react';
 import { Platform } from 'react-native';
-import Purchases, {
-  LOG_LEVEL,
-  PurchasesOffering,
-} from 'react-native-purchases';
+import Purchases, { LOG_LEVEL } from 'react-native-purchases';
 import { CustomerInfo } from 'react-native-purchases';
 import React from 'react';
 import { useClerkSupabaseClient } from '@/lib/supabase-clerk';
@@ -76,7 +73,9 @@ export const RevenueCatProvider = ({ children }: any) => {
       try {
         // In development mode on simulator, we might not have proper RevenueCat setup
         if (isDevelopment && Platform.OS === 'ios') {
-          console.log('🚧 Development mode detected - using fallback for RevenueCat');
+          console.log(
+            '🚧 Development mode detected - using fallback for RevenueCat'
+          );
           setHasOfferingError(true);
           setIsReady(true);
           await loadUserUsage();
@@ -90,7 +89,9 @@ export const RevenueCatProvider = ({ children }: any) => {
         }
 
         // Use more logging during debug if want!
-        Purchases.setLogLevel(isDevelopment ? LOG_LEVEL.DEBUG : LOG_LEVEL.ERROR);
+        Purchases.setLogLevel(
+          isDevelopment ? LOG_LEVEL.DEBUG : LOG_LEVEL.ERROR
+        );
 
         // Listen for customer updates
         Purchases.addCustomerInfoUpdateListener(async (info) => {
@@ -107,7 +108,9 @@ export const RevenueCatProvider = ({ children }: any) => {
 
         // If we've tried enough times, proceed with fallback
         if (initAttempts >= maxInitAttempts) {
-          console.log('🚧 Using fallback mode due to RevenueCat initialization failure');
+          console.log(
+            '🚧 Using fallback mode due to RevenueCat initialization failure'
+          );
           setHasOfferingError(true);
           setIsReady(true); // Still mark as ready so UI can render with fallbacks
           await loadUserUsage(); // Still load usage from database
@@ -247,7 +250,7 @@ export const RevenueCatProvider = ({ children }: any) => {
       // If we have offering errors (common in development), show a fallback alert instead
       if (hasOfferingError) {
         console.log('🚧 Using fallback purchase flow due to offering error');
-        
+
         if (isDevelopment) {
           // In development mode, simulate Pro access for testing
           console.log('🔧 Development mode: simulating Pro access');
@@ -255,9 +258,11 @@ export const RevenueCatProvider = ({ children }: any) => {
           await syncUserLimitWithSubscription(true);
           return true;
         }
-        
+
         // In production with offering errors, show helpful message
-        alert('Les forfaits ne sont pas disponibles actuellement. Veuillez réessayer plus tard.');
+        alert(
+          'Les forfaits ne sont pas disponibles actuellement. Veuillez réessayer plus tard.'
+        );
         return false;
       }
 

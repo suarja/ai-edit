@@ -19,23 +19,29 @@ interface UseAccountAnalysisReturn {
   refreshAnalysis: (job?: JobType) => void;
 }
 
-const LogEventSchema = z.object({
-  event: z.string(),
-  timestamp: z.string(),
-}).passthrough(); // Allows other properties not explicitly defined
+const LogEventSchema = z
+  .object({
+    event: z.string(),
+    timestamp: z.string(),
+  })
+  .passthrough(); // Allows other properties not explicitly defined
 
-const JobSchema = z.object({
-  run_id: z.string(),
-  status: z.string(),
-  progress: z.number().optional(),
-  tiktok_handle: z.string().optional(),
-  account_id: z.string().optional(),
-  started_at: z.string().optional(),
-  error_message: z.string().optional(),
-  logs: z.object({
-    events: z.array(LogEventSchema).optional()
-  }).optional(),
-}).passthrough();
+const JobSchema = z
+  .object({
+    run_id: z.string(),
+    status: z.string(),
+    progress: z.number().optional(),
+    tiktok_handle: z.string().optional(),
+    account_id: z.string().optional(),
+    started_at: z.string().optional(),
+    error_message: z.string().optional(),
+    logs: z
+      .object({
+        events: z.array(LogEventSchema).optional(),
+      })
+      .optional(),
+  })
+  .passthrough();
 
 export type JobType = z.infer<typeof JobSchema>;
 
@@ -47,82 +53,107 @@ export function useAccountAnalysis(): UseAccountAnalysisReturn {
   const [error, setError] = useState<string | null>(null);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
 
-  const fetchAnalysis = useCallback(async (job?: JobType) => {
-    console.log('🔄 useAccountAnalysis: Fetching analysis data...');
-    setIsLoading(true);
-    setError(null);
-    setActiveJob(null);
+  const fetchAnalysis = useCallback(
+    async (job?: JobType) => {
+      console.log('🔄 useAccountAnalysis: Fetching analysis data...');
+      setIsLoading(true);
+      setError(null);
+      setActiveJob(null);
 
-    try {
-      const token = await getToken();
-      if (!token) {
-        throw new Error('Authentication token not available.');
-      }
-
-      if (job) {
-       setActiveJob(job);
-       setIsLoading(false);
-       return;
-      }
-
-      // STEP 1: First check for existing completed analysis
-      // This ensures we prioritize showing results over the start screen
-      const analysisResponse = await fetch(API_ENDPOINTS.TIKTOK_ANALYSIS_EXISTING(), {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-
-      if (analysisResponse.ok) {
-        const analysisResult = await analysisResponse.json();
-        if (analysisResult.success && analysisResult.data) {
-          console.log('✅ Existing analysis found, showing results:', analysisResult.data);
-          setAnalysis(analysisResult.data);
-          setIsLoading(false);
-          return; // Exit early - show the analysis results
+      try {
+        const token = await getToken();
+        if (!token) {
+          throw new Error('Authentication token not available.');
         }
-      }
 
-      // STEP 2: No completed analysis found, check for active job
-      console.log('🔍 No completed analysis found, checking for active jobs...');
-      const activeJobResponse = await fetch(API_ENDPOINTS.TIKTOK_ANALYSIS_ACTIVE_JOB(), {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-
-      if (activeJobResponse.ok) {
-        const activeJobData = await activeJobResponse.json();
-        if (activeJobData) {
-          console.log('✅ Found an active job, showing progress screen:', activeJobData);
-          setActiveJob(activeJobData);
-          setAnalysis(null);
+        if (job) {
+          setActiveJob(job);
           setIsLoading(false);
-          return; // Exit early - show the progress screen
+          return;
+        }
+
+        // STEP 1: First check for existing completed analysis
+        // This ensures we prioritize showing results over the start screen
+        const analysisResponse = await fetch(
+          API_ENDPOINTS.TIKTOK_ANALYSIS_EXISTING(),
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
+
+        if (analysisResponse.ok) {
+          const analysisResult = await analysisResponse.json();
+          if (analysisResult.success && analysisResult.data) {
+            console.log(
+              '✅ Existing analysis found, showing results:',
+              analysisResult.data
+            );
+            setAnalysis(analysisResult.data);
+            setIsLoading(false);
+            return; // Exit early - show the analysis results
+          }
+        }
+
+        // STEP 2: No completed analysis found, check for active job
+        console.log(
+          '🔍 No completed analysis found, checking for active jobs...'
+        );
+        const activeJobResponse = await fetch(
+          API_ENDPOINTS.TIKTOK_ANALYSIS_ACTIVE_JOB(),
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
+
+        if (activeJobResponse.ok) {
+          const activeJobData = await activeJobResponse.json();
+          if (activeJobData) {
+            console.log(
+              '✅ Found an active job, showing progress screen:',
+              activeJobData
+            );
+            setActiveJob(activeJobData);
+            setAnalysis(null);
+            setIsLoading(false);
+            return; // Exit early - show the progress screen
+          } else {
+            console.log('ℹ️ No active job found in response');
+          }
         } else {
-          console.log('ℹ️ No active job found in response');
+          console.warn(
+            '⚠️ Could not check for active job:',
+            activeJobResponse.status,
+            activeJobResponse.statusText
+          );
         }
-      } else {
-        console.warn('⚠️ Could not check for active job:', activeJobResponse.status, activeJobResponse.statusText);
+
+        // STEP 3: Neither completed analysis nor active job found
+        console.log(
+          'ℹ️ No existing analysis or active job found, showing start screen.'
+        );
+        setAnalysis(null);
+      } catch (e: any) {
+        console.error('❌ useAccountAnalysis: Error fetching analysis:', e);
+        setError(e.message || 'An unknown error occurred.');
+      } finally {
+        setIsLoading(false);
       }
-
-      // STEP 3: Neither completed analysis nor active job found
-      console.log('ℹ️ No existing analysis or active job found, showing start screen.');
-      setAnalysis(null);
-
-    } catch (e: any) {
-      console.error('❌ useAccountAnalysis: Error fetching analysis:', e);
-      setError(e.message || 'An unknown error occurred.');
-    } finally {
-      setIsLoading(false);
-    }
-  }, [getToken]);
+    },
+    [getToken]
+  );
 
   // Enhanced refreshAnalysis function that forces a refresh
-  const refreshAnalysis = useCallback((job?: JobType) => {
-    if (job) {
-      fetchAnalysis(job);
-    } else {
-      // Force a fresh check by updating the trigger
-      setRefreshTrigger(prev => prev + 1);
-    }
-  }, [fetchAnalysis]);
+  const refreshAnalysis = useCallback(
+    (job?: JobType) => {
+      if (job) {
+        fetchAnalysis(job);
+      } else {
+        // Force a fresh check by updating the trigger
+        setRefreshTrigger((prev) => prev + 1);
+      }
+    },
+    [fetchAnalysis]
+  );
 
   // useEffect that responds to refreshTrigger changes
   useEffect(() => {
@@ -130,4 +161,4 @@ export function useAccountAnalysis(): UseAccountAnalysisReturn {
   }, [refreshTrigger]);
 
   return { analysis, activeJob, isLoading, error, refreshAnalysis };
-} 
+}

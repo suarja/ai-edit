@@ -1,16 +1,18 @@
 import React, { useEffect } from 'react';
-import { View, ActivityIndicator, Text, StyleSheet } from 'react-native';
+import { View, ActivityIndicator, StyleSheet } from 'react-native';
 import { JobType, useAccountAnalysis } from '@/hooks/useAccountAnalysis';
 import StartAnalysisScreen from '../analysis/StartAnalysisScreen';
 import AnalysisInProgressScreen from '../analysis/AnalysisInProgressScreen';
-import { router } from 'expo-router';
 
 interface AccountAnalysisGuardProps {
   children: React.ReactNode;
 }
 
-const AccountAnalysisGuard: React.FC<AccountAnalysisGuardProps> = ({ children }) => {
-  const { analysis, activeJob, isLoading, error, refreshAnalysis } = useAccountAnalysis();
+const AccountAnalysisGuard: React.FC<AccountAnalysisGuardProps> = ({
+  children,
+}) => {
+  const { analysis, activeJob, isLoading, error, refreshAnalysis } =
+    useAccountAnalysis();
 
   const handleAnalysisStart = (job: JobType) => {
     refreshAnalysis(job);
@@ -18,7 +20,7 @@ const AccountAnalysisGuard: React.FC<AccountAnalysisGuardProps> = ({ children })
 
   const handleRetry = () => {
     // To retry, we can simply call refreshAnalysis without arguments.
-    // It will clear the current job and re-evaluate, 
+    // It will clear the current job and re-evaluate,
     // likely showing the StartAnalysisScreen again.
     // A more sophisticated retry would re-trigger the last failed job.
     // For now, let's reset.
@@ -28,7 +30,7 @@ const AccountAnalysisGuard: React.FC<AccountAnalysisGuardProps> = ({ children })
   useEffect(() => {
     // Optional: handle errors, e.g., show a toast message
     if (error) {
-      console.error("AccountAnalysisGuard Error:", error);
+      console.error('AccountAnalysisGuard Error:', error);
     }
   }, [error]);
 
@@ -42,18 +44,20 @@ const AccountAnalysisGuard: React.FC<AccountAnalysisGuardProps> = ({ children })
 
   // 🆕 If there is an active job, show the progress screen
   if (activeJob) {
-    return <AnalysisInProgressScreen 
-      initialJob={activeJob} 
-      onAnalysisComplete={refreshAnalysis} 
-      onRetry={handleRetry}
-    />;
+    return (
+      <AnalysisInProgressScreen
+        initialJob={activeJob}
+        onAnalysisComplete={refreshAnalysis}
+        onRetry={handleRetry}
+      />
+    );
   }
 
   // If there's no analysis, show the start screen
   if (!analysis) {
     return <StartAnalysisScreen onAnalysisStart={handleAnalysisStart} />;
   }
-  
+
   // If analysis exists, let user see the content
   return <>{children}</>;
 };
@@ -72,4 +76,4 @@ const styles = StyleSheet.create({
     color: '#888',
     fontSize: 16,
   },
-}); 
+});
