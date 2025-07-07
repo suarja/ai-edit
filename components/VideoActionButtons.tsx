@@ -61,6 +61,8 @@ export default function VideoActionButtons({
       return;
     }
 
+    console.log('videoUrl', videoUrl);
+
     if (isDownloading) {
       return; // Prevent multiple downloads
     }
@@ -83,7 +85,10 @@ export default function VideoActionButtons({
 
       // Extract filename from URL
       const fileName = videoUrl.split('/').pop() || `video-${Date.now()}.mp4`;
+      console.log('fileName', fileName);
       const fileUri = `${FileSystem.documentDirectory}${fileName}`;
+      console.log('FileSystem.documentDirectory', FileSystem.documentDirectory);
+      console.log('fileUri', fileUri);
 
       // Create download with progress tracking
       const downloadResumable = FileSystem.createDownloadResumable(
@@ -99,7 +104,7 @@ export default function VideoActionButtons({
       );
 
       const result = await downloadResumable.downloadAsync();
-
+      console.log('result', result);
       if (result && result.uri) {
         if (Platform.OS === 'ios') {
           // On iOS we can use the sharing API to save to camera roll

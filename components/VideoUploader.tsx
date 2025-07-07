@@ -178,6 +178,7 @@ export default function VideoUploader({
         videoMaxDuration: 300,
         base64: true,
       });
+      console.log('result', result);
 
       if (result.canceled) {
         console.log('⏹️ Sélection annulée par l&apos;utilisateur');
