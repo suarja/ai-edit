@@ -64,7 +64,7 @@ const API_CONFIGS = {
     webhooksCreatomate: '/api/webhooks/creatomate',
     voiceClone: '/api/voice-clone',
     onboarding: '/api/onboarding',
-    support: '/api/support',  
+    support: '/api/support',
     // TikTok Analyzer endpoints
     tiktokAnalyzer: {
       baseUrl: 'http://localhost:3001',
@@ -105,7 +105,9 @@ const API_CONFIGS = {
 
     // TikTok Analyzer endpoints
     tiktokAnalyzer: {
-      baseUrl: process.env.EXPO_PUBLIC_TIKTOK_ANALYZER_URL || 'https://your-tiktok-analyzer-production-url.com',
+      baseUrl:
+        process.env.EXPO_PUBLIC_TIKTOK_ANALYZER_URL ||
+        'https://your-tiktok-analyzer-production-url.com',
       accountAnalysis: '/api/account-analysis',
       accountAnalysisStatus: '/api/account-analysis/status',
       accountAnalysisResult: '/api/account-analysis/result',
@@ -166,6 +168,12 @@ export const API_ENDPOINTS = {
     return config.baseUrl + config.s3Upload;
   },
 
+  // Video analysis
+  VIDEO_ANALYSIS: () => {
+    const config = getCurrentConfig();
+    return config.baseUrl + '/api/video-analysis';
+  },
+
   // Prompt enhancement
   PROMPTS_ENHANCE: () => {
     const config = getCurrentConfig();
@@ -214,7 +222,9 @@ export const API_ENDPOINTS = {
   // TikTok Analysis endpoints
   TIKTOK_ANALYSIS_START: () => {
     const config = getCurrentConfig();
-    return config.tiktokAnalyzer.baseUrl + config.tiktokAnalyzer.accountAnalysis;
+    return (
+      config.tiktokAnalyzer.baseUrl + config.tiktokAnalyzer.accountAnalysis
+    );
   },
 
   TIKTOK_ANALYSIS_STATUS: (runId: string) => {
@@ -234,12 +244,17 @@ export const API_ENDPOINTS = {
 
   TIKTOK_ANALYSIS_CHAT: () => {
     const config = getCurrentConfig();
-    return config.tiktokAnalyzer.baseUrl + config.tiktokAnalyzer.accountAnalysisChat;
+    return (
+      config.tiktokAnalyzer.baseUrl + config.tiktokAnalyzer.accountAnalysisChat
+    );
   },
 
   TIKTOK_ANALYSIS_EXISTING: () => {
     const config = getCurrentConfig();
-    return config.tiktokAnalyzer.baseUrl + config.tiktokAnalyzer.accountAnalysisExisting;
+    return (
+      config.tiktokAnalyzer.baseUrl +
+      config.tiktokAnalyzer.accountAnalysisExisting
+    );
   },
 
   TIKTOK_HANDLE_VALIDATE: () => {
@@ -286,8 +301,6 @@ export const API_ENDPOINTS = {
     const config = getCurrentConfig();
     return config.baseUrl + config.support + '/report-issue';
   },
-
-  
 };
 
 /**

@@ -1,5 +1,5 @@
 import { API_ENDPOINTS } from '@/lib/config/api';
-import { Platform } from 'react-native';
+import { Platform, Alert } from 'react-native';
 import * as Device from 'expo-device';
 import Constants from 'expo-constants';
 
@@ -8,14 +8,18 @@ interface ReportIssuePayload {
   errorMessage?: string | null;
   token: string;
   context?: Record<string, any>;
+  notifyUser?: boolean;
 }
 
 export class SupportService {
+  static isDevelopment = __DEV__;
+
   static async reportIssue({
     jobId,
     errorMessage,
     token,
     context = {},
+    notifyUser = true,
   }: ReportIssuePayload): Promise<{ success: boolean; message: string }> {
     if (!token) {
       throw new Error('Authentication token is missing.');
@@ -47,6 +51,20 @@ export class SupportService {
       },
     };
 
+    // En mode développement, on log seulement
+    if (this.isDevelopment) {
+      console.log('🔧 Support report (dev mode):', errorReport);
+      if (notifyUser) {
+        Alert.alert(
+          'Mode Développement',
+          "Un rapport d'erreur aurait été envoyé en production. Détails dans la console.",
+          [{ text: 'OK' }]
+        );
+      }
+      return { success: true, message: 'Dev mode - report logged.' };
+    }
+
+    // En production, on envoie au support
     const response = await fetch(API_ENDPOINTS.SUPPORT_REPORT_ISSUE(), {
       method: 'POST',
       headers: {
@@ -57,12 +75,26 @@ export class SupportService {
     });
 
     if (response.status === 202) {
+      if (notifyUser) {
+        Alert.alert(
+          'Support Notifié',
+          "Notre équipe a été informée du problème et va l'examiner.",
+          [{ text: 'OK' }]
+        );
+      }
       return { success: true, message: 'Report sent successfully.' };
     } else {
       const result = await response.json();
-      throw new Error(
-        result.error || 'An unknown error occurred while reporting the issue.'
-      );
+      const error =
+        result.error || 'An unknown error occurred while reporting the issue.';
+      if (notifyUser) {
+        Alert.alert(
+          'Erreur',
+          'Impossible de contacter le support. Veuillez réessayer plus tard.',
+          [{ text: 'OK' }]
+        );
+      }
+      throw new Error(error);
     }
   }
 }
