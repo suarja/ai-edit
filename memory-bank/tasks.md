@@ -1009,3 +1009,54 @@ ELSE:
 **Integration**: ✅ Full API integration with existing auth system
 
 The video deletion system now provides complete resource cleanup while maintaining security and providing a simplified, intuitive user interface.
+
+### Additional Enhancement: Automatic List Refresh ✅
+
+#### Problem Identified ✅
+
+When a user deleted a video from the video details screen and navigated back to the source videos list, the deleted video would still appear until the user manually refreshed or restarted the app. This created confusion as users could see videos that no longer existed.
+
+#### Solution Implemented ✅
+
+**Automatic Refresh with useFocusEffect**: Added React Navigation's `useFocusEffect` hook to automatically reload the video list when the screen comes back into focus.
+
+**File**: `mobile/app/(drawer)/source-videos.tsx`
+
+```typescript
+// Changes:
+- Added useFocusEffect import from expo-router
+- Implemented automatic refresh when screen gains focus
+- Added conditional logic to prevent unnecessary reloads
+- Added debugging console.log for monitoring
+```
+
+**Enhanced User Experience**:
+
+- No manual refresh required after video deletion
+- Immediate visual confirmation that video was removed
+- Works seamlessly with existing refresh control
+- Prevents stale data display
+
+**Technical Implementation**:
+
+```typescript
+useFocusEffect(
+  useCallback(() => {
+    // Only reload if user is authenticated and initial load complete
+    if (clerkLoaded && isSignedIn && !loading) {
+      console.log('🔄 Auto-reloading videos (screen focused)');
+      fetchVideos();
+    }
+  }, [clerkLoaded, isSignedIn, loading])
+);
+```
+
+**Benefits**:
+
+1. **Immediate Feedback**: Users see deleted videos disappear instantly
+2. **No Manual Action**: Automatic refresh without user intervention
+3. **Performance Optimized**: Only refreshes when necessary
+4. **Standard Practice**: Uses React Navigation's recommended pattern
+5. **Debugging Friendly**: Console logs for monitoring behavior
+
+This enhancement completes the video deletion user experience by ensuring the UI always reflects the current state of the user's video library.

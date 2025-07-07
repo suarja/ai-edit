@@ -10,7 +10,7 @@ import {
   RefreshControl,
   Alert,
 } from 'react-native';
-import { router } from 'expo-router';
+import { router, useFocusEffect } from 'expo-router';
 import {
   Video as VideoIcon,
   CircleAlert as AlertCircle,
@@ -84,6 +84,17 @@ export default function SourceVideosScreen() {
       fetchVideos();
     }
   }, [clerkLoaded, isSignedIn]);
+
+  // Recharger les vidéos quand l'écran revient en focus (ex: après suppression)
+  useFocusEffect(
+    useCallback(() => {
+      // Seulement recharger si l'utilisateur est connecté et les données sont chargées
+      if (clerkLoaded && isSignedIn && !loading) {
+        console.log('🔄 Rechargement automatique des vidéos (écran en focus)');
+        fetchVideos();
+      }
+    }, [clerkLoaded, isSignedIn, loading])
+  );
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
@@ -551,7 +562,6 @@ export default function SourceVideosScreen() {
           )}
 
           {/* Si limite atteinte, afficher le message */}
-     
 
           {/* Metadata Editor */}
           {editingVideo.id && (
