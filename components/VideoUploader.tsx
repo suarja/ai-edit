@@ -445,6 +445,11 @@ export default function VideoUploader({
                     Notre IA analyse chaque segment de votre vidéo pour
                     comprendre sa structure narrative.
                   </Text>
+                  <Text style={styles.infoText}>
+                    Note: L&apos;analyse peut échouer si la vidéo contient des
+                    personnes identifiables, est trop longue ou ne respecte pas
+                    les règles de contenu de Gemini.
+                  </Text>
                   <Text style={styles.waitText}>
                     Vous pouvez fermer cette page et revenir plus tard.
                     L&apos;analyse continuera en arrière-plan.
@@ -548,7 +553,6 @@ const styles = StyleSheet.create({
     width: '100%',
     alignItems: 'center',
     gap: 16,
-    backgroundColor: '#2D1116',
     padding: 16,
     borderRadius: 12,
   },
