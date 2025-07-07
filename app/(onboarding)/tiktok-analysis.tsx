@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -7,18 +7,26 @@ import {
   StyleSheet,
   Alert,
   ActivityIndicator,
-  Animated,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
-import { TrendingUp, Search, Brain, Target, CheckCircle, ArrowRight, Clock } from 'lucide-react-native';
+import {
+  TrendingUp,
+  Search,
+  Brain,
+  Target,
+  CheckCircle,
+  ArrowRight,
+  Clock,
+} from 'lucide-react-native';
 import { useTikTokAnalysis } from '@/hooks/useTikTokAnalysis';
-import { useRevenueCat } from '@/providers/RevenueCat';
 import { useOnboarding } from '@/components/providers/OnboardingProvider';
+import { useFeatureAccess } from '@/hooks/useFeatureAccess';
+import { ProFeatureLock } from '@/components/guards/ProFeatureLock';
 
 /**
  * 🎯 ONBOARDING TIKTOK ANALYSIS - VERSION ASYNCHRONE
- * 
+ *
  * Écran d'onboarding pour lancer l'analyse TikTok de manière asynchrone
  * L'utilisateur peut continuer l'onboarding pendant que l'analyse se déroule
  */
@@ -26,30 +34,15 @@ export default function TikTokAnalysisOnboarding() {
   const [tiktokHandle, setTikTokHandle] = useState('');
   const [analysisStarted, setAnalysisStarted] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
-  const { isPro, goPro } = useRevenueCat();
   const { nextStep } = useOnboarding();
-  
-  const {
-    startAnalysis,
-    isAnalyzing,
-    error,
-  } = useTikTokAnalysis();
+
+  const { startAnalysis, isAnalyzing, error } = useTikTokAnalysis();
+  const { hasAccess, isLoading, isPro, remainingUsage } =
+    useFeatureAccess('account_analysis');
 
   const handleStartAnalysis = async () => {
     if (!tiktokHandle.trim()) {
       Alert.alert('Handle requis', 'Veuillez entrer votre handle TikTok');
-      return;
-    }
-
-    if (!isPro) {
-      Alert.alert(
-        'Fonctionnalité Pro',
-        'L\'analyse TikTok est réservée aux utilisateurs Pro. Souhaitez-vous upgrader ?',
-        [
-          { text: 'Plus tard', style: 'cancel' },
-          { text: 'Upgrader', onPress: () => goPro() },
-        ]
-      );
       return;
     }
 
@@ -58,17 +51,16 @@ export default function TikTokAnalysisOnboarding() {
       await startAnalysis(tiktokHandle.replace('@', '').trim());
       setAnalysisStarted(true);
       setShowSuccess(true);
-      
+
       // Auto-continue after showing success
       setTimeout(() => {
         nextStep();
       }, 2000);
-      
     } catch (error: any) {
       console.error('❌ Analysis error:', error);
       Alert.alert(
         'Erreur',
-        'Impossible de démarrer l\'analyse. Veuillez réessayer.',
+        "Impossible de démarrer l'analyse. Veuillez réessayer.",
         [{ text: 'OK' }]
       );
     }
@@ -78,9 +70,49 @@ export default function TikTokAnalysisOnboarding() {
     nextStep();
   };
 
-  const handleContinue = () => {
-    nextStep();
-  };
+  if (isLoading) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" />
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  if (!hasAccess) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <ProFeatureLock
+          featureTitle="Analyse de Compte TikTok"
+          featureDescription="Obtenez une analyse détaillée de votre compte et des recommandations personnalisées pour faire décoller votre contenu. Exclusif pour les membres Pro."
+          onSkip={handleSkip}
+        />
+      </SafeAreaView>
+    );
+  }
+
+  // Si l'utilisateur est Pro mais a déjà utilisé ses analyses
+  if (isPro && remainingUsage <= 0) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.loadingContainer}>
+          <Brain size={48} color="#007AFF" />
+          <Text style={styles.title}>Analyses Épuisées</Text>
+          <Text style={styles.subtitle}>
+            Vous avez utilisé toutes vos analyses pour ce mois-ci. Vos crédits
+            seront renouvelés à la prochaine date de facturation.
+          </Text>
+          <TouchableOpacity
+            style={styles.primaryButton}
+            onPress={() => router.push('/(tabs)/')}
+          >
+            <Text style={styles.primaryButtonText}>Terminer</Text>
+          </TouchableOpacity>
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   if (showSuccess) {
     return (
@@ -90,7 +122,8 @@ export default function TikTokAnalysisOnboarding() {
             <CheckCircle size={64} color="#4CAF50" />
             <Text style={styles.successTitle}>Analyse Lancée !</Text>
             <Text style={styles.successSubtitle}>
-              Votre analyse TikTok est en cours. Vous pourrez consulter les résultats dans l'onglet Account Chat une fois terminée.
+              Votre analyse TikTok est en cours. Vous pourrez consulter les
+              résultats dans l'onglet Account Chat une fois terminée.
             </Text>
             <View style={styles.processingInfo}>
               <Clock size={16} color="#888" />
@@ -111,7 +144,8 @@ export default function TikTokAnalysisOnboarding() {
           <TrendingUp size={48} color="#FF6B35" />
           <Text style={styles.title}>Analyse TikTok</Text>
           <Text style={styles.subtitle}>
-            Créez votre profil éditorial personnalisé basé sur vos performances TikTok
+            Créez votre profil éditorial personnalisé basé sur vos performances
+            TikTok
           </Text>
         </View>
 
@@ -122,7 +156,9 @@ export default function TikTokAnalysisOnboarding() {
           </View>
           <View style={styles.feature}>
             <Target size={24} color="#007AFF" />
-            <Text style={styles.featureText}>Recommandations personnalisées</Text>
+            <Text style={styles.featureText}>
+              Recommandations personnalisées
+            </Text>
           </View>
           <View style={styles.feature}>
             <Search size={24} color="#007AFF" />
@@ -146,14 +182,6 @@ export default function TikTokAnalysisOnboarding() {
           </View>
         </View>
 
-        {!isPro && (
-          <View style={styles.proNotice}>
-            <Text style={styles.proNoticeText}>
-              💎 Fonctionnalité Pro requise
-            </Text>
-          </View>
-        )}
-
         <View style={styles.buttonsContainer}>
           <TouchableOpacity
             style={[styles.primaryButton, isAnalyzing && styles.disabledButton]}
@@ -165,7 +193,9 @@ export default function TikTokAnalysisOnboarding() {
             ) : (
               <>
                 <Brain size={20} color="#fff" />
-                <Text style={styles.primaryButtonText}>Analyser mon TikTok</Text>
+                <Text style={styles.primaryButtonText}>
+                  Analyser mon TikTok
+                </Text>
               </>
             )}
           </TouchableOpacity>
@@ -177,7 +207,8 @@ export default function TikTokAnalysisOnboarding() {
         </View>
 
         <Text style={styles.disclaimer}>
-          L'analyse prendra 2-3 minutes. Vous pouvez continuer l'onboarding pendant ce temps.
+          L'analyse prendra 2-3 minutes. Vous pouvez continuer l'onboarding
+          pendant ce temps.
         </Text>
       </View>
     </SafeAreaView>
@@ -188,6 +219,12 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#000',
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 24,
   },
   content: {
     flex: 1,
@@ -255,20 +292,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#fff',
     paddingVertical: 0,
-  },
-  proNotice: {
-    backgroundColor: 'rgba(255, 215, 0, 0.1)',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 215, 0, 0.3)',
-    borderRadius: 12,
-    padding: 12,
-    marginBottom: 24,
-    alignItems: 'center',
-  },
-  proNoticeText: {
-    color: '#FFD700',
-    fontSize: 14,
-    fontWeight: '600',
   },
   buttonsContainer: {
     gap: 16,
@@ -338,4 +361,4 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#888',
   },
-}); 
+});

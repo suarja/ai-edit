@@ -1,43 +1,72 @@
-import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  Image,
+  ActivityIndicator,
+} from 'react-native';
 import { router } from 'expo-router';
 import { Mic, ArrowRight } from 'lucide-react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { testVoiceAPIConnectivity } from '@/lib/api/voice-recording-client';
-import { useState, useEffect } from 'react';
+import { useFeatureAccess } from '@/hooks/useFeatureAccess';
+import { ProFeatureLock } from '@/components/guards/ProFeatureLock';
 
 export default function OnboardingVoiceCloneScreen() {
-  const [isAPIReady, setIsAPIReady] = useState(true);
-  const [isChecking, setIsChecking] = useState(true);
-
-  // Check API connectivity on mount
-  useEffect(() => {
-    const checkAPI = async () => {
-      try {
-        setIsChecking(true);
-        const isReady = await testVoiceAPIConnectivity();
-        setIsAPIReady(isReady);
-      } catch (error) {
-        console.error('API check error:', error);
-        setIsAPIReady(false);
-      } finally {
-        setIsChecking(false);
-      }
-    };
-
-    checkAPI();
-  }, []);
-
-  const handleCreateVoice = () => {
-    router.push('/(settings)/voice-clone');
-  };
+  const { hasAccess, isLoading, isPro, remainingUsage } =
+    useFeatureAccess('voice_clone');
 
   const handleContinueToRecording = () => {
     router.push('/(onboarding)/voice-recording');
   };
 
   const handleSkip = () => {
-    router.push('/scripts');
+    router.push('/(onboarding)/tiktok-analysis');
   };
+
+  if (isLoading) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" />
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  if (!hasAccess) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <ProFeatureLock
+          featureTitle="Clonage Vocal"
+          featureDescription="Le clonage vocal est une fonctionnalité exclusive pour les abonnés Pro. Passez au niveau supérieur pour créer une voix IA unique."
+          onSkip={handleSkip}
+        />
+      </SafeAreaView>
+    );
+  }
+
+  // Si l'utilisateur est Pro mais a déjà utilisé son clone vocal
+  if (isPro && remainingUsage <= 0) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.proLockContainer}>
+          <Mic size={48} color="#007AFF" />
+          <Text style={styles.proLockTitle}>Clone Vocal Déjà Créé</Text>
+          <Text style={styles.proLockDescription}>
+            Vous avez déjà utilisé votre crédit de clonage vocal. Vous pouvez
+            maintenant continuer vers la prochaine étape.
+          </Text>
+          <TouchableOpacity
+            style={styles.upgradeButton}
+            onPress={() => router.push('/(onboarding)/tiktok-analysis')}
+          >
+            <Text style={styles.upgradeButtonText}>Continuer</Text>
+          </TouchableOpacity>
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
@@ -75,16 +104,6 @@ export default function OnboardingVoiceCloneScreen() {
               create a perfect clone of your voice
             </Text>
           </View>
-
-          {!isAPIReady && !isChecking && (
-            <View style={styles.warningBox}>
-              <Text style={styles.warningTitle}>Connection Issue</Text>
-              <Text style={styles.warningText}>
-                We&apos;re having trouble connecting to our voice service. You
-                can still continue, but voice cloning may not work properly.
-              </Text>
-            </View>
-          )}
         </View>
 
         <View style={styles.footer}>
@@ -109,6 +128,45 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#000',
+    justifyContent: 'center',
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  proLockContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 24,
+    gap: 16,
+    backgroundColor: '#111',
+  },
+  proLockTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#fff',
+    textAlign: 'center',
+    lineHeight: 22,
+  },
+  proLockDescription: {
+    fontSize: 16,
+    color: '#888',
+    textAlign: 'center',
+    lineHeight: 22,
+  },
+  upgradeButton: {
+    backgroundColor: '#007AFF',
+    paddingVertical: 16,
+    paddingHorizontal: 32,
+    borderRadius: 12,
+    marginTop: 16,
+  },
+  upgradeButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
   },
   header: {
     height: 300,
@@ -178,25 +236,6 @@ const styles = StyleSheet.create({
   infoText: {
     fontSize: 14,
     color: '#888',
-    lineHeight: 20,
-  },
-  warningBox: {
-    backgroundColor: 'rgba(239, 68, 68, 0.1)',
-    padding: 20,
-    borderRadius: 16,
-    gap: 8,
-    borderWidth: 1,
-    borderColor: 'rgba(239, 68, 68, 0.3)',
-  },
-  warningTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#ef4444',
-  },
-  warningText: {
-    fontSize: 14,
-    color: '#ef4444',
-    opacity: 0.8,
     lineHeight: 20,
   },
   footer: {
