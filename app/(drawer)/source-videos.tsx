@@ -54,6 +54,7 @@ export default function SourceVideosScreen() {
   const [savingMetadata, setSavingMetadata] = useState(false);
   const [showSupportButton, setShowSupportButton] = useState(false);
   const [currentVideoId, setCurrentVideoId] = useState<string | null>(null);
+  const [hasAnalysisData, setHasAnalysisData] = useState(false);
 
   // Use the same pattern as settings.tsx and videos.tsx
   const { fetchUser, clerkLoaded, isSignedIn } = useGetUser();
@@ -63,7 +64,7 @@ export default function SourceVideosScreen() {
   const { isPro, isReady: revenueCatReady } = useRevenueCat();
 
   // Constants for free tier limits
-  const FREE_TIER_SOURCE_VIDEOS_LIMIT = 25;
+  const FREE_TIER_SOURCE_VIDEOS_LIMIT = 30;
 
   // Reset error when user interacts with the app
   const clearError = useCallback(() => {
@@ -188,52 +189,114 @@ export default function SourceVideosScreen() {
   };
 
   const handleAnalysisComplete = async (
-    data: VideoAnalysisData,
-    videoId: string
+    data: VideoAnalysisData | null,
+    videoId: string,
+    manualEditRequired: boolean
   ) => {
     try {
-      console.log('Updating analysis for video:', videoId, {
-        title: data.title,
-        description: data.description,
-        tags: data.tags,
-      });
+      if (manualEditRequired || !data) {
+        console.log('📹 Édition manuelle requise pour la vidéo:', videoId);
 
-      // Update video metadata in Supabase
-      const { error } = await supabase
-        .from('videos')
-        .update({
+        // Marquer le statut comme 'failed' (pas d'analyse disponible) et ouvrir l'éditeur
+        const { error } = await supabase
+          .from('videos')
+          .update({
+            analysis_status: 'failed',
+            analysis_data: null,
+          })
+          .eq('id', videoId);
+
+        if (error) {
+          console.error('Error updating video for manual edit:', error);
+          throw error;
+        }
+
+        // Ouvrir l'éditeur avec des champs vides, pas d'analyse à rejeter
+        setEditingVideo({
+          id: videoId,
+          title: '',
+          description: '',
+          tags: '',
+        });
+        setEditingVideoId(videoId);
+        setHasAnalysisData(false); // Pas d'analyse à rejeter
+      } else {
+        console.log('Updating analysis for video:', videoId, {
+          title: data.title,
+          description: data.description,
+          tags: data.tags,
+        });
+
+        // Sauvegarder l'analyse et ouvrir l'éditeur pré-rempli
+        const { error } = await supabase
+          .from('videos')
+          .update({
+            analysis_status: 'completed',
+            analysis_data: data,
+          })
+          .eq('id', videoId);
+
+        if (error) {
+          console.error('Error updating video analysis:', error);
+          throw error;
+        }
+
+        // Pré-remplir l'éditeur avec les données d'analyse
+        setEditingVideo({
+          id: videoId,
           title: data.title || '',
           description: data.description || '',
-          tags: data.tags || [],
-          analysis_status: 'completed',
-          analysis_data: data,
-        })
-        .eq('id', videoId);
-
-      if (error) {
-        console.error('Error updating video analysis:', error);
-        throw error;
+          tags: data.tags?.join(', ') || '',
+        });
+        setEditingVideoId(videoId);
+        setHasAnalysisData(true); // Il y a une analyse à rejeter
       }
 
-      // Refresh videos list to show updated data
+      // Refresh videos list to show updated status
       await fetchVideos();
-
-      // Reset editing state after successful analysis
-      setEditingVideoId(null);
-      setEditingVideo({
-        id: null,
-        title: '',
-        description: '',
-        tags: '',
-      });
     } catch (error) {
       console.error('Error saving analysis results:', error);
       setError("Échec de la sauvegarde des résultats d'analyse");
     }
   };
 
+  // Simplifier la fonction de rejet d'analyse
+  const rejectAnalysis = async () => {
+    if (!editingVideoId) return;
+
+    try {
+      const { error } = await supabase
+        .from('videos')
+        .update({
+          analysis_status: 'failed', // Utiliser 'failed' au lieu de 'rejected'
+          analysis_data: null,
+        })
+        .eq('id', editingVideoId);
+
+      if (error) throw error;
+
+      // Reset editing state avec champs vides
+      setEditingVideo({
+        id: editingVideoId,
+        title: '',
+        description: '',
+        tags: '',
+      });
+
+      await fetchVideos();
+    } catch (error) {
+      console.error('Error rejecting analysis:', error);
+      setError("Échec du rejet de l'analyse");
+    }
+  };
+
+  // Modifier la fonction updateVideoMetadata pour valider l'analyse
   const updateVideoMetadata = async () => {
-    if (!editingVideo.id || !editingVideo.title) return;
+    if (!editingVideo.id || !editingVideo.title || !editingVideo.description) {
+      Alert.alert('Erreur', 'Le titre et la description sont requis');
+      return;
+    }
+
     console.log('🔍 Métadonnées à enregistrer:', {
       id: editingVideo.id,
       title: editingVideo.title,
@@ -242,26 +305,31 @@ export default function SourceVideosScreen() {
     });
     setSavingMetadata(true);
     clearError();
-    console.log('🔍 Métadonnées à enregistrer après nettoyage:', {
-      id: editingVideo.id,
-      title: editingVideo.title,
-      description: editingVideo.description,
-      tags: editingVideo.tags,
-    });
+
     try {
-      const { error: updateError, data: videoData } = await supabase
+      const tagsArray = editingVideo.tags
+        .split(',')
+        .map((tag) => tag.trim())
+        .filter((tag) => tag);
+
+      if (tagsArray.length === 0) {
+        Alert.alert('Erreur', 'Au moins un tag est requis');
+        setSavingMetadata(false);
+        return;
+      }
+
+      const { error: updateError } = await supabase
         .from('videos')
         .update({
           title: editingVideo.title,
           description: editingVideo.description,
-          tags: editingVideo.tags
-            .split(',')
-            .map((tag) => tag.trim())
-            .filter((tag) => tag),
+          tags: tagsArray,
+          analysis_status: 'completed', // Marquer comme complété après validation
         })
         .eq('id', editingVideo.id);
 
       if (updateError) throw updateError;
+
       console.log('🔍 Métadonnées enregistrées avec succès:', {
         id: editingVideo.id,
       });
@@ -274,6 +342,7 @@ export default function SourceVideosScreen() {
         description: '',
         tags: '',
       });
+      setCurrentVideoId(null);
       await fetchVideos();
       console.log('🔍 Métadonnées enregistrées avec succès');
     } catch (err) {
@@ -475,23 +544,14 @@ export default function SourceVideosScreen() {
                     tags: '',
                   });
                   setEditingVideoId(currentVideoId);
+                  setHasAnalysisData(false); // Édition manuelle, pas d'analyse
                 }
               }}
             />
           )}
 
           {/* Si limite atteinte, afficher le message */}
-          {!editingVideo.id && !canUploadMore && (
-            <View style={styles.uploadDisabled}>
-              <VideoIcon size={32} color="#555" />
-              <Text style={styles.uploadDisabledText}>
-                Limite de vidéos sources atteinte
-              </Text>
-              <Text style={styles.uploadDisabledSubtext}>
-                Supprimez une vidéo ou passez Pro pour continuer
-              </Text>
-            </View>
-          )}
+     
 
           {/* Metadata Editor */}
           {editingVideo.id && (
@@ -502,7 +562,10 @@ export default function SourceVideosScreen() {
               <View style={styles.metadataInputContainer}>
                 <Text style={styles.metadataInputLabel}>Titre *</Text>
                 <TextInput
-                  style={styles.metadataInput}
+                  style={[
+                    styles.metadataInput,
+                    !editingVideo.title && styles.inputError,
+                  ]}
                   placeholder="Titre de la vidéo"
                   placeholderTextColor="#666"
                   value={editingVideo.title}
@@ -512,9 +575,12 @@ export default function SourceVideosScreen() {
                 />
               </View>
               <View style={styles.metadataInputContainer}>
-                <Text style={styles.metadataInputLabel}>Description</Text>
+                <Text style={styles.metadataInputLabel}>Description *</Text>
                 <TextInput
-                  style={styles.metadataTextArea}
+                  style={[
+                    styles.metadataTextArea,
+                    !editingVideo.description && styles.inputError,
+                  ]}
                   placeholder="Description de la vidéo"
                   placeholderTextColor="#666"
                   value={editingVideo.description}
@@ -526,9 +592,12 @@ export default function SourceVideosScreen() {
                 />
               </View>
               <View style={styles.metadataInputContainer}>
-                <Text style={styles.metadataInputLabel}>Tags</Text>
+                <Text style={styles.metadataInputLabel}>Tags *</Text>
                 <TextInput
-                  style={styles.metadataInput}
+                  style={[
+                    styles.metadataInput,
+                    !editingVideo.tags && styles.inputError,
+                  ]}
                   placeholder="tag1, tag2, tag3..."
                   placeholderTextColor="#666"
                   value={editingVideo.tags}
@@ -536,7 +605,29 @@ export default function SourceVideosScreen() {
                     setEditingVideo((prev) => ({ ...prev, tags: text }))
                   }
                 />
+                <Text style={styles.helperText}>
+                  Séparez les tags par des virgules. Au moins un tag est requis.
+                </Text>
               </View>
+
+              {/* Section pour les boutons d'analyse - seulement si il y a des données d'analyse */}
+              {hasAnalysisData && (
+                <View style={styles.analysisActions}>
+                  <TouchableOpacity
+                    style={styles.rejectButton}
+                    onPress={rejectAnalysis}
+                  >
+                    <Text style={styles.rejectButtonText}>
+                      Rejeter l&apos;analyse
+                    </Text>
+                  </TouchableOpacity>
+                  <Text style={styles.analysisHelperText}>
+                    Rejeter l&apos;analyse supprimera les suggestions
+                    automatiques
+                  </Text>
+                </View>
+              )}
+
               <View style={styles.metadataActions}>
                 <TouchableOpacity
                   style={styles.cancelButton}
@@ -547,6 +638,8 @@ export default function SourceVideosScreen() {
                       description: '',
                       tags: '',
                     });
+                    setEditingVideoId(null);
+                    setCurrentVideoId(null);
                     clearError();
                   }}
                 >
@@ -555,22 +648,36 @@ export default function SourceVideosScreen() {
                 <TouchableOpacity
                   style={[
                     styles.saveButton,
-                    (!editingVideo.title || savingMetadata) &&
+                    (!editingVideo.title ||
+                      !editingVideo.description ||
+                      !editingVideo.tags ||
+                      savingMetadata) &&
                       styles.buttonDisabled,
                   ]}
                   onPress={async () => {
-                    if (!editingVideo.title) {
-                      Alert.alert('Erreur', 'Le titre est requis');
+                    if (
+                      !editingVideo.title ||
+                      !editingVideo.description ||
+                      !editingVideo.tags
+                    ) {
+                      Alert.alert('Erreur', 'Tous les champs sont requis');
                       return;
                     }
                     await updateVideoMetadata();
                   }}
-                  disabled={!editingVideo.title || savingMetadata}
+                  disabled={
+                    !editingVideo.title ||
+                    !editingVideo.description ||
+                    !editingVideo.tags ||
+                    savingMetadata
+                  }
                 >
                   {savingMetadata ? (
                     <ActivityIndicator size="small" color="#fff" />
                   ) : (
-                    <Text style={styles.saveButtonText}>Enregistrer</Text>
+                    <Text style={styles.saveButtonText}>
+                      Valider et Enregistrer
+                    </Text>
                   )}
                 </TouchableOpacity>
               </View>
@@ -892,5 +999,30 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 14,
     fontWeight: '600',
+  },
+  inputError: {
+    borderColor: '#ef4444',
+  },
+  helperText: {
+    color: '#888',
+    fontSize: 12,
+    marginTop: 4,
+  },
+  analysisActions: {
+    marginBottom: 16,
+  },
+  rejectButton: {
+    backgroundColor: '#ef4444',
+    padding: 12,
+    borderRadius: 8,
+  },
+  rejectButtonText: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  analysisHelperText: {
+    color: '#888',
+    fontSize: 12,
   },
 });

@@ -26,7 +26,11 @@ type VideoUploaderProps = {
   onUploadError?: (error: Error) => void;
   onUploadStart?: () => void;
   onAnalysisStart?: () => void;
-  onAnalysisComplete?: (analysisData: any, videoId: string) => void;
+  onAnalysisComplete?: (
+    analysisData: any,
+    videoId: string,
+    manualEditRequired: boolean
+  ) => void;
   onAnalysisError?: (error: string) => void;
   onAnalysisSkip?: () => void;
   onManualEdit?: () => void;
@@ -67,13 +71,34 @@ export default function VideoUploader({
 
   const handleError = async (error: Error | string) => {
     console.error('Error in video upload/analysis:', error);
-    setUploadState('error');
 
     const errorMessage = error instanceof Error ? error.message : error;
+
+    // Ne pas traiter comme une erreur si c'est juste un problème d'analyse
+    if (
+      errorMessage.includes('Cannot access or analyze video content') ||
+      errorMessage.includes('Analyse échouée') ||
+      errorMessage.includes('Analysis failed')
+    ) {
+      console.log(
+        '📹 Analyse non disponible, redirection directe vers édition manuelle'
+      );
+
+      // Redirection directe vers l'édition manuelle sans affichage d'erreur
+      if (onManualEdit) {
+        onManualEdit();
+      }
+      setUploadState('idle');
+      setStatusMessage('');
+      return;
+    }
+
+    // Afficher l'erreur seulement pour les vraies erreurs (upload, réseau, etc.)
+    setUploadState('error');
+
     let userMessage = 'Une erreur est survenue';
     let shouldNotifySupport = true;
 
-    // Gestion spécifique des erreurs connues
     if (errorMessage.includes('quota')) {
       userMessage = "Limite d'analyse quotidienne atteinte";
       shouldNotifySupport = false;
@@ -82,30 +107,15 @@ export default function VideoUploader({
       shouldNotifySupport = false;
     } else if (errorMessage.includes('réseau')) {
       userMessage = 'Erreur de connexion';
-    } else if (
-      errorMessage.includes('état actif') ||
-      errorMessage.includes('FAILED_PRECONDITION') ||
-      errorMessage.includes('Analyse échouée')
-    ) {
-      userMessage =
-        "L'analyse automatique a échoué. Vous pouvez éditer les informations manuellement.";
-      if (onManualEdit) {
-        // Attendre un peu avant de proposer l'édition manuelle
-        await new Promise((resolve) => setTimeout(resolve, 1000));
-        onManualEdit();
-      }
     }
 
     setStatusMessage(userMessage);
     if (onUploadError)
       onUploadError(error instanceof Error ? error : new Error(userMessage));
-    if (onAnalysisError) onAnalysisError(userMessage);
 
-    // Vérifier si nous sommes en mode développement
+    // Notification du support seulement en mode production et pour les vraies erreurs
     const isDev = __DEV__ || process.env.NODE_ENV === 'development';
-    console.log('🔧 Mode développement:', isDev);
 
-    // Notifier le support uniquement si nécessaire et pas en mode dev
     if (shouldNotifySupport && !isDev) {
       try {
         const clerkToken = await getToken();
@@ -125,16 +135,6 @@ export default function VideoUploader({
       } catch (supportError) {
         console.error('Failed to report to support:', supportError);
       }
-    } else {
-      console.log('🔧 Support report (dev mode):', {
-        jobId: currentVideoId || 'unknown',
-        errorMessage: errorMessage,
-        context: {
-          uploadState,
-          uploadProgress,
-          currentVideoId,
-        },
-      });
     }
   };
 
@@ -365,7 +365,20 @@ export default function VideoUploader({
         // Si on arrive ici, l'upload et l'analyse ont réussi
         if (analysisResult.success && analysisResult.data) {
           if (onAnalysisComplete) {
-            await onAnalysisComplete(analysisResult.data, videoId);
+            // Vérifier si l'analyse nécessite une édition manuelle
+            if (analysisResult.data.requires_manual_edit) {
+              console.log(
+                '📹 Analyse non disponible, redirection vers édition manuelle'
+              );
+              await onAnalysisComplete(null, videoId, true); // null data, manual edit required
+            } else {
+              // Analyse normale avec données
+              await onAnalysisComplete(
+                analysisResult.data.analysis_data,
+                videoId,
+                false
+              );
+            }
           }
           setUploadState('idle');
           setStatusMessage('');
