@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity,  } from 'react-native';
 import { router } from 'expo-router';
 import { Lock } from 'lucide-react-native';
 import { useRevenueCat } from '@/providers/RevenueCat';
@@ -20,7 +20,7 @@ export const ProFeatureLock = ({
     await goPro();
   };
 
-  const handleSkip = onSkip || (() => router.push('/(tabs)/'));
+  const handleSkip = onSkip || (() => router.push('/'));
 
   return (
     <View style={styles.container}>

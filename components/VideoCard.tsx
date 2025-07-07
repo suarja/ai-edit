@@ -6,16 +6,16 @@ import {
   TouchableOpacity,
   ActivityIndicator,
 } from 'react-native';
-import { Clock, Tag, Play, Pause, FileVideo } from 'lucide-react-native';
-// TEMPORARILY DISABLED FOR ANDROID CRASH FIX
-// import { useVideoPlayer, VideoView } from 'expo-video';
+import { Clock, Tag, Play } from 'lucide-react-native';
 import { VideoType } from '@/types/video';
+import { VideoThumbnail } from './VideoThumbnail';
 
 type VideoCardProps = {
   video: VideoType;
   isPlaying: boolean;
   isLoading: boolean;
   hasError: boolean;
+  isVisible?: boolean;
   onPress: () => void;
   onPlayToggle: () => void;
   onLoadStart: () => void;
@@ -28,317 +28,175 @@ export default function VideoCard({
   isPlaying,
   isLoading,
   hasError,
+  isVisible = false,
   onPress,
   onPlayToggle,
+  onLoadStart,
+  onLoad,
+  onError,
 }: VideoCardProps) {
-  // Debug: Log video data to help diagnose the text rendering issue
-  React.useEffect(() => {
-    if (video?.tags && !Array.isArray(video.tags)) {
-      console.warn(
-        '🚨 VideoCard: video.tags is not an array:',
-        video.tags,
-        typeof video.tags
-      );
-    }
-  }, [video]);
-  // TEMPORARILY DISABLED FOR ANDROID CRASH FIX
-  // const player = useVideoPlayer({ uri: video.upload_url }, (player) => {
-  //   player.muted = true;
-  //   player.shouldPlay = isPlaying;
-  // });
-
-  // useEffect(() => {
-  //   if (isPlaying) {
-  //     player.play();
-  //   } else {
-  //     player.pause();
-  //   }
-  // }, [isPlaying, player]);
-
-  const formatDuration = (seconds: number) => {
-    if (!seconds) return '0:00';
-    const minutes = Math.floor(seconds / 60);
-    const remainingSeconds = Math.floor(seconds % 60);
-    return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
-  };
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'completed':
-        return '#10b981'; // green
-      case 'processing':
-        return '#f59e0b'; // amber
-      case 'pending':
-        return '#6b7280'; // gray
-      case 'failed':
-        return '#ef4444'; // red
-      default:
-        return '#6b7280';
-    }
-  };
-
-  const getStatusText = (status: string) => {
-    switch (status) {
-      case 'completed':
-        return 'Prêt';
-      case 'processing':
-        return 'En cours';
-      case 'pending':
-        return 'En attente';
-      case 'failed':
-        return 'Erreur';
-      default:
-        return status;
-    }
-  };
-
   return (
-    <TouchableOpacity style={styles.container} onPress={onPress}>
-      <View style={styles.videoPreview}>
-        {/* Beautiful video placeholder with better design */}
-        <View style={styles.videoFallback}>
-          <View style={styles.videoIconContainer}>
-            <FileVideo size={32} color="#007AFF" />
-          </View>
-          <Text style={styles.fallbackTitle}>
-            {video.title && typeof video.title === 'string'
-              ? video.title
-              : 'Vidéo sans titre'}
-          </Text>
-          <View style={styles.videoBadges}>
-            {video.duration_seconds && video.duration_seconds > 0 && (
-              <View style={styles.durationChip}>
-                <Text style={styles.durationChipText}>
-                  {formatDuration(video.duration_seconds)}
-                </Text>
-              </View>
-            )}
-            {video.processing_status ? (
-              <View
-                style={[
-                  styles.statusChip,
-                  { backgroundColor: getStatusColor(video.processing_status) },
-                ]}
-              >
-                <Text style={styles.statusChipText}>
-                  {getStatusText(video.processing_status)}
-                </Text>
-              </View>
-            ) : null}
-          </View>
+    <TouchableOpacity
+      style={styles.container}
+      onPress={onPress}
+      activeOpacity={0.7}
+    >
+      <View style={styles.thumbnailContainer}>
+        <VideoThumbnail url={video.upload_url} shouldLoad={isVisible} />
+        <View style={styles.playButtonContainer}>
+          {isLoading ? (
+            <ActivityIndicator size="small" color="#fff" />
+          ) : (
+            <TouchableOpacity
+              style={styles.playButton}
+              onPress={(e) => {
+                e.stopPropagation();
+                onPlayToggle();
+              }}
+            >
+              <Play
+                size={24}
+                color="#fff"
+                style={isPlaying ? styles.playingIcon : undefined}
+              />
+            </TouchableOpacity>
+          )}
         </View>
-
-        {/* ORIGINAL VIDEO RENDERING CODE - TEMPORARILY DISABLED
-        {hasError ? (
-          <View style={styles.videoFallback}>
-            <FileVideo size={32} color="#007AFF" />
-          </View>
-        ) : (
-          <VideoView
-            player={player}
-            style={styles.videoThumbnail}
-            nativeControls={false}
-            contentFit="cover"
-            onFirstFrameRender={onLoad}
-          />
-        )}
-        */}
-
-        {isLoading && (
-          <View style={styles.videoLoading}>
-            <ActivityIndicator size="small" color="#007AFF" />
-          </View>
-        )}
-
-        {!hasError && (
-          <TouchableOpacity
-            style={styles.playButton}
-            onPress={(e) => {
-              e.stopPropagation();
-              onPlayToggle();
-            }}
-          >
-            {isPlaying ? (
-              <Pause size={16} color="#fff" />
-            ) : (
-              <Play size={16} color="#fff" />
-            )}
-          </TouchableOpacity>
-        )}
+        <View style={styles.duration}>
+          <Clock size={12} color="#fff" style={{ marginRight: 4 }} />
+          <Text style={styles.durationText}>
+            {formatDuration(video.duration_seconds)}
+          </Text>
+        </View>
       </View>
 
-      <View style={styles.videoInfo}>
-        <Text style={styles.videoTitle} numberOfLines={2}>
-          {video.title && typeof video.title === 'string'
-            ? video.title
-            : 'Vidéo sans titre'}
+      <View style={styles.content}>
+        <Text style={styles.title} numberOfLines={1}>
+          {video.title || 'Sans titre'}
         </Text>
-
-        {video.description && video.description.trim() ? (
-          <Text style={styles.videoDescription} numberOfLines={2}>
-            {video.description}
+        <Text style={styles.description} numberOfLines={2}>
+          {video.description || 'Aucune description'}
+        </Text>
+        <View style={styles.metadata}>
+          <Text style={styles.date}>
+            {formatDate(video.created_at || new Date().toISOString())}
           </Text>
-        ) : null}
-
-        <View style={styles.videoMeta}>
-          <View style={styles.dateContainer}>
-            <Clock size={12} color="#888" />
-            <Text style={styles.dateText}>
-              {video.created_at
-                ? new Date(video.created_at).toLocaleDateString()
-                : 'Date inconnue'}
-            </Text>
+          <View style={styles.tags}>
+            {video.tags?.slice(0, 2).map((tag, index) => (
+              <View key={index} style={styles.tag}>
+                <Tag size={12} color="#888" style={{ marginRight: 4 }} />
+                <Text style={styles.tagText}>{tag}</Text>
+              </View>
+            ))}
           </View>
-
-          {video.tags && Array.isArray(video.tags) && video.tags.length > 0 ? (
-            <View style={styles.tagContainer}>
-              <Tag size={12} color="#888" />
-              <Text style={styles.tagText} numberOfLines={1}>
-                {video.tags
-                  .slice(0, 2)
-                  .filter((tag) => tag && typeof tag === 'string')
-                  .join(', ')}
-                {video.tags.length > 2 ? ` +${video.tags.length - 2}` : ''}
-              </Text>
-            </View>
-          ) : null}
         </View>
       </View>
     </TouchableOpacity>
   );
 }
 
+function formatDuration(seconds: number | undefined): string {
+  if (!seconds) return '0:00';
+  const minutes = Math.floor(seconds / 60);
+  const remainingSeconds = Math.floor(seconds % 60);
+  return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
+}
+
+function formatDate(dateString: string): string {
+  const date = new Date(dateString);
+  return date.toLocaleDateString('fr-FR', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+  });
+}
+
 const styles = StyleSheet.create({
   container: {
     backgroundColor: '#1a1a1a',
     borderRadius: 12,
-    marginBottom: 12,
     overflow: 'hidden',
+    marginBottom: 16,
   },
-  videoPreview: {
-    width: '100%',
-    height: 180,
-    backgroundColor: '#333',
-    justifyContent: 'center',
-    alignItems: 'center',
-    overflow: 'hidden',
+  thumbnailContainer: {
     position: 'relative',
+    aspectRatio: 16 / 9,
+    backgroundColor: '#2a2a2a',
   },
-  videoThumbnail: {
-    width: '100%',
-    height: '100%',
-  },
-  videoFallback: {
-    width: '100%',
-    height: '100%',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  videoLoading: {
+  playButtonContainer: {
     position: 'absolute',
-    top: '50%',
-    left: '50%',
-    transform: [{ translateX: -20 }, { translateY: -20 }],
-    backgroundColor: 'rgba(0, 0, 0, 0.7)',
-    borderRadius: 20,
-    width: 40,
-    height: 40,
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
     justifyContent: 'center',
     alignItems: 'center',
   },
   playButton: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: 'rgba(0, 0, 0, 0.6)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  playingIcon: {
+    opacity: 0.5,
+  },
+  duration: {
     position: 'absolute',
-    top: '50%',
-    left: '50%',
-    transform: [{ translateX: -16 }, { translateY: -16 }],
-    backgroundColor: 'rgba(0, 0, 0, 0.7)',
-    borderRadius: 16,
-    width: 32,
-    height: 32,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  videoIconContainer: {
-    backgroundColor: 'rgba(0, 122, 255, 0.1)',
-    borderRadius: 20,
-    width: 60,
-    height: 60,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 12,
-    borderWidth: 2,
-    borderColor: 'rgba(0, 122, 255, 0.3)',
-  },
-  fallbackTitle: {
-    color: '#fff',
-    fontSize: 14,
-    fontWeight: '600',
-  },
-  videoBadges: {
+    bottom: 8,
+    right: 8,
+    backgroundColor: 'rgba(0, 0, 0, 0.6)',
+    borderRadius: 4,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
   },
-  durationChip: {
-    backgroundColor: 'rgba(0, 0, 0, 0.7)',
-    padding: 4,
-    borderRadius: 4,
-  },
-  durationChipText: {
+  durationText: {
     color: '#fff',
-    fontSize: 10,
-    fontWeight: '600',
+    fontSize: 12,
+    fontWeight: '500',
   },
-  statusChip: {
-    backgroundColor: 'rgba(0, 0, 0, 0.7)',
-    padding: 4,
-    borderRadius: 4,
+  content: {
+    padding: 12,
   },
-  statusChipText: {
-    color: '#fff',
-    fontSize: 10,
-    fontWeight: '600',
-  },
-  videoInfo: {
-    padding: 16,
-    gap: 8,
-  },
-  videoTitle: {
+  title: {
     color: '#fff',
     fontSize: 16,
     fontWeight: '600',
-    lineHeight: 20,
+    marginBottom: 4,
   },
-  videoDescription: {
+  description: {
     color: '#888',
     fontSize: 14,
-    lineHeight: 18,
+    lineHeight: 20,
+    marginBottom: 8,
   },
-  videoMeta: {
+  metadata: {
     flexDirection: 'row',
-    alignItems: 'center',
     justifyContent: 'space-between',
-    marginTop: 4,
-  },
-  dateContainer: {
-    flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
   },
-  dateText: {
-    color: '#888',
+  date: {
+    color: '#666',
     fontSize: 12,
   },
-  tagContainer: {
+  tags: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  tag: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
-    flex: 1,
-    marginLeft: 12,
+    backgroundColor: '#2a2a2a',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 4,
   },
   tagText: {
     color: '#888',
     fontSize: 12,
-    flex: 1,
   },
 });

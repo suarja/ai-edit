@@ -9,6 +9,7 @@ import {
   ActivityIndicator,
   RefreshControl,
   Alert,
+  FlatList,
 } from 'react-native';
 import { router, useFocusEffect } from 'expo-router';
 import {
@@ -19,8 +20,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import VideoUploader from '@/components/VideoUploader';
 import VideoCard from '@/components/VideoCard';
-import VideoAnalysisProgress from '@/components/VideoAnalysisProgress';
-import VideoMetadataEditor from '@/components/VideoMetadataEditor';
+
 import { VideoType } from '@/types/video';
 import { VideoAnalysisData } from '@/types/videoAnalysis';
 import { useGetUser } from '@/lib/hooks/useGetUser';
@@ -39,6 +39,9 @@ export default function SourceVideosScreen() {
     new Set()
   );
   const [errorVideoIds, setErrorVideoIds] = useState<Set<string>>(new Set());
+  const [visibleVideoIds, setVisibleVideoIds] = useState<Set<string>>(
+    new Set()
+  );
   const [editingVideo, setEditingVideo] = useState<{
     id: string | null;
     title: string;
@@ -55,6 +58,24 @@ export default function SourceVideosScreen() {
   const [showSupportButton, setShowSupportButton] = useState(false);
   const [currentVideoId, setCurrentVideoId] = useState<string | null>(null);
   const [hasAnalysisData, setHasAnalysisData] = useState(false);
+
+  // Add viewability config
+  const viewabilityConfig = React.useRef({
+    itemVisiblePercentThreshold: 100,
+    minimumViewTime: 1000,
+  }).current;
+
+  const onViewableItemsChanged = React.useCallback(
+    ({ viewableItems }: { viewableItems: Array<{ item: VideoType }> }) => {
+      const visibleIds = new Set(viewableItems.map(({ item }) => item.id));
+      setVisibleVideoIds(visibleIds);
+    },
+    []
+  );
+
+  const viewabilityConfigCallbackPairs = React.useRef([
+    { viewabilityConfig, onViewableItemsChanged },
+  ]).current;
 
   // Use the same pattern as settings.tsx and videos.tsx
   const { fetchUser, clerkLoaded, isSignedIn } = useGetUser();
@@ -710,22 +731,29 @@ export default function SourceVideosScreen() {
               </Text>
             </View>
           ) : (
-            videos.map((video, index) => {
-              return (
+            <FlatList
+              data={videos}
+              renderItem={({ item }) => (
                 <VideoCard
-                  key={video.id}
-                  video={video}
-                  isPlaying={playingVideoId === video.id}
-                  isLoading={loadingVideoIds.has(video.id)}
-                  hasError={errorVideoIds.has(video.id)}
-                  onPress={() => handleVideoPress(video)}
-                  onPlayToggle={() => handlePlayToggle(video.id)}
-                  onLoadStart={() => handleVideoLoadStart(video.id)}
-                  onLoad={() => handleVideoLoad(video.id)}
-                  onError={() => handleVideoError(video.id)}
+                  key={item.id}
+                  video={item}
+                  isPlaying={playingVideoId === item.id}
+                  isLoading={loadingVideoIds.has(item.id)}
+                  hasError={errorVideoIds.has(item.id)}
+                  onPress={() => handleVideoPress(item)}
+                  onPlayToggle={() => handlePlayToggle(item.id)}
+                  onLoadStart={() => handleVideoLoadStart(item.id)}
+                  onLoad={() => handleVideoLoad(item.id)}
+                  onError={() => handleVideoError(item.id)}
+                  isVisible={visibleVideoIds.has(item.id)}
                 />
-              );
-            })
+              )}
+              viewabilityConfigCallbackPairs={viewabilityConfigCallbackPairs}
+              removeClippedSubviews={true}
+              maxToRenderPerBatch={5}
+              windowSize={5}
+              initialNumToRender={4}
+            />
           )}
         </View>
       </ScrollView>
