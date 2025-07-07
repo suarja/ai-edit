@@ -10,12 +10,13 @@ import {
 } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { openSettings } from 'expo-linking';
-import { Video as VideoIcon } from 'lucide-react-native';
+import { Video as VideoIcon, UploadCloud } from 'lucide-react-native';
 import { MediaType } from 'expo-image-picker';
 import { API_ENDPOINTS, API_HEADERS } from '@/lib/config/api';
 import { useAuth } from '@clerk/clerk-expo';
 import { SupportService } from '@/lib/services/support/supportService';
 import * as FileSystem from 'expo-file-system';
+import { useRevenueCat } from '@/providers/RevenueCat';
 
 type VideoUploaderProps = {
   onUploadComplete?: (videoData: {
@@ -53,6 +54,11 @@ export default function VideoUploader({
   const [statusMessage, setStatusMessage] = useState('');
   const [currentVideoId, setCurrentVideoId] = useState<string | null>(null);
   const { getToken, isSignedIn } = useAuth();
+  const { userUsage, isPro, isReady } = useRevenueCat();
+
+  const sourceVideosUsed = userUsage?.source_videos_used || 0;
+  const sourceVideosLimit = userUsage?.source_videos_limit || 10;
+  const limitReached = !isPro && sourceVideosUsed >= sourceVideosLimit;
 
   const getStatusMessage = (state: UploadState) => {
     switch (state) {
@@ -397,6 +403,14 @@ export default function VideoUploader({
     }
   };
 
+  if (!isReady) {
+    return (
+      <View style={styles.container}>
+        <ActivityIndicator />
+      </View>
+    );
+  }
+
   return (
     <View style={styles.container}>
       {uploadState !== 'idle' ? (
@@ -472,13 +486,27 @@ export default function VideoUploader({
           )}
         </View>
       ) : (
-        <TouchableOpacity
-          style={styles.uploadButton}
-          onPress={handleSelectVideo}
-        >
-          <VideoIcon size={24} color="#fff" />
-          <Text style={styles.uploadButtonText}>Sélectionner une vidéo</Text>
-        </TouchableOpacity>
+        <View style={styles.idleContainer}>
+          <TouchableOpacity
+            style={[styles.uploadButton, limitReached && styles.disabledButton]}
+            onPress={handleSelectVideo}
+            disabled={limitReached}
+          >
+            <UploadCloud size={24} color="#fff" />
+            <Text style={styles.uploadButtonText}>Uploader une vidéo</Text>
+          </TouchableOpacity>
+          {!isPro && (
+            <Text style={styles.limitText}>
+              {sourceVideosUsed} / {sourceVideosLimit} vidéos utilisées
+            </Text>
+          )}
+          {limitReached && (
+            <Text style={styles.limitReachedText}>
+              Limite de vidéos sources atteinte. Supprimez une vidéo pour en
+              ajouter une nouvelle ou passez Pro.
+            </Text>
+          )}
+        </View>
       )}
     </View>
   );
@@ -496,6 +524,21 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     marginBottom: 16,
     padding: 16,
+  },
+  idleContainer: {
+    width: '100%',
+    alignItems: 'center',
+    gap: 12,
+  },
+  limitText: {
+    color: '#888',
+    fontSize: 12,
+  },
+  limitReachedText: {
+    color: '#ef4444',
+    fontSize: 12,
+    textAlign: 'center',
+    marginTop: 4,
   },
   loadingContainer: {
     width: '100%',
@@ -581,5 +624,9 @@ const styles = StyleSheet.create({
   editButton: {
     backgroundColor: '#333',
     marginLeft: 8,
+  },
+  disabledButton: {
+    backgroundColor: '#555',
+    opacity: 0.6,
   },
 });
