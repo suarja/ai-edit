@@ -99,12 +99,13 @@ export default function GeneratedVideosScreen() {
       setVideos(videosWithScripts as unknown as VideoRequest[]);
 
       // Check status for rendering videos
-      const renderingVideos =
+      const renderingOrQuedVideos =
         (data as unknown as VideoRequest[])?.filter(
-          (v: VideoRequest) => v.render_status === 'rendering'
+          (v: VideoRequest) =>
+            v.render_status === 'rendering' || v.render_status === 'queued'
         ) || [];
 
-      for (const video of renderingVideos) {
+      for (const video of renderingOrQuedVideos) {
         await checkVideoStatus(video.id as string);
       }
     } catch (err) {
