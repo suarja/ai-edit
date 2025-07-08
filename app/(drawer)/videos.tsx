@@ -29,8 +29,7 @@ type VideoRequest = {
   created_at: string;
   script?: {
     id: string;
-    raw_prompt: string;
-    generated_script: string;
+    current_script: string;
     output_language: string;
   };
 };
@@ -54,7 +53,7 @@ export default function GeneratedVideosScreen() {
   const [refreshing, setRefreshing] = useState(false);
 
   // Use the same pattern as settings.tsx
-  const { fetchUser, clerkUser, clerkLoaded, isSignedIn } = useGetUser();
+  const { fetchUser, clerkLoaded, isSignedIn } = useGetUser();
   const { client: supabase } = useClerkSupabaseClient();
   const { getToken } = useAuth();
 
@@ -71,26 +70,33 @@ export default function GeneratedVideosScreen() {
       const { data, error } = await supabase
         .from('video_requests')
         .select(
-          `
-          id,
+          `id,
           script_id,
           render_status,
           render_url,
           render_id,
-          created_at,
-          script:scripts!inner(
-            id,
-            raw_prompt,
-            generated_script,
-            output_language
-          )
+          created_at
         `
         )
         .eq('user_id', user.id) // Use database ID directly
         .order('created_at', { ascending: false });
-
       if (error) throw error;
-      setVideos(data as unknown as VideoRequest[]);
+
+      const { data: scriptsDrafts, error: scriptsDraftsError } = await supabase
+        .from('script_drafts')
+        .select('id, current_script, output_language')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false });
+
+      if (scriptsDraftsError) throw scriptsDraftsError;
+
+      // merge videos with scripts drafts
+      const videosWithScripts = data.map((video: any) => {
+        const scriptDraft = scriptsDrafts.find((s) => s.id === video.script_id);
+        return { ...video, script: scriptDraft };
+      });
+
+      setVideos(videosWithScripts as unknown as VideoRequest[]);
 
       // Check status for rendering videos
       const renderingVideos =
@@ -151,7 +157,7 @@ export default function GeneratedVideosScreen() {
 
   // Transform video requests to display format
   const transformVideoForDisplay = (video: VideoRequest): DisplayVideo => {
-    const prompt = video.script?.raw_prompt || 'Vidéo sans titre';
+    const prompt = video.script?.current_script || 'Vidéo sans titre';
 
     // Create a title from the prompt (first 50 characters)
     const title = prompt.length > 50 ? `${prompt.slice(0, 50)}...` : prompt;

@@ -20,8 +20,7 @@ import { useAuth } from '@clerk/clerk-expo';
 // Script type for proper TypeScript support
 type ScriptData = {
   id: string;
-  raw_prompt: string;
-  generated_script: string;
+  current_script: string;
   output_language: string;
 };
 
@@ -32,7 +31,7 @@ type VideoRequestWithScript = {
   render_url: string | null;
   created_at: string;
   script_id: string;
-  script: ScriptData;
+  scriptData: ScriptData;
 };
 
 export default function GeneratedVideoDetailScreen() {
@@ -76,13 +75,7 @@ export default function GeneratedVideoDetailScreen() {
           render_status,
           render_url,
           created_at,
-          script_id,
-          script:scripts!inner(
-            id,
-            raw_prompt,
-            generated_script,
-            output_language
-          )
+          script_id
           `
         )
         .eq('id', id)
@@ -94,23 +87,37 @@ export default function GeneratedVideoDetailScreen() {
         throw videoError;
       }
 
-      if (!videoRequest) {
-        throw new Error('Video not found');
+      const { data: scriptData, error: scriptError } = await supabase
+        .from('script_drafts')
+        .select('id, current_script, output_language')
+        .eq('id', videoRequest.script_id)
+        .single();
+
+      if (scriptError) {
+        throw new Error('Script not found');
       }
 
+      const mergedVideoRequest = {
+        ...videoRequest,
+        scriptData,
+      };
+
       // Check if script data is properly loaded
-      if (!videoRequest.script || typeof videoRequest.script !== 'object') {
-        console.error('Script data not loaded properly:', videoRequest);
+      if (
+        !mergedVideoRequest ||
+        typeof mergedVideoRequest.scriptData !== 'object'
+      ) {
+        console.error('Script data not loaded properly:', mergedVideoRequest);
         throw new Error('Script information could not be loaded');
       }
 
       // Type assertion after validation
       const typedVideoRequest =
-        videoRequest as unknown as VideoRequestWithScript;
+        mergedVideoRequest as unknown as VideoRequestWithScript;
 
       // Extract script information with additional safety checks
-      const script = typedVideoRequest.script;
-      const prompt = script?.raw_prompt || '';
+      const script = typedVideoRequest.scriptData;
+      const prompt = script?.current_script || '';
 
       // Create title from prompt (first 60 characters for details page)
       const title =
@@ -142,13 +149,15 @@ export default function GeneratedVideoDetailScreen() {
         created_at: typedVideoRequest.created_at as string,
         render_status: typedVideoRequest.render_status,
         render_url: typedVideoRequest.render_url,
-        script: typedVideoRequest.script,
+        script: script,
         title,
         description,
-        prompt: script?.raw_prompt,
-        script_content: script?.generated_script,
+        prompt: script?.current_script,
+        script_content: script?.current_script,
         output_language: script?.output_language,
       };
+
+      console.log('formattedVideo', formattedVideo);
 
       // Set the video details
       setVideo(formattedVideo);

@@ -147,12 +147,12 @@ export default function VideoDetails({ video, error }: VideoDetailsProps) {
       {'script' in video &&
         video.script &&
         typeof video.script === 'object' &&
-        video.script.generated_script && (
+        video.script.current_script && (
           <View style={styles.scriptSection}>
             <Text style={styles.sectionTitle}>Generated Script</Text>
             <View style={styles.scriptContainer}>
               <Text style={styles.scriptText}>
-                {video.script.generated_script}
+                {video.script.current_script}
               </Text>
             </View>
           </View>

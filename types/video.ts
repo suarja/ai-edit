@@ -76,8 +76,7 @@ export interface EnhancedGeneratedVideoType {
   render_error?: string;
   script?: {
     id: string;
-    generated_script: string;
-    raw_prompt: string;
+    current_script: string;
     output_language: string;
   };
   duration_seconds?: number;
