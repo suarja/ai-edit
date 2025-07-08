@@ -1,7 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { env, logEnvironmentStatus } from '@/lib/config/env';
-import { reportError } from '@/lib/services/errorReporting';
 
 // Log environment status in development
 if (__DEV__) {
@@ -12,19 +11,15 @@ let supabaseClient: ReturnType<typeof createClient>;
 
 try {
   // Initialize the Supabase client
-  supabaseClient = createClient(
-    env.SUPABASE_URL,
-    env.SUPABASE_ANON_KEY,
-    {
-      auth: {
-        storage: AsyncStorage,
-        storageKey: 'supabase.auth.token',
-        autoRefreshToken: true,
-        persistSession: true,
-        detectSessionInUrl: false,
-      },
-    }
-  );
+  supabaseClient = createClient(env.SUPABASE_URL, env.SUPABASE_ANON_KEY, {
+    auth: {
+      storage: AsyncStorage,
+      storageKey: 'supabase.auth.token',
+      autoRefreshToken: true,
+      persistSession: true,
+      detectSessionInUrl: false,
+    },
+  });
 
   // Verify the client was initialized correctly
   if (!supabaseClient) {
