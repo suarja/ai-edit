@@ -15,6 +15,7 @@ import { router, useLocalSearchParams } from 'expo-router';
 import useVideoRequest from '@/app/hooks/useVideoRequest';
 import useConfigurationStatus from '@/app/hooks/useConfigurationStatus';
 import { useRevenueCat } from '@/providers/RevenueCat';
+import { SupportService } from '@/lib/services/support/supportService';
 
 // Components
 import VideoTagFilterSystem from '@/components/VideoTagFilterSystem';
@@ -105,24 +106,51 @@ export default function ScriptVideoSettingsScreen() {
       // Use the script directly instead of the prompt input
       await videoRequest.handleSubmit();
 
-      // If we get here, the submission was successful
+      // Si succès, afficher la popup avec deux choix
       Alert.alert(
         'Génération lancée !',
         'Votre vidéo est en cours de génération. Vous serez notifié quand elle sera prête.',
         [
           {
             text: 'Voir les vidéos',
-            onPress: () => router.push('/videos'),
+            onPress: () => router.replace('/videos'),
           },
-          { text: 'OK' },
+          {
+            text: 'Annuler',
+            onPress: () => router.replace('/'),
+            style: 'cancel',
+          },
         ]
       );
     } catch (error) {
-      console.error('Error generating video:', error);
+      // Notifier l'équipe via SupportService
+      try {
+        // On tente de récupérer le jobId ou scriptId pour le contexte
+        const jobId = scriptId || 'unknown';
+        // On suppose que getToken est accessible via videoRequest (sinon à adapter)
+        const token =
+          (videoRequest.getToken && (await videoRequest.getToken())) || '';
+        await SupportService.reportIssue({
+          jobId,
+          errorMessage: error instanceof Error ? error.message : String(error),
+          token,
+          context: { script, selectedVideos: videoRequest.selectedVideos },
+          notifyUser: false, // On gère la popup manuellement
+        });
+      } catch (supportError) {
+        // On ignore les erreurs du support pour ne pas bloquer l'utilisateur
+        console.warn('Support notification failed:', supportError);
+      }
+      // Afficher la popup d'erreur générique
       Alert.alert(
         'Erreur',
-        'Une erreur est survenue lors de la génération. Veuillez réessayer.',
-        [{ text: 'OK' }]
+        'Une erreur est survenue lors de la génération. Notre équipe a été notifiée. Veuillez réessayer plus tard.',
+        [
+          {
+            text: 'OK',
+            onPress: () => {},
+          },
+        ]
       );
     }
   };

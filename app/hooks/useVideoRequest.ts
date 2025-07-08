@@ -178,42 +178,30 @@ export default function useVideoRequest() {
 
   const validateRequest = () => {
     if (!scriptId) {
-      Alert.alert(
-        'Script manquant',
-        'Veuillez sélectionner un script pour générer une vidéo.',
-        [{ text: 'OK' }]
+      throw new Error(
+        'Script manquant : veuillez sélectionner un script pour générer une vidéo.'
       );
-      return false;
     }
 
     if (!prompt || typeof prompt !== 'string' || !prompt.trim()) {
-      Alert.alert(
-        'Description manquante',
-        'Veuillez entrer une description de la vidéo que vous souhaitez créer.',
-        [{ text: 'OK' }]
+      throw new Error(
+        'Description manquante : veuillez entrer une description de la vidéo.'
       );
-      return false;
     }
 
     if (selectedVideos.length === 0) {
-      Alert.alert(
-        'Aucune vidéo sélectionnée',
-        'Veuillez sélectionner au moins une vidéo source.',
-        [{ text: 'OK' }]
+      throw new Error(
+        'Aucune vidéo sélectionnée : veuillez sélectionner au moins une vidéo source.'
       );
-      return false;
     }
 
     if (
       !useEditorialProfile &&
       !customEditorialProfile.persona_description.trim()
     ) {
-      Alert.alert(
-        'Détails éditoriaux manquants',
-        'Pour un contenu plus authentique et personnalisé, veuillez fournir des détails sur votre style de contenu.',
-        [{ text: 'OK' }]
+      throw new Error(
+        'Détails éditoriaux manquants : veuillez fournir des détails sur votre style de contenu.'
       );
-      return false;
     }
 
     // Enhanced validation: only check if captions are enabled and missing required fields
@@ -221,21 +209,15 @@ export default function useVideoRequest() {
       captionConfig.enabled &&
       (!captionConfig.presetId || !captionConfig.transcriptColor)
     ) {
-      Alert.alert(
-        'Configuration des sous-titres incomplète',
-        'Veuillez configurer complètement vos sous-titres ou les désactiver.',
-        [{ text: 'OK' }]
+      throw new Error(
+        'Configuration des sous-titres incomplète : veuillez configurer complètement vos sous-titres ou les désactiver.'
       );
-      return false;
     }
 
     if (!outputLanguage) {
-      Alert.alert(
-        'Langue de sortie manquante',
-        'Veuillez sélectionner une langue pour votre vidéo.',
-        [{ text: 'OK' }]
+      throw new Error(
+        'Langue de sortie manquante : veuillez sélectionner une langue pour votre vidéo.'
       );
-      return false;
     }
 
     return true;
@@ -254,7 +236,11 @@ export default function useVideoRequest() {
   };
 
   const handleSubmit = async () => {
-    if (!validateRequest()) return;
+    try {
+      validateRequest();
+    } catch (validationError) {
+      throw validationError;
+    }
 
     try {
       setSubmitting(true);
@@ -263,8 +249,7 @@ export default function useVideoRequest() {
       // Get the database user
       const user = await fetchUser();
       if (!user) {
-        router.replace('/(auth)/sign-in');
-        return;
+        throw new Error('Utilisateur non authentifié.');
       }
 
       // Get latest caption config to ensure we have the most recent settings
@@ -316,25 +301,15 @@ export default function useVideoRequest() {
       const result = await response.json();
 
       if (!response.ok) {
-        throw new Error(result.error || 'Failed to generate video');
+        throw new Error('Erreur lors de la génération de la vidéo.');
       }
-
-      Alert.alert(
-        'Génération lancée',
-        'Votre vidéo est en cours de génération. Vous recevrez une notification quand elle sera prête.',
-        [
-          {
-            text: 'Voir mes vidéos',
-            onPress: () => router.push('/videos'),
-          },
-        ]
-      );
 
       // Reset form after successful submission
       handleReset();
+      return true;
     } catch (err) {
-      console.error('Error submitting request:', err);
       setError(err instanceof Error ? err.message : 'Failed to submit request');
+      throw err;
     } finally {
       setSubmitting(false);
     }

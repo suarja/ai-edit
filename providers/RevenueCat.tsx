@@ -6,7 +6,6 @@ import React from 'react';
 import { useClerkSupabaseClient } from '@/lib/supabase-clerk';
 import { useGetUser } from '@/lib/hooks/useGetUser';
 import { CustomPaywall } from '@/components/CustomPaywall';
-import { updateUserLimits } from '@/services/usageTrackingService';
 
 // Use keys from your RevenueCat API Keys
 const APIKeys = {
@@ -19,7 +18,7 @@ const isDevelopment = __DEV__ || process.env.NODE_ENV === 'development';
 
 interface UserUsage {
   videos_generated: number;
-  videos_limit: number;
+  videos_generated_limit: number;
   source_videos_used: number;
   source_videos_limit: number;
   voice_clones_used: number;
@@ -158,7 +157,7 @@ export const RevenueCatProvider = ({ children }: any) => {
         .select(
           `
           videos_generated, 
-          videos_limit, 
+          videos_generated_limit, 
           source_videos_used,
           source_videos_limit,
           voice_clones_used,
@@ -224,7 +223,7 @@ export const RevenueCatProvider = ({ children }: any) => {
         .select(
           `
           videos_generated, 
-          videos_limit, 
+          videos_generated_limit, 
           source_videos_used,
           source_videos_limit,
           voice_clones_used,
@@ -271,7 +270,7 @@ export const RevenueCatProvider = ({ children }: any) => {
       const { error } = await supabase
         .from('user_usage')
         .update({
-          videos_limit: planData.videos_limit,
+          videos_generated_limit: planData.videos_generated_limit,
           source_videos_limit: planData.source_videos_limit,
           voice_clones_limit: planData.voice_clones_limit,
           account_analysis_limit: planData.account_analysis_limit,
@@ -356,11 +355,11 @@ export const RevenueCatProvider = ({ children }: any) => {
   const currentPlan: 'free' | 'pro' = isPro ? 'pro' : 'free';
 
   // Calculate dynamic limits based on current plan
-  const dynamicVideosLimit = userUsage ? userUsage.videos_limit : 0;
+  const dynamicVideosLimit = userUsage ? userUsage.videos_generated_limit : 0;
 
   // Calculate remaining resources
   const videosRemaining = userUsage
-    ? Math.max(0, userUsage.videos_limit - userUsage.videos_generated)
+    ? Math.max(0, userUsage.videos_generated_limit - userUsage.videos_generated)
     : 0;
 
   const sourceVideosRemaining = userUsage
