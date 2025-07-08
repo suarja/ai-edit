@@ -9,8 +9,14 @@ import {
   RefreshControl,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-  import { router } from 'expo-router';
-import { Plus, MessageCircle, Clock, FileText, MoreVertical, Copy, Trash2, CheckCircle } from 'lucide-react-native';
+import { router } from 'expo-router';
+import {
+  Plus,
+  MessageCircle,
+  Clock,
+  FileText,
+  MoreVertical,
+} from 'lucide-react-native';
 
 // Hooks
 import { useScriptList } from '@/app/hooks/useScriptChat';
@@ -19,7 +25,8 @@ import { useScriptList } from '@/app/hooks/useScriptChat';
 import ScriptActionsModal from '@/components/ScriptActionsModal';
 
 export default function ScriptsScreen() {
-  const { scripts, isLoading, error, loadScripts, deleteScript, duplicateScript } = useScriptList();
+  const { scripts, isLoading, error, loadScripts, deleteScript } =
+    useScriptList();
   const [selectedScript, setSelectedScript] = useState<any | null>(null);
 
   const handleCreateNewScript = () => {
@@ -104,7 +111,7 @@ export default function ScriptsScreen() {
             <FileText size={64} color="#666" />
             <Text style={styles.emptyTitle}>Aucun script créé</Text>
             <Text style={styles.emptyDescription}>
-              Commencez par créer votre premier script avec l'IA
+              Commencez par créer votre premier script avec l&apos;IA
             </Text>
             <TouchableOpacity
               style={styles.emptyButton}
@@ -117,57 +124,64 @@ export default function ScriptsScreen() {
         )}
 
         {/* Scripts List */}
-        {scripts && scripts.map((script, index) => (
-          <View key={script.id} style={styles.scriptCardContainer}>
-            <TouchableOpacity
-              style={styles.scriptCard}
-              onPress={() => handleEditScript(script.id)}
-            >
-            <View style={styles.scriptHeader}>
-              <View style={styles.scriptIcon}>
-                <MessageCircle size={20} color="#007AFF" />
-              </View>
-              <View style={styles.scriptInfo}>
-                <Text style={styles.scriptTitle} numberOfLines={1}>
-                  {script.title || 'Script sans titre'}
-                </Text>
-                <View style={styles.scriptMeta}>
-                  <Clock size={12} color="#888" />
-                                  <Text style={styles.scriptDate}>
-                  {formatDate(script.updated_at)}
-                </Text>
-              </View>
+        {scripts &&
+          scripts.map((script, index) => (
+            <View key={script.id} style={styles.scriptCardContainer}>
+              <TouchableOpacity
+                style={styles.scriptCard}
+                onPress={() => handleEditScript(script.id)}
+              >
+                <View style={styles.scriptHeader}>
+                  <View style={styles.scriptIcon}>
+                    <MessageCircle size={20} color="#007AFF" />
+                  </View>
+                  <View style={styles.scriptInfo}>
+                    <Text style={styles.scriptTitle} numberOfLines={1}>
+                      {script.title || 'Script sans titre'}
+                    </Text>
+                    <View style={styles.scriptMeta}>
+                      <Clock size={12} color="#888" />
+                      <Text style={styles.scriptDate}>
+                        {formatDate(script.updated_at)}
+                      </Text>
+                    </View>
+                  </View>
+                  <View style={styles.scriptStatus}>
+                    <View
+                      style={[
+                        styles.statusDot,
+                        {
+                          backgroundColor:
+                            script.status === 'validated'
+                              ? '#4CD964'
+                              : '#FF9500',
+                        },
+                      ]}
+                    />
+                  </View>
+                  <TouchableOpacity
+                    onPress={() => setSelectedScript(script)}
+                    style={styles.moreButton}
+                  >
+                    <MoreVertical size={20} color="#666" />
+                  </TouchableOpacity>
+                </View>
+
+                {script.current_script && (
+                  <Text style={styles.scriptPreview} numberOfLines={3}>
+                    {getScriptPreview(script.current_script)}
+                  </Text>
+                )}
+
+                <View style={styles.scriptFooter}>
+                  <Text style={styles.scriptStats}>
+                    {script.word_count || 0} mots •{' '}
+                    {Math.round(script.estimated_duration || 0)}s
+                  </Text>
+                </View>
+              </TouchableOpacity>
             </View>
-            <View style={styles.scriptStatus}>
-              <View
-                style={[
-                  styles.statusDot,
-                  { backgroundColor: script.status === 'validated' ? '#4CD964' : '#FF9500' },
-                ]}
-              />
-            </View>
-            <TouchableOpacity
-              onPress={() => setSelectedScript(script)}
-              style={styles.moreButton}
-            >
-              <MoreVertical size={20} color="#666" />
-            </TouchableOpacity>
-          </View>
-          
-          {script.current_script && (
-            <Text style={styles.scriptPreview} numberOfLines={3}>
-              {getScriptPreview(script.current_script)}
-            </Text>
-          )}
-          
-          <View style={styles.scriptFooter}>
-            <Text style={styles.scriptStats}>
-              {script.word_count || 0} mots • {Math.round((script.estimated_duration || 0))}s
-            </Text>
-            </View>
-            </TouchableOpacity>
-          </View>
-        ))}
+          ))}
       </ScrollView>
 
       {/* Floating Action Button */}
@@ -386,5 +400,4 @@ const styles = StyleSheet.create({
     shadowRadius: 6,
     elevation: 8,
   },
-
-}); 
+});

@@ -37,10 +37,18 @@ interface ScriptVideoSettingsParams {
 export default function ScriptVideoSettingsScreen() {
   // Get script parameters from navigation
   const params = useLocalSearchParams();
-  const scriptId = Array.isArray(params.scriptId) ? params.scriptId[0] : params.scriptId;
-  const script = Array.isArray(params.script) ? params.script[0] : params.script;
-  const wordCount = Array.isArray(params.wordCount) ? params.wordCount[0] : params.wordCount;
-  const estimatedDuration = Array.isArray(params.estimatedDuration) ? params.estimatedDuration[0] : params.estimatedDuration;
+  const scriptId = Array.isArray(params.scriptId)
+    ? params.scriptId[0]
+    : params.scriptId;
+  const script = Array.isArray(params.script)
+    ? params.script[0]
+    : params.script;
+  const wordCount = Array.isArray(params.wordCount)
+    ? params.wordCount[0]
+    : params.wordCount;
+  const estimatedDuration = Array.isArray(params.estimatedDuration)
+    ? params.estimatedDuration[0]
+    : params.estimatedDuration;
   const title = Array.isArray(params.title) ? params.title[0] : params.title;
 
   // RevenueCat integration
@@ -65,10 +73,11 @@ export default function ScriptVideoSettingsScreen() {
 
   // Set the script as the prompt when component mounts
   useEffect(() => {
-    if (script && !videoRequest.prompt) {
+    if (script && !videoRequest.prompt && scriptId) {
       videoRequest.setPrompt(script);
+      videoRequest.setScriptId(scriptId);
     }
-  }, [script, videoRequest.prompt]);
+  }, [script, videoRequest.prompt, scriptId]);
 
   // Check if user can generate video (quota + other validations)
   const canGenerateVideo =
@@ -97,8 +106,6 @@ export default function ScriptVideoSettingsScreen() {
     refreshUsage();
   };
 
-
-
   const handleGenerateVideo = async () => {
     if (!script || videoRequest.selectedVideos.length === 0) {
       Alert.alert(
@@ -112,7 +119,7 @@ export default function ScriptVideoSettingsScreen() {
     try {
       // Use the script directly instead of the prompt input
       await videoRequest.handleSubmit();
-      
+
       // If we get here, the submission was successful
       Alert.alert(
         'Génération lancée !',
@@ -120,7 +127,7 @@ export default function ScriptVideoSettingsScreen() {
         [
           {
             text: 'Voir les vidéos',
-                          onPress: () => router.push('/videos'),
+            onPress: () => router.push('/videos'),
           },
           { text: 'OK' },
         ]
@@ -161,7 +168,8 @@ export default function ScriptVideoSettingsScreen() {
           </Text>
           <View style={styles.scriptMeta}>
             <Text style={styles.scriptMetaText}>
-              {wordCount} mots • ~{Math.round(parseFloat(estimatedDuration || '0'))}s
+              {wordCount} mots • ~
+              {Math.round(parseFloat(estimatedDuration || '0'))}s
             </Text>
           </View>
         </View>
@@ -290,4 +298,4 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     fontWeight: '500',
   },
-}); 
+});

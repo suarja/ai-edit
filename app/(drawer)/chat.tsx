@@ -10,17 +10,21 @@ import {
   Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Send, MessageCircle, CheckCircle2, CheckCircle, Clock, Database, Video, MoreHorizontal, Copy, Trash2 } from 'lucide-react-native';
+import {
+  Send,
+  MessageCircle,
+  CheckCircle2,
+  MoreHorizontal,
+} from 'lucide-react-native';
 import { useScriptChat } from '@/app/hooks/useScriptChat';
 import { useAuth } from '@clerk/clerk-expo';
 import { router, useLocalSearchParams } from 'expo-router';
 import ScriptActionsModal from '@/components/ScriptActionsModal';
-import StreamingStatus from '@/components/StreamingStatus';
 import Markdown from 'react-native-markdown-display';
 
 /**
  * 🎯 SCRIPT CHAT AVEC VRAIE API ET PROFIL ÉDITORIAL
- * 
+ *
  * Cette version utilise :
  * 1. Hook useScriptChat pour vraie API backend
  * 2. Profil éditorial pour contexte personnalisé
@@ -30,7 +34,10 @@ import Markdown from 'react-native-markdown-display';
  */
 export default function ScriptChatDemo() {
   const { isSignedIn } = useAuth();
-  const { scriptId, new: isNewChat } = useLocalSearchParams<{ scriptId?: string; new?: string }>();
+  const { scriptId, new: isNewChat } = useLocalSearchParams<{
+    scriptId?: string;
+    new?: string;
+  }>();
   const [inputMessage, setInputMessage] = useState('');
   const [showActionsModal, setShowActionsModal] = useState(false);
   const scrollViewRef = useRef<ScrollView>(null);
@@ -42,11 +49,9 @@ export default function ScriptChatDemo() {
     isLoading,
     isStreaming,
     error,
-    streamingStatus,
     sendMessage,
     createNewScript,
     validateScript,
-    duplicateScript,
     deleteScript,
     clearError,
     wordCount,
@@ -76,15 +81,13 @@ export default function ScriptChatDemo() {
   // Afficher les erreurs
   useEffect(() => {
     if (error) {
-      Alert.alert('Erreur', error, [
-        { text: 'OK', onPress: clearError }
-      ]);
+      Alert.alert('Erreur', error, [{ text: 'OK', onPress: clearError }]);
     }
   }, [error]);
 
   const handleSendMessage = async () => {
     if (!inputMessage.trim() || isStreaming) return;
-    
+
     try {
       await sendMessage(inputMessage.trim());
       setInputMessage('');
@@ -106,7 +109,7 @@ export default function ScriptChatDemo() {
     if (!currentScript || !scriptDraft) {
       Alert.alert(
         'Script requis',
-        'Veuillez d\'abord créer un script avant de générer une vidéo.',
+        "Veuillez d'abord créer un script avant de générer une vidéo.",
         [{ text: 'OK' }]
       );
       return;
@@ -127,26 +130,27 @@ export default function ScriptChatDemo() {
 
   const renderMessage = (message: any) => {
     const isUser = message.role === 'user';
-    
+
     return (
-      <View key={message.id} style={[
-        styles.messageContainer,
-        isUser ? styles.userMessage : styles.assistantMessage
-      ]}>
-        <View style={[
-          styles.messageBubble,
-          isUser ? styles.userBubble : styles.assistantBubble
-        ]}>
+      <View
+        key={message.id}
+        style={[
+          styles.messageContainer,
+          isUser ? styles.userMessage : styles.assistantMessage,
+        ]}
+      >
+        <View
+          style={[
+            styles.messageBubble,
+            isUser ? styles.userBubble : styles.assistantBubble,
+          ]}
+        >
           {isUser ? (
-            <Text style={styles.messageText}>
-              {message.content}
-            </Text>
+            <Text style={styles.messageText}>{message.content}</Text>
           ) : (
-            <Markdown style={markdownStyles}>
-              {message.content}
-            </Markdown>
+            <Markdown style={markdownStyles}>{message.content}</Markdown>
           )}
-          
+
           {/* Indicateur de streaming */}
           {message.metadata?.isStreaming && (
             <View style={styles.streamingIndicator}>
@@ -154,17 +158,21 @@ export default function ScriptChatDemo() {
               <Text style={styles.streamingText}>En cours de frappe...</Text>
             </View>
           )}
-          
+
           {/* Status et timestamp */}
           <View style={styles.messageFooter}>
             <Text style={styles.timestamp}>
-              {new Date(message.timestamp).toLocaleTimeString([], { 
-                hour: '2-digit', 
-                minute: '2-digit' 
+              {new Date(message.timestamp).toLocaleTimeString([], {
+                hour: '2-digit',
+                minute: '2-digit',
               })}
             </Text>
             {isUser && (
-              <CheckCircle2 size={12} color="#4CD964" style={styles.checkmark} />
+              <CheckCircle2
+                size={12}
+                color="#4CD964"
+                style={styles.checkmark}
+              />
             )}
           </View>
         </View>
@@ -177,7 +185,9 @@ export default function ScriptChatDemo() {
       <SafeAreaView style={styles.container} edges={['top']}>
         <View style={styles.centeredContainer}>
           <MessageCircle size={48} color="#888" />
-          <Text style={styles.centeredText}>Connectez-vous pour utiliser le Script Chat</Text>
+          <Text style={styles.centeredText}>
+            Connectez-vous pour utiliser le Script Chat
+          </Text>
         </View>
       </SafeAreaView>
     );
@@ -185,14 +195,12 @@ export default function ScriptChatDemo() {
 
   return (
     <SafeAreaView style={styles.container} edges={[]}>
-
       {/* Messages */}
-      <ScrollView 
+      <ScrollView
         ref={scrollViewRef}
         style={styles.messagesContainer}
         showsVerticalScrollIndicator={false}
       >
-      
         {isLoading && messages.length === 0 ? (
           <View style={styles.loadingContainer}>
             <ActivityIndicator size="large" color="#007AFF" />
@@ -201,14 +209,13 @@ export default function ScriptChatDemo() {
         ) : (
           <>
             {messages.map(renderMessage)}
-            
-  
+
             {currentScript && (
               <View style={styles.scriptPreview}>
                 <View style={styles.scriptHeader}>
                   <Text style={styles.scriptTitle}>📝 Script Actuel</Text>
                   {scriptDraft && (
-                    <TouchableOpacity 
+                    <TouchableOpacity
                       onPress={() => setShowActionsModal(true)}
                       style={styles.scriptActionsButton}
                     >
@@ -224,7 +231,7 @@ export default function ScriptChatDemo() {
             )}
           </>
         )}
-        
+
         {/* Indicateur de frappe global */}
         {isStreaming && (
           <View style={styles.typingIndicator}>
@@ -233,7 +240,9 @@ export default function ScriptChatDemo() {
               <View style={[styles.dot, styles.dot2]} />
               <View style={[styles.dot, styles.dot3]} />
             </View>
-            <Text style={styles.typingText}>L'IA analyse votre profil éditorial...</Text>
+            <Text style={styles.typingText}>
+              L&apos;IA analyse votre profil éditorial...
+            </Text>
           </View>
         )}
       </ScrollView>
@@ -243,19 +252,31 @@ export default function ScriptChatDemo() {
         {/* Exemples de prompts - style ChatGPT */}
         {messages.length === 0 && (
           <View style={styles.suggestionsContainer}>
-            <TouchableOpacity 
+            <TouchableOpacity
               style={styles.suggestionCard}
-              onPress={() => setInputMessage("Créer un MVP en Next.js avec best practices")}
+              onPress={() =>
+                setInputMessage('Créer un MVP en Next.js avec best practices')
+              }
             >
               <Text style={styles.suggestionTitle}>Créer un MVP</Text>
-              <Text style={styles.suggestionSubtitle}>en Next.js avec best practices</Text>
+              <Text style={styles.suggestionSubtitle}>
+                en Next.js avec best practices
+              </Text>
             </TouchableOpacity>
-            <TouchableOpacity 
+            <TouchableOpacity
               style={styles.suggestionCard}
-              onPress={() => setInputMessage("Trouver un positionnement pour un SaaS éducatif")}
+              onPress={() =>
+                setInputMessage(
+                  'Trouver un positionnement pour un SaaS éducatif'
+                )
+              }
             >
-              <Text style={styles.suggestionTitle}>Trouver un positionnement</Text>
-              <Text style={styles.suggestionSubtitle}>pour un SaaS éducatif</Text>
+              <Text style={styles.suggestionTitle}>
+                Trouver un positionnement
+              </Text>
+              <Text style={styles.suggestionSubtitle}>
+                pour un SaaS éducatif
+              </Text>
             </TouchableOpacity>
           </View>
         )}
@@ -272,11 +293,12 @@ export default function ScriptChatDemo() {
               maxLength={500}
               editable={!isStreaming}
             />
-            
+
             <TouchableOpacity
               style={[
                 styles.sendButton,
-                (!inputMessage.trim() || isStreaming) && styles.sendButtonDisabled
+                (!inputMessage.trim() || isStreaming) &&
+                  styles.sendButtonDisabled,
               ]}
               onPress={handleSendMessage}
               disabled={!inputMessage.trim() || isStreaming}
@@ -303,15 +325,14 @@ export default function ScriptChatDemo() {
         }}
         onScriptDuplicated={async (newScript: any) => {
           setShowActionsModal(false);
-                  router.push({
-          pathname: '/chat',
-          params: { scriptId: newScript.id },
-        });
+          router.push({
+            pathname: '/chat',
+            params: { scriptId: newScript.id },
+          });
         }}
         onValidate={validateScript}
         onGenerateVideo={handleGenerateVideo}
       />
-
     </SafeAreaView>
   );
 }
@@ -633,4 +654,4 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginLeft: 8,
   },
-}); 
+});

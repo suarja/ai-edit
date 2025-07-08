@@ -59,6 +59,7 @@ export default function useVideoRequest() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [prompt, setPrompt] = useState('');
+  const [scriptId, setScriptId] = useState<string | null>(null);
   const [systemPrompt, setSystemPrompt] = useState('');
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [selectedVideos, setSelectedVideos] = useState<string[]>([]);
@@ -88,7 +89,6 @@ export default function useVideoRequest() {
 
   const fetchInitialData = async () => {
     try {
-
       // Get the database user (which includes the database ID)
       const user = await fetchUser();
       if (!user) {
@@ -177,6 +177,15 @@ export default function useVideoRequest() {
   };
 
   const validateRequest = () => {
+    if (!scriptId) {
+      Alert.alert(
+        'Script manquant',
+        'Veuillez sélectionner un script pour générer une vidéo.',
+        [{ text: 'OK' }]
+      );
+      return false;
+    }
+
     if (!prompt || typeof prompt !== 'string' || !prompt.trim()) {
       Alert.alert(
         'Description manquante',
@@ -292,14 +301,17 @@ export default function useVideoRequest() {
         throw new Error('No authentication token available');
       }
 
-      const response = await fetch(API_ENDPOINTS.VIDEO_GENERATE(), {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${clerkToken}`,
-        },
-        body: JSON.stringify(requestPayload),
-      });
+      const response = await fetch(
+        API_ENDPOINTS.SCRIPT_GENERATE_VIDEO(scriptId!),
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${clerkToken}`,
+          },
+          body: JSON.stringify(requestPayload),
+        }
+      );
 
       const result = await response.json();
 
@@ -313,7 +325,7 @@ export default function useVideoRequest() {
         [
           {
             text: 'Voir mes vidéos',
-                            onPress: () => router.push('/videos'),
+            onPress: () => router.push('/videos'),
           },
         ]
       );
@@ -359,5 +371,6 @@ export default function useVideoRequest() {
     setUseEditorialProfile,
     setCustomEditorialProfile,
     setOutputLanguage,
+    setScriptId,
   };
 }

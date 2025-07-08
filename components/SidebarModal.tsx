@@ -7,9 +7,6 @@ import {
   TouchableOpacity,
   ScrollView,
   Pressable,
-  Animated,
-  StatusBar,
-  Platform,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
@@ -24,7 +21,6 @@ import {
   MessageCircle,
   X,
   BarChart3,
-  TrendingUp,
 } from 'lucide-react-native';
 
 interface SidebarModalProps {
@@ -60,7 +56,7 @@ export default function SidebarModal({ visible, onClose }: SidebarModalProps) {
           id: 'account-conversations',
           name: 'Chat TikTok',
           route: '(analysis)/account-conversations',
-          description: 'Conversations avec l\'expert IA TikTok',
+          description: "Conversations avec l'expert IA TikTok",
         },
         {
           id: 'account-insights',
@@ -137,8 +133,8 @@ export default function SidebarModal({ visible, onClose }: SidebarModalProps) {
   const [standaloneItems] = useState([]);
 
   const toggleFolder = (folderId: string) => {
-    setFolders(prev =>
-      prev.map(folder =>
+    setFolders((prev) =>
+      prev.map((folder) =>
         folder.id === folderId
           ? { ...folder, isExpanded: !folder.isExpanded }
           : folder
@@ -197,7 +193,7 @@ export default function SidebarModal({ visible, onClose }: SidebarModalProps) {
             </View>
           </TouchableOpacity>
         ))}
-        
+
         {/* Add action button specific to folder */}
         <TouchableOpacity
           style={styles.addButton}
@@ -225,12 +221,17 @@ export default function SidebarModal({ visible, onClose }: SidebarModalProps) {
             <Plus size={16} color="#007AFF" />
           </View>
           <Text style={[styles.addButtonText, { color: '#007AFF' }]}>
-            {folder.id === 'account-analysis' ? 'Chat TikTok' :
-             folder.id === 'scripts' ? 'Créer un script' :
-             folder.id === 'videos' ? 'Générer vidéo' :
-             folder.id === 'sources' ? 'Uploader média' :
-             folder.id === 'legacy' ? 'Créer (Legacy)' :
-             'Nouvelle action'}
+            {folder.id === 'account-analysis'
+              ? 'Chat TikTok'
+              : folder.id === 'scripts'
+              ? 'Créer un script'
+              : folder.id === 'videos'
+              ? 'Générer vidéo'
+              : folder.id === 'sources'
+              ? 'Uploader média'
+              : folder.id === 'legacy'
+              ? 'Créer (Legacy)'
+              : 'Nouvelle action'}
           </Text>
         </TouchableOpacity>
       </View>
@@ -258,7 +259,12 @@ export default function SidebarModal({ visible, onClose }: SidebarModalProps) {
       onRequestClose={onClose}
     >
       <View style={styles.overlay}>
-        <View style={[styles.sidebar, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>
+        <View
+          style={[
+            styles.sidebar,
+            { paddingTop: insets.top, paddingBottom: insets.bottom },
+          ]}
+        >
           {/* Header */}
           <View style={styles.header}>
             <Text style={styles.appName}>EditIA</Text>
@@ -266,9 +272,12 @@ export default function SidebarModal({ visible, onClose }: SidebarModalProps) {
               <X size={24} color="#888" />
             </TouchableOpacity>
           </View>
-          
+
           {/* Content */}
-          <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+          <ScrollView
+            style={styles.content}
+            showsVerticalScrollIndicator={false}
+          >
             {/* Folders */}
             {folders.map((folder) => (
               <View key={folder.id} style={styles.folderContainer}>
@@ -276,13 +285,11 @@ export default function SidebarModal({ visible, onClose }: SidebarModalProps) {
                 {renderFolderItems(folder)}
               </View>
             ))}
-
-
           </ScrollView>
 
           {/* Footer */}
           <View style={styles.footer}>
-            <TouchableOpacity 
+            <TouchableOpacity
               style={styles.userInfo}
               onPress={() => navigateToRoute('/settings')}
             >
@@ -290,7 +297,7 @@ export default function SidebarModal({ visible, onClose }: SidebarModalProps) {
               <Text style={styles.userName}>Paramètres</Text>
             </TouchableOpacity>
           </View>
-                  </View>
+        </View>
         <Pressable style={styles.backdrop} onPress={onClose} />
       </View>
     </Modal>
@@ -424,4 +431,4 @@ const styles = StyleSheet.create({
     fontSize: 14,
     marginLeft: 10,
   },
-}); 
+});

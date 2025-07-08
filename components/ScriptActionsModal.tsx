@@ -8,15 +8,14 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { useRouter } from 'expo-router';
-import { 
+import {
   Edit3,
   Video,
   CheckCircle,
   Copy,
   Trash2,
-  X
+  X,
 } from 'lucide-react-native';
-import { ScriptListItem } from '@/types/script';
 import { useAuth } from '@clerk/clerk-expo';
 import { API_ENDPOINTS } from '@/lib/config/api';
 
@@ -48,7 +47,7 @@ export default function ScriptActionsModal({
   const handleEdit = () => {
     onClose();
     router.push({
-              pathname: '/chat',
+      pathname: '/chat',
       params: { scriptId: script.id },
     });
   };
@@ -58,13 +57,16 @@ export default function ScriptActionsModal({
 
     try {
       const token = await getToken();
-      const response = await fetch(`${API_ENDPOINTS.SCRIPTS()}/${script.id}/duplicate`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-      });
+      const response = await fetch(
+        `${API_ENDPOINTS.SCRIPTS()}/${script.id}/duplicate`,
+        {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        }
+      );
 
       if (!response.ok) {
         throw new Error('Failed to duplicate script');
@@ -76,11 +78,9 @@ export default function ScriptActionsModal({
       onScriptDuplicated(duplicatedScript);
       onClose();
 
-      Alert.alert(
-        'Script dupliqué',
-        'Le script a été dupliqué avec succès.',
-        [{ text: 'OK' }]
-      );
+      Alert.alert('Script dupliqué', 'Le script a été dupliqué avec succès.', [
+        { text: 'OK' },
+      ]);
     } catch (error) {
       console.error('Error duplicating script:', error);
       Alert.alert('Erreur', 'Impossible de dupliquer le script');
@@ -102,13 +102,16 @@ export default function ScriptActionsModal({
             setActionLoading('delete');
             try {
               const token = await getToken();
-              const response = await fetch(`${API_ENDPOINTS.SCRIPTS()}/${script.id}`, {
-                method: 'DELETE',
-                headers: {
-                  'Authorization': `Bearer ${token}`,
-                  'Content-Type': 'application/json',
-                },
-              });
+              const response = await fetch(
+                `${API_ENDPOINTS.SCRIPTS()}/${script.id}`,
+                {
+                  method: 'DELETE',
+                  headers: {
+                    Authorization: `Bearer ${token}`,
+                    'Content-Type': 'application/json',
+                  },
+                }
+              );
 
               if (!response.ok) {
                 throw new Error('Failed to delete script');
@@ -139,13 +142,16 @@ export default function ScriptActionsModal({
 
     try {
       const token = await getToken();
-      const response = await fetch(`${API_ENDPOINTS.SCRIPTS()}/${script.id}/validate`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-      });
+      const response = await fetch(
+        `${API_ENDPOINTS.SCRIPTS()}/${script.id}/validate`,
+        {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        }
+      );
 
       if (!response.ok) {
         throw new Error('Failed to validate script');
@@ -163,14 +169,17 @@ export default function ScriptActionsModal({
 
   const handleGenerateVideo = () => {
     onClose();
-    
+
     if (onGenerateVideo) {
       onGenerateVideo();
       return;
     }
 
     if (!script.current_script?.trim()) {
-      Alert.alert('Erreur', 'Ce script est vide et ne peut pas être utilisé pour générer une vidéo');
+      Alert.alert(
+        'Erreur',
+        'Ce script est vide et ne peut pas être utilisé pour générer une vidéo'
+      );
       return;
     }
 
@@ -211,8 +220,8 @@ export default function ScriptActionsModal({
           {/* Actions */}
           <View style={styles.actions}>
             {/* Edit */}
-            <TouchableOpacity 
-              style={styles.actionItem} 
+            <TouchableOpacity
+              style={styles.actionItem}
               onPress={handleEdit}
               disabled={actionLoading !== null}
             >
@@ -222,8 +231,8 @@ export default function ScriptActionsModal({
 
             {/* Generate Video */}
             {hasScript && (
-              <TouchableOpacity 
-                style={styles.actionItem} 
+              <TouchableOpacity
+                style={styles.actionItem}
                 onPress={handleGenerateVideo}
                 disabled={actionLoading !== null}
               >
@@ -234,8 +243,8 @@ export default function ScriptActionsModal({
 
             {/* Validate */}
             {hasScript && !isValidated && (
-              <TouchableOpacity 
-                style={styles.actionItem} 
+              <TouchableOpacity
+                style={styles.actionItem}
                 onPress={handleValidate}
                 disabled={actionLoading !== null}
               >
@@ -251,8 +260,8 @@ export default function ScriptActionsModal({
             )}
 
             {/* Duplicate */}
-            <TouchableOpacity 
-              style={styles.actionItem} 
+            <TouchableOpacity
+              style={styles.actionItem}
               onPress={handleDuplicate}
               disabled={actionLoading !== null}
             >
@@ -265,8 +274,8 @@ export default function ScriptActionsModal({
             </TouchableOpacity>
 
             {/* Delete */}
-            <TouchableOpacity 
-              style={[styles.actionItem, styles.deleteAction]} 
+            <TouchableOpacity
+              style={[styles.actionItem, styles.deleteAction]}
               onPress={handleDelete}
               disabled={actionLoading !== null}
             >
@@ -347,4 +356,4 @@ const styles = {
     fontWeight: '500' as const,
     marginLeft: 12,
   },
-}; 
+};
