@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import {
   View,
   Text,
@@ -8,7 +8,6 @@ import {
   RefreshControl,
   Alert,
 } from 'react-native';
-import { Sparkles } from 'lucide-react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, useLocalSearchParams } from 'expo-router';
 
@@ -25,14 +24,6 @@ import ErrorDisplay from '@/app/components/ErrorDisplay';
 import AdvancedToggle from '@/app/components/AdvancedToggle';
 import LanguageSelector from '@/app/components/LanguageSelector';
 import { DiscreteUsageDisplay } from '@/components/DiscreteUsageDisplay';
-
-interface ScriptVideoSettingsParams {
-  scriptId: string;
-  script: string;
-  wordCount: string;
-  estimatedDuration: string;
-  title?: string;
-}
 
 export default function ScriptVideoSettingsScreen() {
   // Get script parameters from navigation
@@ -52,14 +43,8 @@ export default function ScriptVideoSettingsScreen() {
   const title = Array.isArray(params.title) ? params.title[0] : params.title;
 
   // RevenueCat integration
-  const {
-    isPro,
-    videosRemaining,
-    refreshUsage,
-    isReady,
-    userUsage,
-    dynamicVideosLimit,
-  } = useRevenueCat();
+  const { isPro, videosRemaining, refreshUsage, isReady, userUsage } =
+    useRevenueCat();
 
   // Main state and actions from hooks
   const videoRequest = useVideoRequest();
