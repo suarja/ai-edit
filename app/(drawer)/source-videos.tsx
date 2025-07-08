@@ -269,6 +269,11 @@ export default function SourceVideosScreen() {
           .update({
             analysis_status: 'completed',
             analysis_data: data,
+            description: data.description,
+            title: data.title,
+            tags: data.tags,
+            analysis_completed_at: new Date().toISOString(),
+            analysis_error: null,
           })
           .eq('id', videoId);
 
