@@ -4,8 +4,8 @@ import OpenAI from 'openai';
 import { createOpenAIClient } from '../config/openai';
 import { PromptService } from '@/lib/services/prompts';
 
-export class CreatomateBuilder {
-  private static instance: CreatomateBuilder;
+export class CreatomateBuilderAgent {
+  private static instance: CreatomateBuilderAgent;
   private docsCache: string | null = null;
   private openai: OpenAI;
   private model: string;
@@ -15,11 +15,11 @@ export class CreatomateBuilder {
     this.model = model;
   }
 
-  static getInstance(model: string): CreatomateBuilder {
-    if (!CreatomateBuilder.instance) {
-      CreatomateBuilder.instance = new CreatomateBuilder(model);
+  static getInstance(model: string): CreatomateBuilderAgent {
+    if (!CreatomateBuilderAgent.instance) {
+      CreatomateBuilderAgent.instance = new CreatomateBuilderAgent(model);
     }
-    return CreatomateBuilder.instance;
+    return CreatomateBuilderAgent.instance;
   }
 
   private async loadDocs(): Promise<string> {
