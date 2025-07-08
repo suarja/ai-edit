@@ -270,7 +270,7 @@ Génère le JSON Creatomate pour cette vidéo, en utilisant EXACTEMENT les asset
     const template = await this.generateTemplate({
       script: params.script,
       selectedVideos: params.selectedVideos,
-      voiceId: params.voiceId || 'NFcw9p0jKu3zbmXieNPE', // Default voice if not provided
+      voiceId: params.voiceId, // Default voice if not provided
       editorialProfile: params.editorialProfile,
       scenePlan,
       captionStructure: params.captionStructure,

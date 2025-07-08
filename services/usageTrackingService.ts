@@ -1,5 +1,5 @@
 import { supabase } from '@/lib/supabase';
-
+import { Database } from '../../server-primary/src/config/supabase-types';
 /**
  * Types de ressources pouvant être suivies
  */
@@ -12,20 +12,7 @@ export type ResourceType =
 /**
  * Interface pour les informations d'utilisation
  */
-export interface UserUsage {
-  id: string;
-  user_id: string;
-  videos_generated: number;
-  videos_limit: number;
-  source_videos_used: number;
-  source_videos_limit: number;
-  voice_clones_used: number;
-  voice_clones_limit: number;
-  account_analysis_used: number;
-  account_analysis_limit: number;
-  next_reset_date: string;
-  is_early_adopter?: boolean;
-}
+export type UserUsage = Database['public']['Tables']['user_usage']['Row'];
 
 /**
  * Récupère les informations d'utilisation d'un utilisateur
@@ -68,7 +55,7 @@ export async function hasReachedLimit(
 
     switch (resourceType) {
       case 'videos':
-        return usage.videos_generated >= usage.videos_limit;
+        return usage.videos_generated >= usage.videos_generated_limit;
       case 'source_videos':
         return usage.source_videos_used >= usage.source_videos_limit;
       case 'voice_clones':

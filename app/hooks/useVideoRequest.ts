@@ -283,7 +283,7 @@ export default function useVideoRequest() {
         : customEditorialProfile;
 
       const requestPayload = {
-        prompt: prompt && typeof prompt === 'string' ? prompt.trim() : '',
+        script: prompt && typeof prompt === 'string' ? prompt.trim() : '',
         systemPrompt:
           systemPrompt && typeof systemPrompt === 'string'
             ? systemPrompt.trim()
