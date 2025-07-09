@@ -45,6 +45,7 @@
     "expo-camera": "~16.1.8",
     "expo-constants": "~17.1.3",
     "expo-dev-client": "~5.2.0",
+    "expo-device": "~7.1.4",
     "expo-document-picker": "~13.1.5",
     "expo-font": "~13.3.1",
     "expo-haptics": "~14.1.3",
@@ -61,6 +62,7 @@
     "expo-system-ui": "~5.0.8",
     "expo-updates": "~0.28.17",
     "expo-video": "~2.2.1",
+    "expo-video-thumbnails": "~9.1.3",
     "expo-web-browser": "~14.2.0",
     "lucide-react-native": "^0.475.0",
     "marked": "^12.0.0",
@@ -80,9 +82,7 @@
     "react-native-vector-icons": "^10.2.0",
     "react-native-web": "^0.20.0",
     "react-native-webview": "13.13.5",
-    "zod": "^3.22.4",
-    "expo-device": "~7.1.4",
-    "expo-video-thumbnails": "~9.1.3"
+    "zod": "^3.22.4"
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",

@@ -8,6 +8,8 @@ import {
   StyleSheet,
   ActivityIndicator,
   Alert,
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
@@ -87,10 +89,10 @@ export default function ScriptChatDemo() {
 
   const handleSendMessage = async () => {
     if (!inputMessage.trim() || isStreaming) return;
-
+    const messageToSend = inputMessage.trim();
+    setInputMessage(''); // Vide l'input tout de suite
     try {
-      await sendMessage(inputMessage.trim());
-      setInputMessage('');
+      await sendMessage(messageToSend);
     } catch (err) {
       console.error('Error sending message:', err);
     }
@@ -155,7 +157,6 @@ export default function ScriptChatDemo() {
           {message.metadata?.isStreaming && (
             <View style={styles.streamingIndicator}>
               <ActivityIndicator size="small" color="#007AFF" />
-              <Text style={styles.streamingText}>En cours de frappe...</Text>
             </View>
           )}
 
@@ -194,146 +195,152 @@ export default function ScriptChatDemo() {
   }
 
   return (
-    <SafeAreaView style={styles.container} edges={[]}>
-      {/* Messages */}
-      <ScrollView
-        ref={scrollViewRef}
-        style={styles.messagesContainer}
-        showsVerticalScrollIndicator={false}
-      >
-        {isLoading && messages.length === 0 ? (
-          <View style={styles.loadingContainer}>
-            <ActivityIndicator size="large" color="#007AFF" />
-            <Text style={styles.loadingText}>Chargement du script...</Text>
-          </View>
-        ) : (
-          <>
-            {messages.map(renderMessage)}
-
-            {currentScript && (
-              <View style={styles.scriptPreview}>
-                <View style={styles.scriptHeader}>
-                  <Text style={styles.scriptTitle}>📝 Script Actuel</Text>
-                  {scriptDraft && (
-                    <TouchableOpacity
-                      onPress={() => setShowActionsModal(true)}
-                      style={styles.scriptActionsButton}
-                    >
-                      <MoreHorizontal size={16} color="#666" />
-                    </TouchableOpacity>
-                  )}
-                </View>
-                <Text style={styles.scriptContent}>{currentScript}</Text>
-                <Text style={styles.scriptMeta}>
-                  {wordCount} mots • ~{Math.round(estimatedDuration)} secondes
-                </Text>
-              </View>
-            )}
-          </>
-        )}
-
-        {/* Indicateur de frappe global */}
-        {isStreaming && (
-          <View style={styles.typingIndicator}>
-            <View style={styles.typingDots}>
-              <View style={[styles.dot, styles.dot1]} />
-              <View style={[styles.dot, styles.dot2]} />
-              <View style={[styles.dot, styles.dot3]} />
+    <KeyboardAvoidingView
+      style={{ flex: 1 }}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 100 : 0}
+    >
+      <SafeAreaView style={styles.container} edges={[]}>
+        {/* Messages */}
+        <ScrollView
+          ref={scrollViewRef}
+          style={styles.messagesContainer}
+          showsVerticalScrollIndicator={false}
+        >
+          {isLoading && messages.length === 0 ? (
+            <View style={styles.loadingContainer}>
+              <ActivityIndicator size="large" color="#007AFF" />
+              <Text style={styles.loadingText}>Chargement du script...</Text>
             </View>
-            <Text style={styles.typingText}>
-              L&apos;IA analyse votre profil éditorial...
-            </Text>
-          </View>
-        )}
-      </ScrollView>
+          ) : (
+            <>
+              {messages.map(renderMessage)}
 
-      {/* Zone de saisie style ChatGPT */}
-      <View style={styles.inputContainer}>
-        {/* Exemples de prompts - style ChatGPT */}
-        {messages.length === 0 && (
-          <View style={styles.suggestionsContainer}>
-            <TouchableOpacity
-              style={styles.suggestionCard}
-              onPress={() =>
-                setInputMessage('Créer un MVP en Next.js avec best practices')
-              }
-            >
-              <Text style={styles.suggestionTitle}>Créer un MVP</Text>
-              <Text style={styles.suggestionSubtitle}>
-                en Next.js avec best practices
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.suggestionCard}
-              onPress={() =>
-                setInputMessage(
-                  'Trouver un positionnement pour un SaaS éducatif'
-                )
-              }
-            >
-              <Text style={styles.suggestionTitle}>
-                Trouver un positionnement
-              </Text>
-              <Text style={styles.suggestionSubtitle}>
-                pour un SaaS éducatif
-              </Text>
-            </TouchableOpacity>
-          </View>
-        )}
-
-        <View style={styles.inputWrapper}>
-          <View style={styles.inputRow}>
-            <TextInput
-              style={styles.textInput}
-              value={inputMessage}
-              onChangeText={setInputMessage}
-              placeholder="Poser une question"
-              placeholderTextColor="#888"
-              multiline
-              maxLength={500}
-              editable={!isStreaming}
-            />
-
-            <TouchableOpacity
-              style={[
-                styles.sendButton,
-                (!inputMessage.trim() || isStreaming) &&
-                  styles.sendButtonDisabled,
-              ]}
-              onPress={handleSendMessage}
-              disabled={!inputMessage.trim() || isStreaming}
-            >
-              {isStreaming ? (
-                <ActivityIndicator size="small" color="#fff" />
-              ) : (
-                <Send size={18} color="#fff" />
+              {currentScript && (
+                <View style={styles.scriptPreview}>
+                  <View style={styles.scriptHeader}>
+                    <Text style={styles.scriptTitle}>📝 Script Actuel</Text>
+                    {scriptDraft && (
+                      <TouchableOpacity
+                        onPress={() => setShowActionsModal(true)}
+                        style={styles.scriptActionsButton}
+                      >
+                        <MoreHorizontal size={16} color="#666" />
+                      </TouchableOpacity>
+                    )}
+                  </View>
+                  <Text style={styles.scriptContent}>{currentScript}</Text>
+                  <Text style={styles.scriptMeta}>
+                    {wordCount} mots • ~{Math.round(estimatedDuration)} secondes
+                  </Text>
+                </View>
               )}
-            </TouchableOpacity>
+            </>
+          )}
+
+          {/* Indicateur de frappe global */}
+          {isStreaming && (
+            <View style={styles.typingIndicator}>
+              <View style={styles.typingDots}>
+                <View style={[styles.dot, styles.dot1]} />
+                <View style={[styles.dot, styles.dot2]} />
+                <View style={[styles.dot, styles.dot3]} />
+              </View>
+              <Text style={styles.typingText}>
+                L&apos;IA analyse votre profil éditorial...
+              </Text>
+            </View>
+          )}
+        </ScrollView>
+
+        {/* Zone de saisie style ChatGPT */}
+        <View style={styles.inputContainer}>
+          {/* Exemples de prompts - style ChatGPT */}
+          {messages.length === 0 && (
+            <View style={styles.suggestionsContainer}>
+              <TouchableOpacity
+                style={styles.suggestionCard}
+                onPress={() =>
+                  setInputMessage('Créer un MVP en Next.js avec best practices')
+                }
+              >
+                <Text style={styles.suggestionTitle}>Créer un MVP</Text>
+                <Text style={styles.suggestionSubtitle}>
+                  en Next.js avec best practices
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.suggestionCard}
+                onPress={() =>
+                  setInputMessage(
+                    'Trouver un positionnement pour un SaaS éducatif'
+                  )
+                }
+              >
+                <Text style={styles.suggestionTitle}>
+                  Trouver un positionnement
+                </Text>
+                <Text style={styles.suggestionSubtitle}>
+                  pour un SaaS éducatif
+                </Text>
+              </TouchableOpacity>
+            </View>
+          )}
+
+          <View style={styles.inputWrapper}>
+            <View style={styles.inputRow}>
+              <TextInput
+                style={styles.textInput}
+                value={inputMessage}
+                onChangeText={setInputMessage}
+                placeholder="Poser une question"
+                placeholderTextColor="#888"
+                multiline
+                maxLength={500}
+                editable={!isStreaming}
+              />
+
+              <TouchableOpacity
+                style={[
+                  styles.sendButton,
+                  (!inputMessage.trim() || isStreaming) &&
+                    styles.sendButtonDisabled,
+                ]}
+                onPress={handleSendMessage}
+                disabled={!inputMessage.trim() || isStreaming}
+              >
+                {isStreaming ? (
+                  <ActivityIndicator size="small" color="#fff" />
+                ) : (
+                  <Send size={18} color="#fff" />
+                )}
+              </TouchableOpacity>
+            </View>
           </View>
         </View>
-      </View>
 
-      {/* Actions Modal */}
-      <ScriptActionsModal
-        script={scriptDraft}
-        visible={showActionsModal}
-        onClose={() => setShowActionsModal(false)}
-        onScriptDeleted={async () => {
-          setShowActionsModal(false);
-          await deleteScript();
-          router.back();
-        }}
-        onScriptDuplicated={async (newScript: any) => {
-          setShowActionsModal(false);
-          router.push({
-            pathname: '/chat',
-            params: { scriptId: newScript.id },
-          });
-        }}
-        onValidate={validateScript}
-        onGenerateVideo={handleGenerateVideo}
-      />
-    </SafeAreaView>
+        {/* Actions Modal */}
+        <ScriptActionsModal
+          script={scriptDraft}
+          visible={showActionsModal}
+          onClose={() => setShowActionsModal(false)}
+          onScriptDeleted={async () => {
+            setShowActionsModal(false);
+            await deleteScript();
+            router.back();
+          }}
+          onScriptDuplicated={async (newScript: any) => {
+            setShowActionsModal(false);
+            router.push({
+              pathname: '/chat',
+              params: { scriptId: newScript.id },
+            });
+          }}
+          onValidate={validateScript}
+          onGenerateVideo={handleGenerateVideo}
+        />
+      </SafeAreaView>
+    </KeyboardAvoidingView>
   );
 }
 
@@ -449,6 +456,7 @@ const styles = StyleSheet.create({
   messageText: {
     fontSize: 16,
     lineHeight: 22,
+    color: '#fff',
   },
   userText: {
     color: '#fff',
@@ -475,7 +483,7 @@ const styles = StyleSheet.create({
   },
   timestamp: {
     fontSize: 11,
-    color: '#888',
+    color: '#fff',
   },
   checkmark: {
     marginLeft: 4,
