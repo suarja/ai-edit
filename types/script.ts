@@ -91,11 +91,13 @@ export const chatMessageSchema = z.object({
   role: z.enum(['user', 'assistant']),
   content: z.string(),
   timestamp: z.string(),
-  metadata: z.object({
-    isStreaming: z.boolean().optional(),
-    tokensUsed: z.number().optional(),
-    model: z.string().optional(),
-  }).optional(),
+  metadata: z
+    .object({
+      isStreaming: z.boolean().optional(),
+      tokensUsed: z.number().optional(),
+      model: z.string().optional(),
+    })
+    .optional(),
 });
 
 export const scriptDraftSchema = z.object({
@@ -129,7 +131,7 @@ export const scriptChatRequestSchema = z.object({
 // Utility Functions
 export const estimateScriptDuration = (script: string): number => {
   const wordCount = script.split(/\s+/).length;
-  return wordCount * 0.4; // 0.4 seconds per word
+  return wordCount * 0.9; // 0.8 seconds per word
 };
 
 export const generateScriptTitle = (script: string): string => {
@@ -154,4 +156,4 @@ export const isValidChatMessage = (message: any): message is ChatMessage => {
   } catch {
     return false;
   }
-}; 
+};

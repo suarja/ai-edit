@@ -17,6 +17,8 @@ import {
   MessageCircle,
   CheckCircle2,
   MoreHorizontal,
+  ChevronDown,
+  ChevronUp,
 } from 'lucide-react-native';
 import { useScriptChat } from '@/app/hooks/useScriptChat';
 import { useAuth } from '@clerk/clerk-expo';
@@ -43,6 +45,7 @@ export default function ScriptChatDemo() {
   const [inputMessage, setInputMessage] = useState('');
   const [showActionsModal, setShowActionsModal] = useState(false);
   const scrollViewRef = useRef<ScrollView>(null);
+  const [scriptOpen, setScriptOpen] = useState(false);
 
   // Utiliser le vrai hook avec options
   const {
@@ -213,29 +216,7 @@ export default function ScriptChatDemo() {
               <Text style={styles.loadingText}>Chargement du script...</Text>
             </View>
           ) : (
-            <>
-              {messages.map(renderMessage)}
-
-              {currentScript && (
-                <View style={styles.scriptPreview}>
-                  <View style={styles.scriptHeader}>
-                    <Text style={styles.scriptTitle}>📝 Script Actuel</Text>
-                    {scriptDraft && (
-                      <TouchableOpacity
-                        onPress={() => setShowActionsModal(true)}
-                        style={styles.scriptActionsButton}
-                      >
-                        <MoreHorizontal size={16} color="#666" />
-                      </TouchableOpacity>
-                    )}
-                  </View>
-                  <Text style={styles.scriptContent}>{currentScript}</Text>
-                  <Text style={styles.scriptMeta}>
-                    {wordCount} mots • ~{Math.round(estimatedDuration)} secondes
-                  </Text>
-                </View>
-              )}
-            </>
+            <>{messages.map(renderMessage)}</>
           )}
 
           {/* Indicateur de frappe global */}
@@ -247,11 +228,55 @@ export default function ScriptChatDemo() {
                 <View style={[styles.dot, styles.dot3]} />
               </View>
               <Text style={styles.typingText}>
-                L&apos;IA analyse votre profil éditorial...
+                EditIA analyse votre profil éditorial...
               </Text>
             </View>
           )}
         </ScrollView>
+
+        {/* Bloc script actuel collapsible juste au-dessus de l'input */}
+        {currentScript && currentScript.length > 0 && (
+          <View style={styles.collapsibleScriptContainer}>
+            <TouchableOpacity
+              style={styles.collapsibleHeader}
+              onPress={() => setScriptOpen((open) => !open)}
+              activeOpacity={0.7}
+            >
+              <Text
+                style={styles.collapsibleTitle}
+                numberOfLines={scriptOpen ? undefined : 1}
+              >
+                {scriptOpen
+                  ? 'Script actuel :'
+                  : 'Script actuel : ' + currentScript}
+              </Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                <TouchableOpacity
+                  onPress={() => setShowActionsModal(true)}
+                  style={styles.scriptActionsButton}
+                  hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                >
+                  <MoreHorizontal size={18} color="#888" />
+                </TouchableOpacity>
+                {scriptOpen ? (
+                  <ChevronUp size={18} color="#888" />
+                ) : (
+                  <ChevronDown size={18} color="#888" />
+                )}
+              </View>
+            </TouchableOpacity>
+            {scriptOpen && (
+              <View style={styles.collapsibleContent}>
+                <Text style={styles.collapsibleScriptText}>
+                  {currentScript}
+                </Text>
+                <Text style={styles.collapsibleMeta}>
+                  {wordCount} mots • ~{Math.round(estimatedDuration)} secondes
+                </Text>
+              </View>
+            )}
+          </View>
+        )}
 
         {/* Zone de saisie style ChatGPT */}
         <View style={styles.inputContainer}>
@@ -510,7 +535,8 @@ const styles = StyleSheet.create({
   scriptActionsButton: {
     padding: 4,
     borderRadius: 12,
-    backgroundColor: '#333',
+    backgroundColor: 'transparent',
+    marginRight: 4,
   },
   generateButton: {
     flexDirection: 'row',
@@ -661,5 +687,42 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginLeft: 8,
+  },
+  collapsibleScriptContainer: {
+    backgroundColor: '#181818',
+    borderRadius: 10,
+    margin: 12,
+    marginBottom: 0,
+    borderWidth: 1,
+    borderColor: '#333',
+    overflow: 'hidden',
+  },
+  collapsibleHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+  },
+  collapsibleTitle: {
+    color: '#fff',
+    fontSize: 15,
+    fontWeight: '600',
+    flex: 1,
+  },
+  collapsibleContent: {
+    paddingHorizontal: 14,
+    paddingBottom: 10,
+  },
+  collapsibleScriptText: {
+    color: '#fff',
+    fontSize: 15,
+    lineHeight: 22,
+    marginBottom: 4,
+  },
+  collapsibleMeta: {
+    color: '#888',
+    fontSize: 12,
+    fontStyle: 'italic',
   },
 });
