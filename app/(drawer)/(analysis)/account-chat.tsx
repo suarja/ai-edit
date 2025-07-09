@@ -289,18 +289,19 @@ export default function AccountChatScreen() {
               )}
             </View>
           )}
-
-          <View style={styles.inputWrapper}>
-            <TextInput
-              style={styles.textInput}
-              value={inputMessage}
-              onChangeText={setInputMessage}
-              placeholder="Posez une question ou donnez votre handle TikTok..."
-              placeholderTextColor="#888"
-              multiline
-              maxLength={500}
-              editable={!isLoading && !isStreaming}
-            />
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+            <View style={styles.inputWrapper}>
+              <TextInput
+                style={styles.textInput}
+                value={inputMessage}
+                onChangeText={setInputMessage}
+                placeholder="Posez une question ou donnez votre handle TikTok..."
+                placeholderTextColor="#888"
+                multiline
+                maxLength={500}
+                editable={!isLoading && !isStreaming}
+              />
+            </View>
 
             <TouchableOpacity
               style={[
@@ -544,6 +545,7 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
     flexDirection: 'row',
     alignItems: 'flex-end',
+    width: '85%',
     gap: 12,
   },
   textInput: {

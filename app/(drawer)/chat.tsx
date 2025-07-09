@@ -312,35 +312,36 @@ export default function ScriptChatDemo() {
             </View>
           )}
 
-          <View style={styles.inputWrapper}>
-            <View style={styles.inputRow}>
-              <TextInput
-                style={styles.textInput}
-                value={inputMessage}
-                onChangeText={setInputMessage}
-                placeholder="Poser une question"
-                placeholderTextColor="#888"
-                multiline
-                maxLength={500}
-                editable={!isStreaming}
-              />
-
-              <TouchableOpacity
-                style={[
-                  styles.sendButton,
-                  (!inputMessage.trim() || isStreaming) &&
-                    styles.sendButtonDisabled,
-                ]}
-                onPress={handleSendMessage}
-                disabled={!inputMessage.trim() || isStreaming}
-              >
-                {isStreaming ? (
-                  <ActivityIndicator size="small" color="#fff" />
-                ) : (
-                  <Send size={18} color="#fff" />
-                )}
-              </TouchableOpacity>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+            <View style={styles.inputWrapper}>
+              <View style={styles.inputRow}>
+                <TextInput
+                  style={styles.textInput}
+                  value={inputMessage}
+                  onChangeText={setInputMessage}
+                  placeholder="Poser une question"
+                  placeholderTextColor="#888"
+                  multiline
+                  maxLength={500}
+                  editable={!isStreaming}
+                />
+              </View>
             </View>
+            <TouchableOpacity
+              style={[
+                styles.sendButton,
+                (!inputMessage.trim() || isStreaming) &&
+                  styles.sendButtonDisabled,
+              ]}
+              onPress={handleSendMessage}
+              disabled={!inputMessage.trim() || isStreaming}
+            >
+              {isStreaming ? (
+                <ActivityIndicator size="small" color="#fff" />
+              ) : (
+                <Send size={18} color="#fff" />
+              )}
+            </TouchableOpacity>
           </View>
         </View>
 
@@ -629,6 +630,8 @@ const styles = StyleSheet.create({
     borderColor: '#333',
     paddingHorizontal: 4,
     paddingVertical: 4,
+    width: '85%',
+    gap: 12,
   },
   inputRow: {
     flexDirection: 'row',
