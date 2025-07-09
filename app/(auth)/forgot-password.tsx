@@ -8,14 +8,12 @@ import {
   Image,
   ScrollView,
   KeyboardAvoidingView,
-  Platform,
   Alert,
   ActivityIndicator,
 } from 'react-native';
 import { Link, router } from 'expo-router';
 import { useSignIn, useAuth } from '@clerk/clerk-expo';
 import { Mail, ArrowLeft } from 'lucide-react-native';
-import { reportAuthError } from '@/lib/services/errorReporting';
 import { withErrorBoundary } from '@/components/ErrorBoundary';
 import { IMAGES } from '@/lib/constants/images';
 
@@ -72,13 +70,6 @@ function ForgotPassword() {
       console.log('✅ Password reset email sent successfully');
     } catch (authError: any) {
       console.error('❌ Password reset error:', authError);
-
-      // Report error for debugging
-      reportAuthError(authError, {
-        screen: 'ForgotPassword',
-        action: 'clerk_reset_password_request',
-        userId: email,
-      });
 
       // Handle different Clerk error types
       let errorMessage = 'Une erreur est survenue';
@@ -159,13 +150,6 @@ function ForgotPassword() {
     } catch (authError: any) {
       console.error('❌ Password reset verification error:', authError);
 
-      // Report error for debugging
-      reportAuthError(authError, {
-        screen: 'ForgotPassword',
-        action: 'clerk_reset_password_verify',
-        userId: email,
-      });
-
       // Handle different Clerk error types
       let errorMessage = 'Erreur de vérification';
       if (authError.errors && authError.errors.length > 0) {
@@ -194,9 +178,7 @@ function ForgotPassword() {
   // If password reset email was sent successfully, show verification form
   if (successfulCreation && !secondFactor) {
     return (
-      <KeyboardAvoidingView
-        style={styles.container}
-      >
+      <KeyboardAvoidingView style={styles.container}>
         <ScrollView contentContainerStyle={styles.scrollContainer}>
           <View style={styles.header}>
             <TouchableOpacity
@@ -301,9 +283,7 @@ function ForgotPassword() {
 
   // Initial form to enter email
   return (
-    <KeyboardAvoidingView
-      style={styles.container}
-    >
+    <KeyboardAvoidingView style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollContainer}>
         <View style={styles.header}>
           <TouchableOpacity

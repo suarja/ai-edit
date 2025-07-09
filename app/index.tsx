@@ -10,7 +10,6 @@ import { Video, Play } from 'lucide-react-native';
 import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { withErrorBoundary } from '@/components/ErrorBoundary';
-import { reportAuthError } from '@/lib/services/errorReporting';
 import { IMAGES } from '@/lib/constants/images';
 import { useClerkAuth } from '@/hooks/useClerkAuth';
 
@@ -41,10 +40,6 @@ function LandingScreen() {
         setChecking(false);
       }
     } catch (error) {
-      reportAuthError(error as Error, {
-        screen: 'LandingScreen',
-        action: 'clerk_auth_check_exception',
-      });
       console.error('Exception during Clerk auth check:', error);
       setChecking(false);
     }
@@ -179,7 +174,6 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '600',
   },
-
 });
 
 // Export with error boundary

@@ -6,7 +6,6 @@ import {
   TextInput,
   TouchableOpacity,
   ActivityIndicator,
-  Platform,
   Image,
   KeyboardAvoidingView,
   ScrollView,
@@ -14,7 +13,6 @@ import {
 import { Link, router } from 'expo-router';
 import { useSignIn } from '@clerk/clerk-expo';
 import { Mail, Lock, ArrowRight } from 'lucide-react-native';
-import { reportAuthError } from '@/lib/services/errorReporting';
 import { withErrorBoundary } from '@/components/ErrorBoundary';
 import { IMAGES } from '@/lib/constants/images';
 
@@ -47,7 +45,6 @@ function SignIn() {
         password,
       });
 
-
       // If sign-in process is complete, set the created session as active
       if (signInAttempt.status === 'complete') {
         await setActive({ session: signInAttempt.createdSessionId });
@@ -62,13 +59,6 @@ function SignIn() {
       }
     } catch (authError: any) {
       console.error('Clerk sign in error:', authError);
-
-      // Report error for debugging
-      reportAuthError(authError, {
-        screen: 'SignInClerk',
-        action: 'clerk_sign_in',
-        userId: email,
-      });
 
       // Handle different Clerk error types
       let errorMessage = 'Authentication failed';
@@ -108,9 +98,7 @@ function SignIn() {
   };
 
   return (
-    <KeyboardAvoidingView
-      style={styles.container}
-      >
+    <KeyboardAvoidingView style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollContainer}>
         <View style={styles.header}>
           <Image

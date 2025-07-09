@@ -7,7 +7,6 @@ import {
   ScrollView,
 } from 'react-native';
 import { AlertTriangle, RefreshCw } from 'lucide-react-native';
-import { reportFatalError } from '@/lib/services/errorReporting';
 
 interface ErrorBoundaryState {
   hasError: boolean;
@@ -44,16 +43,6 @@ export class ErrorBoundary extends Component<
   }
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-    // Log the error to our error reporting service
-    reportFatalError(error, {
-      action: 'react_error_boundary',
-      metadata: {
-        componentStack:
-          errorInfo.componentStack || 'No component stack available',
-        errorBoundary: 'ErrorBoundary',
-      },
-    });
-
     // Call custom error handler if provided
     if (this.props.onError) {
       this.props.onError(

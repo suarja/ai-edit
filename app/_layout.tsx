@@ -8,7 +8,6 @@ import * as SplashScreen from 'expo-splash-screen';
 import { useEffect, useState, useRef } from 'react';
 import { useColorScheme as useSystemColorScheme } from 'react-native';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
-import { initializeErrorReporting } from '@/lib/services/errorReporting';
 import { logEnvironmentStatus, validateEnvironment } from '@/lib/config/env';
 import { Alert } from 'react-native';
 
@@ -120,9 +119,6 @@ export default function RootLayout() {
   useEffect(() => {
     const prepareApp = async () => {
       try {
-        // Initialize error reporting on app startup
-        initializeErrorReporting();
-
         // Validate environment variables
         logEnvironmentStatus();
         const envValidation = validateEnvironment();
@@ -176,7 +172,10 @@ export default function RootLayout() {
                   animationDuration: 300,
                 }}
               >
-                <Stack.Screen name="(drawer)" options={{ headerShown: false }} />
+                <Stack.Screen
+                  name="(drawer)"
+                  options={{ headerShown: false }}
+                />
                 <Stack.Screen name="(auth)" options={{ headerShown: false }} />
                 <Stack.Screen
                   name="(onboarding)"
@@ -192,9 +191,9 @@ export default function RootLayout() {
                 />
                 <Stack.Screen name="+not-found" />
                 <Stack.Screen name="index" options={{ headerShown: false }} />
-                <Stack.Screen 
-                  name="script-video-settings" 
-                  options={{ headerShown: false }} 
+                <Stack.Screen
+                  name="script-video-settings"
+                  options={{ headerShown: false }}
                 />
 
                 {/* Auth callback screens - accessible via deep linking */}

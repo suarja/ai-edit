@@ -8,7 +8,6 @@ import {
   Image,
   ScrollView,
   KeyboardAvoidingView,
-  Platform,
   Alert,
   ActivityIndicator,
 } from 'react-native';
@@ -17,7 +16,6 @@ import { useSignUp } from '@clerk/clerk-expo';
 import { Mail, Lock, User, ArrowRight } from 'lucide-react-native';
 import { IMAGES } from '@/lib/constants/images';
 import { withErrorBoundary } from '@/components/ErrorBoundary';
-import { reportAuthError } from '@/lib/services/errorReporting';
 
 function SignUp() {
   const { isLoaded, signUp, setActive } = useSignUp();
@@ -69,13 +67,6 @@ function SignUp() {
       }
     } catch (authError: any) {
       console.error('Clerk sign up error:', authError);
-
-      // Report error for debugging
-      reportAuthError(authError, {
-        screen: 'SignUp',
-        action: 'clerk_sign_up',
-        userId: email,
-      });
 
       // Handle different Clerk error types
       let errorMessage = 'Sign up failed';
@@ -154,13 +145,6 @@ function SignUp() {
     } catch (authError: any) {
       console.error('Clerk verification error:', authError);
 
-      // Report error for debugging
-      reportAuthError(authError, {
-        screen: 'SignUp',
-        action: 'clerk_verify_email',
-        userId: email,
-      });
-
       // Handle different Clerk error types
       let errorMessage = 'Email verification failed';
       if (authError.errors && authError.errors.length > 0) {
@@ -198,9 +182,7 @@ function SignUp() {
   // If verification is pending, show verification form
   if (pendingVerification) {
     return (
-      <KeyboardAvoidingView
-        style={styles.container}
-      >
+      <KeyboardAvoidingView style={styles.container}>
         <ScrollView contentContainerStyle={styles.scrollContainer}>
           <View style={styles.header}>
             <Image
@@ -267,9 +249,7 @@ function SignUp() {
   }
 
   return (
-    <KeyboardAvoidingView
-      style={styles.container}
-    >
+    <KeyboardAvoidingView style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollContainer}>
         <View style={styles.header}>
           <Image
