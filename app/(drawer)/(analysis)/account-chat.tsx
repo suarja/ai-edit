@@ -7,22 +7,16 @@ import {
   ScrollView,
   StyleSheet,
   ActivityIndicator,
-  Alert,
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { 
-  Send, 
-  MessageCircle, 
-  CheckCircle2, 
-  BarChart3, 
-  TrendingUp, 
-  Crown,
+import {
+  Send,
+  CheckCircle2,
+  TrendingUp,
   AlertCircle,
-  RefreshCw,
-  ArrowLeft,
-  Plus
 } from 'lucide-react-native';
-import { useAuth } from '@clerk/clerk-expo';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useRevenueCat } from '@/providers/RevenueCat';
 import { useTikTokChatSimple } from '@/hooks/useTikTokChatSimple';
@@ -32,19 +26,23 @@ import ProPaywall from '@/components/analysis/ProPaywall';
 
 /**
  * 🎯 SIMPLIFIED TIKTOK ANALYSIS CHAT
- * 
+ *
  * Simple flow like the working chat.tsx:
  * 1. Paywall check (if not Pro)
  * 2. Simple chat interface
  * 3. Regular JSON API calls (no streaming)
  */
 export default function AccountChatScreen() {
-  const { isSignedIn } = useAuth();
   const { isPro, goPro } = useRevenueCat();
-  const { conversationId, conversationTitle } = useLocalSearchParams<{ conversationId?: string, conversationTitle?: string }>();
+  const { conversationId, conversationTitle } = useLocalSearchParams<{
+    conversationId?: string;
+    conversationTitle?: string;
+  }>();
   const [inputMessage, setInputMessage] = useState('');
   const scrollViewRef = useRef<ScrollView>(null);
-  const [chatTitle, setChatTitle] = useState<string | null>(conversationTitle || null);
+  const [chatTitle, setChatTitle] = useState<string | null>(
+    conversationTitle || null
+  );
   // Use TikTok chat hook with streaming enabled
   const {
     messages,
@@ -56,7 +54,7 @@ export default function AccountChatScreen() {
     clearError,
     existingAnalysis,
     chatTitle: chatTitleHook,
-  } = useTikTokChatSimple({ 
+  } = useTikTokChatSimple({
     enableStreaming: false,
     conversationId: conversationId || undefined,
     conversationTitle: conversationTitle || undefined,
@@ -74,42 +72,47 @@ export default function AccountChatScreen() {
   // Reset input when conversation changes
   useEffect(() => {
     setInputMessage('');
-    console.log("conversationId", conversationId);
-    console.log("conversationTitle", conversationTitle);
+    console.log('conversationId', conversationId);
+    console.log('conversationTitle', conversationTitle);
   }, [conversationId]);
 
   // Helper function to render chat messages (same as working chat.tsx)
   function renderMessage(message: any) {
     const isUser = message.role === 'user';
-    
+
     return (
-      <View key={message.id} style={[
-        styles.messageContainer,
-        isUser ? styles.userMessage : styles.assistantMessage
-      ]}>
-        <View style={[
-          styles.messageBubble,
-          isUser ? styles.userBubble : styles.assistantBubble
-        ]}>
+      <View
+        key={message.id}
+        style={[
+          styles.messageContainer,
+          isUser ? styles.userMessage : styles.assistantMessage,
+        ]}
+      >
+        <View
+          style={[
+            styles.messageBubble,
+            isUser ? styles.userBubble : styles.assistantBubble,
+          ]}
+        >
           {isUser ? (
-            <Text style={styles.messageText}>
-              {message.content}
-            </Text>
+            <Text style={styles.messageText}>{message.content}</Text>
           ) : (
-            <Markdown style={markdownStyles}>
-              {message.content}
-            </Markdown>
+            <Markdown style={markdownStyles}>{message.content}</Markdown>
           )}
-          
+
           <View style={styles.messageFooter}>
             <Text style={styles.timestamp}>
-              {new Date(message.timestamp).toLocaleTimeString([], { 
-                hour: '2-digit', 
-                minute: '2-digit' 
+              {new Date(message.timestamp).toLocaleTimeString([], {
+                hour: '2-digit',
+                minute: '2-digit',
               })}
             </Text>
             {isUser && (
-              <CheckCircle2 size={12} color="#4CD964" style={styles.checkmark} />
+              <CheckCircle2
+                size={12}
+                color="#4CD964"
+                style={styles.checkmark}
+              />
             )}
           </View>
         </View>
@@ -120,17 +123,15 @@ export default function AccountChatScreen() {
   // Handle sending chat messages with streaming support
   const handleSendMessage = async () => {
     if (!inputMessage.trim() || isLoading || isStreaming) return;
-    
     const currentMessage = inputMessage.trim();
-    setInputMessage('');
-    
+    setInputMessage(''); // Vide l'input tout de suite
+
     try {
       await sendMessage(currentMessage);
     } catch (err) {
       console.error('Error sending message:', err);
     }
   };
-
 
   // Paywall for non-Pro users (simplified)
   if (!isPro) {
@@ -139,11 +140,11 @@ export default function AccountChatScreen() {
         title="Chat TikTok Pro"
         description="Analysez votre compte TikTok et discutez avec notre IA experte pour obtenir des conseils personnalisés et optimiser votre stratégie de contenu."
         features={[
-          "Analyse complète de votre compte TikTok",
-          "Chat intelligent avec votre expert IA",
-          "Recommandations personnalisées en temps réel",
+          'Analyse complète de votre compte TikTok',
+          'Chat intelligent avec votre expert IA',
+          'Recommandations personnalisées en temps réel',
           "Stratégies d'engagement optimisées",
-          "Analyse des tendances de votre niche",
+          'Analyse des tendances de votre niche',
         ]}
         onUpgrade={goPro}
       />
@@ -152,140 +153,174 @@ export default function AccountChatScreen() {
 
   // Main chat interface (simplified like chat.tsx)
   return (
-    <SafeAreaView 
-      key={conversationId || 'new'}
-      style={styles.container} 
-      edges={['top']}
+    <KeyboardAvoidingView
+      style={{ flex: 1 }}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
     >
-      {/* Header with reset button for testing */}
-      <AnalysisHeader 
-        title={chatTitle || 'Nouveau Chat'}
-        onBack={() => router.push('/(drawer)/(analysis)/account-conversations')}
-      />
-
-      {/* Messages */}
-      <ScrollView 
-        ref={scrollViewRef}
-        style={styles.messagesContainer}
-        showsVerticalScrollIndicator={false}
+      <SafeAreaView
+        key={conversationId || 'new'}
+        style={styles.container}
+        edges={['top']}
       >
-        {/* Welcome message */}
-        {messages.length === 0 && !isLoadingMessages && (
-          <View style={styles.welcomeMessage}>
-            <TrendingUp size={24} color="#007AFF" />
-            <Text style={styles.welcomeText}>
-              {existingAnalysis ? (
-                `👋 Salut ! Je connais votre compte @${existingAnalysis.tiktok_handle} et peux vous donner des conseils personnalisés basés sur votre analyse TikTok.`
-              ) : (
-                `👋 Salut ! Je suis votre expert TikTok IA. Posez-moi des questions sur la stratégie de contenu, l'engagement, ou donnez-moi votre handle TikTok pour une analyse personnalisée.`
-              )}
-            </Text>
-          </View>
-        )}
-
-        {isLoadingMessages && (
-          <View style={styles.loadingMessagesContainer}>
-            <ActivityIndicator size="small" color="#007AFF" />
-          </View>
-        )}
-
-        {/* Error display */}
-        {error && (
-          <View style={styles.errorContainer}>
-            <AlertCircle size={16} color="#ff5555" />
-            <Text style={styles.errorText}>{error}</Text>
-            <TouchableOpacity onPress={clearError} style={styles.errorDismiss}>
-              <Text style={styles.errorDismissText}>Fermer</Text>
-            </TouchableOpacity>
-          </View>
-        )}
+        {/* Header with reset button for testing */}
+        <AnalysisHeader
+          title={chatTitle || 'Nouveau Chat'}
+          onBack={() =>
+            router.push('/(drawer)/(analysis)/account-conversations')
+          }
+        />
 
         {/* Messages */}
-        {messages.map(renderMessage)}
-        
-        {/* Loading/Streaming indicator */}
-        {(isLoading || isStreaming) && (
-          <View style={styles.typingContainer}>
-            <ActivityIndicator size="small" color="#007AFF" />
-            <Text style={styles.typingText}>
-              {isStreaming ? 'L\'IA écrit...' : 'L\'IA réfléchit...'}
-            </Text>
-          </View>
-        )}
-      </ScrollView>
+        <ScrollView
+          ref={scrollViewRef}
+          style={styles.messagesContainer}
+          showsVerticalScrollIndicator={false}
+        >
+          {/* Welcome message */}
+          {messages.length === 0 && !isLoadingMessages && (
+            <View style={styles.welcomeMessage}>
+              <TrendingUp size={24} color="#007AFF" />
+              <Text style={styles.welcomeText}>
+                {existingAnalysis
+                  ? `👋 Salut ! Je connais votre compte @${existingAnalysis.tiktok_handle} et peux vous donner des conseils personnalisés basés sur votre analyse TikTok.`
+                  : `👋 Salut ! Je suis votre expert TikTok IA. Posez-moi des questions sur la stratégie de contenu, l'engagement, ou donnez-moi votre handle TikTok pour une analyse personnalisée.`}
+              </Text>
+            </View>
+          )}
 
-      {/* Input Section (simplified like chat.tsx) */}
-      <View style={styles.inputContainer}>
-        {/* Suggestions for first message */}
-        {messages.length === 0 && (
-          <View style={styles.suggestionsContainer}>
-            {existingAnalysis ? (
-              <>
-                <TouchableOpacity 
-                  style={styles.suggestionCard}
-                  onPress={() => setInputMessage(`Quels sont mes points forts sur @${existingAnalysis.tiktok_handle} ?`)}
-                >
-                  <Text style={styles.suggestionTitle}>Mes points forts</Text>
-                  <Text style={styles.suggestionSubtitle}>Analyse de mes forces</Text>
-                </TouchableOpacity>
-                <TouchableOpacity 
-                  style={styles.suggestionCard}
-                  onPress={() => setInputMessage("Comment améliorer mon engagement ?")}
-                >
-                  <Text style={styles.suggestionTitle}>Améliorer l'engagement</Text>
-                  <Text style={styles.suggestionSubtitle}>Conseils personnalisés</Text>
-                </TouchableOpacity>
-              </>
-            ) : (
-              <>
-                <TouchableOpacity 
-                  style={styles.suggestionCard}
-                  onPress={() => setInputMessage("Analyse mon compte @username")}
-                >
-                  <Text style={styles.suggestionTitle}>Analyser un compte</Text>
-                  <Text style={styles.suggestionSubtitle}>@username pour analyse complète</Text>
-                </TouchableOpacity>
-                <TouchableOpacity 
-                  style={styles.suggestionCard}
-                  onPress={() => setInputMessage("Comment améliorer mon engagement ?")}
-                >
-                  <Text style={styles.suggestionTitle}>Conseils d'engagement</Text>
-                  <Text style={styles.suggestionSubtitle}>Stratégies personnalisées</Text>
-                </TouchableOpacity>
-              </>
-            )}
-          </View>
-        )}
+          {isLoadingMessages && (
+            <View style={styles.loadingMessagesContainer}>
+              <ActivityIndicator size="small" color="#007AFF" />
+            </View>
+          )}
 
-        <View style={styles.inputWrapper}>
-          <TextInput
-            style={styles.textInput}
-            value={inputMessage}
-            onChangeText={setInputMessage}
-            placeholder="Posez une question ou donnez votre handle TikTok..."
-            placeholderTextColor="#888"
-            multiline
-            maxLength={500}
-            editable={!isLoading && !isStreaming}
-          />
-          
-          <TouchableOpacity
-            style={[
-              styles.sendButton,
-              (!inputMessage.trim() || isLoading || isStreaming) && styles.sendButtonDisabled
-            ]}
-            onPress={handleSendMessage}
-            disabled={!inputMessage.trim() || isLoading || isStreaming}
-          >
-            {(isLoading || isStreaming) ? (
-              <ActivityIndicator size="small" color="#fff" />
-            ) : (
-              <Send size={18} color="#fff" />
-            )}
-          </TouchableOpacity>
+          {/* Error display */}
+          {error && (
+            <View style={styles.errorContainer}>
+              <AlertCircle size={16} color="#ff5555" />
+              <Text style={styles.errorText}>{error}</Text>
+              <TouchableOpacity
+                onPress={clearError}
+                style={styles.errorDismiss}
+              >
+                <Text style={styles.errorDismissText}>Fermer</Text>
+              </TouchableOpacity>
+            </View>
+          )}
+
+          {/* Messages */}
+          {messages.map(renderMessage)}
+
+          {/* Loading/Streaming indicator */}
+          {(isLoading || isStreaming) && (
+            <View style={styles.typingContainer}>
+              <ActivityIndicator size="small" color="#007AFF" />
+              <Text style={styles.typingText}>
+                {isStreaming ? "L'IA écrit..." : "L'IA réfléchit..."}
+              </Text>
+            </View>
+          )}
+        </ScrollView>
+
+        {/* Input Section (simplified like chat.tsx) */}
+        <View style={styles.inputContainer}>
+          {/* Suggestions for first message */}
+          {messages.length === 0 && (
+            <View style={styles.suggestionsContainer}>
+              {existingAnalysis ? (
+                <>
+                  <TouchableOpacity
+                    style={styles.suggestionCard}
+                    onPress={() =>
+                      setInputMessage(
+                        `Quels sont mes points forts sur @${existingAnalysis.tiktok_handle} ?`
+                      )
+                    }
+                  >
+                    <Text style={styles.suggestionTitle}>Mes points forts</Text>
+                    <Text style={styles.suggestionSubtitle}>
+                      Analyse de mes forces
+                    </Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={styles.suggestionCard}
+                    onPress={() =>
+                      setInputMessage('Comment améliorer mon engagement ?')
+                    }
+                  >
+                    <Text style={styles.suggestionTitle}>
+                      Améliorer l&apos;engagement
+                    </Text>
+                    <Text style={styles.suggestionSubtitle}>
+                      Conseils personnalisés
+                    </Text>
+                  </TouchableOpacity>
+                </>
+              ) : (
+                <>
+                  <TouchableOpacity
+                    style={styles.suggestionCard}
+                    onPress={() =>
+                      setInputMessage('Analyse mon compte @username')
+                    }
+                  >
+                    <Text style={styles.suggestionTitle}>
+                      Analyser un compte
+                    </Text>
+                    <Text style={styles.suggestionSubtitle}>
+                      @username pour analyse complète
+                    </Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={styles.suggestionCard}
+                    onPress={() =>
+                      setInputMessage('Comment améliorer mon engagement ?')
+                    }
+                  >
+                    <Text style={styles.suggestionTitle}>
+                      Conseils d&apos;engagement
+                    </Text>
+                    <Text style={styles.suggestionSubtitle}>
+                      Stratégies personnalisées
+                    </Text>
+                  </TouchableOpacity>
+                </>
+              )}
+            </View>
+          )}
+
+          <View style={styles.inputWrapper}>
+            <TextInput
+              style={styles.textInput}
+              value={inputMessage}
+              onChangeText={setInputMessage}
+              placeholder="Posez une question ou donnez votre handle TikTok..."
+              placeholderTextColor="#888"
+              multiline
+              maxLength={500}
+              editable={!isLoading && !isStreaming}
+            />
+
+            <TouchableOpacity
+              style={[
+                styles.sendButton,
+                (!inputMessage.trim() || isLoading || isStreaming) &&
+                  styles.sendButtonDisabled,
+              ]}
+              onPress={handleSendMessage}
+              disabled={!inputMessage.trim() || isLoading || isStreaming}
+            >
+              {isLoading || isStreaming ? (
+                <ActivityIndicator size="small" color="#fff" />
+              ) : (
+                <Send size={18} color="#fff" />
+              )}
+            </TouchableOpacity>
+          </View>
         </View>
-      </View>
-    </SafeAreaView>
+      </SafeAreaView>
+    </KeyboardAvoidingView>
   );
 }
 
@@ -573,6 +608,5 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 16,
   },
-  upgradeButton: {
-  },
-}); 
+  upgradeButton: {},
+});
