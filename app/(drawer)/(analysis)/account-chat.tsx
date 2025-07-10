@@ -218,7 +218,7 @@ export default function AccountChatScreen() {
             <View style={styles.typingContainer}>
               <ActivityIndicator size="small" color="#007AFF" />
               <Text style={styles.typingText}>
-                {isStreaming ? "L'IA écrit..." : "L'IA réfléchit..."}
+                {isStreaming ? 'EditIA écrit...' : 'EditIA réfléchit...'}
               </Text>
             </View>
           )}
@@ -479,6 +479,7 @@ const styles = StyleSheet.create({
   messageText: {
     fontSize: 16,
     lineHeight: 22,
+    color: '#fff',
   },
   userText: {
     color: '#fff',
@@ -494,7 +495,7 @@ const styles = StyleSheet.create({
   },
   timestamp: {
     fontSize: 11,
-    color: '#888',
+    color: '#fff',
   },
   typingContainer: {
     flexDirection: 'row',

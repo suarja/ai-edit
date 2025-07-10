@@ -50,13 +50,16 @@ interface UseTikTokChatSimpleReturn {
  * Based on the working useScriptChat pattern
  * Now includes analysis context for proper LLM responses
  */
-export function useTikTokChatSimple(props: UseTikTokChatProps = {}): UseTikTokChatSimpleReturn {
+export function useTikTokChatSimple(
+  props: UseTikTokChatProps = {}
+): UseTikTokChatSimpleReturn {
   const { enableStreaming = false, conversationId, conversationTitle } = props;
   const { getToken } = useAuth();
   const { isPro } = useRevenueCat();
-  
+
   // Use the centralized hook for analysis context
-  const { analysis: existingAnalysis, isLoading: isAnalysisLoading } = useAccountAnalysis();
+  const { analysis: existingAnalysis, isLoading: isAnalysisLoading } =
+    useAccountAnalysis();
 
   // State
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -65,10 +68,14 @@ export function useTikTokChatSimple(props: UseTikTokChatProps = {}): UseTikTokCh
 
   const [isStreaming, setIsStreaming] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [chatTitle, setChatTitle] = useState<string | null>(conversationTitle || null);
-  
+  const [chatTitle, setChatTitle] = useState<string | null>(
+    conversationTitle || null
+  );
+
   // Track the ID of the conversation that is actually loaded
-  const [loadedConversationId, setLoadedConversationId] = useState<string | undefined>(undefined);
+  const [loadedConversationId, setLoadedConversationId] = useState<
+    string | undefined
+  >(undefined);
 
   // Handle conversation changes (existing or new)
   useEffect(() => {
@@ -77,7 +84,7 @@ export function useTikTokChatSimple(props: UseTikTokChatProps = {}): UseTikTokCh
       conversationId,
       loadedConversationId,
     });
-    
+
     if (isPro) {
       // Check if the conversationId from props is different from the one we have loaded
       if (conversationId !== loadedConversationId) {
@@ -85,10 +92,10 @@ export function useTikTokChatSimple(props: UseTikTokChatProps = {}): UseTikTokCh
           from: loadedConversationId,
           to: conversationId,
         });
-        
+
         // Reset state for the new conversation
         resetConversation();
-        
+
         if (conversationId) {
           console.log('📂 Loading new conversation:', conversationId);
           loadConversationMessages(conversationId);
@@ -107,40 +114,48 @@ export function useTikTokChatSimple(props: UseTikTokChatProps = {}): UseTikTokCh
   /**
    * Load conversation messages for existing conversation
    */
-  const loadConversationMessages = useCallback(async (convId: string) => {
-    try {
-      console.log('📥 Loading conversation messages:', convId);
-      const token = await getToken();
-      setIsLoadingMessages(true);
-      const response = await fetch(API_ENDPOINTS.TIKTOK_CONVERSATION_MESSAGES(convId), {
-        headers: { 'Authorization': `Bearer ${token}` },
-      });
+  const loadConversationMessages = useCallback(
+    async (convId: string) => {
+      try {
+        console.log('📥 Loading conversation messages:', convId);
+        const token = await getToken();
+        setIsLoadingMessages(true);
+        const response = await fetch(
+          API_ENDPOINTS.TIKTOK_CONVERSATION_MESSAGES(convId),
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
 
-      const data = await response.json();
-      if (data.success && data.data) {
-        // Transform server messages to ChatMessage format
-        const loadedMessages: ChatMessage[] = data.data.map((msg: any) => ({
-          id: msg.id || msg.message_id || Date.now().toString(),
-          role: msg.role,
-          content: msg.content,
-          timestamp: new Date(msg.created_at || msg.timestamp),
-        }));
-        
-        setMessages(loadedMessages);
-        console.log(`✅ Loaded ${loadedMessages.length} messages for conversation ${convId}`);
-      } else {
+        const data = await response.json();
+        if (data.success && data.data) {
+          // Transform server messages to ChatMessage format
+          const loadedMessages: ChatMessage[] = data.data.map((msg: any) => ({
+            id: msg.id || msg.message_id || Date.now().toString(),
+            role: msg.role,
+            content: msg.content,
+            timestamp: new Date(msg.created_at || msg.timestamp),
+          }));
+
+          setMessages(loadedMessages);
+          console.log(
+            `✅ Loaded ${loadedMessages.length} messages for conversation ${convId}`
+          );
+        } else {
           console.log('📭 No messages found for conversation:', convId);
           setMessages([]); // Ensure messages are cleared if a conversation is empty
-      }
-    } catch (error) {
-      console.warn('⚠️ Failed to load conversation messages:', error);
-      setMessages([]);
-    } finally {
+        }
+      } catch (error) {
+        console.warn('⚠️ Failed to load conversation messages:', error);
+        setMessages([]);
+      } finally {
         // Mark this conversation as loaded
         setLoadedConversationId(convId);
         setIsLoadingMessages(false);
-    }
-  }, [getToken]);
+      }
+    },
+    [getToken]
+  );
 
   /**
    * Clear error state
@@ -174,7 +189,7 @@ export function useTikTokChatSimple(props: UseTikTokChatProps = {}): UseTikTokCh
         timestamp: new Date(),
       };
 
-      setMessages(prev => [...prev, userMessage]);
+      setMessages((prev) => [...prev, userMessage]);
 
       const token = await getToken();
       const payload = {
@@ -185,13 +200,16 @@ export function useTikTokChatSimple(props: UseTikTokChatProps = {}): UseTikTokCh
         tiktok_handle: existingAnalysis?.tiktok_handle,
       };
 
-      
-
-      console.log("sendMessageRegular", payload, "conversationId", conversationId);
+      console.log(
+        'sendMessageRegular',
+        payload,
+        'conversationId',
+        conversationId
+      );
       const response = await fetch(API_ENDPOINTS.TIKTOK_ANALYSIS_CHAT(), {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${token}`,
+          Authorization: `Bearer ${token}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(payload),
@@ -200,11 +218,15 @@ export function useTikTokChatSimple(props: UseTikTokChatProps = {}): UseTikTokCh
       const result = await response.json();
 
       if (!result.success) {
-        console.log("result", result);
+        console.log('result', result);
         throw new Error(result.error || 'Failed to send message');
       }
 
-      console.log("result changeTitle", result.data.changeTitle);
+      console.log(
+        'result changeTitle',
+        result.data.changeTitle,
+        result.data.newTitle
+      );
 
       // Handle different response formats
       let assistantContent = '';
@@ -231,8 +253,7 @@ export function useTikTokChatSimple(props: UseTikTokChatProps = {}): UseTikTokCh
         timestamp: new Date(),
       };
 
-      setMessages(prev => [...prev, assistantMessage]);
-
+      setMessages((prev) => [...prev, assistantMessage]);
     } catch (error) {
       console.error('❌ Chat error:', error);
       setError(error instanceof Error ? error.message : 'Unknown error');
@@ -246,7 +267,7 @@ export function useTikTokChatSimple(props: UseTikTokChatProps = {}): UseTikTokCh
     // Determine which function to call based on enableStreaming prop
     if (enableStreaming) {
       // await sendMessageStreaming(message);
-      console.warn("Streaming is not fully implemented yet.");
+      console.warn('Streaming is not fully implemented yet.');
       await sendMessageRegular(message);
     } else {
       await sendMessageRegular(message);
@@ -266,4 +287,4 @@ export function useTikTokChatSimple(props: UseTikTokChatProps = {}): UseTikTokCh
     hasAnalysis: !!existingAnalysis,
     isLoadingMessages,
   };
-} 
+}

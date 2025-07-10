@@ -29,6 +29,7 @@ import { SubscriptionManager } from '@/components/SubscriptionManager';
 import { useClerkSupabaseClient } from '@/lib/supabase-clerk';
 import { useClerk } from '@clerk/clerk-expo';
 import { useGetUser } from '@/lib/hooks/useGetUser';
+import { Linking } from 'react-native';
 
 type UserProfile = {
   id: string;
@@ -615,67 +616,67 @@ export default function SettingsScreen() {
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Compte</Text>
-
-          {/* TODO: Implement API Keys functionality
-          <TouchableOpacity style={styles.settingItem}>
-            <View style={styles.settingInfo}>
-              <Key size={24} color="#fff" />
-              <Text style={styles.settingText}>Clés API</Text>
-            </View>
-          </TouchableOpacity>
-          */}
-
-          {/* TODO: Implement Privacy settings
-          <TouchableOpacity style={styles.settingItem}>
-            <View style={styles.settingInfo}>
-              <Shield size={24} color="#fff" />
-              <Text style={styles.settingText}>Confidentialité</Text>
-            </View>
-          </TouchableOpacity>
-          */}
-        </View>
-
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Préférences</Text>
-
-          {/* TODO: Implement Push Notifications functionality
-          <View style={styles.settingItem}>
-            <View style={styles.settingInfo}>
-              <Bell size={24} color="#fff" />
-              <Text style={styles.settingText}>Notifications Push</Text>
-            </View>
-            <Switch
-              trackColor={{ false: '#333', true: '#007AFF' }}
-              thumbColor="#fff"
-              value={notifications}
-              onValueChange={setNotifications}
-            />
-          </View>
-          */}
-
-          {/* TODO: Implement Language selection
-          <View style={styles.settingItem}>
-            <View style={styles.settingInfo}>
-              <Globe size={24} color="#fff" />
-              <Text style={styles.settingText}>Langue</Text>
-            </View>
-            <Text style={styles.settingValue}>Français</Text>
-          </View>
-          */}
-        </View>
-
-        <View style={styles.section}>
           <Text style={styles.sectionTitle}>Support</Text>
 
-          {/* TODO: Implement Help Center functionality
-          <TouchableOpacity style={styles.settingItem}>
-            <View style={styles.settingInfo}>
-              <HelpCircle size={24} color="#fff" />
-              <Text style={styles.settingText}>Centre d'Aide</Text>
-            </View>
-          </TouchableOpacity>
-          */}
+          <View style={styles.contactContainer}>
+            <Text style={styles.contactHeader}>
+              Contactez l&apos;équipe via votre canal préféré :
+            </Text>
+
+            {/* Email */}
+            <TouchableOpacity
+              style={styles.settingItem}
+              onPress={() => {
+                Linking.openURL('mailto:jason.h.suarez@gmail.com');
+              }}
+            >
+              <View style={styles.settingInfo}>
+                <AlertCircle size={24} color="#fff" />
+                <Text style={styles.settingText}>Email</Text>
+              </View>
+            </TouchableOpacity>
+
+            {/* WhatsApp */}
+            <TouchableOpacity
+              style={styles.settingItem}
+              onPress={() => {
+                Linking.openURL('https://wa.me/33660789132');
+              }}
+            >
+              <View style={styles.settingInfo}>
+                <Mic size={24} color="#25D366" />
+                <Text style={styles.settingText}>WhatsApp</Text>
+              </View>
+            </TouchableOpacity>
+
+            {/* Discord */}
+            <TouchableOpacity
+              style={styles.settingItem}
+              onPress={() => {
+                Linking.openURL('https://discord.gg/xNzaCV9cPb');
+              }}
+            >
+              <View style={styles.settingInfo}>
+                <Bug size={24} color="#7289da" />
+                <Text style={styles.settingText}>
+                  Discord : Rejoindre le serveur
+                </Text>
+              </View>
+            </TouchableOpacity>
+
+            {/* Telegram */}
+            <TouchableOpacity
+              style={styles.settingItem}
+              onPress={() => {
+                Linking.openURL('https://t.me/editia_support_bot');
+              }}
+            >
+              <View style={styles.settingInfo}>
+                <AlertCircle size={24} color="#229ED9" />
+                <Text style={styles.settingText}>Telegram</Text>
+              </View>
+            </TouchableOpacity>
+          </View>
         </View>
 
         {profile.role === 'admin' && adminSection}
@@ -969,5 +970,18 @@ const styles = StyleSheet.create({
     color: '#ef4444',
     fontSize: 14,
     flex: 1,
+  },
+  contactContainer: {
+    backgroundColor: '#181a20',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 8,
+    gap: 8,
+  },
+  contactHeader: {
+    color: '#fff',
+    fontSize: 15,
+    fontWeight: '500',
+    marginBottom: 8,
   },
 });
