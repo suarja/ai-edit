@@ -42,30 +42,8 @@ export default function VideoCard({
       activeOpacity={0.7}
     >
       <View style={styles.thumbnailContainer}>
-        <VideoThumbnail
-        
-          url={video.upload_url}
-          shouldLoad={isVisible}
-        />
-        <View style={styles.playButtonContainer}>
-          {isLoading ? (
-            <ActivityIndicator size="small" color="#fff" />
-          ) : (
-            <TouchableOpacity
-              style={styles.playButton}
-              onPress={(e) => {
-                e.stopPropagation();
-                onPlayToggle();
-              }}
-            >
-              <Play
-                size={24}
-                color="#fff"
-                style={isPlaying ? styles.playingIcon : undefined}
-              />
-            </TouchableOpacity>
-          )}
-        </View>
+        <VideoThumbnail url={video.upload_url} shouldLoad={isVisible} />
+
         <View style={styles.duration}>
           <Clock size={12} color="#fff" style={{ marginRight: 4 }} />
           <Text style={styles.durationText}>
