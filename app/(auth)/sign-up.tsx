@@ -188,7 +188,7 @@ function SignUp() {
             <Image
               source={{
                 uri:
-                  IMAGES.signUp?.header ||
+                  IMAGES.signUp?.header_plane ||
                   'https://images.pexels.com/photos/2882566/pexels-photo-2882566.jpeg',
               }}
               style={styles.headerImage}
