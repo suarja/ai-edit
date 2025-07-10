@@ -166,6 +166,7 @@ export default function AccountChatScreen() {
         {/* Header with reset button for testing */}
         <AnalysisHeader
           title={chatTitle || 'Nouveau Chat'}
+          showBackButton={true}
           onBack={() =>
             router.push('/(drawer)/(analysis)/account-conversations')
           }

@@ -72,6 +72,7 @@ function DrawerLayoutContent() {
           name="chat"
           options={{
             title: 'Créer un script',
+            headerShown: false,
           }}
         />
         <Tabs.Screen

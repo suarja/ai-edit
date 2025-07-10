@@ -25,6 +25,7 @@ import { useAuth } from '@clerk/clerk-expo';
 import { router, useLocalSearchParams } from 'expo-router';
 import ScriptActionsModal from '@/components/ScriptActionsModal';
 import Markdown from 'react-native-markdown-display';
+import AnalysisHeader from '@/components/analysis/AnalysisHeader';
 
 /**
  * 🎯 SCRIPT CHAT AVEC VRAIE API ET PROFIL ÉDITORIAL
@@ -203,7 +204,12 @@ export default function ScriptChat() {
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       keyboardVerticalOffset={Platform.OS === 'ios' ? 100 : 0}
     >
-      <SafeAreaView style={styles.container} edges={[]}>
+      <SafeAreaView style={styles.container} edges={['top']}>
+        <AnalysisHeader
+          title={title || 'Nouveau Chat'}
+          showBackButton={true}
+          onBack={() => router.push('/(drawer)/scripts')}
+        />
         {/* Messages */}
         <ScrollView
           ref={scrollViewRef}
