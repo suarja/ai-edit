@@ -31,7 +31,7 @@ export default function ScriptsScreen() {
 
   const handleCreateNewScript = () => {
     // Navigate to chat interface without scriptId (new script)
-    router.push('/chat');
+    router.push('/chat?new=true');
   };
 
   const handleEditScript = (scriptId: string) => {

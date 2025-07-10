@@ -36,7 +36,7 @@ import Markdown from 'react-native-markdown-display';
  * 4. Sauvegarde automatique en DB
  * 5. Streaming temps réel OpenAI
  */
-export default function ScriptChatDemo() {
+export default function ScriptChat() {
   const { isSignedIn } = useAuth();
   const { scriptId, new: isNewChat } = useLocalSearchParams<{
     scriptId?: string;
