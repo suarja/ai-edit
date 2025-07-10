@@ -498,17 +498,7 @@ export default function SourceVideosScreen() {
 
   return (
     <SafeAreaView style={styles.container} edges={[]}>
-      <ScrollView
-        style={styles.content}
-        showsVerticalScrollIndicator={false}
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={onRefresh}
-            tintColor="#007AFF"
-          />
-        }
-      >
+      <View style={styles.content}>
         {revenueCatReady && userUsage && !isPro && (
           <View style={styles.planInfoContainer}>
             <Text style={styles.planInfoText}>
@@ -758,10 +748,17 @@ export default function SourceVideosScreen() {
               maxToRenderPerBatch={5}
               windowSize={5}
               initialNumToRender={4}
+              refreshControl={
+                <RefreshControl
+                  refreshing={refreshing}
+                  onRefresh={onRefresh}
+                  tintColor="#007AFF"
+                />
+              }
             />
           )}
         </View>
-      </ScrollView>
+      </View>
     </SafeAreaView>
   );
 }

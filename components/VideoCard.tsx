@@ -42,7 +42,11 @@ export default function VideoCard({
       activeOpacity={0.7}
     >
       <View style={styles.thumbnailContainer}>
-        <VideoThumbnail url={video.upload_url} shouldLoad={isVisible} />
+        <VideoThumbnail
+        
+          url={video.upload_url}
+          shouldLoad={isVisible}
+        />
         <View style={styles.playButtonContainer}>
           {isLoading ? (
             <ActivityIndicator size="small" color="#fff" />

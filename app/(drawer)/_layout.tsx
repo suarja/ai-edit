@@ -1,6 +1,12 @@
 import React from 'react';
 import { Redirect, Tabs, usePathname } from 'expo-router';
-import { View, ActivityIndicator, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import {
+  View,
+  ActivityIndicator,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+} from 'react-native';
 import { useClerkAuth } from '@/hooks/useClerkAuth';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import DrawerToggle from '@/components/DrawerToggle';
@@ -8,27 +14,24 @@ import SidebarModal from '@/components/SidebarModal';
 import { SidebarProvider, useSidebar } from '@/contexts/SidebarContext';
 import { Plus, MoreHorizontal } from 'lucide-react-native';
 import { router } from 'expo-router';
-
+function HeaderRight() {
+  const pathname = usePathname();
+  if (pathname === '/chat') {
+    return (
+      <TouchableOpacity
+        style={styles.newChatButton}
+        onPress={() => {
+          router.replace(`/chat?new=${Date.now()}`);
+        }}
+      >
+        <Plus size={20} color="#fff" />
+      </TouchableOpacity>
+    );
+  }
+  return <></>;
+}
 function DrawerLayoutContent() {
   const { isOpen, closeSidebar } = useSidebar();
-  const pathname = usePathname();
-
-  const getHeaderRight = () => {
-    if (pathname === '/chat') {
-      return () => (
-        <TouchableOpacity 
-          style={styles.newChatButton}
-          onPress={() => {
-            // Force new chat by using replace with timestamp
-            router.replace(`/chat?new=${Date.now()}`);
-          }}
-        >
-          <Plus size={20} color="#fff" />
-        </TouchableOpacity>
-      );
-    }
-    return undefined;
-  };
 
   return (
     <>
@@ -40,7 +43,7 @@ function DrawerLayoutContent() {
           },
           headerTintColor: '#fff',
           headerLeft: () => <DrawerToggle />,
-          headerRight: getHeaderRight(),
+          headerRight: () => <HeaderRight />,
           tabBarStyle: { display: 'none' }, // Hide tab bar for now
         }}
       >
@@ -50,7 +53,7 @@ function DrawerLayoutContent() {
             href: null,
           }}
         />
-      
+
         <Tabs.Screen
           name="(analysis)"
           options={{
@@ -58,7 +61,7 @@ function DrawerLayoutContent() {
             headerShown: false,
           }}
         />
-  
+
         <Tabs.Screen
           name="scripts"
           options={{
@@ -68,13 +71,13 @@ function DrawerLayoutContent() {
         <Tabs.Screen
           name="chat"
           options={{
-            title: 'Script IA',
+            title: 'Créer un script',
           }}
         />
         <Tabs.Screen
           name="source-videos"
           options={{
-            title: 'Source Vidéos',
+            title: 'Mes Médias',
           }}
         />
         <Tabs.Screen
@@ -166,10 +169,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: '#007AFF',
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: 28,
+    height: 28,
+    borderRadius: 14,
     marginRight: 16,
+    marginBottom: 12,
   },
   newChatText: {
     color: '#fff',
