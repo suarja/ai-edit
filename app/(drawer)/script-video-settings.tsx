@@ -25,6 +25,7 @@ import ErrorDisplay from '@/app/components/ErrorDisplay';
 import AdvancedToggle from '@/app/components/AdvancedToggle';
 import LanguageSelector from '@/app/components/LanguageSelector';
 import { DiscreteUsageDisplay } from '@/components/DiscreteUsageDisplay';
+import { useAuth } from '@clerk/clerk-expo';
 
 export default function ScriptVideoSettingsScreen() {
   // Get script parameters from navigation
@@ -46,6 +47,8 @@ export default function ScriptVideoSettingsScreen() {
   // RevenueCat integration
   const { isPro, videosRemaining, refreshUsage, isReady, userUsage } =
     useRevenueCat();
+
+  const { getToken } = useAuth();
 
   // Main state and actions from hooks
   const videoRequest = useVideoRequest();
@@ -127,13 +130,11 @@ export default function ScriptVideoSettingsScreen() {
       try {
         // On tente de récupérer le jobId ou scriptId pour le contexte
         const jobId = scriptId || 'unknown';
-        // On suppose que getToken est accessible via videoRequest (sinon à adapter)
-        const token =
-          (videoRequest.getToken && (await videoRequest.getToken())) || '';
+        const token = await getToken();
         await SupportService.reportIssue({
           jobId,
+          token: token || '',
           errorMessage: error instanceof Error ? error.message : String(error),
-          token,
           context: { script, selectedVideos: videoRequest.selectedVideos },
           notifyUser: false, // On gère la popup manuellement
         });

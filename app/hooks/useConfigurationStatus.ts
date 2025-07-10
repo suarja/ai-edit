@@ -31,7 +31,7 @@ export default function useConfigurationStatus({
 }) {
   // Check if voice is configured
   const voiceConfigured = useMemo(() => {
-    return Boolean(voiceClone && voiceClone.status === 'completed');
+    return Boolean(voiceClone && voiceClone.status === 'ready');
   }, [voiceClone]);
 
   // Check if editorial profile is configured
