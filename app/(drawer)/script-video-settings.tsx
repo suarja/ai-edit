@@ -42,7 +42,6 @@ export default function ScriptVideoSettingsScreen() {
   const estimatedDuration = Array.isArray(params.estimatedDuration)
     ? params.estimatedDuration[0]
     : params.estimatedDuration;
-  const title = Array.isArray(params.title) ? params.title[0] : params.title;
 
   // RevenueCat integration
   const { isPro, videosRemaining, refreshUsage, isReady, userUsage } =
