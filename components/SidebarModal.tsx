@@ -137,6 +137,8 @@ export default function SidebarModal({ visible, onClose }: SidebarModalProps) {
       prev.map((folder) =>
         folder.id === folderId
           ? { ...folder, isExpanded: !folder.isExpanded }
+          : folder.isExpanded
+          ? { ...folder, isExpanded: false }
           : folder
       )
     );
