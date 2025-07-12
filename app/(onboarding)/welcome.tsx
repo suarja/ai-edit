@@ -1,18 +1,26 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Play, ArrowRight } from 'lucide-react-native';
+import { ArrowRight } from 'lucide-react-native';
 import { useOnboarding } from '@/components/providers/OnboardingProvider';
 import { ProgressBar } from '@/components/onboarding/ProgressBar';
 import { useOnboardingSteps } from '@/components/onboarding/OnboardingSteps';
 import { IMAGES } from '@/lib/constants/images';
+import { useVideoPlayer, VideoView } from 'expo-video';
 
 export default function WelcomeScreen() {
   const { nextStep, markStepCompleted } = useOnboarding();
   const onboardingSteps = useOnboardingSteps();
   const [videoPlaying, setVideoPlaying] = useState(false);
+  const videoUrl = IMAGES.welcome.video;
+
+  const player = useVideoPlayer(videoUrl, (player) => {
+    player.loop = true;
+    player.muted = true;
+  });
 
   const handleContinue = () => {
+    player.pause();
     markStepCompleted('welcome');
     nextStep();
   };
@@ -46,18 +54,14 @@ export default function WelcomeScreen() {
 
       <View style={styles.content}>
         <View style={styles.videoContainer}>
-          {videoPlaying ? (
-            <View style={styles.videoPlaceholder}>
-              <Text style={styles.videoText}>Démo vidéo en cours...</Text>
-            </View>
-          ) : (
-            <View style={styles.videoPlaceholder}>
-              <TouchableOpacity style={styles.playButton} onPress={toggleVideo}>
-                <Play size={40} color="#fff" />
-              </TouchableOpacity>
-              <Text style={styles.videoText}>Découvrez comment ça marche</Text>
-            </View>
-          )}
+          <VideoView
+            player={player}
+            style={styles.video}
+            contentFit="contain"
+            nativeControls
+            allowsFullscreen
+            allowsPictureInPicture
+          />
         </View>
 
         <View style={styles.features}>
@@ -169,6 +173,10 @@ const styles = StyleSheet.create({
   },
   featureList: {
     gap: 12,
+  },
+  video: {
+    width: '100%',
+    height: '100%',
   },
   featureItem: {
     flexDirection: 'row',

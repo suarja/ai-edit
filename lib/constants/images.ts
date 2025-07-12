@@ -8,6 +8,8 @@ export const IMAGES = {
       'https://images.pexels.com/photos/3756879/pexels-photo-3756879.jpeg',
     header_studio:
       'https://images.pexels.com/photos/2049411/pexels-photo-2049411.jpeg',
+    video:
+      'https://f002.backblazeb2.com/file/creatomate-c8xg3hsxdu/9907c35c-e678-4619-b1c8-781ef01d3e3a.mp4',
   },
   signIn: {
     header:

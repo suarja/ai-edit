@@ -39,9 +39,7 @@
       "edgeToEdgeEnabled": true,
       "softwareKeyboardLayoutMode": "pan",
       "package": "com.swarecito.aiedit",
-      "permissions": [
-        "android.permission.RECORD_AUDIO"
-      ]
+      "permissions": ["android.permission.RECORD_AUDIO"]
     },
     "web": {
       "bundler": "metro",
@@ -71,7 +69,14 @@
         }
       ],
       "expo-font",
-      "expo-video",
+      [
+        "expo-video",
+        {
+          "supportsBackgroundPlayback": true,
+          "supportsPictureInPicture": true,
+          "supportsFullscreen": true
+        }
+      ],
       "expo-web-browser"
     ],
     "experiments": {

@@ -6,7 +6,7 @@ import {
   TouchableOpacity,
   Text,
 } from 'react-native';
-import { Play, Pause, Volume2, VolumeX, FileVideo } from 'lucide-react-native';
+import { Volume2, VolumeX, FileVideo } from 'lucide-react-native';
 import { useVideoPlayer, VideoView } from 'expo-video';
 import { AnyVideoType, getVideoUrl } from '@/types/video';
 
