@@ -43,21 +43,23 @@ interface StartAnalysisScreenProps {
       }
     } */
 
-      const ResponseSchema = z.object({
-        success: z.boolean(),
-        message: z.string(),
-        data: z.object({
-          run_id: z.string(),
-          status: z.string(),
-          progress: z.number(),
-          tiktok_handle: z.string(),
-          account_id: z.string(),
-          started_at: z.string(),
-        }),
-      });
+const ResponseSchema = z.object({
+  success: z.boolean(),
+  message: z.string(),
+  data: z.object({
+    run_id: z.string(),
+    status: z.string(),
+    progress: z.number(),
+    tiktok_handle: z.string(),
+    account_id: z.string(),
+    started_at: z.string(),
+  }),
+});
 
-      type ResponseType = z.infer<typeof ResponseSchema>;
-const StartAnalysisScreen: React.FC<StartAnalysisScreenProps> = ({ onAnalysisStart }) => {
+type ResponseType = z.infer<typeof ResponseSchema>;
+const StartAnalysisScreen: React.FC<StartAnalysisScreenProps> = ({
+  onAnalysisStart,
+}) => {
   const { fetchUser } = useGetUser(); // Get userId from Clerk
   const { getToken } = useAuth();
 
@@ -70,46 +72,54 @@ const StartAnalysisScreen: React.FC<StartAnalysisScreenProps> = ({ onAnalysisSta
       setSubmitError("Veuillez entrer un nom d'utilisateur TikTok.");
       return;
     }
-    
+
     setIsSubmitting(true);
     setSubmitError(null);
 
     try {
-        const user = await fetchUser();
-        if (!user) {
-            setSubmitError("Utilisateur non trouvé.");
-            router.push('/(auth)/sign-in');
-            return;
+      const user = await fetchUser();
+      if (!user) {
+        setSubmitError('Utilisateur non trouvé.');
+        router.push('/(auth)/sign-in');
+        return;
+      }
+      // Step 1: Check for existing analysis silently
+      const validationResponse = await fetch(
+        API_ENDPOINTS.TIKTOK_ANALYSIS_VALIDATE(),
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${await getToken()}`,
+          },
+          body: JSON.stringify({ tiktokHandle: tiktokHandle, userId: user.id }),
         }
-        // Step 1: Check for existing analysis silently
-        const validationResponse = await fetch(API_ENDPOINTS.TIKTOK_ANALYSIS_VALIDATE(), {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                Authorization: `Bearer ${await getToken()}`,
+      );
+
+      const validationData: HandleValidationResult =
+        await validationResponse.json();
+
+      if (validationData.hasCompletedAnalysisForUser) {
+        // Step 2: If analysis exists, ask user if they want to overwrite
+        Alert.alert(
+          'Analyse Existante',
+          'Vous avez déjà une analyse pour ce compte. Voulez-vous la remplacer ?',
+          [
+            {
+              text: 'Annuler',
+              style: 'cancel',
+              onPress: () => setIsSubmitting(false),
             },
-            body: JSON.stringify({ tiktokHandle: tiktokHandle, userId: user.id }),
-        });
-
-        const validationData: HandleValidationResult = await validationResponse.json();
-
-        if (validationData.hasCompletedAnalysisForUser) {
-            // Step 2: If analysis exists, ask user if they want to overwrite
-            Alert.alert(
-                "Analyse Existante",
-                "Vous avez déjà une analyse pour ce compte. Voulez-vous la remplacer ?",
-                [
-                    { text: "Annuler", style: "cancel", onPress: () => setIsSubmitting(false) },
-                    { text: "Continuer", onPress: () => proceedWithAnalysis() }
-                ]
-            );
-        } else {
-            // Step 3: If no analysis exists, proceed directly
-            proceedWithAnalysis();
-        }
+            { text: 'Continuer', onPress: () => proceedWithAnalysis() },
+          ]
+        );
+      } else {
+        // Step 3: If no analysis exists, proceed directly
+        proceedWithAnalysis();
+      }
     } catch (err: any) {
-        setSubmitError(err.message || "Une erreur de validation est survenue.");
-        setIsSubmitting(false);
+      setSubmitError(err.message || 'Une erreur de validation est survenue.');
+      setIsSubmitting(false);
     }
   };
 
@@ -127,7 +137,7 @@ const StartAnalysisScreen: React.FC<StartAnalysisScreenProps> = ({ onAnalysisSta
       });
 
       const data = await response.json();
-      
+
       // Use safeParse to validate the response against the schema
       const parsedData = ResponseSchema.safeParse(data);
 
@@ -137,12 +147,13 @@ const StartAnalysisScreen: React.FC<StartAnalysisScreenProps> = ({ onAnalysisSta
         onAnalysisStart(parsedData.data.data);
       } else {
         // On failure, format a user-friendly error from the Zod issues
-        console.error("Zod validation error:", parsedData.error.issues);
+        console.error('Zod validation error:', parsedData.error.issues);
         const firstError = parsedData.error.errors[0];
-        const errorMessage = `Erreur de données : ${firstError.message} pour le champ '${firstError.path.join('.')}'.`;
+        const errorMessage = `Erreur de données : ${
+          firstError.message
+        } pour le champ '${firstError.path.join('.')}'.`;
         throw new Error(errorMessage);
       }
-
     } catch (err: any) {
       setSubmitError(err.message);
     } finally {
@@ -152,48 +163,54 @@ const StartAnalysisScreen: React.FC<StartAnalysisScreenProps> = ({ onAnalysisSta
 
   return (
     <SafeAreaView style={styles.container}>
-    <KeyboardAvoidingView
-      style={styles.container}
-    >
-      <AnalysisHeader
-        title={'Lancer une analyse'}
-        onBack={() => router.back()}
-      />
-      <View style={styles.content}>
-        <View style={styles.header}>
-          <Icon name="logo-tiktok" size={32} color="#fff" />
+      <KeyboardAvoidingView style={styles.container}>
+        <AnalysisHeader
+          title={'Lancer une analyse'}
+          onBack={() => router.back()}
+        />
+        <View style={styles.content}>
+          <View style={styles.header}>
+            <Icon name="logo-tiktok" size={32} color="#fff" />
+          </View>
+          <Text style={styles.subtitle}>
+            Lancez une analyse IA de n&apos;importe quel compte TikTok pour
+            obtenir des insights de croissance.
+          </Text>
+          <View style={styles.inputContainer}>
+            <TextInput
+              style={styles.input}
+              placeholder="@handle"
+              placeholderTextColor="#888"
+              value={tiktokHandle}
+              onChangeText={(text) =>
+                setTiktokHandle(
+                  text.replace(/[^a-zA-Z0-9._]/g, '').toLowerCase()
+                )
+              }
+              autoCapitalize="none"
+              autoCorrect={false}
+              selectionColor="#007AFF"
+              onSubmitEditing={handleStartAnalysis}
+              returnKeyType="go"
+            />
+          </View>
+          <TouchableOpacity
+            style={[
+              styles.button,
+              { opacity: isSubmitting || !tiktokHandle ? 0.5 : 1 },
+            ]}
+            onPress={handleStartAnalysis}
+            disabled={isSubmitting || !tiktokHandle}
+          >
+            {isSubmitting ? (
+              <ActivityIndicator color="#fff" />
+            ) : (
+              <Text style={styles.buttonText}>Lancer l&apos;analyse</Text>
+            )}
+          </TouchableOpacity>
+          {submitError && <Text style={styles.errorText}>{submitError}</Text>}
         </View>
-        <Text style={styles.subtitle}>
-          Lancez une analyse IA de n'importe quel compte TikTok pour obtenir des insights de croissance.
-        </Text>
-        <View style={styles.inputContainer}>
-          <TextInput
-            style={styles.input}
-            placeholder="@handle"
-            placeholderTextColor="#888"
-            value={tiktokHandle}
-            onChangeText={(text) => setTiktokHandle(text.replace(/[^a-zA-Z0-9._]/g, '').toLowerCase())}
-            autoCapitalize="none"
-            autoCorrect={false}
-            selectionColor="#007AFF"
-            onSubmitEditing={handleStartAnalysis}
-            returnKeyType="go"
-          />
-        </View>
-        <TouchableOpacity
-          style={[styles.button, { opacity: isSubmitting || !tiktokHandle ? 0.5 : 1 }]}
-          onPress={handleStartAnalysis}
-          disabled={isSubmitting || !tiktokHandle}
-        >
-          {isSubmitting ? (
-            <ActivityIndicator color="#fff" />
-          ) : (
-            <Text style={styles.buttonText}>Lancer l'analyse</Text>
-          )}
-        </TouchableOpacity>
-        {submitError && <Text style={styles.errorText}>{submitError}</Text>}
-      </View>
-    </KeyboardAvoidingView>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 };
@@ -273,4 +290,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default StartAnalysisScreen; 
+export default StartAnalysisScreen;

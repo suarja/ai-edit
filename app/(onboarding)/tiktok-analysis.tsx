@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -11,19 +11,12 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import {
-  TrendingUp,
-  Search,
-  Brain,
-  Target,
   CheckCircle,
-  ArrowRight,
-  Clock,
   ChevronLeft,
   UserSearch,
   Sparkles,
 } from 'lucide-react-native';
-import { useTikTokAnalysis } from '@/hooks/useTikTokAnalysis';
-import { useOnboarding } from '@/components/providers/OnboardingProvider';
+  import { useOnboarding } from '@/components/providers/OnboardingProvider';
 import { useFeatureAccess } from '@/hooks/useFeatureAccess';
 import { ProFeatureLock } from '@/components/guards/ProFeatureLock';
 import { useAccountAnalysisApi } from '@/hooks/useAccountAnalysisApi';
@@ -44,8 +37,6 @@ export default function TikTokAnalysisScreen() {
   const { analysis: existingAnalysis, isLoading: isAnalysisLoading } =
     useAccountAnalysis();
   const { nextStep } = useOnboarding();
-
-  const { isAnalyzing, error } = useTikTokAnalysis();
 
   const handleStartAnalysis = async () => {
     if (!handle.trim()) {
@@ -116,7 +107,7 @@ export default function TikTokAnalysisScreen() {
           <Text style={styles.title}>Analyse Déjà Effectuée</Text>
           <Text style={styles.description}>
             Vous avez déjà une analyse de compte active. Vous pouvez la
-            consulter dans la section "Analyse".
+            consulter dans la section &quot;Analyse&quot;.
           </Text>
           <TouchableOpacity
             style={[styles.startButton, { backgroundColor: '#4CAF50' }]}
@@ -147,8 +138,8 @@ export default function TikTokAnalysisScreen() {
         </View>
         <Text style={styles.title}>Analysez un Compte TikTok</Text>
         <Text style={styles.description}>
-          Entrez le @handle d'un compte pour que notre IA analyse sa stratégie
-          de contenu, ses performances et ses métriques d'audience.
+          Entrez le @handle d&apos;un compte pour que notre IA analyse sa
+          stratégie de contenu, ses performances et ses métriques d&apos;audience.
         </Text>
         <View style={styles.inputContainer}>
           <Text style={styles.atSymbol}>@</Text>
@@ -171,7 +162,7 @@ export default function TikTokAnalysisScreen() {
           ) : (
             <>
               <Sparkles size={20} color="#fff" />
-              <Text style={styles.startButtonText}>Lancer l'Analyse</Text>
+              <Text style={styles.startButtonText}>Lancer l&apos;Analyse</Text>
             </>
           )}
         </TouchableOpacity>

@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@clerk/clerk-expo';
 import { useRevenueCat } from '@/providers/RevenueCat';
 import { API_ENDPOINTS } from '@/lib/config/api';
@@ -9,20 +9,6 @@ interface ChatMessage {
   role: 'user' | 'assistant';
   content: string;
   timestamp: Date;
-}
-
-interface ExistingAnalysis {
-  id: string;
-  tiktok_handle: string;
-  status: string;
-  result?: any;
-}
-
-interface TikTokAnalysis {
-  id: string;
-  tiktok_handle: string;
-  status: string;
-  result?: any;
 }
 
 interface UseTikTokChatProps {

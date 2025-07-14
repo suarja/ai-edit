@@ -151,81 +151,97 @@ export const API_ENDPOINTS = {
     return 'https://api.creatomate.com/v1/renders';
   },
 
-  // Video generation endpoints
+  /**
+   * @deprecated
+   * Not used anymore but in the legacy create video page
+   */
   VIDEO_GENERATE: () => {
     const config = getCurrentConfig();
     return config.baseUrl + config.videoGenerate;
   },
 
+  //* Video status endpoints
   VIDEO_STATUS: (videoId: string) => {
     const config = getCurrentConfig();
     return `${config.baseUrl}${config.videoStatus}/${videoId}`;
   },
 
-  // File upload
+  //* File upload
   S3_UPLOAD: () => {
     const config = getCurrentConfig();
     return config.baseUrl + config.s3Upload;
   },
 
-  // Video analysis
+  //* Video analysis
   VIDEO_ANALYSIS: () => {
     const config = getCurrentConfig();
     return config.baseUrl + '/api/video-analysis';
   },
 
-  // Video deletion
+  //* Video deletion
   VIDEO_DELETE: () => {
     const config = getCurrentConfig();
     return config.baseUrl + '/api/videos';
   },
 
-  // Prompt enhancement
+  /**
+   * @deprecated
+   * Not used anymore but in the legacy create video page
+   */
   PROMPTS_ENHANCE: () => {
     const config = getCurrentConfig();
     return config.baseUrl + config.promptsEnhance;
   },
-
+  /**
+   * @deprecated
+   * Not used anymore but in the legacy create video page
+   */
   PROMPTS_ENHANCE_SYSTEM: () => {
     const config = getCurrentConfig();
     return config.baseUrl + config.promptsEnhanceSystem;
   },
-
+  /**
+   * @deprecated
+   * Not used anymore but in the legacy create video page
+   */
   PROMPTS_GENERATE_SYSTEM: () => {
     const config = getCurrentConfig();
     return config.baseUrl + config.promptsGenerateSystem;
   },
 
-  // Script chat endpoints
+  //* Script chat endpoints
   SCRIPTS: () => {
     const config = getCurrentConfig();
     return config.baseUrl + config.scripts;
   },
-
+  //* Generate video from script
   SCRIPT_GENERATE_VIDEO: (scriptId: string) => {
     const config = getCurrentConfig();
     return `${config.baseUrl}${config.scripts}/${scriptId}/generate-video`;
   },
 
-  // Webhooks
+  /**
+   * @deprecated
+   * Not used anymore since moved to dedicated server
+   */
   WEBHOOKS_CREATOMATE: () => {
     const config = getCurrentConfig();
     return config.baseUrl + config.webhooksCreatomate;
   },
 
-  // Voice Clone (Node.js server)
+  //* Voice Clone (Node.js server)
   VOICE_CLONE: () => {
     const config = getCurrentConfig();
     return config.baseUrl + config.voiceClone;
   },
 
-  // Onboarding (Node.js server)
+  //* Onboarding (Node.js server)
   ONBOARDING: () => {
     const config = getCurrentConfig();
     return config.baseUrl + config.onboarding;
   },
 
-  // TikTok Analysis endpoints
+  //* TikTok Analysis endpoints
   TIKTOK_ANALYSIS_START: () => {
     const config = getCurrentConfig();
     return (
@@ -233,21 +249,30 @@ export const API_ENDPOINTS = {
     );
   },
 
+  //* TikTok Analysis status
   TIKTOK_ANALYSIS_STATUS: (runId: string) => {
     const config = getCurrentConfig();
     return `${config.tiktokAnalyzer.baseUrl}${config.tiktokAnalyzer.accountAnalysisStatus}/${runId}`;
   },
-
+  /**
+   * @deprecated
+   * Not used anymore
+   */
   TIKTOK_ANALYSIS_RESULT: (runId: string) => {
     const config = getCurrentConfig();
     return `${config.tiktokAnalyzer.baseUrl}${config.tiktokAnalyzer.accountAnalysisResult}/${runId}`;
   },
 
+  //* TikTok Account context
   TIKTOK_ACCOUNT_CONTEXT: (accountId: string) => {
     const config = getCurrentConfig();
     return `${config.tiktokAnalyzer.baseUrl}/api/account-context/${accountId}`;
   },
 
+  /**
+   * @deprecated
+   * Not used anymore
+   */
   TIKTOK_ANALYSIS_CHAT: () => {
     const config = getCurrentConfig();
     return (
@@ -255,6 +280,7 @@ export const API_ENDPOINTS = {
     );
   },
 
+  //* TikTok Analysis existing
   TIKTOK_ANALYSIS_EXISTING: () => {
     const config = getCurrentConfig();
     return (
@@ -262,28 +288,38 @@ export const API_ENDPOINTS = {
       config.tiktokAnalyzer.accountAnalysisExisting
     );
   },
-
+  /**
+   * @deprecated
+   * Not used anymore
+   */
   TIKTOK_HANDLE_VALIDATE: () => {
     const config = getCurrentConfig();
     return config.tiktokAnalyzer.baseUrl + config.tiktokAnalyzer.handleValidate;
   },
 
+  //* TikTok Conversations
   TIKTOK_CONVERSATIONS: () => {
     const config = getCurrentConfig();
     return `${config.tiktokAnalyzer.baseUrl}/api/account-analysis/conversations`;
   },
 
+  //* TikTok Conversation messages
   TIKTOK_CONVERSATION_MESSAGES: (conversationId: string) => {
     const config = getCurrentConfig();
     return `${config.tiktokAnalyzer.baseUrl}/api/account-analysis/conversations/${conversationId}/messages`;
   },
 
-  // Supabase functions (still needed)
-  SUPABASE_CREATE_VOICE_CLONE: () => {
+  /**
+   * @deprecated
+   * Not used anymore
+   */ SUPABASE_CREATE_VOICE_CLONE: () => {
     const config = getCurrentConfig();
     return config.supabase.baseUrl + config.supabase.functions.createVoiceClone;
   },
-
+  /**
+   * @deprecated
+   * Not used anymore
+   */
   SUPABASE_PROCESS_ONBOARDING: () => {
     const config = getCurrentConfig();
     return (
@@ -291,18 +327,19 @@ export const API_ENDPOINTS = {
     );
   },
 
-  // New TikTok Analysis endpoints
+  //* New TikTok Analysis endpoints
   TIKTOK_ANALYSIS_VALIDATE: () => {
     const config = getCurrentConfig();
     return config.tiktokAnalyzer.baseUrl + config.tiktokAnalyzer.handleValidate;
   },
 
+  //* TikTok Analysis active job
   TIKTOK_ANALYSIS_ACTIVE_JOB: () => {
     const config = getCurrentConfig();
     return `${config.tiktokAnalyzer.baseUrl}/account-analysis/active-job`;
   },
 
-  // Support
+  //* Support
   SUPPORT_REPORT_ISSUE: () => {
     const config = getCurrentConfig();
     return config.baseUrl + config.support + '/report-issue';
