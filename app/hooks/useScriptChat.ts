@@ -171,14 +171,9 @@ export function useScriptChat(
         });
 
         if (!response.ok) {
-          console.error(
-            '❌ Response not ok:',
-            response.status,
-            response.statusText
-          );
-          throw new Error(
-            `Failed to send message: ${response.status} ${response.statusText}`
-          );
+          const result = await response.json();
+          setError(result.error);
+          throw new Error(result.error);
         }
 
         // Handle non-streaming response for now
@@ -212,6 +207,7 @@ export function useScriptChat(
         }
       } catch (err) {
         console.error('Error sending message:', err);
+        setError(err instanceof Error ? err.message : 'Unknown error');
 
         if (err instanceof Error && err.name !== 'AbortError') {
           setError(err.message);
@@ -226,6 +222,7 @@ export function useScriptChat(
       } finally {
         setIsStreaming(false);
         setStreamingStatus(null);
+        setIsLoading(false);
         streamingMessageRef.current = null;
         abortControllerRef.current = null;
       }

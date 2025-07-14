@@ -19,6 +19,7 @@ import {
   MoreHorizontal,
   ChevronDown,
   ChevronUp,
+  AlertCircle,
 } from 'lucide-react-native';
 import { useScriptChat } from '@/app/hooks/useScriptChat';
 import { useAuth } from '@clerk/clerk-expo';
@@ -83,13 +84,6 @@ export default function ScriptChat() {
   useEffect(() => {
     scrollViewRef.current?.scrollToEnd({ animated: true });
   }, [messages]);
-
-  // Afficher les erreurs
-  useEffect(() => {
-    if (error) {
-      Alert.alert('Erreur', error, [{ text: 'OK', onPress: clearError }]);
-    }
-  }, [error]);
 
   const handleSendMessage = async () => {
     if (!inputMessage.trim() || isStreaming) return;
@@ -210,6 +204,16 @@ export default function ScriptChat() {
           showBackButton={true}
           onBack={() => router.push('/(drawer)/scripts')}
         />
+        {/* Error display */}
+        {error && (
+          <View style={styles.errorContainer}>
+            <AlertCircle size={16} color="#ff5555" />
+            <Text style={styles.errorText}>{error}</Text>
+            <TouchableOpacity onPress={clearError} style={styles.errorDismiss}>
+              <Text style={styles.errorDismissText}>Fermer</Text>
+            </TouchableOpacity>
+          </View>
+        )}
         {/* Messages */}
         <ScrollView
           ref={scrollViewRef}
@@ -223,20 +227,6 @@ export default function ScriptChat() {
             </View>
           ) : (
             <>{messages.map(renderMessage)}</>
-          )}
-
-          {/* Indicateur de frappe global */}
-          {isStreaming && (
-            <View style={styles.typingIndicator}>
-              <View style={styles.typingDots}>
-                <View style={[styles.dot, styles.dot1]} />
-                <View style={[styles.dot, styles.dot2]} />
-                <View style={[styles.dot, styles.dot3]} />
-              </View>
-              <Text style={styles.typingText}>
-                EditIA analyse votre profil éditorial...
-              </Text>
-            </View>
           )}
         </ScrollView>
 
@@ -382,6 +372,7 @@ const markdownStyles = StyleSheet.create({
     fontSize: 16,
     lineHeight: 22,
   },
+
   heading1: {
     fontSize: 24,
     fontWeight: 'bold',
@@ -446,7 +437,30 @@ const styles = StyleSheet.create({
     fontSize: 16,
     textAlign: 'center',
   },
-
+  errorContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255, 85, 85, 0.1)',
+    padding: 12,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 85, 85, 0.3)',
+    marginBottom: 16,
+    gap: 8,
+  },
+  errorText: {
+    color: '#ff5555',
+    fontSize: 14,
+    flex: 1,
+  },
+  errorDismiss: {
+    padding: 4,
+  },
+  errorDismissText: {
+    color: '#ff5555',
+    fontSize: 12,
+    fontWeight: '600',
+  },
   messagesContainer: {
     flex: 1,
     padding: 16,

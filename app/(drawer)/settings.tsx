@@ -9,6 +9,7 @@ import {
   ScrollView,
   TextInput,
   RefreshControl,
+  Linking,
 } from 'react-native';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -29,7 +30,6 @@ import { SubscriptionManager } from '@/components/SubscriptionManager';
 import { useClerkSupabaseClient } from '@/lib/supabase-clerk';
 import { useClerk } from '@clerk/clerk-expo';
 import { useGetUser } from '@/lib/hooks/useGetUser';
-import { Linking } from 'react-native';
 
 type UserProfile = {
   id: string;
@@ -83,7 +83,7 @@ export default function SettingsScreen() {
 
   // Clerk hooks
   const { client: supabase } = useClerkSupabaseClient();
-  const { signOut } = useClerk();
+  const { signOut,  } = useClerk();
 
   const { fetchUser, clerkLoaded, isSignedIn } = useGetUser();
 
