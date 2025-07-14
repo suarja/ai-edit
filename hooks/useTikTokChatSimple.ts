@@ -165,6 +165,12 @@ export function useTikTokChatSimple(
   // 🔄 NON-STREAMING VERSION (fallback)
   const sendMessageRegular = async (message: string): Promise<void> => {
     try {
+      const isSafe = await validateMessage(message);
+      if (!isSafe) {
+        setError('Message is too long');
+        return;
+      }
+
       setIsLoading(true);
       setError(null);
 
@@ -246,6 +252,10 @@ export function useTikTokChatSimple(
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const validateMessage = async (message: string): Promise<boolean> => {
+    return message.length < 2000;
   };
 
   // 🎯 MAIN SEND MESSAGE FUNCTION
