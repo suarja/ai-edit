@@ -1,6 +1,10 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { Platform } from 'react-native';
-import Purchases, { LOG_LEVEL, CustomerInfo } from 'react-native-purchases';
+import Purchases, {
+  LOG_LEVEL,
+  CustomerInfo,
+  PurchasesOffering,
+} from 'react-native-purchases';
 import { useClerkSupabaseClient } from '@/lib/supabase-clerk';
 import { useGetUser } from '@/lib/hooks/useGetUser';
 import { CustomPaywall } from '@/components/CustomPaywall';
@@ -26,6 +30,16 @@ interface UserUsage {
   next_reset_date: string;
 }
 
+export interface Plan {
+  id: string;
+  name: string;
+  features: string[];
+  videos_generated_limit: number;
+  source_videos_limit: number;
+  voice_clones_limit: number;
+  account_analysis_limit: number;
+}
+
 interface RevenueCatProps {
   isPro: boolean;
   isReady: boolean;
@@ -43,6 +57,8 @@ interface RevenueCatProps {
   showPaywall: boolean;
   setShowPaywall: (show: boolean) => void;
   isDevMode: boolean; // Add development mode indicator
+  plans: Record<string, Plan> | null;
+  currentOffering: PurchasesOffering | null;
 }
 
 const RevenueCatContext = createContext<RevenueCatProps | null>(null);
@@ -55,6 +71,9 @@ export const RevenueCatProvider = ({ children }: any) => {
   const [hasOfferingError, setHasOfferingError] = useState(false);
   const [initAttempts, setInitAttempts] = useState(0);
   const [showPaywall, setShowPaywall] = useState(false);
+  const [plans, setPlans] = useState<Record<string, Plan> | null>(null);
+  const [currentOffering, setCurrentOffering] =
+    useState<PurchasesOffering | null>(null);
   const maxInitAttempts = 2;
 
   const { client: supabase } = useClerkSupabaseClient();
@@ -113,7 +132,29 @@ export const RevenueCatProvider = ({ children }: any) => {
       }
     };
 
+    const loadSubscriptionPlans = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('subscription_plans')
+          .select('*');
+
+        if (error) {
+          console.error('Failed to fetch subscription plans:', error);
+          return;
+        }
+
+        const plansData = data.reduce((acc, plan) => {
+          acc[plan.id] = plan;
+          return acc;
+        }, {} as Record<string, Plan>);
+        setPlans(plansData);
+      } catch (error) {
+        console.error('Error loading subscription plans:', error);
+      }
+    };
+
     init();
+    loadSubscriptionPlans();
   }, [initAttempts]);
 
   // Load initial customer info and user usage
@@ -123,10 +164,20 @@ export const RevenueCatProvider = ({ children }: any) => {
       const customerInfo = await Purchases.getCustomerInfo();
       await updateCustomerInformation(customerInfo);
 
+      // Get offerings
+      const offerings = await Purchases.getOfferings();
+      if (offerings.current) {
+        setCurrentOffering(offerings.current);
+      } else {
+        console.log('No current offerings found.');
+        setHasOfferingError(true);
+      }
+
       // Load user usage from database
       await loadUserUsage();
     } catch (error) {
       console.error('Error loading initial data:', error);
+      setHasOfferingError(true);
       // Still load usage even if RevenueCat fails
       await loadUserUsage();
     }
@@ -400,6 +451,8 @@ export const RevenueCatProvider = ({ children }: any) => {
     showPaywall,
     setShowPaywall,
     isDevMode: isDevelopment,
+    plans,
+    currentOffering,
   };
 
   // We don't want to block rendering anymore if RevenueCat has issues
@@ -420,3 +473,4 @@ export const RevenueCatProvider = ({ children }: any) => {
 export const useRevenueCat = () => {
   return useContext(RevenueCatContext) as RevenueCatProps;
 };
+

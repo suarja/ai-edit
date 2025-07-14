@@ -225,7 +225,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: '#1a1a1a',
+    backgroundColor: '#4b5563',
     padding: 16,
     borderRadius: 12,
     marginBottom: 8,
@@ -240,7 +240,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   adminContainer: {
-    backgroundColor: '#1a1a1a',
+    backgroundColor: '#4b5563',
     borderRadius: 12,
     padding: 16,
     marginBottom: 8,
@@ -258,7 +258,7 @@ const styles = StyleSheet.create({
   },
   searchInput: {
     flex: 1,
-    backgroundColor: '#333',
+    backgroundColor: '#374151',
     borderRadius: 8,
     paddingHorizontal: 12,
     color: '#fff',

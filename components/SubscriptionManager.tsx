@@ -12,7 +12,6 @@ import {
   Zap,
   Check,
   RotateCcw,
-  Calendar,
   BarChart3,
   Star,
 } from 'lucide-react-native';
@@ -33,16 +32,16 @@ export const SubscriptionManager: React.FC<SubscriptionManagerProps> = ({
     isReady,
     userUsage,
     videosRemaining,
-    isEarlyAdopter,
     goPro,
     restorePurchases,
     hasOfferingError,
     currentPlan,
     dynamicVideosLimit,
-    refreshUsage,
+    plans,
+    currentOffering,
   } = useRevenueCat();
 
-  if (!isReady || !userUsage) {
+  if (!isReady || !userUsage || !plans) {
     return (
       <View style={[styles.container, style]}>
         <View style={styles.header}>
@@ -120,13 +119,14 @@ export const SubscriptionManager: React.FC<SubscriptionManagerProps> = ({
     }
   };
 
-  // Calculate usage percentage
   const usagePercentage =
     (userUsage.videos_generated / dynamicVideosLimit) * 100;
   const isNearLimit = usagePercentage >= 80;
 
-  // Get appropriate price to display
-  const priceToShow = isEarlyAdopter ? '4,99€' : '9,99€';
+  const proPlan = plans.pro;
+  const freePlan = plans.free;
+
+  const priceToShow = currentOffering?.monthly?.product.priceString || 'N/A';
 
   if (isPro) {
     return (
@@ -140,28 +140,18 @@ export const SubscriptionManager: React.FC<SubscriptionManagerProps> = ({
           <View style={styles.planHeader}>
             <View style={styles.planBadge}>
               <Star size={16} color="#FFD700" />
-              <Text style={styles.planBadgeText}>PRO</Text>
+              <Text style={styles.planBadgeText}>{proPlan.name}</Text>
             </View>
             <Text style={styles.planPrice}>{priceToShow}/mois</Text>
           </View>
 
           <View style={styles.featuresList}>
-            <View style={styles.featureItem}>
-              <Check size={16} color="#4CAF50" />
-              <Text style={styles.featureText}>30 vidéos IA par mois</Text>
-            </View>
-            <View style={styles.featureItem}>
-              <Check size={16} color="#4CAF50" />
-              <Text style={styles.featureText}>Upload illimité de vidéos</Text>
-            </View>
-            <View style={styles.featureItem}>
-              <Check size={16} color="#4CAF50" />
-              <Text style={styles.featureText}>Clonage vocal avancé</Text>
-            </View>
-            <View style={styles.featureItem}>
-              <Check size={16} color="#4CAF50" />
-              <Text style={styles.featureText}>Support prioritaire</Text>
-            </View>
+            {proPlan.features.map((feature, index) => (
+              <View key={index} style={styles.featureItem}>
+                <Check size={16} color="#4CAF50" />
+                <Text style={styles.featureText}>{feature}</Text>
+              </View>
+            ))}
           </View>
         </View>
 
@@ -212,7 +202,6 @@ export const SubscriptionManager: React.FC<SubscriptionManagerProps> = ({
     );
   }
 
-  // Free user UI
   return (
     <View style={[styles.container, style]}>
       <View style={styles.header}>
@@ -222,7 +211,7 @@ export const SubscriptionManager: React.FC<SubscriptionManagerProps> = ({
 
       <View style={styles.freePlanInfo}>
         <View style={styles.freePlanHeader}>
-          <Text style={styles.freePlanTitle}>Plan Gratuit</Text>
+          <Text style={styles.freePlanTitle}>{freePlan.name}</Text>
           <Text style={styles.freePlanSubtitle}>
             Débloquez plus de possibilités avec Premium
           </Text>
@@ -269,27 +258,19 @@ export const SubscriptionManager: React.FC<SubscriptionManagerProps> = ({
         </View>
 
         <View style={styles.upgradeSection}>
-          <Text style={styles.upgradeTitle}>Passez Premium</Text>
+          <Text style={styles.upgradeTitle}>Passez à {proPlan.name}</Text>
 
-          <View style={styles.premiumFeatures}>
-            <View style={styles.premiumFeature}>
-              <Zap size={16} color="#007AFF" />
-              <Text style={styles.premiumFeatureText}>30 vidéos par mois</Text>
-            </View>
-            <View style={styles.premiumFeature}>
-              <Calendar size={16} color="#007AFF" />
-              <Text style={styles.premiumFeatureText}>
-                Fonctionnalités avancées
-              </Text>
-            </View>
-          </View>
+          {/* <View style={styles.premiumFeatures}>
+            {proPlan.map((feature, index) => (
+              <View key={index} style={styles.premiumFeature}>
+                <Zap size={16} color="#007AFF" />
+                <Text style={styles.premiumFeatureText}>{feature}</Text>
+              </View>
+            ))}
+          </View> */}
 
           <TouchableOpacity
-            style={[
-              styles.upgradeButton,
-              isEarlyAdopter && styles.earlyAdopterButton,
-              isUpgrading && styles.disabledButton,
-            ]}
+            style={[styles.upgradeButton, isUpgrading && styles.disabledButton]}
             onPress={handleUpgrade}
             disabled={isUpgrading}
           >
@@ -301,11 +282,6 @@ export const SubscriptionManager: React.FC<SubscriptionManagerProps> = ({
                 <Text style={styles.upgradeButtonText}>
                   Passer Premium ({priceToShow})
                 </Text>
-                {isEarlyAdopter && (
-                  <View style={styles.earlyAdopterBadge}>
-                    <Text style={styles.earlyAdopterBadgeText}>-50%</Text>
-                  </View>
-                )}
               </>
             )}
           </TouchableOpacity>
@@ -334,7 +310,7 @@ export const SubscriptionManager: React.FC<SubscriptionManagerProps> = ({
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: '#1a1a1a',
+    backgroundColor: '#1f2937',
     borderRadius: 16,
     padding: 20,
     marginVertical: 8,
@@ -506,9 +482,6 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     position: 'relative',
   },
-  earlyAdopterButton: {
-    backgroundColor: '#FF6B35',
-  },
   disabledButton: {
     opacity: 0.6,
   },
@@ -516,20 +489,6 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 14,
     fontWeight: '600',
-  },
-  earlyAdopterBadge: {
-    position: 'absolute',
-    top: -6,
-    right: -6,
-    backgroundColor: '#FF3B30',
-    borderRadius: 10,
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-  },
-  earlyAdopterBadgeText: {
-    color: '#fff',
-    fontSize: 10,
-    fontWeight: 'bold',
   },
   restoreButton: {
     backgroundColor: 'transparent',

@@ -1,12 +1,22 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
   TouchableOpacity,
   StyleSheet,
   Linking,
+  LayoutAnimation,
+  Platform,
+  UIManager,
 } from 'react-native';
-import { AlertCircle, Mic, Bug } from 'lucide-react-native';
+import { AlertCircle, Mic, Bug, ChevronDown } from 'lucide-react-native';
+
+if (
+  Platform.OS === 'android' &&
+  UIManager.setLayoutAnimationEnabledExperimental
+) {
+  UIManager.setLayoutAnimationEnabledExperimental(true);
+}
 
 export type SupportContact = {
   label: string;
@@ -41,45 +51,68 @@ const defaultContacts: SupportContact[] = [
   },
 ];
 
-const SupportPanel: React.FC<Props> = ({ contacts = defaultContacts }) => (
-  <View style={styles.section}>
-    <Text style={styles.sectionTitle}>Support</Text>
-    <View style={styles.contactContainer}>
-      <Text style={styles.contactHeader}>
-        Contactez l&apos;équipe via votre canal préféré :
-      </Text>
-      {contacts.map((contact, idx) => (
-        <TouchableOpacity
-          key={contact.label + idx}
-          style={styles.settingItem}
-          onPress={contact.onPress}
-        >
-          <View style={styles.settingInfo}>
-            {contact.icon}
-            <Text style={styles.settingText}>{contact.label}</Text>
-          </View>
-        </TouchableOpacity>
-      ))}
+const SupportPanel: React.FC<Props> = ({ contacts = defaultContacts }) => {
+  const [isCollapsed, setIsCollapsed] = useState(true);
+
+  const toggleCollapse = () => {
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    setIsCollapsed(!isCollapsed);
+  };
+
+  return (
+    <View style={styles.section}>
+      <TouchableOpacity onPress={toggleCollapse} style={styles.header}>
+        <Text style={styles.sectionTitle}>Support</Text>
+        <ChevronDown
+          size={24}
+          color="#888"
+          style={{ transform: [{ rotate: isCollapsed ? '0deg' : '180deg' }] }}
+        />
+      </TouchableOpacity>
+      {!isCollapsed && (
+        <View style={styles.contentContainer}>
+          <Text style={styles.contactHeader}>
+            Contactez l&apos;équipe via votre canal préféré :
+          </Text>
+          {contacts.map((contact, idx) => (
+            <TouchableOpacity
+              key={contact.label + idx}
+              style={styles.settingItem}
+              onPress={contact.onPress}
+            >
+              <View style={styles.settingInfo}>
+                {contact.icon}
+                <Text style={styles.settingText}>{contact.label}</Text>
+              </View>
+            </TouchableOpacity>
+          ))}
+        </View>
+      )}
     </View>
-  </View>
-);
+  );
+};
 
 const styles = StyleSheet.create({
   section: {
+    backgroundColor: '#4b5563',
+    color: '#fff',
+    borderRadius: 12,
+    padding: 16,
     marginBottom: 24,
+  },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
   },
   sectionTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#888',
-    marginBottom: 12,
+    color: '#fff',
     textTransform: 'uppercase',
   },
-  contactContainer: {
-    backgroundColor: '#181a20',
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 8,
+  contentContainer: {
+    paddingTop: 16,
     gap: 8,
   },
   contactHeader: {
@@ -92,8 +125,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: '#1a1a1a',
-    padding: 16,
+    backgroundColor: '#fff',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
     borderRadius: 12,
     marginBottom: 8,
   },

@@ -8,8 +8,9 @@ import {
   Modal,
   TextInput,
   ActivityIndicator,
+  SafeAreaView,
 } from 'react-native';
-import { X, Check, LogOut, Trash2 } from 'lucide-react-native';
+import { X, Check, LogOut, Camera } from 'lucide-react-native';
 import { useUserProfileManager } from '@/hooks/useUserProfileManager';
 
 const UserProfileManager: React.FC = () => {
@@ -48,7 +49,7 @@ const UserProfileManager: React.FC = () => {
         </View>
         <View style={styles.profileInfo}>
           <Text style={styles.profileName}>
-            {user.full_name || 'Nom non défini'}
+            {user.full_name || 'Anonymous User'}
           </Text>
           <Text style={styles.profileEmail}>{user.email}</Text>
         </View>
@@ -56,13 +57,13 @@ const UserProfileManager: React.FC = () => {
       <Modal
         visible={modalVisible}
         animationType="slide"
-        transparent={true}
+        transparent={false}
         onRequestClose={handleClose}
       >
-        <View style={styles.modalOverlay}>
+        <SafeAreaView style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <TouchableOpacity style={styles.closeButton} onPress={handleClose}>
-              <X size={24} color="#888" />
+              <X size={24} color="#9ca3af" />
             </TouchableOpacity>
             <View style={styles.avatarEditContainer}>
               <Image
@@ -71,55 +72,58 @@ const UserProfileManager: React.FC = () => {
                 }}
                 style={styles.profileImageLarge}
               />
+              <TouchableOpacity style={styles.cameraIcon}>
+                <Camera size={20} color="#fff" />
+              </TouchableOpacity>
             </View>
+            <Text style={styles.inputLabel}>Full Name</Text>
             <TextInput
               style={styles.nameInput}
               value={editProfile.full_name || ''}
               onChangeText={(text) =>
                 setEditProfile((prev) => ({ ...prev, full_name: text }))
               }
-              placeholder="Entrez votre nom"
-              placeholderTextColor="#666"
+              placeholder="Enter your name"
+              placeholderTextColor="#6b7280"
             />
+            <Text style={styles.inputLabel}>Avatar URL</Text>
             <TextInput
               style={styles.nameInput}
               value={editProfile.avatar_url || ''}
               onChangeText={(text) =>
                 setEditProfile((prev) => ({ ...prev, avatar_url: text }))
               }
-              placeholder="URL de l'avatar"
-              placeholderTextColor="#666"
+              placeholder="Image URL for your avatar"
+              placeholderTextColor="#6b7280"
             />
             {editError && (
               <View style={styles.errorContainer}>
                 <Text style={styles.errorText}>{editError}</Text>
               </View>
             )}
-            <View style={styles.actionRow}>
-              <TouchableOpacity
-                style={[
-                  styles.saveButton,
-                  (updating || editLoading) && styles.saveButtonDisabled,
-                ]}
-                onPress={handleSave}
-                disabled={updating || editLoading}
-              >
-                {updating || editLoading ? (
-                  <ActivityIndicator color="#fff" />
-                ) : (
-                  <Check size={20} color="#fff" />
-                )}
-                <Text style={styles.saveButtonText}>Enregistrer</Text>
-              </TouchableOpacity>
-            </View>
+            <TouchableOpacity
+              style={[
+                styles.saveButton,
+                (updating || editLoading) && styles.saveButtonDisabled,
+              ]}
+              onPress={handleSave}
+              disabled={updating || editLoading}
+            >
+              {updating || editLoading ? (
+                <ActivityIndicator color="#fff" />
+              ) : (
+                <Check size={20} color="#fff" />
+              )}
+              <Text style={styles.saveButtonText}>Save Changes</Text>
+            </TouchableOpacity>
             <View style={styles.actionRow}>
               <TouchableOpacity
                 style={styles.logoutButton}
                 onPress={handleLogout}
                 disabled={loading}
               >
-                <LogOut size={20} color="#666" />
-                <Text style={styles.logoutButtonText}>Déconnexion</Text>
+                <LogOut size={20} color="#9ca3af" />
+                <Text style={styles.logoutButtonText}>Logout</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={[
@@ -132,12 +136,12 @@ const UserProfileManager: React.FC = () => {
                 {deleting ? (
                   <ActivityIndicator color="#ef4444" />
                 ) : (
-                  <Text style={styles.deleteButtonText}>Supprimer Compte</Text>
+                  <Text style={styles.deleteButtonText}>Delete Account</Text>
                 )}
               </TouchableOpacity>
             </View>
           </View>
-        </View>
+        </SafeAreaView>
       </Modal>
     </>
   );
@@ -147,11 +151,19 @@ const styles = StyleSheet.create({
   profileSection: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#1a1a1a',
+    backgroundColor: '#1f2937',
     padding: 16,
     borderRadius: 16,
     gap: 16,
     marginBottom: 24,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
   },
   avatarContainer: {
     position: 'relative',
@@ -160,75 +172,92 @@ const styles = StyleSheet.create({
     width: 60,
     height: 60,
     borderRadius: 30,
+    borderWidth: 2,
+    borderColor: '#4b5563',
   },
   profileInfo: {
     flex: 1,
   },
   profileName: {
-    color: '#fff',
+    color: '#f9fafb',
     fontSize: 18,
     fontWeight: '600',
   },
   profileEmail: {
-    color: '#888',
+    color: '#9ca3af',
     fontSize: 14,
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: '#111827',
   },
   modalContent: {
-    backgroundColor: '#181a20',
-    borderRadius: 20,
+    flex: 1,
     padding: 24,
-    width: '90%',
     alignItems: 'center',
-    position: 'relative',
   },
   closeButton: {
     position: 'absolute',
-    top: 16,
-    right: 16,
+    top: 24,
+    right: 24,
     zIndex: 2,
   },
   avatarEditContainer: {
-    marginBottom: 16,
+    marginBottom: 24,
+    position: 'relative',
   },
   profileImageLarge: {
-    width: 90,
-    height: 90,
-    borderRadius: 45,
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    borderWidth: 3,
+    borderColor: '#4b5563',
+  },
+  cameraIcon: {
+    position: 'absolute',
+    bottom: 0,
+    right: 0,
+    backgroundColor: '#10b981',
+    padding: 8,
+    borderRadius: 20,
+  },
+  inputLabel: {
+    color: '#d1d5db',
+    fontSize: 14,
+    alignSelf: 'flex-start',
+    marginBottom: 8,
+    fontWeight: '500',
   },
   nameInput: {
-    color: '#fff',
-    fontSize: 18,
-    fontWeight: '600',
-    backgroundColor: '#333',
+    color: '#f9fafb',
+    fontSize: 16,
+    backgroundColor: '#374151',
     borderRadius: 8,
-    padding: 8,
-    marginBottom: 8,
+    padding: 12,
+    marginBottom: 16,
     width: '100%',
+    borderWidth: 1,
+    borderColor: '#4b5563',
   },
   errorContainer: {
-    backgroundColor: '#2D1116',
+    backgroundColor: '#3f1212',
     padding: 12,
     borderRadius: 8,
-    marginBottom: 8,
+    marginBottom: 16,
     width: '100%',
+    borderWidth: 1,
+    borderColor: '#ef4444',
   },
   errorText: {
-    color: '#ef4444',
+    color: '#f87171',
     fontSize: 14,
     textAlign: 'center',
   },
   actionRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
     width: '100%',
-    marginTop: 12,
+    marginTop: 16,
     gap: 12,
   },
   saveButton: {
@@ -236,13 +265,14 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    padding: 12,
+    paddingVertical: 14,
     borderRadius: 8,
     gap: 8,
-    flex: 1,
+    paddingHorizontal: 16,
+    marginTop: 8,
   },
   saveButtonDisabled: {
-    opacity: 0.7,
+    opacity: 0.6,
   },
   saveButtonText: {
     color: '#fff',
@@ -252,17 +282,17 @@ const styles = StyleSheet.create({
   logoutButton: {
     backgroundColor: 'transparent',
     borderWidth: 1,
-    borderColor: '#333',
+    borderColor: '#4b5563',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    padding: 12,
+    paddingVertical: 12,
     borderRadius: 8,
     gap: 8,
     flex: 1,
   },
   logoutButtonText: {
-    color: '#666',
+    color: '#9ca3af',
     fontSize: 16,
     fontWeight: '500',
   },
@@ -273,13 +303,13 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    padding: 12,
+    paddingVertical: 12,
     borderRadius: 8,
     gap: 8,
     flex: 1,
   },
   deleteButtonDisabled: {
-    opacity: 0.7,
+    opacity: 0.6,
   },
   deleteButtonText: {
     color: '#ef4444',

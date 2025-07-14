@@ -1,5 +1,12 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, TextInput, ActivityIndicator, StyleSheet } from 'react-native';
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  TextInput,
+  ActivityIndicator,
+  StyleSheet,
+} from 'react-native';
 import { useRouter } from 'expo-router';
 import { Bug, Wand as Wand2, AlertCircle } from 'lucide-react-native';
 
@@ -79,7 +86,7 @@ const DebugPanel: React.FC = () => {
 
 const styles = StyleSheet.create({
   debugContainer: {
-    backgroundColor: '#1a1a1a',
+    backgroundColor: '#4b5563',
     borderRadius: 12,
     padding: 16,
     marginTop: 12,
@@ -96,7 +103,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: '#1a1a1a',
+    backgroundColor: '#4b5563',
     padding: 16,
     borderRadius: 12,
     marginBottom: 8,
@@ -160,4 +167,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default DebugPanel; 
+export default DebugPanel;

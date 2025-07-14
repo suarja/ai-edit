@@ -6,13 +6,11 @@ import {
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect, useState, useRef } from 'react';
-import { useColorScheme as useSystemColorScheme } from 'react-native';
+import { useColorScheme as useSystemColorScheme, Alert } from 'react-native';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { logEnvironmentStatus, validateEnvironment } from '@/lib/config/env';
-import { Alert } from 'react-native';
 
 import { ClerkProvider, ClerkLoaded } from '@clerk/clerk-expo';
-import { clerkConfig } from '@/lib/config/clerk';
 import 'react-native-reanimated';
 import * as SecureStore from 'expo-secure-store';
 import { RevenueCatProvider } from '@/providers/RevenueCat';

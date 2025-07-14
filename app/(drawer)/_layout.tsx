@@ -1,5 +1,5 @@
 import React from 'react';
-import { Redirect, Tabs, usePathname } from 'expo-router';
+import { Redirect, Tabs, usePathname, router } from 'expo-router';
 import {
   View,
   ActivityIndicator,
@@ -12,8 +12,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import DrawerToggle from '@/components/DrawerToggle';
 import SidebarModal from '@/components/SidebarModal';
 import { SidebarProvider, useSidebar } from '@/contexts/SidebarContext';
-import { Plus, MoreHorizontal } from 'lucide-react-native';
-import { router } from 'expo-router';
+import { Plus } from 'lucide-react-native';
 function HeaderRight() {
   const pathname = usePathname();
   if (pathname === '/chat') {
@@ -39,7 +38,7 @@ function DrawerLayoutContent() {
         screenOptions={{
           headerShown: true,
           headerStyle: {
-            backgroundColor: '#1a1a1a',
+            backgroundColor: '#000',
           },
           headerTintColor: '#fff',
           headerLeft: () => <DrawerToggle />,
