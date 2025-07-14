@@ -12,9 +12,7 @@ import {
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
-  Bug,
   Play,
-  Wand as Wand2,
   Search,
   Mic,
   CreditCard as Edit3,
@@ -25,6 +23,7 @@ import { SubscriptionManager } from '@/components/SubscriptionManager';
 import { useClerkSupabaseClient } from '@/lib/supabase-clerk';
 import UserProfileManager from '@/components/UserProfileManager';
 import SupportPanel from '@/components/SupportPanel';
+import DebugPanel from '@/components/DebugPanel';
 
 export default function SettingsScreen() {
   // Only keep state and logic for usage, admin, debug, and content creation
@@ -197,63 +196,7 @@ export default function SettingsScreen() {
               )}
           </View>
         </View>
-        {__DEV__ && (
-          <View style={styles.debugContainer}>
-            <Text style={styles.debugTitle}>Débogage</Text>
-            <TouchableOpacity
-              style={styles.settingItem}
-              onPress={() => router.push('/(onboarding)/welcome')}
-            >
-              <View style={styles.settingInfo}>
-                <Bug size={24} color="#fff" />
-                <Text style={styles.settingText}>
-                  Tester le Flux d&apos;Accueil
-                </Text>
-              </View>
-            </TouchableOpacity>
-            <View style={styles.debugContainer}>
-              <Text style={styles.debugTitle}>Tester la Génération Vidéo</Text>
-              <TextInput
-                style={styles.debugInput}
-                placeholder="Entrez une description test..."
-                placeholderTextColor="#666"
-                value={testingPrompt}
-                onChangeText={setTestingPrompt}
-                multiline
-                numberOfLines={3}
-              />
-              {testingError && (
-                <View style={styles.debugError}>
-                  <AlertCircle size={16} color="#ef4444" />
-                  <Text style={styles.debugErrorText}>{testingError}</Text>
-                </View>
-              )}
-              {testingStatus && (
-                <View style={styles.debugStatus}>
-                  <Text style={styles.debugStatusText}>{testingStatus}</Text>
-                </View>
-              )}
-              <TouchableOpacity
-                style={[
-                  styles.debugButton,
-                  testingLoading && styles.debugButtonDisabled,
-                ]}
-                disabled={testingLoading}
-              >
-                {testingLoading ? (
-                  <ActivityIndicator color="#fff" />
-                ) : (
-                  <>
-                    <Wand2 size={20} color="#fff" />
-                    <Text style={styles.debugButtonText}>
-                      Générer une Vidéo Test
-                    </Text>
-                  </>
-                )}
-              </TouchableOpacity>
-            </View>
-          </View>
-        )}
+        {__DEV__ && <DebugPanel />}
       </ScrollView>
     </SafeAreaView>
   );
