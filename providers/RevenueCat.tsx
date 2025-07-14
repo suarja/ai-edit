@@ -1,8 +1,6 @@
-import { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect, useState } from 'react';
 import { Platform } from 'react-native';
-import Purchases, { LOG_LEVEL } from 'react-native-purchases';
-import { CustomerInfo } from 'react-native-purchases';
-import React from 'react';
+import Purchases, { LOG_LEVEL, CustomerInfo } from 'react-native-purchases';
 import { useClerkSupabaseClient } from '@/lib/supabase-clerk';
 import { useGetUser } from '@/lib/hooks/useGetUser';
 import { CustomPaywall } from '@/components/CustomPaywall';
@@ -208,7 +206,7 @@ export const RevenueCatProvider = ({ children }: any) => {
           {
             user_id: userId,
             videos_generated: 0,
-            videos_limit: planData.videos_limit,
+            videos_generated_limit: planData.videos_generated_limit,
             source_videos_used: 0,
             source_videos_limit: planData.source_videos_limit,
             voice_clones_used: 0,
