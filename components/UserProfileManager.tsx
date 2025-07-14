@@ -190,7 +190,7 @@ const styles = StyleSheet.create({
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: "#000"
+    backgroundColor: sharedStyles.modalOverlay.backgroundColor,
   },
   modalContent: {
     flex: 1,
