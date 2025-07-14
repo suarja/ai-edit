@@ -24,6 +24,7 @@ import { useClerkSupabaseClient } from '@/lib/supabase-clerk';
 import UserProfileManager from '@/components/UserProfileManager';
 import SupportPanel from '@/components/SupportPanel';
 import DebugPanel from '@/components/DebugPanel';
+import { sharedStyles } from '@/constants/sharedStyles';
 
 export default function SettingsScreen() {
   // Only keep state and logic for usage, admin, debug, and content creation
@@ -225,7 +226,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: '#4b5563',
+    backgroundColor: sharedStyles.sectionContainer.backgroundColor,
     padding: 16,
     borderRadius: 12,
     marginBottom: 8,
@@ -288,66 +289,5 @@ const styles = StyleSheet.create({
     color: '#ef4444',
     fontSize: 14,
     flex: 1,
-  },
-  debugContainer: {
-    backgroundColor: '#1a1a1a',
-    borderRadius: 12,
-    padding: 16,
-    marginTop: 12,
-    gap: 12,
-  },
-  debugTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#fff',
-    marginBottom: 8,
-  },
-  debugInput: {
-    backgroundColor: '#333',
-    borderRadius: 8,
-    padding: 12,
-    color: '#fff',
-    fontSize: 14,
-    textAlignVertical: 'top',
-  },
-  debugError: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#2D1116',
-    padding: 12,
-    borderRadius: 8,
-    gap: 8,
-  },
-  debugErrorText: {
-    color: '#ef4444',
-    fontSize: 14,
-    flex: 1,
-  },
-  debugStatus: {
-    backgroundColor: '#042f2e',
-    padding: 12,
-    borderRadius: 8,
-  },
-  debugStatusText: {
-    color: '#10b981',
-    fontSize: 14,
-    textAlign: 'center',
-  },
-  debugButton: {
-    backgroundColor: '#007AFF',
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: 12,
-    borderRadius: 8,
-    gap: 8,
-  },
-  debugButtonDisabled: {
-    opacity: 0.7,
-  },
-  debugButtonText: {
-    color: '#fff',
-    fontSize: 14,
-    fontWeight: '600',
   },
 });

@@ -10,6 +10,7 @@ import {
   UIManager,
 } from 'react-native';
 import { AlertCircle, Mic, Bug, ChevronDown } from 'lucide-react-native';
+import { sharedStyles } from '@/constants/sharedStyles';
 
 if (
   Platform.OS === 'android' &&
@@ -94,7 +95,7 @@ const SupportPanel: React.FC<Props> = ({ contacts = defaultContacts }) => {
 
 const styles = StyleSheet.create({
   section: {
-    backgroundColor: '#4b5563',
+    backgroundColor: sharedStyles.sectionContainer.backgroundColor,
     color: '#fff',
     borderRadius: 12,
     padding: 16,
@@ -125,7 +126,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: '#fff',
+    backgroundColor: sharedStyles.container.backgroundColor,
     paddingVertical: 12,
     paddingHorizontal: 16,
     borderRadius: 12,

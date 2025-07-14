@@ -9,6 +9,7 @@ import {
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Bug, Wand as Wand2, AlertCircle } from 'lucide-react-native';
+import { sharedStyles } from '@/constants/sharedStyles';
 
 const DebugPanel: React.FC = () => {
   const router = useRouter();
@@ -86,7 +87,7 @@ const DebugPanel: React.FC = () => {
 
 const styles = StyleSheet.create({
   debugContainer: {
-    backgroundColor: '#4b5563',
+    backgroundColor: sharedStyles.sectionContainer.backgroundColor,
     borderRadius: 12,
     padding: 16,
     marginTop: 12,

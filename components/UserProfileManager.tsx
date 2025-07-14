@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 import { X, Check, LogOut, Camera } from 'lucide-react-native';
 import { useUserProfileManager } from '@/hooks/useUserProfileManager';
+import { colors, sharedStyles } from '@/constants/sharedStyles';
 
 const UserProfileManager: React.FC = () => {
   const {
@@ -151,7 +152,7 @@ const styles = StyleSheet.create({
   profileSection: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#1f2937',
+    backgroundColor: sharedStyles.sectionContainer.backgroundColor,
     padding: 16,
     borderRadius: 16,
     gap: 16,
@@ -189,7 +190,7 @@ const styles = StyleSheet.create({
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: '#111827',
+    backgroundColor: "#000"
   },
   modalContent: {
     flex: 1,

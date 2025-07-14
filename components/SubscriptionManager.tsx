@@ -16,6 +16,7 @@ import {
   Star,
 } from 'lucide-react-native';
 import { useRevenueCat } from '@/providers/RevenueCat';
+import { sharedStyles } from '@/constants/sharedStyles';
 
 interface SubscriptionManagerProps {
   style?: any;
@@ -310,7 +311,7 @@ export const SubscriptionManager: React.FC<SubscriptionManagerProps> = ({
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: '#1f2937',
+    backgroundColor: sharedStyles.sectionContainer.backgroundColor,
     borderRadius: 16,
     padding: 20,
     marginVertical: 8,
