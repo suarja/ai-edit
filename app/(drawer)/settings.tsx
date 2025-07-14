@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
   View,
   Text,
@@ -28,16 +28,8 @@ import {
 import AdminUsageControl from '@/components/AdminUsageControl';
 import { SubscriptionManager } from '@/components/SubscriptionManager';
 import { useClerkSupabaseClient } from '@/lib/supabase-clerk';
-import { useClerk } from '@clerk/clerk-expo';
 import { useGetUser } from '@/lib/hooks/useGetUser';
-
-type UserProfile = {
-  id: string;
-  full_name: string | null;
-  avatar_url: string | null;
-  email: string;
-  role?: string;
-};
+import UserProfileManager from '@/components/UserProfileManager';
 
 type UsageInfo = {
   id: string;
@@ -47,106 +39,42 @@ type UsageInfo = {
 };
 
 export default function SettingsScreen() {
-  const [loading, setLoading] = useState(true);
-  const [updating, setUpdating] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState(false);
+  // Remove user management state
+  // const [loading, setLoading] = useState(true);
+  // const [updating, setUpdating] = useState(false);
+  // const [error, setError] = useState<string | null>(null);
+  // const [success, setSuccess] = useState(false);
+  // const [isEditing, setIsEditing] = useState(false);
+  // const [profile, setProfile] = useState<UserProfile>({ ... });
+  // const [editedProfile, setEditedProfile] = useState<UserProfile>({ ... });
+  // const [deleting, setDeleting] = useState(false);
+  // const [deleteError, setDeleteError] = useState<string | null>(null);
+  // Remove handleSave, handleLogout, handleDeleteAccount
+
+  // Keep only usage, admin, and other unrelated logic
   const [refreshing, setRefreshing] = useState(false);
-  const [isEditing, setIsEditing] = useState(false);
-  const [profile, setProfile] = useState<UserProfile>({
-    id: '',
-    full_name: '',
-    avatar_url: null,
-    email: '',
-    role: 'user',
-  });
-  const [editedProfile, setEditedProfile] = useState<UserProfile>({
-    id: '',
-    full_name: '',
-    avatar_url: null,
-    email: '',
-  });
   const [userUsage, setUserUsage] = useState<UsageInfo | null>(null);
   const [usageLoading, setUsageLoading] = useState(true);
   const [usageError, setUsageError] = useState<string | null>(null);
-
   const [testingPrompt, setTestingPrompt] = useState('');
   const [testingStatus, setTestingStatus] = useState<string | null>(null);
   const [testingError, setTestingError] = useState<string | null>(null);
   const [testingLoading, setTestingLoading] = useState(false);
-
-  // Admin panel states
   const [searchUserId, setSearchUserId] = useState('');
   const [searchLoading, setSearchLoading] = useState(false);
   const [foundUserUsage, setFoundUserUsage] = useState<UsageInfo | null>(null);
   const [searchError, setSearchError] = useState<string | null>(null);
+  const { fetchUser } = useGetUser();
 
-  // Clerk hooks
   const { client: supabase } = useClerkSupabaseClient();
-  const { signOut,  } = useClerk();
 
-  const { fetchUser, clerkLoaded, isSignedIn } = useGetUser();
-
-  const onRefresh = useCallback(async () => {
-    setRefreshing(true);
-    await Promise.all([fetchProfile(), fetchUserUsage()]);
-    setRefreshing(false);
-  }, []);
-
-  useEffect(() => {
-    if (clerkLoaded) {
-      if (!isSignedIn) {
-        router.replace('/(auth)/sign-in');
-        return;
-      }
-      fetchProfile();
-      fetchUserUsage();
-    }
-  }, [clerkLoaded, isSignedIn]);
-
-  const fetchProfile = async () => {
-    try {
-      const user = await fetchUser();
-      if (!user) {
-        router.replace('/(auth)/sign-in');
-        return;
-      }
-
-      const isAdmin = profile.role === 'admin';
-      setProfile({
-        id: user.id,
-        full_name: user.full_name,
-        avatar_url: user.avatar_url,
-        email: user.email,
-        role: user.role,
-      });
-      setEditedProfile({
-        id: user.id,
-        full_name: user.full_name,
-        avatar_url: user.avatar_url,
-        email: user.email,
-      });
-
-      // If the user is an admin, ensure they have a user_roles entry
-      if (isAdmin) {
-        await ensureAdminRoleEntry(user.id); // Use the database ID from fetchUser
-      }
-    } catch (err) {
-      console.error('Error fetching profile:', err);
-      setError('Échec du chargement du profil');
-      // Don't redirect on error, just show the error
-    } finally {
-      setLoading(false);
-    }
-  };
-
+  // Usage data fetcher
   const fetchUserUsage = async () => {
     try {
       setUsageLoading(true);
       setUsageError(null);
-
-      // Get the database user (which includes the database ID)
       const user = await fetchUser();
+      // Get the database user (which includes the database ID)
       if (!user) {
         return;
       }
@@ -207,110 +135,6 @@ export default function SettingsScreen() {
     }
   };
 
-  // Function to ensure admin users have an entry in user_roles table
-  const ensureAdminRoleEntry = async (userId: string) => {
-    try {
-      // First check if an entry already exists
-      const { data: existingRole, error: checkError } = await supabase
-        .from('user_roles')
-        .select('id')
-        .eq('user_id', userId)
-        .eq('role', 'admin')
-        .maybeSingle();
-
-      if (checkError) {
-        console.error('Error checking admin role entry:', checkError);
-        return;
-      }
-
-      // If no entry exists, create one
-      if (!existingRole) {
-        const { error: insertError } = await supabase
-          .from('user_roles')
-          .insert({
-            user_id: userId,
-            role: 'admin',
-          });
-
-        if (insertError) {
-          console.error('Error creating admin role entry:', insertError);
-        } else {
-        }
-      } else {
-      }
-    } catch (err) {
-      console.error('Error ensuring admin role entry:', err);
-    }
-  };
-
-  const handleSave = async () => {
-    try {
-      setUpdating(true);
-      setError(null);
-
-      // Get the database user (which includes the database ID)
-      const user = await fetchUser();
-      if (!user) {
-        throw new Error('User not found');
-      }
-
-      const { error: updateError } = await supabase
-        .from('users')
-        .update({
-          full_name: editedProfile.full_name,
-          avatar_url: editedProfile.avatar_url,
-        })
-        .eq('id', user.id); // Use database ID directly
-
-      if (updateError) throw updateError;
-
-      setProfile(editedProfile);
-      setIsEditing(false);
-      setSuccess(true);
-      setTimeout(() => setSuccess(false), 3000);
-    } catch (err) {
-      console.error('Error updating profile:', err);
-      setError('Échec de la mise à jour du profil');
-    } finally {
-      setUpdating(false);
-    }
-  };
-
-  const handleLogout = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-
-      // Clear all local state before signing out
-      setProfile({
-        id: '',
-        full_name: '',
-        avatar_url: null,
-        email: '',
-        role: '',
-      });
-      setEditedProfile({
-        id: '',
-        full_name: '',
-        avatar_url: null,
-        email: '',
-      });
-      setSuccess(false);
-      setIsEditing(false);
-
-      // Sign out from Clerk
-      await signOut();
-
-      // Navigate to sign-in screen
-      router.replace('/');
-    } catch (err) {
-      console.error('Error signing out:', err);
-      setError('Échec de la déconnexion');
-    } finally {
-      setLoading(false);
-    }
-  };
-
   // Admin: Search for a user by ID to adjust their usage limits
   const handleSearchUser = async () => {
     if (!searchUserId.trim()) return;
@@ -352,127 +176,22 @@ export default function SettingsScreen() {
     }
   };
 
-  if (loading) {
-    return (
-      <SafeAreaView style={styles.container} edges={[]}>
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#007AFF" />
-        </View>
-      </SafeAreaView>
-    );
-  }
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    await fetchUserUsage();
+    setRefreshing(false);
+  }, []);
 
-  const debugSection = (
-    <View style={styles.section}>
-      <Text style={styles.sectionTitle}>Débogage</Text>
+  // Remove all references to profile, loading, fetchUser
 
-      <TouchableOpacity
-        style={styles.settingItem}
-        onPress={() => router.push('/(onboarding)/welcome')}
-      >
-        <View style={styles.settingInfo}>
-          <Bug size={24} color="#fff" />
-          <Text style={styles.settingText}>Tester le Flux d&apos;Accueil</Text>
-        </View>
-      </TouchableOpacity>
+  // Remove adminSection's dependency on profile.role
+  // Instead, fetch user role from UserProfileManager if needed, or hide adminSection for now
 
-      <View style={styles.debugContainer}>
-        <Text style={styles.debugTitle}>Tester la Génération Vidéo</Text>
+  // Remove all references to loading in the render
 
-        <TextInput
-          style={styles.debugInput}
-          placeholder="Entrez une description test..."
-          placeholderTextColor="#666"
-          value={testingPrompt}
-          onChangeText={setTestingPrompt}
-          multiline
-          numberOfLines={3}
-        />
+  // Remove all references to profile in the render
 
-        {testingError && (
-          <View style={styles.debugError}>
-            <AlertCircle size={16} color="#ef4444" />
-            <Text style={styles.debugErrorText}>{testingError}</Text>
-          </View>
-        )}
-
-        {testingStatus && (
-          <View style={styles.debugStatus}>
-            <Text style={styles.debugStatusText}>{testingStatus}</Text>
-          </View>
-        )}
-
-        <TouchableOpacity
-          style={[
-            styles.debugButton,
-            testingLoading && styles.debugButtonDisabled,
-          ]}
-          disabled={testingLoading}
-        >
-          {testingLoading ? (
-            <ActivityIndicator color="#fff" />
-          ) : (
-            <>
-              <Wand2 size={20} color="#fff" />
-              <Text style={styles.debugButtonText}>Générer une Vidéo Test</Text>
-            </>
-          )}
-        </TouchableOpacity>
-      </View>
-    </View>
-  );
-
-  // Admin section component that's only shown to admin users
-  const adminSection = profile.role === 'admin' && (
-    <View style={styles.section}>
-      <Text style={styles.sectionTitle}>Administration</Text>
-
-      <View style={styles.adminContainer}>
-        <Text style={styles.adminTitle}>
-          Contrôle d&apos;Utilisation Utilisateur
-        </Text>
-
-        <View style={styles.searchContainer}>
-          <TextInput
-            style={styles.searchInput}
-            value={searchUserId}
-            onChangeText={setSearchUserId}
-            placeholder="ID Utilisateur"
-            placeholderTextColor="#666"
-          />
-          <TouchableOpacity
-            style={[
-              styles.searchButton,
-              searchLoading && styles.searchButtonDisabled,
-            ]}
-            onPress={handleSearchUser}
-            disabled={searchLoading}
-          >
-            {searchLoading ? (
-              <ActivityIndicator size="small" color="#fff" />
-            ) : (
-              <Search size={20} color="#fff" />
-            )}
-          </TouchableOpacity>
-        </View>
-
-        {searchError && (
-          <View style={styles.searchErrorContainer}>
-            <AlertCircle size={16} color="#ef4444" />
-            <Text style={styles.searchErrorText}>{searchError}</Text>
-          </View>
-        )}
-
-        {foundUserUsage && (
-          <AdminUsageControl
-            userId={foundUserUsage.user_id}
-            currentLimit={foundUserUsage.videos_limit}
-            onUpdate={handleSearchUser}
-          />
-        )}
-      </View>
-    </View>
-  );
+  // Only keep admin, usage, and other unrelated logic
 
   return (
     <SafeAreaView style={styles.container} edges={[]}>
@@ -487,98 +206,7 @@ export default function SettingsScreen() {
           />
         }
       >
-        {error && (
-          <View style={styles.errorContainer}>
-            <AlertCircle size={20} color="#ef4444" />
-            <Text style={styles.errorText}>{error}</Text>
-          </View>
-        )}
-
-        {success && (
-          <View style={styles.successContainer}>
-            <Text style={styles.successText}>
-              Profil mis à jour avec succès !
-            </Text>
-          </View>
-        )}
-
-        <View style={styles.profileSection}>
-          <View style={styles.avatarContainer}>
-            <Image
-              source={{
-                uri:
-                  editedProfile.avatar_url ||
-                  'https://images.pexels.com/photos/2379005/pexels-photo-2379005.jpeg',
-              }}
-              style={styles.profileImage}
-            />
-          </View>
-
-          <View style={styles.profileInfo}>
-            {isEditing ? (
-              <>
-                <TextInput
-                  style={styles.nameInput}
-                  value={editedProfile.full_name || ''}
-                  onChangeText={(text) =>
-                    setEditedProfile((prev) => ({ ...prev, full_name: text }))
-                  }
-                  placeholder="Entrez votre nom"
-                  placeholderTextColor="#666"
-                />
-                <TextInput
-                  style={styles.nameInput}
-                  value={editedProfile.avatar_url || ''}
-                  onChangeText={(text) =>
-                    setEditedProfile((prev) => ({ ...prev, avatar_url: text }))
-                  }
-                  placeholder="URL de l'avatar"
-                  placeholderTextColor="#666"
-                />
-              </>
-            ) : (
-              <>
-                <Text style={styles.profileName}>
-                  {profile.full_name || 'Nom non défini'}
-                </Text>
-                <Text style={styles.profileEmail}>{profile.email}</Text>
-              </>
-            )}
-          </View>
-
-          {isEditing ? (
-            <View style={styles.editActions}>
-              <TouchableOpacity
-                style={styles.editActionButton}
-                onPress={() => {
-                  setIsEditing(false);
-                  setEditedProfile(profile);
-                }}
-              >
-                <X size={20} color="#ef4444" />
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[styles.editActionButton, styles.saveButton]}
-                onPress={handleSave}
-                disabled={updating}
-              >
-                {updating ? (
-                  <ActivityIndicator size="small" color="#fff" />
-                ) : (
-                  <Check size={20} color="#fff" />
-                )}
-              </TouchableOpacity>
-            </View>
-          ) : (
-            <TouchableOpacity
-              style={styles.editProfileButton}
-              onPress={() => setIsEditing(true)}
-            >
-              <Text style={styles.editProfileText}>Modifier</Text>
-            </TouchableOpacity>
-          )}
-        </View>
-
+        <UserProfileManager />
         {/* Subscription Management */}
         <SubscriptionManager />
 
@@ -679,24 +307,121 @@ export default function SettingsScreen() {
           </View>
         </View>
 
-        {profile.role === 'admin' && adminSection}
+        {/* Admin section component that's only shown to admin users */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Administration</Text>
 
-        {__DEV__ && debugSection}
+          <View style={styles.adminContainer}>
+            <Text style={styles.adminTitle}>
+              Contrôle d&apos;Utilisation Utilisateur
+            </Text>
 
-        <TouchableOpacity
-          style={[styles.logoutButton, loading && styles.logoutButtonDisabled]}
-          onPress={handleLogout}
-          disabled={loading}
-        >
-          {loading ? (
-            <ActivityIndicator color="#666" />
-          ) : (
-            <>
-              <LogOut size={20} color="#666" />
-              <Text style={styles.logoutButtonText}>Déconnexion</Text>
-            </>
-          )}
-        </TouchableOpacity>
+            <View style={styles.searchContainer}>
+              <TextInput
+                style={styles.searchInput}
+                value={searchUserId}
+                onChangeText={setSearchUserId}
+                placeholder="ID Utilisateur"
+                placeholderTextColor="#666"
+              />
+              <TouchableOpacity
+                style={[
+                  styles.searchButton,
+                  searchLoading && styles.searchButtonDisabled,
+                ]}
+                onPress={handleSearchUser}
+                disabled={searchLoading}
+              >
+                {searchLoading ? (
+                  <ActivityIndicator size="small" color="#fff" />
+                ) : (
+                  <Search size={20} color="#fff" />
+                )}
+              </TouchableOpacity>
+            </View>
+
+            {searchError && (
+              <View style={styles.searchErrorContainer}>
+                <AlertCircle size={16} color="#ef4444" />
+                <Text style={styles.searchErrorText}>{searchError}</Text>
+              </View>
+            )}
+
+            {foundUserUsage && (
+              <AdminUsageControl
+                userId={foundUserUsage.user_id}
+                currentLimit={foundUserUsage.videos_limit}
+                onUpdate={handleSearchUser}
+              />
+            )}
+          </View>
+        </View>
+
+        {__DEV__ && (
+          <View style={styles.debugContainer}>
+            <Text style={styles.debugTitle}>Débogage</Text>
+
+            <TouchableOpacity
+              style={styles.settingItem}
+              onPress={() => router.push('/(onboarding)/welcome')}
+            >
+              <View style={styles.settingInfo}>
+                <Bug size={24} color="#fff" />
+                <Text style={styles.settingText}>
+                  Tester le Flux d&apos;Accueil
+                </Text>
+              </View>
+            </TouchableOpacity>
+
+            <View style={styles.debugContainer}>
+              <Text style={styles.debugTitle}>Tester la Génération Vidéo</Text>
+
+              <TextInput
+                style={styles.debugInput}
+                placeholder="Entrez une description test..."
+                placeholderTextColor="#666"
+                value={testingPrompt}
+                onChangeText={setTestingPrompt}
+                multiline
+                numberOfLines={3}
+              />
+
+              {testingError && (
+                <View style={styles.debugError}>
+                  <AlertCircle size={16} color="#ef4444" />
+                  <Text style={styles.debugErrorText}>{testingError}</Text>
+                </View>
+              )}
+
+              {testingStatus && (
+                <View style={styles.debugStatus}>
+                  <Text style={styles.debugStatusText}>{testingStatus}</Text>
+                </View>
+              )}
+
+              <TouchableOpacity
+                style={[
+                  styles.debugButton,
+                  testingLoading && styles.debugButtonDisabled,
+                ]}
+                disabled={testingLoading}
+              >
+                {testingLoading ? (
+                  <ActivityIndicator color="#fff" />
+                ) : (
+                  <>
+                    <Wand2 size={20} color="#fff" />
+                    <Text style={styles.debugButtonText}>
+                      Générer une Vidéo Test
+                    </Text>
+                  </>
+                )}
+              </TouchableOpacity>
+            </View>
+          </View>
+        )}
+
+        {/* Remove logout and delete account buttons at the bottom */}
       </ScrollView>
     </SafeAreaView>
   );
@@ -983,5 +708,26 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: '500',
     marginBottom: 8,
+  },
+  deleteButton: {
+    backgroundColor: 'transparent',
+    borderWidth: 1,
+    borderColor: '#ef4444',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 16,
+    borderRadius: 12,
+    gap: 8,
+    marginTop: 0,
+    marginBottom: 20,
+  },
+  deleteButtonDisabled: {
+    opacity: 0.7,
+  },
+  deleteButtonText: {
+    color: '#ef4444',
+    fontSize: 16,
+    fontWeight: '500',
   },
 });

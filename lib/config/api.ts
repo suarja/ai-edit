@@ -29,6 +29,7 @@ const API_CONFIGS = {
     webhooksCreatomate: '/api/webhooks/creatomate',
     voiceClone: '/api/voice-clone',
     onboarding: '/api/onboarding',
+    userManagement: '/api/user-management',
 
     // TikTok Analyzer endpoints
     tiktokAnalyzer: {
@@ -65,6 +66,7 @@ const API_CONFIGS = {
     voiceClone: '/api/voice-clone',
     onboarding: '/api/onboarding',
     support: '/api/support',
+    userManagement: '/api/user-management',
     // TikTok Analyzer endpoints
     tiktokAnalyzer: {
       baseUrl: 'http://localhost:3001',
@@ -102,7 +104,7 @@ const API_CONFIGS = {
     voiceClone: '/api/voice-clone',
     onboarding: '/api/onboarding',
     support: '/api/support',
-
+    userManagement: '/api/user-management',
     // TikTok Analyzer endpoints
     tiktokAnalyzer: {
       baseUrl:
@@ -343,6 +345,12 @@ export const API_ENDPOINTS = {
   SUPPORT_REPORT_ISSUE: () => {
     const config = getCurrentConfig();
     return config.baseUrl + config.support + '/report-issue';
+  },
+
+  //* User management
+  DELETE_USER: () => {
+    const config = getCurrentConfig();
+    return config.baseUrl + config.userManagement + '/delete-user';
   },
 };
 
