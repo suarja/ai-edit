@@ -1,0 +1,16 @@
+{
+  "name": "expo-video-analyzer",
+  "version": "0.1.0",
+  "description": "Expo module for on-device video analysis",
+  "main": "index.ts",
+  "keywords": [
+    "expo",
+    "video",
+    "analysis",
+    "on-device",
+    "ml"
+  ],
+  "author": "Your Name",
+  "license": "MIT",
+  "homepage": "https://github.com/your-repo/expo-video-analyzer"
+}

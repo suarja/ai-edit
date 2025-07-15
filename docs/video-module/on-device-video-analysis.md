@@ -49,4 +49,35 @@ Pour comprendre le code natif et notre objectif, voici une explication des fichi
 *   **`VideoAnalyzerModule.ts`** (dans le répertoire du module Expo) : Le fichier de définition TypeScript pour le module. Il déclarera les interfaces et les types pour les fonctions et les événements exposés par le module natif, permettant une utilisation typée dans l'application React Native.
 *   **`VideoAnalyzerModule.podspec`** (dans le répertoire du module Expo) : Le fichier de spécification CocoaPods pour le module. Il définira les sources des fichiers natifs, les dépendances (y compris les frameworks comme MLX et MLXVLM), et les configurations de compilation nécessaires pour le module iOS.
 
+## État Actuel et Défis Rencontrés
+
+Nous avons progressé dans la création du module natif `expo-video-analyzer`, la refactorisation des fichiers Swift (`VLMEvaluator.swift`, `Records.swift`, `ExpoVideoAnalyzerModule.swift`) et la configuration initiale du `.podspec` du module. Cependant, l'intégration des dépendances `mlx-swift` (qui incluent `MLX`, `MLXLMCommon`, `MLXVLM`) et `swift-transformers` (pour `Hub`) s'est avérée problématique.
+
+Le défi principal réside dans le fait que `mlx-swift` est principalement conçu pour être utilisé avec Swift Package Manager (SPM) et ne dispose pas d'un support officiel ou simple pour CocoaPods. Les tentatives d'intégration via des `config-plugins` ou des `swift_package` dans le `Podfile` principal ont échoué en raison de limitations de CocoaPods et de l'ordre de chargement des helpers.
+
+En conséquence, l'erreur `no such module 'MLX'` persiste lors de la compilation du projet iOS, indiquant que les dépendances SPM ne sont pas correctement liées au module natif.
+
+## Options pour l'Analyse Vidéo On-Device
+
+Face aux défis d'intégration de `mlx-swift` via CocoaPods, nous devons envisager des approches alternatives pour l'analyse vidéo on-device :
+
+1.  **Intégration Manuelle de `mlx-swift` (Déconseillée pour l'automatisation)**
+    *   **Description** : Cette option implique d'ajouter manuellement les dépendances Swift Package Manager (`mlx-swift`, `mlx-swift-examples`, `swift-markdown-ui`) directement dans Xcode après chaque exécution de `npx expo prebuild`. C'est la seule méthode avérée pour que `mlx-swift` compile dans un projet Expo à l'heure actuelle.
+    *   **Étapes Manuelles (à répéter après chaque `npx expo prebuild`)** :
+        1.  Ouvrez le projet iOS dans Xcode : `open ios/Editia.xcworkspace`
+        2.  Dans Xcode, allez dans les réglages de votre projet (le projet principal, `Editia`).
+        3.  Sélectionnez l'onglet **"Package Dependencies"**.
+        4.  Cliquez sur le bouton **"+"** en bas à gauche pour ajouter de nouvelles dépendances.
+        5.  Ajoutez les dépôts suivants un par un :
+            *   **`mlx-swift`** : URL `https://github.com/ml-explore/mlx-swift`, Règle de version : `Up to Next Major Version` ou `Exact Version` `0.21.3`.
+            *   **`mlx-swift-examples`** : URL `https://github.com/cyrilzakka/mlx-swift-examples`, Règle de version : `Branch` `main`.
+            *   **`swift-markdown-ui`** : URL `https://github.com/gonzalezreal/swift-markdown-ui.git`, Règle de version : `Up to Next Major Version` ou `Exact Version` `2.4.1`.
+        6.  Reconstruisez et Exécutez l'application directement depuis Xcode.
+    *   **Inconvénients** : Cette approche est très manuelle, rompt le flux de travail automatisé d'Expo (`prebuild` écrase les modifications), est sujette aux erreurs et rend la maintenance difficile, surtout dans un environnement de CI/CD.
+
+2.  **Explorer des Alternatives (Recommandée)**
+    *   **Utiliser Core ML directement** : Apple fournit son propre framework Core ML pour l'exécution de modèles d'apprentissage automatique sur l'appareil. Si un modèle de vision par ordinateur compatible Core ML peut être trouvé ou converti pour votre cas d'usage (analyse vidéo pour métadonnées), ce serait l'approche la plus native, stable et optimisée pour iOS. Cela signifierait ne pas utiliser `VLMEvaluator` de `HuggingSnap`.
+    *   **Rechercher d'autres bibliothèques ML on-device** : Il existe d'autres bibliothèques tierces pour l'inférence ML sur mobile (comme TensorFlow Lite, PyTorch Mobile) qui pourraient avoir un meilleur support CocoaPods ou une intégration plus simple avec Expo. Une évaluation de leur compatibilité et de leurs capacités serait nécessaire.
+    *   **Fallback Temporaire au Backend** : Si l'analyse on-device est absolument nécessaire mais que les solutions viables sont trop complexes à mettre en œuvre rapidement, nous pourrions revenir temporairement à l'analyse côté backend (via Gemini) tout en explorant une solution on-device plus robuste à long terme. Cela permettrait de débloquer le développement de l'application tout en recherchant la meilleure approche on-device.
+
 En suivant ce plan et en comprenant le rôle de ces fichiers, nous pourrons intégrer efficacement la logique d'analyse vidéo on-device dans votre application mobile.
