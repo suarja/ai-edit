@@ -1,103 +1,68 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React from 'react';
 import {
   View,
   Text,
   StyleSheet,
   TouchableOpacity,
-  TextInput,
   ActivityIndicator,
-  RefreshControl,
-  Alert,
-  FlatList,
 } from 'react-native';
-import { router, useFocusEffect } from 'expo-router';
-import {
-  Video as VideoIcon,
-  CircleAlert as AlertCircle,
-  Crown,
-} from 'lucide-react-native';
+import { router } from 'expo-router';
+import { Crown } from 'lucide-react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import VideoUploader from '@/components/VideoUploader';
-import VideoCard from '@/components/VideoCard';
+import VideoMetadataEditor from '@/components/VideoMetadataEditor';
+import ErrorDisplay from '@/components/ErrorDisplay';
+import VideoList from '@/components/VideoList';
 
-import { VideoType } from '@/types/video';
-import { VideoAnalysisData } from '@/types/videoAnalysis';
+import { useSourceVideos } from '@/hooks/useSourceVideos';
 import { useGetUser } from '@/lib/hooks/useGetUser';
-import { useClerkSupabaseClient } from '@/lib/supabase-clerk';
 import { useRevenueCat } from '@/providers/RevenueCat';
-import { SupportService } from '@/lib/services/support/supportService';
-import { useAuth } from '@clerk/clerk-expo';
 
 export default function SourceVideosScreen() {
-  const [videos, setVideos] = useState<VideoType[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [refreshing, setRefreshing] = useState(false);
-  const [playingVideoId, setPlayingVideoId] = useState<string | null>(null);
-  const [loadingVideoIds, setLoadingVideoIds] = useState<Set<string>>(
-    new Set()
-  );
-  const [errorVideoIds, setErrorVideoIds] = useState<Set<string>>(new Set());
-  const [visibleVideoIds, setVisibleVideoIds] = useState<Set<string>>(
-    new Set()
-  );
-  const [editingVideo, setEditingVideo] = useState<{
-    id: string | null;
-    title: string;
-    description: string;
-    tags: string;
-  }>({
-    id: null,
-    title: '',
-    description: '',
-    tags: '',
-  });
-  const [editingVideoId, setEditingVideoId] = useState<string | null>(null);
-  const [savingMetadata, setSavingMetadata] = useState(false);
-  const [showSupportButton, setShowSupportButton] = useState(false);
-  const [currentVideoId, setCurrentVideoId] = useState<string | null>(null);
-  const [hasAnalysisData, setHasAnalysisData] = useState(false);
-
-  // Add viewability config
-  const viewabilityConfig = React.useRef({
-    itemVisiblePercentThreshold: 100,
-    minimumViewTime: 1000,
-  }).current;
-
-  const onViewableItemsChanged = React.useCallback(
-    ({ viewableItems }: { viewableItems: Array<{ item: VideoType }> }) => {
-      const visibleIds = new Set(viewableItems.map(({ item }) => item.id));
-      setVisibleVideoIds(visibleIds);
-    },
-    []
-  );
-
-  const viewabilityConfigCallbackPairs = React.useRef([
-    { viewabilityConfig, onViewableItemsChanged },
-  ]).current;
+  const {
+    videos,
+    loading,
+    error,
+    refreshing,
+    playingVideoId,
+    loadingVideoIds,
+    errorVideoIds,
+    visibleVideoIds,
+    editingVideo,
+    editingVideoId,
+    savingMetadata,
+    currentVideoId,
+    hasAnalysisData,
+    viewabilityConfigCallbackPairs,
+    fetchVideos,
+    onRefresh,
+    handleUploadComplete,
+    handleUploadError,
+    handleAnalysisComplete,
+    rejectAnalysis,
+    updateVideoMetadata,
+    handleVideoPress,
+    handlePlayToggle,
+    handleVideoLoadStart,
+    handleVideoLoad,
+    handleVideoError,
+    handleError,
+    getPresignedUrl,
+    canUploadMore,
+    setEditingVideo,
+    setEditingVideoId,
+    setCurrentVideoId,
+    clearError,
+    setShowSupportButton,
+  } = useSourceVideos();
 
   // Use the same pattern as settings.tsx and videos.tsx
-  const { fetchUser, clerkLoaded, isSignedIn } = useGetUser();
-  const { client: supabase } = useClerkSupabaseClient();
+  const { clerkLoaded, isSignedIn } = useGetUser();
 
   // Get subscription info for free tier limits
-  const {
-    isPro,
-    isReady: revenueCatReady,
-    userUsage,
-    sourceVideosRemaining,
-  } = useRevenueCat();
+  const { isPro, isReady: revenueCatReady, userUsage } = useRevenueCat();
 
-  // Reset error when user interacts with the app
-  const clearError = useCallback(() => {
-    if (error) {
-      setError(null);
-    }
-  }, [error]);
-
-  const { getToken } = useAuth();
-
-  useEffect(() => {
+  React.useEffect(() => {
     if (clerkLoaded) {
       if (!isSignedIn) {
         router.replace('/(auth)/sign-in');
@@ -106,412 +71,6 @@ export default function SourceVideosScreen() {
       fetchVideos();
     }
   }, [clerkLoaded, isSignedIn]);
-
-  // Recharger les vidéos quand l'écran revient en focus (ex: après suppression)
-  useFocusEffect(
-    useCallback(() => {
-      // Seulement recharger si l'utilisateur est connecté et les données sont chargées
-      if (clerkLoaded && isSignedIn && !loading) {
-        console.log('🔄 Rechargement automatique des vidéos (écran en focus)');
-        fetchVideos();
-      }
-    }, [clerkLoaded, isSignedIn, loading])
-  );
-
-  const onRefresh = useCallback(async () => {
-    setRefreshing(true);
-    clearError(); // Clear any previous errors
-    await fetchVideos();
-    setRefreshing(false);
-  }, [clearError]);
-
-  const fetchVideos = async () => {
-    try {
-      // Get the database user (which includes the database ID)
-      const user = await fetchUser();
-      if (!user) {
-        router.replace('/(auth)/sign-in');
-        return;
-      }
-
-      // Use the database ID directly - no need to lookup again!
-      const { data, error } = await supabase
-        .from('videos')
-        .select('*')
-        .eq('user_id', user.id) // Use database ID directly instead of clerk_user_id
-        .order('created_at', { ascending: false });
-
-      if (error) {
-        console.error('Supabase error:', error);
-        throw error;
-      }
-
-      setVideos(data || []);
-    } catch (err) {
-      console.error('Error fetching videos:', err);
-      setError('Échec du chargement des vidéos');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleUploadComplete = async (data: {
-    videoStoragePath: string;
-    url: string;
-    videoDuration: number;
-  }): Promise<string> => {
-    try {
-      clearError();
-
-      if (!isPro && sourceVideosRemaining <= 0) {
-        setError(
-          `Limite atteinte : ${
-            userUsage?.source_videos_limit || 0
-          } vidéos sources maximum pour votre plan. Passez Pro pour en uploader plus.`
-        );
-        throw new Error('Source video limit reached');
-      }
-
-      const user = await fetchUser();
-      if (!user) {
-        throw new Error('User not authenticated');
-      }
-
-      // Insert with returning option to get the inserted row
-      const { error, data: videoData } = await supabase
-        .from('videos')
-        .insert({
-          user_id: user.id,
-          title: '',
-          description: '',
-          tags: [],
-          upload_url: data.url,
-          storage_path: data.videoStoragePath,
-          duration_seconds: data.videoDuration,
-          analysis_status: 'pending',
-        })
-        .select()
-        .single();
-
-      if (error) {
-        console.error('Supabase insert error:', error);
-        throw error;
-      }
-
-      if (!videoData) {
-        throw new Error('No video data returned after insertion');
-      }
-
-      await fetchVideos();
-      console.log('🔍 Métadonnées enregistrées avec succès:', {
-        id: videoData.id,
-      });
-
-      // Store video ID but don't set editing state yet
-      setCurrentVideoId(videoData.id);
-
-      // Return the video ID for the uploader component
-      return videoData.id;
-    } catch (error) {
-      console.error('Error saving video data:', error);
-      setError('Échec de la sauvegarde des informations de la vidéo');
-      throw error; // Re-throw to prevent upload continuation
-    }
-  };
-
-  const handleUploadError = (error: Error) => {
-    setError(error.message);
-  };
-
-  const handleAnalysisComplete = async (
-    data: VideoAnalysisData | null,
-    videoId: string,
-    manualEditRequired: boolean
-  ) => {
-    try {
-      if (manualEditRequired || !data) {
-        console.log('📹 Édition manuelle requise pour la vidéo:', videoId);
-
-        // Marquer le statut comme 'failed' (pas d'analyse disponible) et ouvrir l'éditeur
-        const { error } = await supabase
-          .from('videos')
-          .update({
-            analysis_status: 'failed',
-            analysis_data: null,
-          })
-          .eq('id', videoId);
-
-        if (error) {
-          console.error('Error updating video for manual edit:', error);
-          throw error;
-        }
-
-        // Ouvrir l'éditeur avec des champs vides, pas d'analyse à rejeter
-        setEditingVideo({
-          id: videoId,
-          title: '',
-          description: '',
-          tags: '',
-        });
-        setEditingVideoId(videoId);
-        setHasAnalysisData(false); // Pas d'analyse à rejeter
-      } else {
-        console.log('Updating analysis for video:', videoId, {
-          title: data.title,
-          description: data.description,
-          tags: data.tags,
-        });
-
-        // Sauvegarder l'analyse et ouvrir l'éditeur pré-rempli
-        const { error } = await supabase
-          .from('videos')
-          .update({
-            analysis_status: 'completed',
-            analysis_data: data,
-            description: data.description,
-            title: data.title,
-            tags: data.tags,
-            analysis_completed_at: new Date().toISOString(),
-            analysis_error: null,
-          })
-          .eq('id', videoId);
-
-        if (error) {
-          console.error('Error updating video analysis:', error);
-          throw error;
-        }
-
-        // Pré-remplir l'éditeur avec les données d'analyse
-        setEditingVideo({
-          id: videoId,
-          title: data.title || '',
-          description: data.description || '',
-          tags: data.tags?.join(', ') || '',
-        });
-        setEditingVideoId(videoId);
-        setHasAnalysisData(true); // Il y a une analyse à rejeter
-      }
-
-      // Refresh videos list to show updated status
-      await fetchVideos();
-    } catch (error) {
-      console.error('Error saving analysis results:', error);
-      setError("Échec de la sauvegarde des résultats d'analyse");
-    }
-  };
-
-  // Simplifier la fonction de rejet d'analyse
-  const rejectAnalysis = async () => {
-    if (!editingVideoId) return;
-
-    try {
-      const { error } = await supabase
-        .from('videos')
-        .update({
-          analysis_status: 'failed', // Utiliser 'failed' au lieu de 'rejected'
-          analysis_data: null,
-        })
-        .eq('id', editingVideoId);
-
-      if (error) throw error;
-
-      // Reset editing state avec champs vides
-      setEditingVideo({
-        id: editingVideoId,
-        title: '',
-        description: '',
-        tags: '',
-      });
-
-      await fetchVideos();
-    } catch (error) {
-      console.error('Error rejecting analysis:', error);
-      setError("Échec du rejet de l'analyse");
-    }
-  };
-
-  // Modifier la fonction updateVideoMetadata pour valider l'analyse
-  const updateVideoMetadata = async () => {
-    if (!editingVideo.id || !editingVideo.title || !editingVideo.description) {
-      Alert.alert('Erreur', 'Le titre et la description sont requis');
-      return;
-    }
-
-    console.log('🔍 Métadonnées à enregistrer:', {
-      id: editingVideo.id,
-      title: editingVideo.title,
-      description: editingVideo.description,
-      tags: editingVideo.tags,
-    });
-    setSavingMetadata(true);
-    clearError();
-
-    try {
-      const tagsArray = editingVideo.tags
-        .split(',')
-        .map((tag) => tag.trim())
-        .filter((tag) => tag);
-
-      if (tagsArray.length === 0) {
-        Alert.alert('Erreur', 'Au moins un tag est requis');
-        setSavingMetadata(false);
-        return;
-      }
-
-      const { error: updateError } = await supabase
-        .from('videos')
-        .update({
-          title: editingVideo.title,
-          description: editingVideo.description,
-          tags: tagsArray,
-          analysis_status: 'completed', // Marquer comme complété après validation
-        })
-        .eq('id', editingVideo.id);
-
-      if (updateError) throw updateError;
-
-      console.log('🔍 Métadonnées enregistrées avec succès:', {
-        id: editingVideo.id,
-      });
-
-      // Reset editing state
-      setEditingVideoId(null);
-      setEditingVideo({
-        id: null,
-        title: '',
-        description: '',
-        tags: '',
-      });
-      setCurrentVideoId(null);
-      await fetchVideos();
-      console.log('🔍 Métadonnées enregistrées avec succès');
-    } catch (err) {
-      console.error('Error updating video:', err);
-      setError('Échec de la mise à jour des métadonnées');
-    } finally {
-      setSavingMetadata(false);
-    }
-  };
-
-  const handleVideoPress = (video: VideoType) => {
-    clearError(); // Clear errors on interaction
-    setPlayingVideoId(null); // Stop any playing video
-    router.push(`/video-details/${video.id}`);
-  };
-
-  const handlePlayToggle = (videoId: string) => {
-    clearError(); // Clear errors on interaction
-    if (playingVideoId === videoId) {
-      setPlayingVideoId(null);
-    } else {
-      setPlayingVideoId(videoId);
-    }
-  };
-
-  const handleVideoLoadStart = (videoId: string) => {
-    setLoadingVideoIds((prev) => new Set(prev).add(videoId));
-  };
-
-  const handleVideoLoad = (videoId: string) => {
-    setLoadingVideoIds((prev) => {
-      const newSet = new Set(prev);
-      newSet.delete(videoId);
-      return newSet;
-    });
-  };
-
-  const handleVideoError = (videoId: string) => {
-    setLoadingVideoIds((prev) => {
-      const newSet = new Set(prev);
-      newSet.delete(videoId);
-      return newSet;
-    });
-    setErrorVideoIds((prev) => new Set(prev).add(videoId));
-  };
-
-  // Check if user can upload more videos
-  const canUploadMore = isPro || sourceVideosRemaining > 0;
-
-  // Add new function to handle support contact
-
-  const handleError = async (
-    error: Error | string,
-    context?: Record<string, any>
-  ) => {
-    const errorMessage = error instanceof Error ? error.message : error;
-
-    // Nettoyer les erreurs précédentes
-    clearError();
-
-    // Formater le message d'erreur pour l'utilisateur
-    let userMessage = 'Une erreur est survenue';
-    if (errorMessage.includes('quota')) {
-      userMessage =
-        'Limite d&apos;analyse quotidienne atteinte. Réessayez demain ou passez au plan Pro.';
-    } else if (errorMessage.includes('trop volumineuse')) {
-      userMessage = 'La vidéo est trop volumineuse (max 100MB)';
-    } else if (
-      errorMessage.includes('format') ||
-      errorMessage.includes('corrompu')
-    ) {
-      userMessage =
-        'Format de vidéo non supporté ou fichier corrompu. Essayez avec une autre vidéo.';
-    } else {
-      userMessage =
-        'Échec de l&apos;analyse. Vous pouvez remplir les informations manuellement.';
-      setShowSupportButton(true);
-    }
-
-    setError(userMessage);
-
-    // Toujours envoyer un rapport pour les erreurs d'analyse
-    try {
-      const token = await getToken();
-      if (token) {
-        await SupportService.reportIssue({
-          jobId: 'video-analysis-error',
-          errorMessage: errorMessage,
-          token,
-          context: {
-            ...context,
-            videosCount: videos.length,
-            isPro,
-            lastAction: 'video_analysis',
-          },
-        });
-      }
-    } catch (err) {
-      console.error('Failed to send error report:', err);
-    }
-  };
-
-  // Fonction utilitaire pour obtenir une presigned URL S3
-  const getPresignedUrl = async (
-    fileName: string,
-    fileType: string,
-    fileSize?: number
-  ) => {
-    const token = await getToken();
-    if (!token) throw new Error('Authentification requise');
-    const res = await fetch(process.env.EXPO_PUBLIC_API_URL + '/s3/upload', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify({ fileName, fileType, fileSize }),
-    });
-    if (!res.ok) {
-      const errorText = await res.text();
-      throw new Error('Erreur S3: ' + errorText);
-    }
-    const { data } = await res.json();
-    return {
-      presignedUrl: data.presignedUrl,
-      publicUrl: data.publicUrl,
-      s3FileName: data.fileName,
-    };
-  };
 
   if (loading) {
     return (
@@ -536,31 +95,20 @@ export default function SourceVideosScreen() {
         )}
 
         {error && (
-          <View style={styles.errorContainer}>
-            <View style={styles.errorHeader}>
-              <AlertCircle size={20} color="#ef4444" />
-              <Text style={styles.errorTitle}>Erreur</Text>
-            </View>
-            <Text style={styles.errorText}>{error}</Text>
-            <View style={styles.errorActions}>
-              <TouchableOpacity
-                style={styles.errorButton}
-                onPress={async () => {
-                  clearError();
-                  setShowSupportButton(false);
-                  setEditingVideo({
-                    id: editingVideo.id,
-                    title: '',
-                    description: '',
-                    tags: '',
-                  });
-                  await fetchVideos();
-                }}
-              >
-                <Text style={styles.errorButtonText}>Compris</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
+          <ErrorDisplay
+            message={error}
+            onAcknowledge={async () => {
+              clearError();
+              setShowSupportButton(false);
+              setEditingVideo({
+                id: editingVideo.id,
+                title: '',
+                description: '',
+                tags: '',
+              });
+              await fetchVideos();
+            }}
+          />
         )}
 
         {/* Free tier limit warning */}
@@ -604,7 +152,6 @@ export default function SourceVideosScreen() {
                     tags: '',
                   });
                   setEditingVideoId(currentVideoId);
-                  setHasAnalysisData(false);
                 }
               }}
             />
@@ -614,62 +161,38 @@ export default function SourceVideosScreen() {
 
           {/* Metadata Editor */}
           {editingVideo.id && (
-            <View style={styles.metadataEditorContainer}>
-              <Text style={styles.metadataTitle}>
-                Éditer les informations de la vidéo
-              </Text>
-              <View style={styles.metadataInputContainer}>
-                <Text style={styles.metadataInputLabel}>Titre *</Text>
-                <TextInput
-                  style={[
-                    styles.metadataInput,
-                    !editingVideo.title && styles.inputError,
-                  ]}
-                  placeholder="Titre de la vidéo"
-                  placeholderTextColor="#666"
-                  value={editingVideo.title}
-                  onChangeText={(text) =>
-                    setEditingVideo((prev) => ({ ...prev, title: text }))
-                  }
-                />
-              </View>
-              <View style={styles.metadataInputContainer}>
-                <Text style={styles.metadataInputLabel}>Description *</Text>
-                <TextInput
-                  style={[
-                    styles.metadataTextArea,
-                    !editingVideo.description && styles.inputError,
-                  ]}
-                  placeholder="Description de la vidéo"
-                  placeholderTextColor="#666"
-                  value={editingVideo.description}
-                  onChangeText={(text) =>
-                    setEditingVideo((prev) => ({ ...prev, description: text }))
-                  }
-                  multiline
-                  numberOfLines={4}
-                />
-              </View>
-              <View style={styles.metadataInputContainer}>
-                <Text style={styles.metadataInputLabel}>Tags *</Text>
-                <TextInput
-                  style={[
-                    styles.metadataInput,
-                    !editingVideo.tags && styles.inputError,
-                  ]}
-                  placeholder="tag1, tag2, tag3..."
-                  placeholderTextColor="#666"
-                  value={editingVideo.tags}
-                  onChangeText={(text) =>
-                    setEditingVideo((prev) => ({ ...prev, tags: text }))
-                  }
-                />
-                <Text style={styles.helperText}>
-                  Séparez les tags par des virgules. Au moins un tag est requis.
-                </Text>
-              </View>
-
-              {/* Section pour les boutons d'analyse - seulement si il y a des données d'analyse */}
+            <>
+              <VideoMetadataEditor
+                videoId={editingVideo.id}
+                analysisData={
+                  hasAnalysisData &&
+                  typeof editingVideoId === 'string' &&
+                  videos.find((v) => v.id === editingVideoId)?.analysis_data
+                    ? videos.find((v) => v.id === editingVideoId)?.analysis_data
+                    : undefined
+                }
+                onSave={async (metadata) => {
+                  setEditingVideo((prev) => ({
+                    ...prev,
+                    title: metadata.title,
+                    description: metadata.description,
+                    tags: metadata.tags.join(', '),
+                  }));
+                  await updateVideoMetadata();
+                }}
+                onCancel={() => {
+                  setEditingVideo({
+                    id: null,
+                    title: '',
+                    description: '',
+                    tags: '',
+                  });
+                  setEditingVideoId(null);
+                  setCurrentVideoId(null);
+                  clearError();
+                }}
+                isSaving={savingMetadata}
+              />
               {hasAnalysisData && (
                 <View style={styles.analysisActions}>
                   <TouchableOpacity
@@ -686,106 +209,27 @@ export default function SourceVideosScreen() {
                   </Text>
                 </View>
               )}
-
-              <View style={styles.metadataActions}>
-                <TouchableOpacity
-                  style={styles.cancelButton}
-                  onPress={() => {
-                    setEditingVideo({
-                      id: null,
-                      title: '',
-                      description: '',
-                      tags: '',
-                    });
-                    setEditingVideoId(null);
-                    setCurrentVideoId(null);
-                    clearError();
-                  }}
-                >
-                  <Text style={styles.cancelButtonText}>Annuler</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={[
-                    styles.saveButton,
-                    (!editingVideo.title ||
-                      !editingVideo.description ||
-                      !editingVideo.tags ||
-                      savingMetadata) &&
-                      styles.buttonDisabled,
-                  ]}
-                  onPress={async () => {
-                    if (
-                      !editingVideo.title ||
-                      !editingVideo.description ||
-                      !editingVideo.tags
-                    ) {
-                      Alert.alert('Erreur', 'Tous les champs sont requis');
-                      return;
-                    }
-                    await updateVideoMetadata();
-                  }}
-                  disabled={
-                    !editingVideo.title ||
-                    !editingVideo.description ||
-                    !editingVideo.tags ||
-                    savingMetadata
-                  }
-                >
-                  {savingMetadata ? (
-                    <ActivityIndicator size="small" color="#fff" />
-                  ) : (
-                    <Text style={styles.saveButtonText}>
-                      Valider et Enregistrer
-                    </Text>
-                  )}
-                </TouchableOpacity>
-              </View>
-            </View>
+            </>
           )}
         </View>
 
         <View style={styles.videosList}>
           <Text style={styles.sectionTitle}>Vos Vidéos</Text>
-          {videos.length === 0 ? (
-            <View style={styles.emptyState}>
-              <VideoIcon size={48} color="#555" />
-              <Text style={styles.emptyText}>Aucune vidéo uploadée</Text>
-              <Text style={styles.emptySubtext}>
-                Commencez par uploader votre première vidéo
-              </Text>
-            </View>
-          ) : (
-            <FlatList
-              data={videos}
-              renderItem={({ item }) => (
-                <VideoCard
-                  key={item.id}
-                  video={item}
-                  isPlaying={playingVideoId === item.id}
-                  isLoading={loadingVideoIds.has(item.id)}
-                  hasError={errorVideoIds.has(item.id)}
-                  onPress={() => handleVideoPress(item)}
-                  onPlayToggle={() => handlePlayToggle(item.id)}
-                  onLoadStart={() => handleVideoLoadStart(item.id)}
-                  onLoad={() => handleVideoLoad(item.id)}
-                  onError={() => handleVideoError(item.id)}
-                  isVisible={visibleVideoIds.has(item.id)}
-                />
-              )}
-              viewabilityConfigCallbackPairs={viewabilityConfigCallbackPairs}
-              removeClippedSubviews={true}
-              maxToRenderPerBatch={5}
-              windowSize={5}
-              initialNumToRender={4}
-              refreshControl={
-                <RefreshControl
-                  refreshing={refreshing}
-                  onRefresh={onRefresh}
-                  tintColor="#007AFF"
-                />
-              }
-            />
-          )}
+          <VideoList
+            videos={videos}
+            playingVideoId={playingVideoId}
+            loadingVideoIds={loadingVideoIds}
+            errorVideoIds={errorVideoIds}
+            visibleVideoIds={visibleVideoIds}
+            onVideoPress={handleVideoPress}
+            onPlayToggle={handlePlayToggle}
+            onLoadStart={handleVideoLoadStart}
+            onLoad={handleVideoLoad}
+            onError={handleVideoError}
+            viewabilityConfigCallbackPairs={viewabilityConfigCallbackPairs}
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+          />
         </View>
       </View>
     </SafeAreaView>

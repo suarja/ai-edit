@@ -52,7 +52,7 @@ export const DebugPanel: React.FC = () => {
       )}
       {analysisResult && (
         <View style={styles.section}>
-          <Text style={styles.label}>Résultat d'analyse :</Text>
+          <Text style={styles.label}>Résultat d&apos;analyse :</Text>
           <Text style={styles.value}>
             {JSON.stringify(analysisResult, null, 2)}
           </Text>

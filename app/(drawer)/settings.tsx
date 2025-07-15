@@ -23,7 +23,7 @@ import { SubscriptionManager } from '@/components/SubscriptionManager';
 import { useClerkSupabaseClient } from '@/lib/supabase-clerk';
 import UserProfileManager from '@/components/UserProfileManager';
 import SupportPanel from '@/components/SupportPanel';
-import DebugPanel from '@/components/DebugPanel';
+import { DebugPanel } from '@/components/DebugPanel';
 import { sharedStyles } from '@/constants/sharedStyles';
 
 export default function SettingsScreen() {
