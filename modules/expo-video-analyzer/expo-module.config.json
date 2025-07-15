@@ -1,0 +1,9 @@
+{
+  "platforms": ["apple", "android"],
+  "apple": {
+    "modules": ["ExpoVideoAnalyzerModule"]
+  },
+  "android": {
+    "modules": ["expo.modules.videoanalyzer.ExpoVideoAnalyzerModule"]
+  }
+}
