@@ -6,17 +6,20 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   Alert,
-  Platform,
 } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { openSettings } from 'expo-linking';
-import { Video as VideoIcon, UploadCloud } from 'lucide-react-native';
+import { UploadCloud } from 'lucide-react-native';
 import { MediaType } from 'expo-image-picker';
-import { API_ENDPOINTS, API_HEADERS } from '@/lib/config/api';
+// import { API_ENDPOINTS, API_HEADERS } from '@/lib/config/api'; // Commented out as backend API is replaced
 import { useAuth } from '@clerk/clerk-expo';
 import { SupportService } from '@/lib/services/support/supportService';
-import * as FileSystem from 'expo-file-system';
 import { useRevenueCat } from '@/providers/RevenueCat';
+
+// Import our new native module
+import ExpoVideoAnalyzer from '@/modules/expo-video-analyzer';
+import { VideoAnalysisResult } from '@/modules/expo-video-analyzer/src/ExpoVideoAnalyzer.types';
+import { API_ENDPOINTS, API_HEADERS } from '@/lib/config/api';
 
 type VideoUploaderProps = {
   onUploadComplete?: (videoData: {
@@ -182,7 +185,7 @@ export default function VideoUploader({
         allowsEditing: true,
         quality: 1,
         videoMaxDuration: 300,
-        base64: true,
+        // base64: true, // Not needed for on-device analysis
       });
       console.log('result', result);
 
@@ -205,7 +208,7 @@ export default function VideoUploader({
         duration: asset.duration,
         width: asset.width,
         height: asset.height,
-        base64Present: !!asset.base64,
+        // base64Present: !!asset.base64,
       });
 
       // Vérifier la taille du fichier (max 100MB)
@@ -219,106 +222,76 @@ export default function VideoUploader({
         throw new Error('La vidéo est trop volumineuse (max 100MB)');
       }
 
-      setUploadState('uploading');
-      setStatusMessage('Préparation de l&apos;upload...');
+      // --- Début de la nouvelle logique d'analyse on-device ---
+      setUploadState('analyzing');
+      setStatusMessage('Analyse en cours...');
+      if (onAnalysisStart) onAnalysisStart();
 
-      const fileName = asset.fileName || 'video.mp4';
-      const fileType = asset.mimeType || 'video/mp4';
-
-      console.log('🔑 Récupération du token...');
-      const clerkToken = await getToken();
-      if (!clerkToken) {
-        console.error('❌ Token d&apos;authentification manquant');
-        throw new Error(
-          'Impossible d&apos;obtenir le token d&apos;authentification'
-        );
-      }
-
-      // Get presigned URL
-      console.log('📤 Demande d&apos;URL présignée...');
-      const presignedResponse = await fetch(API_ENDPOINTS.S3_UPLOAD(), {
-        method: 'POST',
-        headers: API_HEADERS.CLERK_AUTH(clerkToken),
-        body: JSON.stringify({
-          fileName,
-          fileType,
-          fileSize: asset.fileSize,
-        }),
-      });
-
-      if (!presignedResponse.ok) {
-        const errorText = await presignedResponse.text();
-        console.error('❌ Échec de la préparation:', {
-          status: presignedResponse.status,
-          statusText: presignedResponse.statusText,
-          error: errorText,
-        });
-        throw new Error('Échec de la préparation du téléchargement');
-      }
-
-      const {
-        data: { presignedUrl, publicUrl, fileName: s3FileName },
-      } = await presignedResponse.json();
-      console.log('✅ URL présignée obtenue:', { s3FileName, publicUrl });
-
-      // Sauvegarder l'ID de la vidéo courante
-      setCurrentVideoId(s3FileName);
-
-      // Préparer le blob vidéo
-      console.log('🎞️ Préparation du blob vidéo...');
-      const response = await fetch(asset.uri);
-      const blob = await response.blob();
-      console.log('📊 Blob vidéo prêt:', {
-        size: blob.size,
-        type: blob.type,
-        duration: asset.duration,
-      });
-
-      // Upload puis analyse
-      setStatusMessage('Upload en cours...');
-      console.log('🚀 Démarrage upload S3...');
-
+      let videoId: string | undefined;
       try {
-        // Upload to S3
+        // First, upload the video to S3 (still needed for storage)
+        // This part remains similar to your original logic, but without the backend analysis call
+        setStatusMessage('Préparation de l&apos;upload...');
+        const fileName = asset.fileName || 'video.mp4';
+        const fileType = asset.mimeType || 'video/mp4';
+
+        const clerkToken = await getToken();
+        if (!clerkToken) {
+          throw new Error(
+            'Impossible d&apos;obtenir le token d&apos;authentification'
+          );
+        }
+
+        // Get presigned URL
+        const presignedResponse = await fetch(API_ENDPOINTS.S3_UPLOAD(), {
+          method: 'POST',
+          headers: API_HEADERS.CLERK_AUTH(clerkToken),
+          body: JSON.stringify({
+            fileName,
+            fileType,
+            fileSize: asset.fileSize,
+          }),
+        });
+
+        if (!presignedResponse.ok) {
+          const errorText = await presignedResponse.text();
+          throw new Error(
+            `Échec de la préparation du téléchargement: ${errorText}`
+          );
+        }
+
+        const {
+          data: { presignedUrl, publicUrl, fileName: s3FileName },
+        } = await presignedResponse.json();
+        setCurrentVideoId(s3FileName);
+
+        const response = await fetch(asset.uri);
+        const blob = await response.blob();
+
         await new Promise<void>((resolve, reject) => {
-          console.log('📤 Démarrage upload S3...');
           const xhr = new XMLHttpRequest();
           xhr.open('PUT', presignedUrl);
-
           xhr.upload.onprogress = (event) => {
             if (event.lengthComputable) {
               const progress = Math.round((event.loaded / event.total) * 100);
-              console.log(`📊 Progression upload: ${progress}%`);
               setUploadProgress(progress);
               setStatusMessage(`Upload en cours (${progress}%)...`);
             }
           };
-
           xhr.onload = () => {
             if (xhr.status === 200) {
-              console.log('✅ Upload S3 terminé');
               resolve();
             } else {
-              console.error('❌ Échec upload S3:', {
-                status: xhr.status,
-                response: xhr.responseText,
-              });
               reject(new Error('Échec du téléchargement'));
             }
           };
           xhr.onerror = (error) => {
-            console.error('❌ Erreur réseau upload S3:', error);
             reject(new Error('Erreur réseau'));
           };
           xhr.send(blob);
         });
 
-        // Attendre un peu pour s'assurer que la vidéo est disponible
-        console.log('⏳ Attente de la propagation S3...');
-        await new Promise((resolve) => setTimeout(resolve, 2000));
-
         // Get video ID from parent after upload
-        let videoId: string | undefined;
         if (onUploadComplete) {
           videoId = await onUploadComplete({
             videoStoragePath: s3FileName,
@@ -331,74 +304,47 @@ export default function VideoUploader({
           throw new Error('Failed to get video ID after upload');
         }
 
-        // Lancer l'analyse
-        console.log('🧠 Démarrage analyse vidéo...');
-        setStatusMessage('Analyse en cours...');
-        setUploadState('analyzing');
-        if (onAnalysisStart) onAnalysisStart();
+        // Now, perform on-device analysis
+        setStatusMessage('Analyse on-device en cours...');
+        const analysisResult: VideoAnalysisResult =
+          await ExpoVideoAnalyzer.analyzeVideo(asset.uri);
 
-        const analysisResponse = await fetch(API_ENDPOINTS.VIDEO_ANALYSIS(), {
-          method: 'POST',
-          headers: {
-            ...API_HEADERS.CLERK_AUTH(clerkToken),
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            videoUrl: publicUrl,
-            fileName,
-            fileSize: asset.fileSize,
-            fileType,
-            s3Key: s3FileName,
-          }),
-        });
-
-        if (!analysisResponse.ok) {
-          const errorData = await analysisResponse.json();
-          console.error('❌ Échec analyse vidéo:', {
-            status: analysisResponse.status,
-            error: errorData,
-          });
-          throw new Error(errorData.error || "Échec de l'analyse");
-        }
-
-        const analysisResult = await analysisResponse.json();
-        console.log('✅ Analyse vidéo terminée:', {
-          success: analysisResult.success,
-          method: analysisResult.data?.method_used,
-          time: analysisResult.data?.analysis_time,
-          data: analysisResult.data,
-        });
-
-        // Si on arrive ici, l'upload et l'analyse ont réussi
-        if (analysisResult.success && analysisResult.data) {
+        if (analysisResult.status === 'success') {
           if (onAnalysisComplete) {
-            // Vérifier si l'analyse nécessite une édition manuelle
-            if (analysisResult.data.requires_manual_edit) {
-              console.log(
-                '📹 Analyse non disponible, redirection vers édition manuelle'
-              );
-              await onAnalysisComplete(null, videoId, true); // null data, manual edit required
-            } else {
-              // Analyse normale avec données
-              await onAnalysisComplete(
-                analysisResult.data.analysis_data,
-                videoId,
-                false
-              );
-            }
+            // Here, you'll need to parse analysisResult.analysisResult (string) into your desired format
+            // For now, we'll just pass it as is, assuming it's a JSON string or similar
+            const parsedAnalysisData = analysisResult.analysisResult
+              ? JSON.parse(analysisResult.analysisResult)
+              : null; // Adjust parsing as needed
+
+            // Determine if manual edit is required based on parsed data or analysisResult.status
+            const manualEditRequired =
+              !parsedAnalysisData || parsedAnalysisData.requires_manual_edit; // Example condition
+
+            await onAnalysisComplete(
+              parsedAnalysisData,
+              videoId,
+              manualEditRequired
+            );
           }
           setUploadState('idle');
           setStatusMessage('');
         } else {
-          console.error('❌ Résultat analyse invalide:', analysisResult);
-          throw new Error(analysisResult.error || 'Analyse échouée');
+          // Handle analysis error from native module
+          throw new Error(
+            analysisResult.errorMessage || 'Analyse on-device échouée'
+          );
         }
       } catch (error) {
-        console.error('❌ Erreur upload/analyse:', error);
-        throw error;
+        console.error(
+          '❌ Erreur dans le processus d&apos;upload/analyse:',
+          error
+        );
+        handleError(error instanceof Error ? error : new Error(String(error)));
       }
+      // --- Fin de la nouvelle logique d'analyse on-device ---
     } catch (error) {
-      console.error('❌ Erreur globale upload/analyse:', error);
+      console.error('❌ Erreur globale dans handleSelectVideo:', error);
       handleError(error instanceof Error ? error : new Error(String(error)));
     }
   };
