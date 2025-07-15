@@ -264,7 +264,9 @@ const AnalysisInProgressScreen: React.FC<AnalysisInProgressScreenProps> = ({
           {/* Quick Actions While Waiting */}
           {status !== 'completed' && status !== 'failed' && (
             <View style={styles.quickActionsCard}>
-              <Text style={styles.quickActionsTitle}>⚡ Pendant l'attente</Text>
+              <Text style={styles.quickActionsTitle}>
+                ⚡ Pendant l&apos;attente
+              </Text>
               <View style={styles.quickActionsGrid}>
                 <TouchableOpacity
                   style={styles.quickActionButton}
@@ -305,8 +307,8 @@ const AnalysisInProgressScreen: React.FC<AnalysisInProgressScreenProps> = ({
                 </TouchableOpacity>
               </View>
               <Text style={styles.quickActionsSubtext}>
-                💡 Vous pouvez fermer l'app et revenir plus tard, votre analyse
-                continuera !
+                💡 Vous pouvez fermer l&apos;app et revenir plus tard, votre
+                analyse continuera !
               </Text>
             </View>
           )}

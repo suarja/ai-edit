@@ -56,7 +56,6 @@ const ResponseSchema = z.object({
   }),
 });
 
-type ResponseType = z.infer<typeof ResponseSchema>;
 const StartAnalysisScreen: React.FC<StartAnalysisScreenProps> = ({
   onAnalysisStart,
 }) => {
