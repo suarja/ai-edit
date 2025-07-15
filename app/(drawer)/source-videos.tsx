@@ -485,6 +485,34 @@ export default function SourceVideosScreen() {
     }
   };
 
+  // Fonction utilitaire pour obtenir une presigned URL S3
+  const getPresignedUrl = async (
+    fileName: string,
+    fileType: string,
+    fileSize?: number
+  ) => {
+    const token = await getToken();
+    if (!token) throw new Error('Authentification requise');
+    const res = await fetch(process.env.EXPO_PUBLIC_API_URL + '/s3/upload', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ fileName, fileType, fileSize }),
+    });
+    if (!res.ok) {
+      const errorText = await res.text();
+      throw new Error('Erreur S3: ' + errorText);
+    }
+    const { data } = await res.json();
+    return {
+      presignedUrl: data.presignedUrl,
+      publicUrl: data.publicUrl,
+      s3FileName: data.fileName,
+    };
+  };
+
   if (loading) {
     return (
       <SafeAreaView style={styles.container} edges={[]}>
@@ -553,19 +581,21 @@ export default function SourceVideosScreen() {
         )}
 
         <View style={styles.uploadSection}>
-          {/* VideoUploader - n'afficher que si pas d'édition et peut uploader */}
+          {/*
+            Nouveau flow :
+            - L'utilisateur clique sur "Uploader une vidéo" (VideoUploader)
+            - Upload S3, puis analyse on-device
+            - Après analyse (ou si ignorée), le formulaire d'édition metadata s'affiche toujours (pré-rempli si analyse OK)
+          */}
           {!editingVideo.id && canUploadMore && (
             <VideoUploader
+              getPresignedUrl={getPresignedUrl}
               onUploadComplete={handleUploadComplete}
               onUploadError={handleUploadError}
               onUploadStart={clearError}
               onAnalysisComplete={handleAnalysisComplete}
               onAnalysisError={handleError}
               onManualEdit={() => {
-                console.log(
-                  '🔍 Manual edit requested for video:',
-                  currentVideoId
-                );
                 if (currentVideoId) {
                   setEditingVideo({
                     id: currentVideoId,
@@ -574,7 +604,7 @@ export default function SourceVideosScreen() {
                     tags: '',
                   });
                   setEditingVideoId(currentVideoId);
-                  setHasAnalysisData(false); // Édition manuelle, pas d'analyse
+                  setHasAnalysisData(false);
                 }
               }}
             />

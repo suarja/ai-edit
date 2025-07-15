@@ -1,171 +1,101 @@
-import React, { useState } from 'react';
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  TextInput,
-  ActivityIndicator,
-  StyleSheet,
-} from 'react-native';
-import { useRouter } from 'expo-router';
-import { Bug, Wand as Wand2, AlertCircle } from 'lucide-react-native';
-import { sharedStyles } from '@/constants/sharedStyles';
+import React from 'react';
+import { View, Text, StyleSheet } from 'react-native';
+import { VideoSelector } from './VideoSelector';
+import { VideoAnalyzer } from './VideoAnalyzer';
+import { VideoAsset } from '@/hooks/useVideoSelector';
+import { AnalysisResult } from '@/hooks/useOnDeviceVideoAnalysis';
 
-const DebugPanel: React.FC = () => {
-  const router = useRouter();
-  const [testingPrompt, setTestingPrompt] = useState('');
-  const [testingStatus, setTestingStatus] = useState<string | null>(null);
-  const [testingError, setTestingError] = useState<string | null>(null);
-  const [testingLoading, setTestingLoading] = useState(false);
+export const DebugPanel: React.FC = () => {
+  const [selectedAsset, setSelectedAsset] = React.useState<VideoAsset | null>(
+    null
+  );
+  const [analysisResult, setAnalysisResult] =
+    React.useState<AnalysisResult | null>(null);
+  const [error, setError] = React.useState<string | null>(null);
 
-  // Placeholder for video generation debug action
-  const handleGenerateVideoTest = async () => {
-    setTestingLoading(true);
-    setTestingStatus(null);
-    setTestingError(null);
-    setTimeout(() => {
-      setTestingStatus('Vidéo test générée (simulation)');
-      setTestingLoading(false);
-    }, 1200);
+  const handleSelect = (asset: VideoAsset) => {
+    setSelectedAsset(asset);
+    setAnalysisResult(null);
+    setError(null);
+  };
+
+  const handleAnalysis = (result: AnalysisResult) => {
+    setAnalysisResult(result);
+    setError(null);
+  };
+
+  const handleError = (err: Error) => {
+    setError(err.message);
   };
 
   return (
-    <View style={styles.debugContainer}>
-      <Text style={styles.debugTitle}>Débogage</Text>
-      <TouchableOpacity
-        style={styles.settingItem}
-        onPress={() => router.push('/(onboarding)/welcome')}
-      >
-        <View style={styles.settingInfo}>
-          <Bug size={24} color="#fff" />
-          <Text style={styles.settingText}>Tester le Flux d&apos;Accueil</Text>
+    <View style={styles.container}>
+      <Text style={styles.title}>Debug Panel - Analyse Vidéo Locale</Text>
+      <VideoSelector
+        onSelect={handleSelect}
+        onError={handleError}
+        label="Choisir une vidéo locale"
+      />
+      {selectedAsset && (
+        <View style={styles.section}>
+          <Text style={styles.label}>Vidéo sélectionnée :</Text>
+          <Text style={styles.value}>
+            {selectedAsset.fileName || selectedAsset.uri}
+          </Text>
+          <VideoAnalyzer
+            uri={selectedAsset.uri}
+            onAnalysis={handleAnalysis}
+            onError={handleError}
+            label="Analyser cette vidéo"
+          />
         </View>
-      </TouchableOpacity>
-      <View style={styles.debugContainer}>
-        <Text style={styles.debugTitle}>Tester la Génération Vidéo</Text>
-        <TextInput
-          style={styles.debugInput}
-          placeholder="Entrez une description test..."
-          placeholderTextColor="#666"
-          value={testingPrompt}
-          onChangeText={setTestingPrompt}
-          multiline
-          numberOfLines={3}
-        />
-        {testingError && (
-          <View style={styles.debugError}>
-            <AlertCircle size={16} color="#ef4444" />
-            <Text style={styles.debugErrorText}>{testingError}</Text>
-          </View>
-        )}
-        {testingStatus && (
-          <View style={styles.debugStatus}>
-            <Text style={styles.debugStatusText}>{testingStatus}</Text>
-          </View>
-        )}
-        <TouchableOpacity
-          style={[
-            styles.debugButton,
-            testingLoading && styles.debugButtonDisabled,
-          ]}
-          onPress={handleGenerateVideoTest}
-          disabled={testingLoading}
-        >
-          {testingLoading ? (
-            <ActivityIndicator color="#fff" />
-          ) : (
-            <>
-              <Wand2 size={20} color="#fff" />
-              <Text style={styles.debugButtonText}>Générer une Vidéo Test</Text>
-            </>
-          )}
-        </TouchableOpacity>
-      </View>
+      )}
+      {analysisResult && (
+        <View style={styles.section}>
+          <Text style={styles.label}>Résultat d'analyse :</Text>
+          <Text style={styles.value}>
+            {JSON.stringify(analysisResult, null, 2)}
+          </Text>
+        </View>
+      )}
+      {error && (
+        <View style={styles.section}>
+          <Text style={styles.error}>Erreur : {error}</Text>
+        </View>
+      )}
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  debugContainer: {
-    backgroundColor: sharedStyles.sectionContainer.backgroundColor,
+  container: {
+    padding: 20,
+    backgroundColor: '#111',
     borderRadius: 12,
-    padding: 16,
-    marginTop: 12,
-    gap: 12,
-    marginBottom: 24,
+    margin: 20,
   },
-  debugTitle: {
-    fontSize: 16,
-    fontWeight: '600',
+  title: {
     color: '#fff',
-    marginBottom: 8,
+    fontSize: 18,
+    fontWeight: '700',
+    marginBottom: 16,
   },
-  settingItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    backgroundColor: '#4b5563',
-    padding: 16,
-    borderRadius: 12,
-    marginBottom: 8,
+  section: {
+    marginTop: 16,
   },
-  settingInfo: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-  },
-  settingText: {
-    color: '#fff',
-    fontSize: 16,
-  },
-  debugInput: {
-    backgroundColor: '#333',
-    borderRadius: 8,
-    padding: 12,
-    color: '#fff',
+  label: {
+    color: '#aaa',
     fontSize: 14,
-    textAlignVertical: 'top',
+    fontWeight: '600',
   },
-  debugError: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#2D1116',
-    padding: 12,
-    borderRadius: 8,
-    gap: 8,
+  value: {
+    color: '#fff',
+    fontSize: 13,
+    marginTop: 4,
   },
-  debugErrorText: {
+  error: {
     color: '#ef4444',
-    fontSize: 14,
-    flex: 1,
-  },
-  debugStatus: {
-    backgroundColor: '#042f2e',
-    padding: 12,
-    borderRadius: 8,
-  },
-  debugStatusText: {
-    color: '#10b981',
-    fontSize: 14,
-    textAlign: 'center',
-  },
-  debugButton: {
-    backgroundColor: '#007AFF',
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: 12,
-    borderRadius: 8,
-    gap: 8,
-  },
-  debugButtonDisabled: {
-    opacity: 0.7,
-  },
-  debugButtonText: {
-    color: '#fff',
-    fontSize: 14,
     fontWeight: '600',
+    fontSize: 14,
   },
 });
-
-export default DebugPanel;
