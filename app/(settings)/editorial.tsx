@@ -92,7 +92,7 @@ export default function EditorialScreen() {
     }
   };
 
-  const handleSave = async () => {
+  const handleSave = async (updatedProfile: EditorialProfile) => {
     try {
       setSaving(true);
 
@@ -104,10 +104,10 @@ export default function EditorialScreen() {
 
       const profileData = {
         user_id: user.id,
-        persona_description: profile.persona_description,
-        tone_of_voice: profile.tone_of_voice,
-        audience: profile.audience,
-        style_notes: profile.style_notes,
+        persona_description: updatedProfile.persona_description,
+        tone_of_voice: updatedProfile.tone_of_voice,
+        audience: updatedProfile.audience,
+        style_notes: updatedProfile.style_notes,
       };
 
       const { error } = originalProfile.id
@@ -120,7 +120,7 @@ export default function EditorialScreen() {
       if (error) throw error;
 
       setOriginalProfile(profile);
-      setIsEditing(false);
+
       Alert.alert('Succès', 'Profil éditorial sauvegardé avec succès !');
     } catch (err) {
       console.error('Error saving profile:', err);
@@ -144,6 +144,7 @@ export default function EditorialScreen() {
 
   const handleFormChange = (updatedProfile: EditorialProfile) => {
     setProfile(updatedProfile);
+    handleSave(updatedProfile);
   };
 
   // Check if profile has content
@@ -179,7 +180,7 @@ export default function EditorialScreen() {
           title="Modifier le Profil"
           rightButton={{
             icon: <Save size={20} color="#fff" />,
-            onPress: handleSave,
+            onPress: () => handleSave(profile),
             disabled: !hasChanges || saving,
             loading: saving,
           }}

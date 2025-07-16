@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useRef } from 'react';
 import {
   View,
   Text,
@@ -7,18 +7,11 @@ import {
   ScrollView,
   Modal,
   TouchableOpacity,
-  KeyboardAvoidingView,
-  Platform,
   ScrollView as RNScrollView,
 } from 'react-native';
-import {
-  User,
-  MessageCircle,
-  Users,
-  FileText,
-  Lightbulb,
-} from 'lucide-react-native';
+import { User, MessageCircle, Users, FileText } from 'lucide-react-native';
 import VoiceDictation from './VoiceDictation';
+import { SHARED_STYLE_COLORS } from '@/constants/sharedStyles';
 
 type EditorialProfile = {
   id: string;
@@ -44,7 +37,7 @@ const FIELD_CONFIGS = [
       "Ex: Créateur de contenu tech passionné par l'innovation et la productivité...",
     description: 'Décrivez votre personnalité de créateur et votre expertise',
     maxLength: 1000,
-    numberOfLines: 4,
+    numberOfLines: 6,
     tips: [
       "Mentionnez votre domaine d'expertise",
       'Décrivez votre approche unique',
@@ -59,7 +52,7 @@ const FIELD_CONFIGS = [
       'Ex: Conversationnel et amical, tout en restant professionnel et informatif...',
     description: 'Comment vous exprimez-vous dans vos contenus',
     maxLength: 500,
-    numberOfLines: 3,
+    numberOfLines: 6,
     tips: [
       'Formel ou décontracté ?',
       'Humoristique ou sérieux ?',
@@ -74,7 +67,7 @@ const FIELD_CONFIGS = [
       'Ex: Professionnels du marketing digital, entrepreneurs, créateurs de contenu...',
     description: 'Qui sont vos spectateurs idéaux',
     maxLength: 500,
-    numberOfLines: 3,
+    numberOfLines: 6,
     tips: ['Âge et profession', "Niveau d'expertise", "Centres d'intérêt"],
   },
   {
@@ -85,7 +78,7 @@ const FIELD_CONFIGS = [
       'Ex: Utilisez des exemples concrets, évitez le jargon technique, incluez des call-to-action...',
     description: 'Préférences et directives spécifiques',
     maxLength: 1000,
-    numberOfLines: 4,
+    numberOfLines: 6,
     tips: ['Structure préférée', 'Éléments à éviter', 'Mots-clés importants'],
   },
 ];
@@ -101,67 +94,14 @@ export default function EditorialProfileForm({
     keyof EditorialProfile | null
   >(null);
   const [editingValue, setEditingValue] = useState<string>('');
-  const [activeField, setActiveField] = useState<string | null>(null);
-  // Ajout : champ actuellement en dictée
-  const [activeDictationField, setActiveDictationField] = useState<
-    string | null
-  >(null);
 
   // Add ref for ScrollView to enable programmatic scrolling
   const scrollViewRef = useRef<ScrollView>(null);
-  const inputRefs = useRef<{ [key: string]: TextInput | null }>({});
 
-  // Update parent component whenever form data changes
-  useEffect(() => {
-    onSave(formData);
-  }, [formData, onSave]);
-
-  const updateField = (key: keyof EditorialProfile, value: string) => {
-    setFormData((prev) => ({ ...prev, [key]: value }));
-  };
-
-  // Ajout : callback pour VoiceDictation
-  const handleDictationTranscript = (
-    key: keyof EditorialProfile,
-    text: string
-  ) => {
-    // N'appliquer la transcription que si le champ est actif
-    if (activeDictationField === key) {
-      updateField(key, text);
-    }
-  };
-
-  // Ajout : callback pour fin de dictée
-  const handleDictationEnd = (key: keyof EditorialProfile) => {
-    if (activeDictationField === key) {
-      setActiveDictationField(null);
-    }
-  };
-
-  const handleInputFocus = (key: string) => {
-    setActiveField(key);
-
-    // Scroll to focused input with a small delay to ensure keyboard is open
-    setTimeout(() => {
-      const inputRef = inputRefs.current[key];
-      if (inputRef && scrollViewRef.current) {
-        inputRef.measureLayout(
-          scrollViewRef.current as any,
-          (x, y, width, height) => {
-            // Scroll to show the input with some extra space above
-            scrollViewRef.current?.scrollTo({
-              y: Math.max(0, y - 100),
-              animated: true,
-            });
-          },
-          () => {
-            // Fallback: scroll to end if measure fails
-            scrollViewRef.current?.scrollToEnd({ animated: true });
-          }
-        );
-      }
-    }, 300);
-  };
+  // // Update parent component whenever form data changes
+  // useEffect(() => {
+  //   onSave(formData);
+  // }, [formData, onSave]);
 
   const getCompletionPercentage = () => {
     const fields = FIELD_CONFIGS.map((config) => formData[config.key]);
@@ -170,8 +110,6 @@ export default function EditorialProfileForm({
     ).length;
     return Math.round((filledFields / fields.length) * 100);
   };
-
-  const completion = getCompletionPercentage();
 
   // Ouvre le modal pour éditer un champ
   const openEditModal = (key: keyof EditorialProfile) => {
@@ -189,6 +127,8 @@ export default function EditorialProfileForm({
   const saveEditModal = () => {
     if (editingField) {
       setFormData((prev) => ({ ...prev, [editingField]: editingValue }));
+      // save partially updated profile with the new value
+      onSave({ ...formData, [editingField]: editingValue });
       setEditingField(null);
       setEditingValue('');
     }
@@ -518,6 +458,7 @@ const styles = StyleSheet.create({
     padding: 24,
     width: '90%',
     maxWidth: 420,
+    minHeight: '60%',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0.1,
@@ -561,7 +502,7 @@ const styles = StyleSheet.create({
     fontSize: 15,
   },
   modalButtonSave: {
-    backgroundColor: '#10b981',
+    backgroundColor: SHARED_STYLE_COLORS.secondary,
   },
   modalButtonSaveText: {
     color: '#fff',
