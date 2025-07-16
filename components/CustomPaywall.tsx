@@ -251,7 +251,7 @@ export const CustomPaywall: React.FC<CustomPaywallProps> = ({
                       <ActivityIndicator color="white" />
                     ) : (
                       <Text style={styles.subscribeButtonText}>
-                        Commencer l'abonnement Pro
+                        Commencer l&apos;abonnement Pro
                       </Text>
                     )}
                   </TouchableOpacity>
@@ -269,7 +269,7 @@ export const CustomPaywall: React.FC<CustomPaywallProps> = ({
 
                 {/* Terms */}
                 <Text style={styles.termsText}>
-                  Les abonnements se renouvellent automatiquement sauf s'ils
+                  Les abonnements se renouvellent automatiquement sauf s&apos;ils
                   sont annulés. Annulez à tout moment dans les Réglages.
                 </Text>
               </>

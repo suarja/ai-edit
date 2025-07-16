@@ -1,131 +1,24 @@
 import React, { useState, useEffect } from 'react';
 import {
   View,
-  Text,
   StyleSheet,
-  TouchableOpacity,
-  TextInput,
   ScrollView,
   ActivityIndicator,
   Alert,
-  Linking,
-  Platform,
 } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useGetUser } from '@/lib/hooks/useGetUser';
 import { useClerkSupabaseClient } from '@/lib/supabase-clerk';
-import { Check, X } from 'lucide-react-native';
 import { API_ENDPOINTS, API_HEADERS } from '@/lib/config/api';
 import { useAuth } from '@clerk/clerk-expo';
 
 import { UploadedVideoType } from '@/types/video';
-import * as FileSystem from 'expo-file-system';
-import * as Sharing from 'expo-sharing';
-import * as MediaLibrary from 'expo-media-library';
 import VideoPlayer from '@/components/VideoPlayer';
 import VideoDetailHeader from '@/components/VideoDetailHeader';
 import VideoDetails from '@/components/VideoDetails';
 import VideoActionButtons from '@/components/VideoActionButtons';
-
-// VideoEditForm component for editing video metadata
-function VideoEditForm({
-  video,
-  onSave,
-  onCancel,
-}: {
-  video: UploadedVideoType;
-  onSave: (data: {
-    title: string;
-    description: string;
-    tags: string[];
-  }) => void;
-  onCancel: () => void;
-}) {
-  const [form, setForm] = useState({
-    title: video.title || '',
-    description: video.description || '',
-    tags: video.tags?.join(', ') || '',
-  });
-
-  const isValid = form.title.trim().length > 0;
-
-  return (
-    <ScrollView style={styles.editFormScroll}>
-      <View style={styles.editForm}>
-        <Text style={styles.sectionTitle}>Edit Video Details</Text>
-
-        <View style={styles.inputGroup}>
-          <Text style={styles.inputLabel}>Title *</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="Video title"
-            placeholderTextColor="#666"
-            value={form.title}
-            onChangeText={(text) =>
-              setForm((prev) => ({ ...prev, title: text }))
-            }
-          />
-        </View>
-
-        <View style={styles.inputGroup}>
-          <Text style={styles.inputLabel}>Description</Text>
-          <TextInput
-            style={styles.textArea}
-            placeholder="Video description"
-            placeholderTextColor="#666"
-            multiline
-            numberOfLines={4}
-            value={form.description}
-            onChangeText={(text) =>
-              setForm((prev) => ({ ...prev, description: text }))
-            }
-          />
-        </View>
-
-        <View style={styles.inputGroup}>
-          <Text style={styles.inputLabel}>Tags</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="Tags separated by commas"
-            placeholderTextColor="#666"
-            value={form.tags}
-            onChangeText={(text) =>
-              setForm((prev) => ({ ...prev, tags: text }))
-            }
-          />
-        </View>
-
-        <View style={styles.editActions}>
-          <TouchableOpacity style={styles.cancelButton} onPress={onCancel}>
-            <X size={16} color="#888" />
-            <Text style={styles.cancelButtonText}>Cancel</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={[styles.saveButton, !isValid && styles.buttonDisabled]}
-            onPress={() => {
-              if (isValid) {
-                onSave({
-                  title: form.title.trim(),
-                  description: form.description.trim(),
-                  tags: form.tags
-                    .split(',')
-                    .map((tag: string) => tag.trim())
-                    .filter(Boolean),
-                });
-              }
-            }}
-            disabled={!isValid}
-          >
-            <Check size={16} color="#fff" />
-            <Text style={styles.saveButtonText}>Save</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-    </ScrollView>
-  );
-}
+import VideoEditForm from '@/components/VideoEditForm';
 
 export default function UploadedVideoDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -138,14 +31,6 @@ export default function UploadedVideoDetailScreen() {
   const { fetchUser, clerkLoaded, isSignedIn } = useGetUser();
   const { client: supabase } = useClerkSupabaseClient();
   const { getToken } = useAuth();
-
-  // TEMPORARILY DISABLED FOR ANDROID CRASH FIX
-  // const player = useVideoPlayer(
-  //   video ? { uri: video.upload_url } : null,
-  //   (player) => {
-  //     player.muted = false;
-  //   }
-  // );
 
   useEffect(() => {
     if (clerkLoaded) {
@@ -304,101 +189,6 @@ export default function UploadedVideoDetailScreen() {
 
   const handleCancelEdit = () => {
     setIsEditing(false);
-  };
-
-  const handleDownload = async () => {
-    if (!video?.upload_url) {
-      Alert.alert('Erreur', 'URL de la vidéo indisponible');
-      return;
-    }
-
-    try {
-      // Request permissions first (for Android)
-      if (Platform.OS === 'android') {
-        const { status } = await MediaLibrary.requestPermissionsAsync();
-        if (status !== 'granted') {
-          Alert.alert(
-            'Permission refusée',
-            'Impossible de sauvegarder la vidéo sans permission'
-          );
-          return;
-        }
-      }
-
-      // Extract filename from URL
-      const fileName =
-        video.upload_url.split('/').pop() || `video-${Date.now()}.mp4`;
-      const fileUri = `${FileSystem.documentDirectory}${fileName}`;
-
-      // Show download progress
-      const downloadResumable = FileSystem.createDownloadResumable(
-        video.upload_url,
-        fileUri,
-        {},
-        (downloadProgress) => {
-          const progress =
-            downloadProgress.totalBytesWritten /
-            downloadProgress.totalBytesExpectedToWrite;
-          // You could update a progress state here if you want to show a progress bar
-        }
-      );
-
-      Alert.alert('Téléchargement', 'Le téléchargement de la vidéo a commencé');
-
-      const result = await downloadResumable.downloadAsync();
-
-      if (result && result.uri) {
-        if (Platform.OS === 'ios') {
-          // On iOS we can use the sharing API to save to camera roll
-          const canShare = await Sharing.isAvailableAsync();
-          if (canShare) {
-            await Sharing.shareAsync(result.uri);
-          } else {
-            Alert.alert(
-              'Téléchargement terminé',
-              `Vidéo téléchargée avec succès à l'emplacement: ${result.uri}`
-            );
-          }
-        } else if (Platform.OS === 'android') {
-          // On Android, save to media library
-          const asset = await MediaLibrary.createAssetAsync(result.uri);
-          await MediaLibrary.createAlbumAsync('Vidéos', asset, false);
-
-          Alert.alert(
-            'Téléchargement terminé',
-            'Vidéo téléchargée et sauvegardée dans votre galerie',
-            [
-              {
-                text: 'Ouvrir',
-                onPress: () =>
-                  FileSystem.getContentUriAsync(result.uri).then(
-                    (contentUri) => {
-                      Linking.openURL(contentUri);
-                    }
-                  ),
-              },
-              { text: 'OK' },
-            ]
-          );
-        } else {
-          // Web or other platforms
-          Alert.alert(
-            'Téléchargement terminé',
-            `Vidéo téléchargée avec succès à l'emplacement: ${result.uri}`
-          );
-        }
-      }
-    } catch (error) {
-      console.error('Error downloading video:', error);
-      Alert.alert('Erreur', 'Impossible de télécharger la vidéo');
-    }
-  };
-
-  const formatDuration = (seconds: number) => {
-    if (!seconds) return '0:00';
-    const minutes = Math.floor(seconds / 60);
-    const remainingSeconds = Math.floor(seconds % 60);
-    return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
   };
 
   if (loading) {
