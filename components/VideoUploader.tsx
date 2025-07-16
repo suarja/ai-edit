@@ -23,17 +23,8 @@ export default function VideoUploader({
   getPresignedUrl,
 }: any) {
   const { selectVideo } = useVideoSelector();
-  const {
-    uploadToS3,
-    uploading,
-    progress,
-    reset: resetUpload,
-  } = useVideoUpload();
-  const {
-    analyze,
-    analyzing,
-    reset: resetAnalysis,
-  } = useOnDeviceVideoAnalysis();
+  const { uploadToS3, progress } = useVideoUpload();
+  const { analyze } = useOnDeviceVideoAnalysis();
 
   const [localState, setLocalState] = React.useState<
     'idle' | 'uploading' | 'analyzing'
@@ -66,7 +57,7 @@ export default function VideoUploader({
         const analysisResult = await analyze(asset.uri);
         if (onAnalysisComplete) {
           // manualEditRequired = false si analyse OK, true sinon
-          onAnalysisComplete(analysisResult.analysisData, s3FileName, false);
+          onAnalysisComplete(analysisResult.analysisData, s3FileName, true);
         }
       } catch (err) {
         if (onAnalysisError) onAnalysisError(err);
