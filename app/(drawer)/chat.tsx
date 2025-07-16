@@ -10,6 +10,7 @@ import {
   Alert,
   KeyboardAvoidingView,
   Platform,
+  Modal,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
@@ -20,6 +21,7 @@ import {
   ChevronDown,
   ChevronUp,
   AlertCircle,
+  Pencil,
 } from 'lucide-react-native';
 import { useScriptChat } from '@/app/hooks/useScriptChat';
 import { useAuth } from '@clerk/clerk-expo';
@@ -49,6 +51,8 @@ export default function ScriptChat() {
   const [showActionsModal, setShowActionsModal] = useState(false);
   const scrollViewRef = useRef<ScrollView>(null);
   const [scriptOpen, setScriptOpen] = useState(false);
+  const [isEditingScript, setIsEditingScript] = useState(false);
+  const [editedScript, setEditedScript] = useState('');
 
   // Utiliser le vrai hook avec options
   const {
@@ -66,6 +70,9 @@ export default function ScriptChat() {
     estimatedDuration,
     title,
     scriptDraft,
+    modifyCurrentScript,
+    isModifyingScript,
+    modifyScriptError,
   } = useScriptChat({
     scriptId: isNewChat ? undefined : scriptId, // Force new chat if new param present
     outputLanguage: 'fr',
@@ -97,15 +104,6 @@ export default function ScriptChat() {
     }
   };
 
-  const handleCreateNew = async () => {
-    try {
-      await createNewScript();
-      setInputMessage('');
-    } catch (err) {
-      console.error('Error creating new script:', err);
-    }
-  };
-
   const handleGenerateVideo = () => {
     if (!currentScript || !scriptDraft) {
       Alert.alert(
@@ -127,6 +125,22 @@ export default function ScriptChat() {
         title: title,
       },
     });
+  };
+
+  const handleEditScript = () => {
+    setScriptOpen(true);
+    setEditedScript(currentScript);
+    setIsEditingScript(true);
+  };
+  const handleCancelEdit = () => {
+    setIsEditingScript(false);
+    setEditedScript('');
+  };
+  const handleSaveEdit = async () => {
+    await modifyCurrentScript(editedScript);
+    if (!modifyScriptError) {
+      setIsEditingScript(false);
+    }
   };
 
   const renderMessage = (message: any) => {
@@ -179,6 +193,106 @@ export default function ScriptChat() {
       </View>
     );
   };
+
+  // Modal for editing the current script
+  const renderEditScriptModal = () => (
+    <Modal
+      visible={false} // This modal is now handled inline
+      animationType="slide"
+      transparent={true}
+      onRequestClose={() => setIsEditingScript(false)}
+    >
+      <View
+        style={{
+          flex: 1,
+          backgroundColor: 'rgba(0,0,0,0.7)',
+          justifyContent: 'center',
+          alignItems: 'center',
+        }}
+      >
+        <View
+          style={{
+            backgroundColor: '#181818',
+            borderRadius: 12,
+            padding: 20,
+            width: '90%',
+          }}
+        >
+          <Text
+            style={{
+              color: '#fff',
+              fontSize: 18,
+              fontWeight: 'bold',
+              marginBottom: 12,
+            }}
+          >
+            Modifier le script
+          </Text>
+          <TextInput
+            style={{
+              backgroundColor: '#222',
+              color: '#fff',
+              borderRadius: 8,
+              padding: 12,
+              minHeight: 120,
+              textAlignVertical: 'top',
+              fontSize: 16,
+              marginBottom: 12,
+            }}
+            multiline
+            value={editedScript}
+            onChangeText={setEditedScript}
+            editable={!isModifyingScript}
+            maxLength={5000}
+          />
+          {modifyScriptError && (
+            <Text style={{ color: '#ff5555', marginBottom: 8 }}>
+              {modifyScriptError}
+            </Text>
+          )}
+          <View
+            style={{
+              flexDirection: 'row',
+              justifyContent: 'flex-end',
+              gap: 12,
+            }}
+          >
+            <TouchableOpacity
+              onPress={handleCancelEdit}
+              disabled={isModifyingScript}
+              style={{ paddingVertical: 8, paddingHorizontal: 16 }}
+            >
+              <Text style={{ color: '#888', fontSize: 16 }}>Annuler</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={handleSaveEdit}
+              disabled={isModifyingScript || editedScript.trim().length === 0}
+              style={{
+                backgroundColor: '#007AFF',
+                borderRadius: 8,
+                paddingVertical: 8,
+                paddingHorizontal: 16,
+                opacity:
+                  isModifyingScript || editedScript.trim().length === 0
+                    ? 0.6
+                    : 1,
+              }}
+            >
+              {isModifyingScript ? (
+                <ActivityIndicator size="small" color="#fff" />
+              ) : (
+                <Text
+                  style={{ color: '#fff', fontSize: 16, fontWeight: '600' }}
+                >
+                  Enregistrer
+                </Text>
+              )}
+            </TouchableOpacity>
+          </View>
+        </View>
+      </View>
+    </Modal>
+  );
 
   if (!isSignedIn) {
     return (
@@ -249,6 +363,13 @@ export default function ScriptChat() {
               </Text>
               <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                 <TouchableOpacity
+                  onPress={handleEditScript}
+                  style={styles.scriptActionsButton}
+                  hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                >
+                  <Pencil size={16} color="#888" />
+                </TouchableOpacity>
+                <TouchableOpacity
                   onPress={() => setShowActionsModal(true)}
                   style={styles.scriptActionsButton}
                   hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
@@ -264,12 +385,86 @@ export default function ScriptChat() {
             </TouchableOpacity>
             {scriptOpen && (
               <View style={styles.collapsibleContent}>
-                <Text style={styles.collapsibleScriptText}>
-                  {currentScript}
-                </Text>
-                <Text style={styles.collapsibleMeta}>
-                  {wordCount} mots • ~{Math.round(estimatedDuration)} secondes
-                </Text>
+                {isEditingScript ? (
+                  <>
+                    <TextInput
+                      style={{
+                        backgroundColor: '#222',
+                        color: '#fff',
+                        borderRadius: 8,
+                        padding: 12,
+                        minHeight: 100,
+                        textAlignVertical: 'top',
+                        fontSize: 16,
+                        marginBottom: 12,
+                      }}
+                      multiline
+                      value={editedScript}
+                      onChangeText={setEditedScript}
+                      editable={!isModifyingScript}
+                      maxLength={5000}
+                    />
+                    {modifyScriptError && (
+                      <Text style={{ color: '#ff5555', marginBottom: 8 }}>
+                        {modifyScriptError}
+                      </Text>
+                    )}
+                    <View
+                      style={{ flexDirection: 'row', gap: 12, marginBottom: 8 }}
+                    >
+                      <TouchableOpacity
+                        onPress={handleCancelEdit}
+                        disabled={isModifyingScript}
+                        style={{ paddingVertical: 8, paddingHorizontal: 16 }}
+                      >
+                        <Text style={{ color: '#888', fontSize: 16 }}>
+                          Annuler
+                        </Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        onPress={handleSaveEdit}
+                        disabled={
+                          isModifyingScript || editedScript.trim().length === 0
+                        }
+                        style={{
+                          backgroundColor: '#007AFF',
+                          borderRadius: 8,
+                          paddingVertical: 8,
+                          paddingHorizontal: 16,
+                          opacity:
+                            isModifyingScript ||
+                            editedScript.trim().length === 0
+                              ? 0.6
+                              : 1,
+                        }}
+                      >
+                        {isModifyingScript ? (
+                          <ActivityIndicator size="small" color="#fff" />
+                        ) : (
+                          <Text
+                            style={{
+                              color: '#fff',
+                              fontSize: 16,
+                              fontWeight: '600',
+                            }}
+                          >
+                            Enregistrer
+                          </Text>
+                        )}
+                      </TouchableOpacity>
+                    </View>
+                  </>
+                ) : (
+                  <>
+                    <Text style={styles.collapsibleScriptText}>
+                      {currentScript}
+                    </Text>
+                    <Text style={styles.collapsibleMeta}>
+                      {wordCount} mots • ~{Math.round(estimatedDuration)}{' '}
+                      secondes
+                    </Text>
+                  </>
+                )}
               </View>
             )}
           </View>
@@ -363,7 +558,10 @@ export default function ScriptChat() {
           }}
           onValidate={validateScript}
           onGenerateVideo={handleGenerateVideo}
+          // Add edit handler
+          onEdit={handleEditScript}
         />
+        {renderEditScriptModal()}
       </SafeAreaView>
     </KeyboardAvoidingView>
   );

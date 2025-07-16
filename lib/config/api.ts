@@ -26,6 +26,7 @@ const API_CONFIGS = {
     promptsEnhanceSystem: '/api/prompts/enhance-system',
     promptsGenerateSystem: '/api/prompts/generate-system',
     scripts: '/api/scripts',
+    scriptsModifyCurrentScript: '/api/scripts/modify-current-script',
     webhooksCreatomate: '/api/webhooks/creatomate',
     voiceClone: '/api/voice-clone',
     onboarding: '/api/onboarding',
@@ -62,6 +63,7 @@ const API_CONFIGS = {
     promptsEnhanceSystem: '/api/prompts/enhance-system',
     promptsGenerateSystem: '/api/prompts/generate-system',
     scripts: '/api/scripts',
+    scriptsModifyCurrentScript: '/api/scripts/modify-current-script',
     webhooksCreatomate: '/api/webhooks/creatomate',
     voiceClone: '/api/voice-clone',
     onboarding: '/api/onboarding',
@@ -100,6 +102,7 @@ const API_CONFIGS = {
     promptsEnhanceSystem: '/api/prompts/enhance-system',
     promptsGenerateSystem: '/api/prompts/generate-system',
     scripts: '/api/scripts',
+    scriptsModifyCurrentScript: '/api/scripts/modify-current-script',
     webhooksCreatomate: '/api/webhooks/creatomate',
     voiceClone: '/api/voice-clone',
     onboarding: '/api/onboarding',
@@ -220,6 +223,12 @@ export const API_ENDPOINTS = {
   SCRIPT_GENERATE_VIDEO: (scriptId: string) => {
     const config = getCurrentConfig();
     return `${config.baseUrl}${config.scripts}/${scriptId}/generate-video`;
+  },
+
+  //* Modify current script
+  SCRIPTS_MODIFY_CURRENT_SCRIPT: (scriptId: string) => {
+    const config = getCurrentConfig();
+    return `${config.baseUrl}${config.scriptsModifyCurrentScript}/${scriptId}`;
   },
 
   /**

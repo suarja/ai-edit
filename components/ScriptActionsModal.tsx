@@ -27,6 +27,7 @@ interface ScriptActionsModalProps {
   onScriptDuplicated: (newScript: any) => void;
   onValidate?: () => void;
   onGenerateVideo?: () => void;
+  onEdit?: () => void;
 }
 
 export default function ScriptActionsModal({
@@ -37,6 +38,7 @@ export default function ScriptActionsModal({
   onScriptDuplicated,
   onValidate,
   onGenerateVideo,
+  onEdit,
 }: ScriptActionsModalProps) {
   const router = useRouter();
   const { getToken } = useAuth();
@@ -45,6 +47,12 @@ export default function ScriptActionsModal({
   if (!script) return null;
 
   const handleEdit = () => {
+    console.log('ScriptActionsModal handleEdit called');
+    if (onEdit) {
+      console.log('onEdit called');
+      onEdit();
+      return;
+    }
     onClose();
     router.push({
       pathname: '/chat',

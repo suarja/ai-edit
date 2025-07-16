@@ -26,6 +26,9 @@ interface UseScriptChatReturn {
   isStreaming: boolean;
   error: string | null;
   streamingStatus: string | null;
+  modifyCurrentScript: (newScript: string) => Promise<void>;
+  isModifyingScript: boolean;
+  modifyScriptError: string | null;
 
   // Actions
   sendMessage: (message: string) => Promise<void>;
@@ -60,6 +63,10 @@ export function useScriptChat(
   const [isStreaming, setIsStreaming] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [streamingStatus, setStreamingStatus] = useState<string | null>(null);
+  const [isModifyingScript, setIsModifyingScript] = useState(false);
+  const [modifyScriptError, setModifyScriptError] = useState<string | null>(
+    null
+  );
 
   // Refs for streaming
   const streamingMessageRef = useRef<ChatMessage | null>(null);
@@ -83,32 +90,35 @@ export function useScriptChat(
   /**
    * Load existing script draft
    */
-  const loadScriptDraft = async (scriptId: string) => {
-    try {
-      setIsLoading(true);
-      setError(null);
+  const loadScriptDraft = useCallback(
+    async (scriptId: string) => {
+      try {
+        setIsLoading(true);
+        setError(null);
 
-      const token = await getToken();
-      const response = await fetch(`${API_ENDPOINTS.SCRIPTS()}/${scriptId}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-      });
+        const token = await getToken();
+        const response = await fetch(`${API_ENDPOINTS.SCRIPTS()}/${scriptId}`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        });
 
-      if (!response.ok) {
-        throw new Error('Failed to load script draft');
+        if (!response.ok) {
+          throw new Error('Failed to load script draft');
+        }
+
+        const data = await response.json();
+        setScriptDraft(data.data || data); // Handle wrapped response
+      } catch (err) {
+        console.error('Error loading script draft:', err);
+        setError(err instanceof Error ? err.message : 'Failed to load script');
+      } finally {
+        setIsLoading(false);
       }
-
-      const data = await response.json();
-      setScriptDraft(data.data || data); // Handle wrapped response
-    } catch (err) {
-      console.error('Error loading script draft:', err);
-      setError(err instanceof Error ? err.message : 'Failed to load script');
-    } finally {
-      setIsLoading(false);
-    }
-  };
+    },
+    [getToken]
+  );
 
   /**
    * Send a message in the chat conversation
@@ -504,6 +514,46 @@ export function useScriptChat(
   }, [scriptDraft]);
 
   /**
+   * Modify the current script content
+   */
+  const modifyCurrentScript = useCallback(
+    async (newScript: string) => {
+      if (!scriptDraft) return;
+      setIsModifyingScript(true);
+      setModifyScriptError(null);
+      try {
+        const token = await getToken();
+        const response = await fetch(
+          API_ENDPOINTS.SCRIPTS_MODIFY_CURRENT_SCRIPT(scriptDraft.id),
+          {
+            method: 'POST',
+            headers: {
+              Authorization: `Bearer ${token}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ current_script: newScript }),
+          }
+        );
+        if (!response.ok) {
+          const result = await response.json();
+          setModifyScriptError(result.error || 'Failed to modify script');
+          console.error('Error modifying script:', result.error); 
+          throw new Error(result.error || 'Failed to modify script');
+        }
+        // Reload the script draft to get updated data
+        await loadScriptDraft(scriptDraft.id);
+      } catch (err) {
+        setModifyScriptError(
+          err instanceof Error ? err.message : 'Failed to modify script'
+        );
+      } finally {
+        setIsModifyingScript(false);
+      }
+    },
+    [scriptDraft, getToken, loadScriptDraft]
+  );
+
+  /**
    * Clear error state
    */
   const clearError = useCallback(() => {
@@ -536,6 +586,9 @@ export function useScriptChat(
     isStreaming,
     error,
     streamingStatus,
+    modifyCurrentScript,
+    isModifyingScript,
+    modifyScriptError,
 
     // Actions
     sendMessage,
