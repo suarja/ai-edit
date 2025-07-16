@@ -52,7 +52,11 @@ export interface UseSourceVideos {
     manualEditRequired: boolean
   ) => void;
   rejectAnalysis: () => Promise<void>;
-  updateVideoMetadata: () => Promise<void>;
+  updateVideoMetadata: (metadata: {
+    title: string;
+    description: string;
+    tags: string[];
+  }) => Promise<void>;
   handleVideoPress: (video: VideoTypeWithAnalysis) => void;
   handlePlayToggle: (videoId: string) => void;
   handleVideoLoadStart: (videoId: string) => void;
@@ -309,18 +313,18 @@ export function useSourceVideos(): UseSourceVideos {
     }
   };
 
-  const updateVideoMetadata = async () => {
-    if (!editingVideo.id || !editingVideo.title || !editingVideo.description) {
-      Alert.alert('Erreur', 'Le titre et la description sont requis');
-      return;
+  const updateVideoMetadata = async (
+    metadata: {
+      title: string;
+      description: string;
+      tags: string[];
     }
+  ) => {
+   
     setSavingMetadata(true);
     clearError();
     try {
-      const tagsArray = editingVideo.tags
-        .split(',')
-        .map((tag) => tag.trim())
-        .filter((tag) => tag);
+      const tagsArray = metadata.tags;
       if (tagsArray.length === 0) {
         Alert.alert('Erreur', 'Au moins un tag est requis');
         setSavingMetadata(false);
@@ -329,8 +333,8 @@ export function useSourceVideos(): UseSourceVideos {
       const { error: updateError } = await supabase
         .from('videos')
         .update({
-          title: editingVideo.title,
-          description: editingVideo.description,
+          title: metadata.title,
+          description: metadata.description,
           tags: tagsArray,
           analysis_status: 'completed',
         })

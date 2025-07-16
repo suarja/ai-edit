@@ -192,7 +192,6 @@ export default function SourceVideosScreen() {
               ]}
               edges={['top', 'bottom']}
             >
-              {' '}
               {/* Reuse existing style */}
               <VideoMetadataEditor
                 videoId={editingVideo.id || ''}
@@ -204,22 +203,14 @@ export default function SourceVideosScreen() {
                     : undefined
                 }
                 onSave={async (metadata) => {
-                  setEditingVideo((prev) => ({
-                    ...prev,
-                    title: metadata.title,
-                    description: metadata.description,
-                    tags: metadata.tags.join(', '),
-                  }));
-                  await updateVideoMetadata();
-                  setEditingVideo({
-                    id: null,
-                    title: '',
-                    description: '',
-                    tags: '',
-                  });
-                  setEditingVideoId(null);
-                  setCurrentVideoId(null);
-                  clearError();
+                    setEditingVideo((prev) => ({
+                      ...prev,
+                      title: metadata.title,
+                      description: metadata.description,
+                      tags: metadata.tags.join(', '),
+                    }));
+                  await updateVideoMetadata(metadata);
+                
                 }}
                 onCancel={() => {
                   setEditingVideo({

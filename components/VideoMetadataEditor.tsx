@@ -61,6 +61,8 @@ const VideoMetadataEditor: React.FC<VideoMetadataEditorProps> = ({
 
   const hasAnalysisData = !!analysisData;
   const isTitleValid = title.trim().length > 0;
+  const isDescriptionValid = description.trim().length > 0;
+  const isFormValid = isTitleValid && isDescriptionValid;
 
   return (
     <ScrollView
@@ -94,7 +96,9 @@ const VideoMetadataEditor: React.FC<VideoMetadataEditorProps> = ({
       {/* Title Input */}
       <View style={styles.inputGroup}>
         <View style={styles.labelContainer}>
-          <Text style={styles.label}>Titre de la vidéo *</Text>
+          <Text style={styles.label}>
+            Titre de la vidéo <Text style={{ color: '#ef4444' }}>*</Text>
+          </Text>
           {hasAnalysisData && (
             <View style={styles.aiBadge}>
               <Text style={styles.aiBadgeText}>IA</Text>
@@ -117,7 +121,9 @@ const VideoMetadataEditor: React.FC<VideoMetadataEditorProps> = ({
       {/* Description Input */}
       <View style={styles.inputGroup}>
         <View style={styles.labelContainer}>
-          <Text style={styles.label}>Description</Text>
+          <Text style={styles.label}>
+            Description <Text style={{ color: '#ef4444' }}>*</Text>
+          </Text>
           {hasAnalysisData && (
             <View style={styles.aiBadge}>
               <Text style={styles.aiBadgeText}>IA</Text>
@@ -125,7 +131,11 @@ const VideoMetadataEditor: React.FC<VideoMetadataEditorProps> = ({
           )}
         </View>
         <TextInput
-          style={[styles.textArea, styles.input]}
+          style={[
+            styles.textArea,
+            styles.input,
+            !isDescriptionValid && styles.inputError,
+          ]}
           placeholder="Décrivez le contenu de votre vidéo..."
           placeholderTextColor="#666"
           value={description}
@@ -137,6 +147,9 @@ const VideoMetadataEditor: React.FC<VideoMetadataEditorProps> = ({
         <Text style={styles.characterCount}>
           {description.length}/500 caractères
         </Text>
+        {!isDescriptionValid && (
+          <Text style={styles.errorText}>La description est obligatoire</Text>
+        )}
       </View>
 
       {/* Tags Input */}
@@ -232,10 +245,10 @@ const VideoMetadataEditor: React.FC<VideoMetadataEditorProps> = ({
         <TouchableOpacity
           style={[
             styles.saveButton,
-            (!isTitleValid || isSaving) && styles.saveButtonDisabled,
+            (!isFormValid || isSaving) && styles.saveButtonDisabled,
           ]}
           onPress={handleSave}
-          disabled={!isTitleValid || isSaving}
+          disabled={!isFormValid || isSaving}
         >
           {isSaving ? (
             <ActivityIndicator size="small" color="#fff" />
@@ -462,7 +475,8 @@ const styles = StyleSheet.create({
   },
 
   saveButtonDisabled: {
-    opacity: 0.5,
+    backgroundColor: '#444',
+    opacity: 0.6,
   },
 
   saveButtonText: {
