@@ -347,6 +347,17 @@ const styles = StyleSheet.create({
   textArea: {
     textAlignVertical: 'top',
     minHeight: 100,
+    paddingRight: 48, // Make space for the icon
+  },
+
+  descriptionContainer: {
+    position: 'relative',
+  },
+
+  dictationContainer: {
+    position: 'absolute',
+    right: 8,
+    top: 8,
   },
 
   errorText: {

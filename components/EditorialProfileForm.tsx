@@ -7,6 +7,7 @@ import {
   FileText,
   Lightbulb,
 } from 'lucide-react-native';
+import VoiceDictation from './VoiceDictation';
 
 type EditorialProfile = {
   id: string;
@@ -31,7 +32,7 @@ const FIELD_CONFIGS = [
     placeholder:
       "Ex: Créateur de contenu tech passionné par l'innovation et la productivité...",
     description: 'Décrivez votre personnalité de créateur et votre expertise',
-    maxLength: 500,
+    maxLength: 1000,
     numberOfLines: 4,
     tips: [
       "Mentionnez votre domaine d'expertise",
@@ -46,7 +47,7 @@ const FIELD_CONFIGS = [
     placeholder:
       'Ex: Conversationnel et amical, tout en restant professionnel et informatif...',
     description: 'Comment vous exprimez-vous dans vos contenus',
-    maxLength: 300,
+    maxLength: 500,
     numberOfLines: 3,
     tips: [
       'Formel ou décontracté ?',
@@ -61,7 +62,7 @@ const FIELD_CONFIGS = [
     placeholder:
       'Ex: Professionnels du marketing digital, entrepreneurs, créateurs de contenu...',
     description: 'Qui sont vos spectateurs idéaux',
-    maxLength: 300,
+    maxLength: 500,
     numberOfLines: 3,
     tips: ['Âge et profession', "Niveau d'expertise", "Centres d'intérêt"],
   },
@@ -72,7 +73,7 @@ const FIELD_CONFIGS = [
     placeholder:
       'Ex: Utilisez des exemples concrets, évitez le jargon technique, incluez des call-to-action...',
     description: 'Préférences et directives spécifiques',
-    maxLength: 400,
+    maxLength: 1000,
     numberOfLines: 4,
     tips: ['Structure préférée', 'Éléments à éviter', 'Mots-clés importants'],
   },
@@ -86,7 +87,7 @@ export default function EditorialProfileForm({
 }: EditorialProfileFormProps) {
   const [formData, setFormData] = useState<EditorialProfile>(profile);
   const [activeField, setActiveField] = useState<string | null>(null);
-  
+
   // Add ref for ScrollView to enable programmatic scrolling
   const scrollViewRef = useRef<ScrollView>(null);
   const inputRefs = useRef<{ [key: string]: TextInput | null }>({});
@@ -102,7 +103,7 @@ export default function EditorialProfileForm({
 
   const handleInputFocus = (key: string) => {
     setActiveField(key);
-    
+
     // Scroll to focused input with a small delay to ensure keyboard is open
     setTimeout(() => {
       const inputRef = inputRefs.current[key];
@@ -152,9 +153,9 @@ export default function EditorialProfileForm({
         </View>
       </View>
 
-      <ScrollView 
+      <ScrollView
         ref={scrollViewRef}
-        style={styles.form} 
+        style={styles.form}
         contentContainerStyle={styles.formContent}
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
@@ -193,6 +194,12 @@ export default function EditorialProfileForm({
                       styles.fieldStatus,
                       isFilled && styles.fieldStatusFilled,
                     ]}
+                  />
+                  <VoiceDictation
+                    currentValue={value}
+                    onTranscriptChange={(text: string) =>
+                      updateField(config.key, text)
+                    }
                   />
                 </View>
               </View>
@@ -315,8 +322,9 @@ const styles = StyleSheet.create({
     lineHeight: 18,
   },
   fieldMeta: {
-    alignItems: 'flex-end',
-    gap: 6,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
   },
   charCount: {
     fontSize: 12,
@@ -331,6 +339,7 @@ const styles = StyleSheet.create({
   fieldStatusFilled: {
     backgroundColor: '#10b981',
   },
+
   textInput: {
     backgroundColor: '#1a1a1a',
     borderRadius: 12,

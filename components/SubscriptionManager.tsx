@@ -145,7 +145,7 @@ export const SubscriptionManager: React.FC<SubscriptionManagerProps> = ({
             </View>
             <Text style={styles.planPrice}>{priceToShow}/mois</Text>
           </View>
-
+          {/* 
           <View style={styles.featuresList}>
             {proPlan.features.map((feature, index) => (
               <View key={index} style={styles.featureItem}>
@@ -153,7 +153,7 @@ export const SubscriptionManager: React.FC<SubscriptionManagerProps> = ({
                 <Text style={styles.featureText}>{feature}</Text>
               </View>
             ))}
-          </View>
+          </View> */}
         </View>
 
         <View style={styles.usageSection}>
