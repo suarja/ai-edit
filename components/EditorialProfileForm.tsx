@@ -8,6 +8,7 @@ import {
   Modal,
   TouchableOpacity,
   ScrollView as RNScrollView,
+  ActivityIndicator,
 } from 'react-native';
 import { User, MessageCircle, Users, FileText } from 'lucide-react-native';
 import VoiceDictation from './VoiceDictation';
@@ -94,6 +95,8 @@ export default function EditorialProfileForm({
     keyof EditorialProfile | null
   >(null);
   const [editingValue, setEditingValue] = useState<string>('');
+  const [modalSaving, setModalSaving] = useState(false);
+  const [mainSaving, setMainSaving] = useState(false); // à utiliser pour la sauvegarde globale
 
   // Add ref for ScrollView to enable programmatic scrolling
   const scrollViewRef = useRef<ScrollView>(null);
@@ -124,13 +127,17 @@ export default function EditorialProfileForm({
   };
 
   // Sauvegarde la modification du champ
-  const saveEditModal = () => {
+  const saveEditModal = async () => {
     if (editingField) {
-      setFormData((prev) => ({ ...prev, [editingField]: editingValue }));
-      // save partially updated profile with the new value
-      onSave({ ...formData, [editingField]: editingValue });
-      setEditingField(null);
-      setEditingValue('');
+      setModalSaving(true);
+      try {
+        setFormData((prev) => ({ ...prev, [editingField]: editingValue }));
+        await onSave({ ...formData, [editingField]: editingValue });
+        setEditingField(null);
+        setEditingValue('');
+      } finally {
+        setModalSaving(false);
+      }
     }
   };
 
@@ -255,21 +262,27 @@ export default function EditorialProfileForm({
                   <TouchableOpacity
                     style={styles.modalButton}
                     onPress={closeEditModal}
+                    disabled={modalSaving}
                   >
                     <Text style={styles.modalButtonText}>Annuler</Text>
                   </TouchableOpacity>
                   <TouchableOpacity
                     style={[styles.modalButton, styles.modalButtonSave]}
                     onPress={saveEditModal}
+                    disabled={modalSaving}
                   >
-                    <Text
-                      style={[
-                        styles.modalButtonText,
-                        styles.modalButtonSaveText,
-                      ]}
-                    >
-                      Sauvegarder
-                    </Text>
+                    {modalSaving ? (
+                      <ActivityIndicator size="small" color="#fff" />
+                    ) : (
+                      <Text
+                        style={[
+                          styles.modalButtonText,
+                          styles.modalButtonSaveText,
+                        ]}
+                      >
+                        Sauvegarder
+                      </Text>
+                    )}
                   </TouchableOpacity>
                 </View>
               </RNScrollView>

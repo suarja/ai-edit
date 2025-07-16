@@ -7,7 +7,7 @@ import {
   ActivityIndicator,
   TextInput,
 } from 'react-native';
-import { Mic } from 'lucide-react-native';
+import { Check, Mic, X } from 'lucide-react-native';
 import {
   ExpoSpeechRecognitionModule,
   useSpeechRecognitionEvent,
@@ -98,10 +98,13 @@ export default function VoiceDictation({
         style={styles.micButton}
       >
         {isRecognizing ? (
-          <ActivityIndicator
-            size="small"
-            color={SHARED_STYLE_COLORS.background}
-          />
+          <View style={styles.micButton}>
+            <ActivityIndicator
+              size="small"
+              color={SHARED_STYLE_COLORS.background}
+            />
+            <Check size={24} color={SHARED_STYLE_COLORS.background} />
+          </View>
         ) : (
           <Mic size={24} color="#fff" />
         )}
@@ -117,6 +120,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   micButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
     padding: 8,
   },
   errorText: {
