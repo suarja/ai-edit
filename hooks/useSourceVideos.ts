@@ -10,6 +10,7 @@ import {
   VideoTypeWithAnalysis,
   VideoAnalysisData,
 } from '@/types/videoAnalysis';
+import { API_ENDPOINTS } from '@/lib/config/api';
 
 export function useSourceVideos() {
   const [videos, setVideos] = useState<VideoTypeWithAnalysis[]>([]);
@@ -345,7 +346,7 @@ export function useSourceVideos() {
   ) => {
     const token = await getToken();
     if (!token) throw new Error('Authentification requise');
-    const res = await fetch(process.env.EXPO_PUBLIC_API_URL + '/s3/upload', {
+    const res = await fetch(API_ENDPOINTS.S3_UPLOAD(), {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

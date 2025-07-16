@@ -20,6 +20,7 @@ export default function VideoUploader({
   onAnalysisComplete,
   onAnalysisError,
   onManualEdit,
+  getPresignedUrl,
 }: any) {
   const { selectVideo } = useVideoSelector();
   const {
@@ -40,15 +41,6 @@ export default function VideoUploader({
   const [currentVideoId, setCurrentVideoId] = React.useState<string | null>(
     null
   );
-
-  // Dummy getPresignedUrl à remplacer par le parent ou l'injection de config
-  const getPresignedUrl = async (
-    fileName: string,
-    fileType: string,
-    fileSize?: number
-  ) => {
-    throw new Error('getPresignedUrl doit être fourni par le parent');
-  };
 
   const handleSelectAndUpload = async () => {
     try {
