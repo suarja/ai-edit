@@ -77,7 +77,14 @@
           "supportsFullscreen": true
         }
       ],
-      "expo-web-browser"
+      "expo-web-browser",
+      [
+        "expo-speech-recognition",
+        {
+          "microphonePermission": "Allow $(PRODUCT_NAME) to access your microphone for voice dictation.",
+          "speechRecognitionPermission": "Allow $(PRODUCT_NAME) to use speech recognition for voice dictation."
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true

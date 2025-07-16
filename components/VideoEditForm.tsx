@@ -9,6 +9,7 @@ import {
   TouchableOpacity,
   StyleSheet,
 } from 'react-native';
+import VoiceDictation from './VoiceDictation';
 
 export default function VideoEditForm({
   video,
@@ -31,6 +32,10 @@ export default function VideoEditForm({
 
   const isValid = form.title.trim().length > 0;
 
+  const handleDescriptionChange = (text: string) => {
+    setForm((prev) => ({ ...prev, description: text }));
+  };
+
   return (
     <ScrollView style={styles.editFormScroll}>
       <View style={styles.editForm}>
@@ -51,17 +56,23 @@ export default function VideoEditForm({
 
         <View style={styles.inputGroup}>
           <Text style={styles.inputLabel}>Description</Text>
-          <TextInput
-            style={styles.textArea}
-            placeholder="Video description"
-            placeholderTextColor="#666"
-            multiline
-            numberOfLines={4}
-            value={form.description}
-            onChangeText={(text) =>
-              setForm((prev) => ({ ...prev, description: text }))
-            }
-          />
+          <View style={styles.textAreaContainer}>
+            <TextInput
+              style={styles.textArea}
+              placeholder="Video description"
+              placeholderTextColor="#666"
+              multiline
+              numberOfLines={4}
+              value={form.description}
+              onChangeText={handleDescriptionChange}
+            />
+            <View style={styles.dictationContainer}>
+              <VoiceDictation
+                currentValue={form.description}
+                onTranscriptChange={handleDescriptionChange}
+              />
+            </View>
+          </View>
         </View>
 
         <View style={styles.inputGroup}>
@@ -152,16 +163,25 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#333',
   },
+  textAreaContainer: {
+    position: 'relative',
+  },
   textArea: {
     backgroundColor: '#1a1a1a',
     borderRadius: 12,
     padding: 16,
+    paddingRight: 48, // Make space for the icon
     color: '#fff',
     fontSize: 16,
     borderWidth: 1,
     borderColor: '#333',
     textAlignVertical: 'top',
     minHeight: 100,
+  },
+  dictationContainer: {
+    position: 'absolute',
+    right: 8,
+    top: 8,
   },
   editActions: {
     flexDirection: 'row',
