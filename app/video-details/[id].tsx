@@ -258,6 +258,7 @@ export default function UploadedVideoDetailScreen() {
           style: 'destructive',
           onPress: async () => {
             try {
+              setLoading(true);
               // Get authentication token
               const clerkToken = await getToken();
               if (!clerkToken) {
@@ -281,22 +282,15 @@ export default function UploadedVideoDetailScreen() {
               }
 
               console.log('✅ Video deleted successfully:', result.data);
-              Alert.alert(
-                'Success',
-                'Video deleted successfully from both storage and database',
-                [
-                  {
-                    text: 'OK',
-                    onPress: () => router.back(),
-                  },
-                ]
-              );
+              router.back();
             } catch (error) {
               console.error('Error deleting video:', error);
               Alert.alert(
                 'Error',
                 'Failed to delete video completely. Please try again.'
               );
+            } finally {
+              setLoading(false);
             }
           },
         },
