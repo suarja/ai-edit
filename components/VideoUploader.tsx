@@ -9,9 +9,17 @@ import {
 import { useVideoSelector } from '@/hooks/useVideoSelector';
 import { useVideoUpload } from '@/hooks/useVideoUpload';
 import { useOnDeviceVideoAnalysis } from '@/hooks/useOnDeviceVideoAnalysis';
+import { UseSourceVideos } from '@/hooks/useSourceVideos';
 
-// Props identiques à l'existant, mais tout remonte au parent
-// onUploadComplete, onUploadError, onAnalysisComplete, onAnalysisError, onManualEdit
+interface VideoUploaderProps {
+  onUploadComplete: UseSourceVideos['handleUploadComplete'];
+  onUploadError: UseSourceVideos['handleUploadError'];
+  onUploadStart: UseSourceVideos['clearError'];
+  onAnalysisComplete: UseSourceVideos['handleAnalysisComplete'];
+  onAnalysisError: UseSourceVideos['handleError'];
+  onManualEdit: () => void;
+  getPresignedUrl: UseSourceVideos['getPresignedUrl'];
+}
 
 export default function VideoUploader({
   onUploadComplete,
@@ -21,7 +29,7 @@ export default function VideoUploader({
   onAnalysisError,
   onManualEdit,
   getPresignedUrl,
-}: any) {
+}: VideoUploaderProps) {
   const { selectVideo } = useVideoSelector();
   const { uploadToS3, progress } = useVideoUpload();
   const { analyze } = useOnDeviceVideoAnalysis();
@@ -43,32 +51,31 @@ export default function VideoUploader({
         asset,
         getPresignedUrl
       );
-      setCurrentVideoId(s3FileName);
+      console.log('s3FileName', s3FileName);
+      let videoId: string | null = null;
       if (onUploadComplete) {
-        await onUploadComplete({
+        videoId = await onUploadComplete({
           videoStoragePath: s3FileName,
           url: publicUrl,
           videoDuration: Math.floor((asset.duration || 0) / 1000),
         });
+        console.log('videoId', videoId);
       }
       setLocalState('analyzing');
       // Analyse on-device
-      try {
-        const analysisResult = await analyze(asset.uri);
-        if (onAnalysisComplete) {
-          // manualEditRequired = false si analyse OK, true sinon
-          onAnalysisComplete(analysisResult.analysisData, s3FileName, true);
-        }
-      } catch (err) {
-        if (onAnalysisError) onAnalysisError(err);
-        if (onAnalysisComplete) {
-          onAnalysisComplete(null, s3FileName, true); // manualEditRequired = true
+      const analysisResult = await analyze(asset.uri);
+      if (onAnalysisComplete) {
+        if (videoId) {
+          onAnalysisComplete(analysisResult.analysisData, videoId, true);
+          setLocalState('idle');
+          console.log('onAnalysisComplete', videoId);
+        } else {
+          onAnalysisError(new Error('No video ID found'));
         }
       }
-      setLocalState('idle');
     } catch (err) {
       setLocalState('idle');
-      if (onUploadError) onUploadError(err);
+      if (onUploadError) onUploadError(err as Error);
     }
   };
 

@@ -240,6 +240,9 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#000',
+    height: '100%',
+    display: 'flex',
+    flexDirection: 'column',
   },
   header: {
     paddingHorizontal: 20,
@@ -265,6 +268,9 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
     padding: 20,
+    height: '100%',
+    display: 'flex',
+    flexDirection: 'column',
   },
   planInfoContainer: {
     backgroundColor: '#1a1a1a',

@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { Alert } from 'react-native';
+import { Alert, ViewabilityConfig } from 'react-native';
 import { router, useFocusEffect } from 'expo-router';
 import { useGetUser } from '@/lib/hooks/useGetUser';
 import { useClerkSupabaseClient } from '@/lib/supabase-clerk';
@@ -12,7 +12,81 @@ import {
 } from '@/types/videoAnalysis';
 import { API_ENDPOINTS } from '@/lib/config/api';
 
-export function useSourceVideos() {
+export interface UseSourceVideos {
+  videos: VideoTypeWithAnalysis[];
+  loading: boolean;
+  error: string | null;
+  refreshing: boolean;
+  playingVideoId: string | null;
+  loadingVideoIds: Set<string>;
+  errorVideoIds: Set<string>;
+  visibleVideoIds: Set<string>;
+  editingVideo: {
+    id: string | null;
+    title: string;
+    description: string;
+    tags: string;
+  };
+  editingVideoId: string | null;
+  savingMetadata: boolean;
+  showSupportButton: boolean;
+  currentVideoId: string | null;
+  hasAnalysisData: boolean;
+  viewabilityConfigCallbackPairs: {
+    viewabilityConfig: ViewabilityConfig;
+    onViewableItemsChanged: (info: {
+      viewableItems: Array<{ item: VideoTypeWithAnalysis }>;
+    }) => void;
+  }[];
+  fetchVideos: () => Promise<void>;
+  onRefresh: () => Promise<void>;
+  handleUploadComplete: (data: {
+    videoStoragePath: string;
+    url: string;
+    videoDuration: number;
+  }) => Promise<string>;
+  handleUploadError: (error: Error) => void;
+  handleAnalysisComplete: (
+    data: VideoAnalysisData | null,
+    videoId: string,
+    manualEditRequired: boolean
+  ) => void;
+  rejectAnalysis: () => Promise<void>;
+  updateVideoMetadata: () => Promise<void>;
+  handleVideoPress: (video: VideoTypeWithAnalysis) => void;
+  handlePlayToggle: (videoId: string) => void;
+  handleVideoLoadStart: (videoId: string) => void;
+  handleVideoLoad: (videoId: string) => void;
+  handleVideoError: (videoId: string) => void;
+  handleError: (
+    error: Error | string,
+    context?: Record<string, any>
+  ) => Promise<void>;
+  getPresignedUrl: (
+    fileName: string,
+    fileType: string,
+    fileSize?: number
+  ) => Promise<{
+    presignedUrl: string;
+    publicUrl: string;
+    s3FileName: string;
+  }>;
+  canUploadMore: boolean;
+  setEditingVideo: React.Dispatch<
+    React.SetStateAction<{
+      id: string | null;
+      title: string;
+      description: string;
+      tags: string;
+    }>
+  >;
+  setEditingVideoId: (videoId: string | null) => void;
+  setCurrentVideoId: (videoId: string | null) => void;
+  clearError: () => void;
+  setShowSupportButton: (show: boolean) => void;
+}
+
+export function useSourceVideos(): UseSourceVideos {
   const [videos, setVideos] = useState<VideoTypeWithAnalysis[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -125,6 +199,7 @@ export function useSourceVideos() {
     videoDuration: number;
   }): Promise<string> => {
     try {
+      console.log('handleUploadComplete', data);
       clearError();
       if (!isPro && sourceVideosRemaining <= 0) {
         setError(
@@ -168,17 +243,25 @@ export function useSourceVideos() {
     videoId: string,
     manualEditRequired: boolean
   ) => {
+    console.log('handleAnalysisComplete', data, videoId, manualEditRequired);
+
     try {
       if (manualEditRequired || !data) {
+        console.log('manualEditRequired', manualEditRequired);
         const { error } = await supabase
           .from('videos')
           .update({ analysis_status: 'failed', analysis_data: null })
           .eq('id', videoId);
         if (error) throw error;
-        setEditingVideo({ id: videoId, title: '', description: '', tags: '' });
-        setEditingVideoId(videoId);
+        setEditingVideo({
+          id: videoId,
+          title: '',
+          description: '',
+          tags: '',
+        });
         setHasAnalysisData(false);
       } else {
+        console.log('data', data);
         const { error } = await supabase
           .from('videos')
           .update({
@@ -198,7 +281,6 @@ export function useSourceVideos() {
           description: data.description || '',
           tags: data.tags?.join(', ') || '',
         });
-        setEditingVideoId(videoId);
         setHasAnalysisData(true);
       }
       await fetchVideos();
