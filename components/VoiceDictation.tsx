@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
   TouchableOpacity,
@@ -6,11 +6,11 @@ import {
   Text,
   ActivityIndicator,
 } from 'react-native';
-import { Mic, MicOff } from 'lucide-react-native';
+import { Mic } from 'lucide-react-native';
 import {
   ExpoSpeechRecognitionModule,
-  ExpoSpeechRecognitionResult,
   useSpeechRecognitionEvent,
+  type ExpoSpeechRecognitionResult,
 } from 'expo-speech-recognition';
 
 interface VoiceDictationProps {
@@ -24,10 +24,10 @@ export default function VoiceDictation({
 }: VoiceDictationProps) {
   const [isRecognizing, setIsRecognizing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const baseTranscriptRef = useRef('');
 
   useEffect(() => {
     return () => {
-      // Ensure recognition is stopped when the component unmounts
       ExpoSpeechRecognitionModule.stop();
     };
   }, []);
@@ -35,6 +35,7 @@ export default function VoiceDictation({
   useSpeechRecognitionEvent('start', () => {
     setIsRecognizing(true);
     setError(null);
+    baseTranscriptRef.current = currentValue.trim();
   });
 
   useSpeechRecognitionEvent('end', () => {
@@ -50,12 +51,14 @@ export default function VoiceDictation({
     'result',
     (event: { results: ExpoSpeechRecognitionResult[]; isFinal: boolean }) => {
       if (event.results && event.results[0]) {
-        const transcript = event.results[0].transcript;
+        const interimTranscript = event.results[0].transcript;
+        const newText = baseTranscriptRef.current
+          ? `${baseTranscriptRef.current} ${interimTranscript}`
+          : interimTranscript;
+        onTranscriptChange(newText);
+
         if (event.isFinal) {
-          const newText = currentValue
-            ? `${currentValue} ${transcript}`
-            : transcript;
-          onTranscriptChange(newText.trim());
+          baseTranscriptRef.current = newText.trim();
         }
       }
     }
@@ -76,7 +79,7 @@ export default function VoiceDictation({
       }
 
       await ExpoSpeechRecognitionModule.start({
-        lang: 'fr-FR', // Setting language to French
+        lang: 'fr-FR',
         interimResults: true,
         continuous: false,
       });
