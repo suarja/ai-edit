@@ -12,7 +12,7 @@ import {
 } from 'react-native';
 import { X, Check, LogOut, Camera } from 'lucide-react-native';
 import { useUserProfileManager } from '@/hooks/useUserProfileManager';
-import { colors, sharedStyles } from '@/constants/sharedStyles';
+import { SHARED_STYLE_COLORS, sharedStyles } from '@/constants/sharedStyles';
 
 const UserProfileManager: React.FC = () => {
   const {

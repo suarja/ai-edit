@@ -5,6 +5,7 @@ import {
   StyleSheet,
   Text,
   ActivityIndicator,
+  TextInput,
 } from 'react-native';
 import { Mic } from 'lucide-react-native';
 import {
@@ -12,11 +13,12 @@ import {
   useSpeechRecognitionEvent,
   type ExpoSpeechRecognitionResult,
 } from 'expo-speech-recognition';
+import { SHARED_STYLE_COLORS, sharedStyles } from '@/constants/sharedStyles';
 
-interface VoiceDictationProps {
+type VoiceDictationProps = {
   onTranscriptChange: (transcript: string) => void;
   currentValue: string;
-}
+} & React.ComponentProps<typeof TextInput>;
 
 export default function VoiceDictation({
   onTranscriptChange,
@@ -96,7 +98,10 @@ export default function VoiceDictation({
         style={styles.micButton}
       >
         {isRecognizing ? (
-          <ActivityIndicator size="small" color="#ff0000" />
+          <ActivityIndicator
+            size="small"
+            color={SHARED_STYLE_COLORS.background}
+          />
         ) : (
           <Mic size={24} color="#fff" />
         )}

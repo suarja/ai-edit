@@ -1,6 +1,6 @@
 import { StyleSheet } from 'react-native';
 
-export const colors = {
+export const SHARED_STYLE_COLORS = {
   background: '#9ca3af', // Dark blue-gray
   backgroundSecondary: '#1a1a1a', // Lighter blue-gray
   primary: '#10b981', // Emerald green
@@ -18,10 +18,10 @@ export const sharedStyles = StyleSheet.create({
   // Containers
   container: {
     flex: 1,
-    backgroundColor: colors.background,
+    backgroundColor: SHARED_STYLE_COLORS.background,
   },
   sectionContainer: {
-    backgroundColor: colors.backgroundSecondary,
+    backgroundColor: SHARED_STYLE_COLORS.backgroundSecondary,
     borderRadius: 16,
     padding: 20,
     marginBottom: 24,
@@ -36,12 +36,12 @@ export const sharedStyles = StyleSheet.create({
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: colors.backgroundSecondary,
+    backgroundColor: SHARED_STYLE_COLORS.backgroundSecondary,
     justifyContent: 'center',
     alignItems: 'center',
   },
   modalContent: {
-    backgroundColor: colors.background,
+    backgroundColor: SHARED_STYLE_COLORS.background,
     borderRadius: 20,
     padding: 24,
     width: '90%',
@@ -51,37 +51,37 @@ export const sharedStyles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: colors.background,
+    backgroundColor: SHARED_STYLE_COLORS.background,
   },
 
   // Text
   title: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: colors.text,
+    color: SHARED_STYLE_COLORS.text,
   },
   subtitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: colors.text,
+    color: SHARED_STYLE_COLORS.text,
   },
   bodyText: {
     fontSize: 16,
-    color: colors.text,
+    color: SHARED_STYLE_COLORS.text,
   },
   secondaryText: {
     fontSize: 14,
-    color: colors.textSecondary,
+    color: SHARED_STYLE_COLORS.textSecondary,
   },
   errorText: {
-    color: colors.error,
+    color: SHARED_STYLE_COLORS.error,
     fontSize: 14,
     textAlign: 'center',
   },
 
   // Buttons
   primaryButton: {
-    backgroundColor: colors.primary,
+    backgroundColor: SHARED_STYLE_COLORS.primary,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
@@ -98,7 +98,7 @@ export const sharedStyles = StyleSheet.create({
   secondaryButton: {
     backgroundColor: 'transparent',
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: SHARED_STYLE_COLORS.border,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
@@ -108,7 +108,7 @@ export const sharedStyles = StyleSheet.create({
     gap: 8,
   },
   secondaryButtonText: {
-    color: colors.textSecondary,
+    color: SHARED_STYLE_COLORS.textSecondary,
     fontSize: 16,
     fontWeight: '500',
   },
@@ -118,17 +118,17 @@ export const sharedStyles = StyleSheet.create({
 
   // Inputs
   input: {
-    color: colors.text,
+    color: SHARED_STYLE_COLORS.text,
     fontSize: 16,
-    backgroundColor: colors.backgroundSecondary,
+    backgroundColor: SHARED_STYLE_COLORS.backgroundSecondary,
     borderRadius: 8,
     padding: 12,
     width: '100%',
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: SHARED_STYLE_COLORS.border,
   },
   inputLabel: {
-    color: colors.textSecondary,
+    color: SHARED_STYLE_COLORS.textSecondary,
     fontSize: 14,
     alignSelf: 'flex-start',
     marginBottom: 8,
@@ -138,7 +138,7 @@ export const sharedStyles = StyleSheet.create({
   // Misc
   separator: {
     height: 1,
-    backgroundColor: colors.border,
+    backgroundColor: SHARED_STYLE_COLORS.border,
     marginVertical: 16,
   },
   avatar: {
@@ -146,6 +146,6 @@ export const sharedStyles = StyleSheet.create({
     height: 60,
     borderRadius: 30,
     borderWidth: 2,
-    borderColor: colors.border,
+    borderColor: SHARED_STYLE_COLORS.border,
   },
 });

@@ -1,5 +1,16 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, TextInput, ScrollView } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  TextInput,
+  ScrollView,
+  Modal,
+  TouchableOpacity,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView as RNScrollView,
+} from 'react-native';
 import {
   User,
   MessageCircle,
@@ -86,7 +97,15 @@ export default function EditorialProfileForm({
   saving = false,
 }: EditorialProfileFormProps) {
   const [formData, setFormData] = useState<EditorialProfile>(profile);
+  const [editingField, setEditingField] = useState<
+    keyof EditorialProfile | null
+  >(null);
+  const [editingValue, setEditingValue] = useState<string>('');
   const [activeField, setActiveField] = useState<string | null>(null);
+  // Ajout : champ actuellement en dictée
+  const [activeDictationField, setActiveDictationField] = useState<
+    string | null
+  >(null);
 
   // Add ref for ScrollView to enable programmatic scrolling
   const scrollViewRef = useRef<ScrollView>(null);
@@ -99,6 +118,24 @@ export default function EditorialProfileForm({
 
   const updateField = (key: keyof EditorialProfile, value: string) => {
     setFormData((prev) => ({ ...prev, [key]: value }));
+  };
+
+  // Ajout : callback pour VoiceDictation
+  const handleDictationTranscript = (
+    key: keyof EditorialProfile,
+    text: string
+  ) => {
+    // N'appliquer la transcription que si le champ est actif
+    if (activeDictationField === key) {
+      updateField(key, text);
+    }
+  };
+
+  // Ajout : callback pour fin de dictée
+  const handleDictationEnd = (key: keyof EditorialProfile) => {
+    if (activeDictationField === key) {
+      setActiveDictationField(null);
+    }
   };
 
   const handleInputFocus = (key: string) => {
@@ -136,6 +173,27 @@ export default function EditorialProfileForm({
 
   const completion = getCompletionPercentage();
 
+  // Ouvre le modal pour éditer un champ
+  const openEditModal = (key: keyof EditorialProfile) => {
+    setEditingField(key);
+    setEditingValue(formData[key] || '');
+  };
+
+  // Ferme le modal sans sauvegarder
+  const closeEditModal = () => {
+    setEditingField(null);
+    setEditingValue('');
+  };
+
+  // Sauvegarde la modification du champ
+  const saveEditModal = () => {
+    if (editingField) {
+      setFormData((prev) => ({ ...prev, [editingField]: editingValue }));
+      setEditingField(null);
+      setEditingValue('');
+    }
+  };
+
   return (
     <View style={styles.container}>
       <View style={styles.progressContainer}>
@@ -144,12 +202,15 @@ export default function EditorialProfileForm({
             <View
               style={[
                 styles.completionFill,
-                { width: `${completion}%` },
-                completion === 100 && styles.completionFillComplete,
+                { width: `${getCompletionPercentage()}%` },
+                getCompletionPercentage() === 100 &&
+                  styles.completionFillComplete,
               ]}
             />
           </View>
-          <Text style={styles.completionText}>{completion}% complété</Text>
+          <Text style={styles.completionText}>
+            {getCompletionPercentage()}% complété
+          </Text>
         </View>
       </View>
 
@@ -160,16 +221,20 @@ export default function EditorialProfileForm({
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
       >
-        {FIELD_CONFIGS.map((config, index) => {
+        {FIELD_CONFIGS.map((config) => {
           const Icon = config.icon;
           const value = formData[config.key];
-          const isActive = activeField === config.key;
           const isFilled = value && value.trim().length > 0;
 
           return (
-            <View key={config.key} style={styles.fieldContainer}>
-              <View style={styles.fieldHeader}>
-                <View style={styles.fieldTitleContainer}>
+            <TouchableOpacity
+              key={config.key}
+              style={styles.cardContainer}
+              activeOpacity={0.8}
+              onPress={() => openEditModal(config.key)}
+            >
+              <View style={styles.cardHeader}>
+                <View style={styles.fieldIconContainer}>
                   <View
                     style={[
                       styles.fieldIcon,
@@ -178,65 +243,100 @@ export default function EditorialProfileForm({
                   >
                     <Icon size={16} color={isFilled ? '#fff' : '#666'} />
                   </View>
-                  <View style={styles.fieldTitleContent}>
-                    <Text style={styles.fieldTitle}>{config.title}</Text>
-                    <Text style={styles.fieldDescription}>
-                      {config.description}
-                    </Text>
-                  </View>
                 </View>
-                <View style={styles.fieldMeta}>
-                  <Text style={styles.charCount}>
-                    {value?.length || 0}/{config.maxLength}
+                <View style={styles.cardContent}>
+                  <Text style={styles.fieldTitle}>{config.title}</Text>
+                  <Text style={styles.cardValue} numberOfLines={2}>
+                    {value ? (
+                      value
+                    ) : (
+                      <Text style={{ color: '#666' }}>
+                        {config.placeholder}
+                      </Text>
+                    )}
                   </Text>
-                  <View
-                    style={[
-                      styles.fieldStatus,
-                      isFilled && styles.fieldStatusFilled,
-                    ]}
-                  />
-                  <VoiceDictation
-                    currentValue={value}
-                    onTranscriptChange={(text: string) =>
-                      updateField(config.key, text)
-                    }
-                  />
                 </View>
               </View>
-
-              <TextInput
-                ref={(ref) => {
-                  inputRefs.current[config.key] = ref;
-                }}
-                style={[styles.textInput, isActive && styles.textInputActive]}
-                multiline
-                numberOfLines={config.numberOfLines}
-                placeholder={config.placeholder}
-                placeholderTextColor="#666"
-                value={value}
-                onChangeText={(text) => updateField(config.key, text)}
-                onFocus={() => handleInputFocus(config.key)}
-                onBlur={() => setActiveField(null)}
-                maxLength={config.maxLength}
-              />
-
-              {isActive && (
-                <View style={styles.tipsContainer}>
-                  <View style={styles.tipsHeader}>
-                    <Lightbulb size={14} color="#007AFF" />
-                    <Text style={styles.tipsTitle}>Conseils</Text>
-                  </View>
-                  {config.tips.map((tip, tipIndex) => (
-                    <Text key={tipIndex} style={styles.tipText}>
-                      • {tip}
-                    </Text>
-                  ))}
-                </View>
-              )}
-            </View>
+            </TouchableOpacity>
           );
         })}
       </ScrollView>
+
+      {/* Modal d'édition d'un champ */}
+      <Modal
+        visible={editingField !== null}
+        animationType="slide"
+        transparent
+        onRequestClose={closeEditModal}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            {editingField && (
+              <RNScrollView
+                contentContainerStyle={{ flexGrow: 1 }}
+                keyboardShouldPersistTaps="handled"
+                showsVerticalScrollIndicator={false}
+              >
+                <Text style={styles.modalTitle}>
+                  {FIELD_CONFIGS.find((f) => f.key === editingField)?.title}
+                </Text>
+                <Text style={styles.fieldDescription}>
+                  {
+                    FIELD_CONFIGS.find((f) => f.key === editingField)
+                      ?.description
+                  }
+                </Text>
+                <TextInput
+                  style={styles.modalTextInput}
+                  multiline
+                  numberOfLines={
+                    FIELD_CONFIGS.find((f) => f.key === editingField)
+                      ?.numberOfLines || 3
+                  }
+                  placeholder={
+                    FIELD_CONFIGS.find((f) => f.key === editingField)
+                      ?.placeholder
+                  }
+                  placeholderTextColor="#666"
+                  value={editingValue}
+                  onChangeText={setEditingValue}
+                  maxLength={
+                    FIELD_CONFIGS.find((f) => f.key === editingField)?.maxLength
+                  }
+                  autoFocus
+                />
+                <View style={{ alignItems: 'flex-end', marginVertical: 8 }}>
+                  <VoiceDictation
+                    currentValue={editingValue}
+                    onTranscriptChange={setEditingValue}
+                  />
+                </View>
+                <View style={styles.modalButtonRow}>
+                  <TouchableOpacity
+                    style={styles.modalButton}
+                    onPress={closeEditModal}
+                  >
+                    <Text style={styles.modalButtonText}>Annuler</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={[styles.modalButton, styles.modalButtonSave]}
+                    onPress={saveEditModal}
+                  >
+                    <Text
+                      style={[
+                        styles.modalButtonText,
+                        styles.modalButtonSaveText,
+                      ]}
+                    >
+                      Sauvegarder
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              </RNScrollView>
+            )}
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -379,5 +479,91 @@ const styles = StyleSheet.create({
     color: '#007AFF',
     lineHeight: 18,
     marginBottom: 2,
+  },
+  cardContainer: {
+    backgroundColor: '#181818',
+    borderRadius: 14,
+    padding: 18,
+    marginBottom: 18,
+    borderWidth: 1,
+    borderColor: '#222',
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  cardHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+  },
+  fieldIconContainer: {
+    marginRight: 14,
+  },
+  cardContent: {
+    flex: 1,
+  },
+  cardValue: {
+    fontSize: 14,
+    color: '#bbb',
+    marginTop: 4,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.7)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalContent: {
+    backgroundColor: '#181818',
+    borderRadius: 18,
+    padding: 24,
+    width: '90%',
+    maxWidth: 420,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 2,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#fff',
+    marginBottom: 8,
+  },
+  modalTextInput: {
+    backgroundColor: '#222',
+    borderRadius: 10,
+    padding: 16,
+    color: '#fff',
+    fontSize: 15,
+    textAlignVertical: 'top',
+    borderWidth: 1,
+    borderColor: '#333',
+    lineHeight: 22,
+    marginTop: 12,
+    marginBottom: 8,
+  },
+  modalButtonRow: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    gap: 12,
+    marginTop: 12,
+  },
+  modalButton: {
+    paddingVertical: 10,
+    paddingHorizontal: 18,
+    borderRadius: 8,
+    backgroundColor: '#222',
+  },
+  modalButtonText: {
+    color: '#fff',
+    fontWeight: '600',
+    fontSize: 15,
+  },
+  modalButtonSave: {
+    backgroundColor: '#10b981',
+  },
+  modalButtonSaveText: {
+    color: '#fff',
   },
 });
