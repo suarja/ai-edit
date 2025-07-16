@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { View, ActivityIndicator, StyleSheet } from 'react-native';
+import { View, ActivityIndicator } from 'react-native';
 import { JobType, useAccountAnalysis } from '@/hooks/useAccountAnalysis';
 import StartAnalysisScreen from '../analysis/StartAnalysisScreen';
 import AnalysisInProgressScreen from '../analysis/AnalysisInProgressScreen';
@@ -82,4 +82,3 @@ const AccountAnalysisGuard: React.FC<AccountAnalysisGuardProps> = ({
 };
 
 export default AccountAnalysisGuard;
-

@@ -39,6 +39,7 @@ import { useClerkSupabaseClient } from '@/lib/supabase-clerk';
 import { useGetUser } from '@/lib/hooks/useGetUser';
 import { useAuth } from '@clerk/clerk-expo';
 import { useRevenueCat } from '@/providers/RevenueCat';
+import { ProFeatureLock } from '@/components/guards/ProFeatureLock';
 
 type VoiceClone = {
   id: string;
@@ -388,53 +389,10 @@ export default function VoiceCloneScreen() {
   // Show paywall for non-pro users
   if (!isPro) {
     return (
-      <SafeAreaView style={styles.container} edges={['top']}>
-        <SettingsHeader title="Clone Vocal" />
-        <ScrollView style={styles.scrollView}>
-          <View style={styles.paywallContainer}>
-            <View style={styles.paywallHeader}>
-              <Crown size={48} color="#FFD700" />
-              <Text style={styles.paywallTitle}>Clonage Vocal Pro</Text>
-            </View>
-            
-            <Text style={styles.paywallDescription}>
-              Le clonage vocal est une fonctionnalité exclusive aux utilisateurs Pro. 
-              Passez Pro pour débloquer cette fonctionnalité avancée.
-            </Text>
-            
-            <View style={styles.featuresList}>
-              <View style={styles.featureItem}>
-                <Text style={styles.checkmark}>✓</Text>
-                <Text style={styles.featureText}>Créer votre clone vocal IA</Text>
-              </View>
-              <View style={styles.featureItem}>
-                <Text style={styles.checkmark}>✓</Text>
-                <Text style={styles.featureText}>Voix naturelle et authentique</Text>
-              </View>
-              <View style={styles.featureItem}>
-                <Text style={styles.checkmark}>✓</Text>
-                <Text style={styles.featureText}>Intégration directe dans vos vidéos</Text>
-              </View>
-              <View style={styles.featureItem}>
-                <Text style={styles.checkmark}>✓</Text>
-                <Text style={styles.featureText}>Gestion de plusieurs échantillons</Text>
-              </View>
-            </View>
-
-            <TouchableOpacity
-              style={styles.upgradeButton}
-              onPress={goPro}
-            >
-              <Zap size={20} color="#fff" />
-              <Text style={styles.upgradeButtonText}>Passer Pro</Text>
-            </TouchableOpacity>
-            
-            <Text style={styles.paywallFooter}>
-              Retournez aux paramètres après votre mise à niveau pour accéder au clonage vocal.
-            </Text>
-          </View>
-        </ScrollView>
-      </SafeAreaView>
+      <ProFeatureLock
+        featureTitle="Clone Vocal"
+        featureDescription="Créez votre premier clone vocal pour commencer"
+      />
     );
   }
 
