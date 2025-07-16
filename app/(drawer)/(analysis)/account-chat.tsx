@@ -23,6 +23,7 @@ import { useTikTokChatSimple } from '@/hooks/useTikTokChatSimple';
 import AnalysisHeader from '@/components/analysis/AnalysisHeader';
 import Markdown from 'react-native-markdown-display';
 import ProPaywall from '@/components/analysis/ProPaywall';
+import VoiceDictation from '@/components/VoiceDictation';
 
 /**
  * 🎯 SIMPLIFIED TIKTOK ANALYSIS CHAT
@@ -302,6 +303,10 @@ export default function AccountChatScreen() {
                 maxLength={500}
                 editable={!isLoading && !isStreaming}
               />
+              <VoiceDictation
+                currentValue={inputMessage}
+                onTranscriptChange={setInputMessage}
+              />
             </View>
 
             <TouchableOpacity
@@ -543,22 +548,21 @@ const styles = StyleSheet.create({
     borderRadius: 25,
     borderWidth: 1,
     borderColor: '#333',
-    paddingHorizontal: 4,
+    paddingLeft: 16,
+    paddingRight: 8,
     paddingVertical: 4,
     flexDirection: 'row',
-    alignItems: 'flex-end',
-    width: '85%',
-    gap: 12,
+    alignItems: 'center',
+    flex: 1,
   },
   textInput: {
     flex: 1,
     backgroundColor: 'transparent',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingVertical: 8,
     color: '#fff',
     fontSize: 16,
     maxHeight: 100,
-    minHeight: 44,
+    minHeight: 44, // Ensure minHeight for alignment
   },
   sendButton: {
     backgroundColor: '#007AFF',

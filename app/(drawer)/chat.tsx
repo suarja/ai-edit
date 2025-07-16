@@ -27,6 +27,7 @@ import { router, useLocalSearchParams } from 'expo-router';
 import ScriptActionsModal from '@/components/ScriptActionsModal';
 import Markdown from 'react-native-markdown-display';
 import AnalysisHeader from '@/components/analysis/AnalysisHeader';
+import VoiceDictation from '@/components/VoiceDictation';
 
 /**
  * 🎯 SCRIPT CHAT AVEC VRAIE API ET PROFIL ÉDITORIAL
@@ -310,18 +311,20 @@ export default function ScriptChat() {
 
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
             <View style={styles.inputWrapper}>
-              <View style={styles.inputRow}>
-                <TextInput
-                  style={styles.textInput}
-                  value={inputMessage}
-                  onChangeText={setInputMessage}
-                  placeholder="Poser une question"
-                  placeholderTextColor="#888"
-                  multiline
-                  maxLength={500}
-                  editable={!isStreaming}
-                />
-              </View>
+              <TextInput
+                style={styles.textInput}
+                value={inputMessage}
+                onChangeText={setInputMessage}
+                placeholder="Poser une question"
+                placeholderTextColor="#888"
+                multiline
+                maxLength={500}
+                editable={!isStreaming}
+              />
+              <VoiceDictation
+                currentValue={inputMessage}
+                onTranscriptChange={setInputMessage}
+              />
             </View>
             <TouchableOpacity
               style={[
@@ -648,15 +651,17 @@ const styles = StyleSheet.create({
     borderRadius: 25,
     borderWidth: 1,
     borderColor: '#333',
-    paddingHorizontal: 4,
+    paddingLeft: 16,
+    paddingRight: 8,
     paddingVertical: 4,
-    width: '85%',
-    gap: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
   },
   inputRow: {
     flexDirection: 'row',
-    alignItems: 'flex-end',
-    gap: 12,
+    alignItems: 'center',
+    gap: 8,
   },
   textInput: {
     flex: 1,
