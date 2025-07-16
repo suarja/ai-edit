@@ -63,7 +63,11 @@ const VideoMetadataEditor: React.FC<VideoMetadataEditorProps> = ({
   const isTitleValid = title.trim().length > 0;
 
   return (
-    <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
+    <ScrollView
+      style={styles.container}
+      contentContainerStyle={{ flexGrow: 1, justifyContent: 'flex-start' }}
+      showsVerticalScrollIndicator={false}
+    >
       {/* Header */}
       <View style={styles.header}>
         <Text style={styles.title}>
@@ -248,7 +252,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 20,
-    height: '100%',
   },
 
   header: {

@@ -5,6 +5,7 @@ import {
   StyleSheet,
   TouchableOpacity,
   ActivityIndicator,
+  Modal,
 } from 'react-native';
 import { router } from 'expo-router';
 import { Crown } from 'lucide-react-native';
@@ -156,14 +157,45 @@ export default function SourceVideosScreen() {
               }}
             />
           )}
+        </View>
 
-          {/* Si limite atteinte, afficher le message */}
-
-          {/* Metadata Editor */}
-          {editingVideo.id && (
-            <>
+        {/* Metadata Editor Modal */}
+        <Modal
+          style={{
+            flex: 1,
+            justifyContent: 'center',
+            alignItems: 'center',
+            backgroundColor: 'rgba(0,0,0,0.7)',
+          }}
+          visible={!!editingVideo.id}
+          animationType="slide"
+          transparent={true}
+          onRequestClose={() => {
+            setEditingVideo({ id: null, title: '', description: '', tags: '' });
+            setEditingVideoId(null);
+            setCurrentVideoId(null);
+            clearError();
+          }}
+        >
+          <View
+            style={{
+              flex: 1,
+              justifyContent: 'center',
+              alignItems: 'center',
+              backgroundColor: 'rgba(0,0,0,0.7)',
+            }}
+          >
+            <SafeAreaView
+              style={[
+                styles.metadataEditorContainer,
+                { width: '90%', height: '70%' },
+              ]}
+              edges={['top', 'bottom']}
+            >
+              {' '}
+              {/* Reuse existing style */}
               <VideoMetadataEditor
-                videoId={editingVideo.id}
+                videoId={editingVideo.id || ''}
                 analysisData={
                   hasAnalysisData &&
                   typeof editingVideoId === 'string' &&
@@ -179,6 +211,15 @@ export default function SourceVideosScreen() {
                     tags: metadata.tags.join(', '),
                   }));
                   await updateVideoMetadata();
+                  setEditingVideo({
+                    id: null,
+                    title: '',
+                    description: '',
+                    tags: '',
+                  });
+                  setEditingVideoId(null);
+                  setCurrentVideoId(null);
+                  clearError();
                 }}
                 onCancel={() => {
                   setEditingVideo({
@@ -209,9 +250,9 @@ export default function SourceVideosScreen() {
                   </Text>
                 </View>
               )}
-            </>
-          )}
-        </View>
+            </SafeAreaView>
+          </View>
+        </Modal>
 
         <View style={styles.videosList}>
           <Text style={styles.sectionTitle}>Vos Vidéos</Text>
@@ -460,6 +501,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     padding: 16,
     gap: 16,
+    
   },
   metadataTitle: {
     color: '#fff',
