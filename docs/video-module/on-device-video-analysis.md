@@ -61,23 +61,27 @@ En conséquence, l'erreur `no such module 'MLX'` persiste lors de la compilation
 
 Face aux défis d'intégration de `mlx-swift` via CocoaPods, nous devons envisager des approches alternatives pour l'analyse vidéo on-device :
 
-1.  **Intégration Manuelle de `mlx-swift` (Déconseillée pour l'automatisation)**
-    *   **Description** : Cette option implique d'ajouter manuellement les dépendances Swift Package Manager (`mlx-swift`, `mlx-swift-examples`, `swift-markdown-ui`) directement dans Xcode après chaque exécution de `npx expo prebuild`. C'est la seule méthode avérée pour que `mlx-swift` compile dans un projet Expo à l'heure actuelle.
-    *   **Étapes Manuelles (à répéter après chaque `npx expo prebuild`)** :
-        1.  Ouvrez le projet iOS dans Xcode : `open ios/Editia.xcworkspace`
-        2.  Dans Xcode, allez dans les réglages de votre projet (le projet principal, `Editia`).
-        3.  Sélectionnez l'onglet **"Package Dependencies"**.
-        4.  Cliquez sur le bouton **"+"** en bas à gauche pour ajouter de nouvelles dépendances.
-        5.  Ajoutez les dépôts suivants un par un :
-            *   **`mlx-swift`** : URL `https://github.com/ml-explore/mlx-swift`, Règle de version : `Up to Next Major Version` ou `Exact Version` `0.21.3`.
-            *   **`mlx-swift-examples`** : URL `https://github.com/cyrilzakka/mlx-swift-examples`, Règle de version : `Branch` `main`.
-            *   **`swift-markdown-ui`** : URL `https://github.com/gonzalezreal/swift-markdown-ui.git`, Règle de version : `Up to Next Major Version` ou `Exact Version` `2.4.1`.
-        6.  Reconstruisez et Exécutez l'application directement depuis Xcode.
-    *   **Inconvénients** : Cette approche est très manuelle, rompt le flux de travail automatisé d'Expo (`prebuild` écrase les modifications), est sujette aux erreurs et rend la maintenance difficile, surtout dans un environnement de CI/CD.
+### Option 1 : Intégration Manuelle de `mlx-swift` (Fortement Déconseillée)
+*   **Description** : Cette option implique d'ajouter manuellement les dépendances Swift Package Manager (`mlx-swift`, etc.) directement dans Xcode après chaque exécution de `npx expo prebuild`. C'est la seule méthode qui fonctionnait avant de trouver une solution automatisée.
+*   **Inconvénients** : Très manuelle, rompt le flux de travail d'Expo, sujette aux erreurs et incompatible avec la CI/CD.
 
-2.  **Explorer des Alternatives (Recommandée)**
-    *   **Utiliser Core ML directement** : Apple fournit son propre framework Core ML pour l'exécution de modèles d'apprentissage automatique sur l'appareil. Si un modèle de vision par ordinateur compatible Core ML peut être trouvé ou converti pour votre cas d'usage (analyse vidéo pour métadonnées), ce serait l'approche la plus native, stable et optimisée pour iOS. Cela signifierait ne pas utiliser `VLMEvaluator` de `HuggingSnap`.
-    *   **Rechercher d'autres bibliothèques ML on-device** : Il existe d'autres bibliothèques tierces pour l'inférence ML sur mobile (comme TensorFlow Lite, PyTorch Mobile) qui pourraient avoir un meilleur support CocoaPods ou une intégration plus simple avec Expo. Une évaluation de leur compatibilité et de leurs capacités serait nécessaire.
-    *   **Fallback Temporaire au Backend** : Si l'analyse on-device est absolument nécessaire mais que les solutions viables sont trop complexes à mettre en œuvre rapidement, nous pourrions revenir temporairement à l'analyse côté backend (via Gemini) tout en explorant une solution on-device plus robuste à long terme. Cela permettrait de débloquer le développement de l'application tout en recherchant la meilleure approche on-device.
+### Option 2 : Intégration Automatisée des Dépendances SPM via un Plugin (Recommandée)
+*   **Description** : Cette approche utilise un **plugin de configuration Expo** pour modifier le fichier `project.pbxproj` et lier correctement les dépendances SPM à la cible principale de l'application. Cela résout le problème de "framework manquant" sur les appareils physiques et automatise entièrement le processus.
+*   **Avantages** :
+    *   **Automatisé** : S'intègre parfaitement au flux de travail `npx expo prebuild`.
+    *   **Fiable** : Assure que les dépendances sont correctement liées pour les builds de production.
+    *   **Maintenable** : La configuration est définie une seule fois dans le plugin.
+*   **Plan d'action** :
+    1.  Déclarer `mlx-swift` et ses dépendances dans le fichier `ExpoVideoAnalyzer.podspec` en utilisant la fonction `spm_dependency`.
+    2.  Créer un plugin de configuration local (par exemple, `plugins/withSpmDependencies.js`) en s'inspirant de la documentation trouvée dans `docs/video-module/spm-deps.md`.
+    3.  Adapter ce plugin pour qu'il ajoute les dépendances SPM (`mlx-swift`, `mlx-swift-examples`, etc.) à la cible principale de l'application iOS.
+    4.  Ajouter le plugin à la section `plugins` du fichier `app.json`.
+*   **Conclusion** : C'est la solution la plus robuste et la plus propre pour intégrer `mlx-swift` et poursuivre l'objectif initial d'utiliser la logique de `HuggingSnap`.
+
+### Option 3 : Explorer des Alternatives (Plan de Secours)
+Si l'approche avec le plugin SPM s'avérait plus complexe que prévu, les alternatives restent valables :
+*   **Utiliser Core ML directement** : L'approche la plus native et optimisée pour iOS, mais nécessite de trouver ou convertir un modèle compatible et de ne pas utiliser `VLMEvaluator` de `HuggingSnap`.
+*   **Rechercher d'autres bibliothèques ML on-device** : Des bibliothèques comme **TensorFlow Lite** (avec `react-native-vision-camera` et `react-native-fast-tflite`) offrent une excellente alternative multi-plateforme avec un bon support de l'écosystème React Native.
+*   **Fallback Temporaire au Backend** : Revenir à l'analyse côté backend (via Gemini) si une solution on-device rapide est impossible à mettre en œuvre.
 
 En suivant ce plan et en comprenant le rôle de ces fichiers, nous pourrons intégrer efficacement la logique d'analyse vidéo on-device dans votre application mobile.
