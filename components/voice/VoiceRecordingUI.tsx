@@ -7,13 +7,11 @@ import {
   StyleSheet,
   FlatList,
   ScrollView,
-  Modal,
-  ActivityIndicator,
 } from 'react-native';
 import { Play, Trash, Upload, Mic, Send } from 'lucide-react-native';
 import { useVoiceRecording } from '@/components/hooks/useVoiceRecording';
 import { useVoices } from './hooks/useVoices';
-import { Audio } from 'expo-av';
+import { VoiceRecordingModal } from './VoiceRecordingModal';
 
 const ACCEPTED_FORMATS_LABEL =
   'AAC, AIFF, OGG, MP3, OPUS, WAV, FLAC, M4A, WEBM';
@@ -54,7 +52,6 @@ export const VoiceRecordingUI: React.FC = () => {
     voiceRecording.actions.reset();
     voiceRecording.actions.startRecording();
   };
-
 
   const handleCancelRecording = () => {
     setShowRecorder(false);
@@ -177,119 +174,12 @@ export const VoiceRecordingUI: React.FC = () => {
       <View style={{ height: 40 }} />
 
       {/* Recording Modal/Overlay */}
-      <Modal
+      <VoiceRecordingModal
         visible={showRecorder}
-        transparent={true}
-        animationType="slide"
         onRequestClose={handleCancelRecording}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={styles.recorderModal}>
-            {/* Error state */}
-            {voiceRecording.state.error ? (
-              <>
-                <Text style={styles.errorText}>
-                  {voiceRecording.state.error.message}
-                </Text>
-                <TouchableOpacity
-                  style={styles.actionButtonSmall}
-                  onPress={() => {
-                    voiceRecording.actions.reset();
-                    voiceRecording.actions.startRecording();
-                  }}
-                >
-                  <Text style={styles.buttonText}>Réessayer</Text>
-                </TouchableOpacity>
-              </>
-            ) : voiceRecording.state.isProcessing ? (
-              // Uploading state
-              <>
-                <ActivityIndicator size="large" color="#007AFF" />
-                <Text style={styles.sectionLabel}>
-                  Enregistrement en cours de traitement…
-                </Text>
-              </>
-            ) : voiceRecording.state.isRecording ? (
-              // Recording state
-              <>
-                <Text style={styles.sectionLabel}>Enregistrement en cours</Text>
-                <Text style={styles.timerText}>
-                  {formatDuration(voiceRecording.state.recordingDuration)}
-                </Text>
-                <TouchableOpacity
-                  style={[
-                    styles.actionButtonLarge,
-                    { backgroundColor: '#ef4444', marginTop: 24 },
-                  ]}
-                  onPress={voiceRecording.actions.stopRecording}
-                  disabled={!voiceRecording.status.canStop}
-                >
-                  <Text style={styles.buttonText}>Arrêter</Text>
-                </TouchableOpacity>
-              </>
-            ) : voiceRecording.state.isCompleted &&
-              voiceRecording.state.recordingUri ? (
-              // Review state
-              <>
-                <Text style={styles.sectionLabel}>Enregistrement terminé</Text>
-                <Text style={styles.timerText}>
-                  Durée :{' '}
-                  {formatDuration(voiceRecording.state.recordingDuration)}
-                </Text>
-                <View style={{ flexDirection: 'row', gap: 12, marginTop: 16 }}>
-                  <TouchableOpacity
-                    style={styles.actionButtonSmall}
-                    onPress={async () => {
-                      const { sound } = await Audio.Sound.createAsync({
-                        uri: voiceRecording.state.recordingUri!,
-                      });
-                      await sound.playAsync();
-                    }}
-                  >
-                    <Text style={styles.buttonText}>Écouter</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    style={styles.actionButtonSmall}
-                    onPress={() => {
-                      voiceRecording.actions.reset();
-                      voiceRecording.actions.startRecording();
-                    }}
-                  >
-                    <Text style={styles.buttonText}>Réenregistrer</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    style={[
-                      styles.actionButtonSmall,
-                      { backgroundColor: '#10b981' },
-                    ]}
-                    onPress={voiceRecording.actions.submitRecording}
-                    disabled={!voiceRecording.status.canSubmit}
-                  >
-                    <Text style={styles.buttonText}>Valider</Text>
-                  </TouchableOpacity>
-                </View>
-              </>
-            ) : (
-              // Idle state
-              <>
-                <Text style={styles.sectionLabel}>Prêt à enregistrer</Text>
-                <TouchableOpacity
-                  style={[
-                    styles.actionButtonLarge,
-                    { backgroundColor: '#007AFF', marginTop: 24 },
-                  ]}
-                  onPress={voiceRecording.actions.startRecording}
-                  disabled={!voiceRecording.status.canStart}
-                >
-                  <Text style={styles.buttonText}>
-                    Démarrer l’enregistrement
-                  </Text>
-                </TouchableOpacity>
-              </>
-            )}
-          </View>
-        </View>
-      </Modal>
+        voiceRecording={voiceRecording}
+        voicesActions={voicesActions}
+      />
     </ScrollView>
   );
 };
