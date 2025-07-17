@@ -1,44 +1,34 @@
 import React, { useState } from 'react';
 import { View } from 'react-native';
-// Sous-composants à créer
 import VoiceList from './VoiceList';
 import VoiceCreateButton from './VoiceCreateButton';
 import VoiceRecordingSection from './VoiceRecordingSection';
-
-// Types de voix (génériques ou clonées)
-export type VoiceConfig = {
-  voiceId: string;
-  voiceName: string;
-  description?: string;
-  isCloned?: boolean;
-};
-
-const DEFAULT_VOICES: VoiceConfig[] = [
-  {
-    voiceId: '1',
-    voiceName: 'Voix Garçon',
-    description: 'Voix masculine générique, chaleureuse et claire.',
-    isCloned: false,
-  },
-  {
-    voiceId: '2',
-    voiceName: 'Voix Fille',
-    description: 'Voix féminine générique, douce et expressive.',
-    isCloned: false,
-  },
-];
+import {
+  VoiceConfig,
+  VoiceConfigStorage,
+  VoiceService,
+} from '@/lib/services/voiceService';
 
 export const VoiceScreen: React.FC = () => {
   const [step, setStep] = useState<'list' | 'record'>('list');
-  const [voices, setVoices] = useState<VoiceConfig[]>(DEFAULT_VOICES);
+  const [voices, setVoices] = useState<VoiceConfig[]>(
+    VoiceConfigStorage.getDefaultVoicesList()
+  );
   const [selectedVoiceId, setSelectedVoiceId] = useState<string | null>(null);
 
-  // Handler pour ajouter une voix clonée
   const handleAddClonedVoice = (voice: VoiceConfig) => {
     setVoices((prev) => [...prev, voice]);
     setSelectedVoiceId(voice.voiceId);
     setStep('list');
     // TODO: sauvegarder dans VoiceConfigStorage
+  };
+
+  const handleSelectVoice = async (
+    userId: string,
+    voiceConfig: VoiceConfig
+  ) => {
+    setSelectedVoiceId(voiceConfig.voiceId);
+    await VoiceConfigStorage.save(userId, voiceConfig);
   };
 
   return (
@@ -48,7 +38,7 @@ export const VoiceScreen: React.FC = () => {
           <VoiceList
             voices={voices}
             selectedVoiceId={selectedVoiceId}
-            onSelect={setSelectedVoiceId}
+            onSelect={handleSelectVoice}
           />
           <VoiceCreateButton onCreate={() => setStep('record')} />
         </>

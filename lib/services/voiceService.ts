@@ -197,6 +197,10 @@ export class VoiceConfigStorage {
     return this.DEFAULT_VOICES[0];
   }
 
+  static getDefaultVoicesList() {
+    return this.DEFAULT_VOICES;
+  }
+
   private static readonly DEFAULT_VOICES: VoiceConfig[] = [
     {
       voiceId: 'McVZB9hVxVSk3Equu8EH',
@@ -215,16 +219,6 @@ export class VoiceConfigStorage {
       voiceGender: 'male',
       voiceAge: '20-30',
       isPublic: false,
-    },
-    {
-      voiceId: 'McVZB9hVxVSk3Equu8EH',
-      voiceName: 'Audrey',
-      voiceDescription: 'Top Voice France- Narrative & calm',
-      voiceGender: 'female',
-      voiceAge: '20-30',
-      voiceLink:
-        'https://elevenlabs.io/app/voice-library?voiceId=McVZB9hVxVSk3Equu8EH',
-      isPublic: true,
     },
   ];
 }
