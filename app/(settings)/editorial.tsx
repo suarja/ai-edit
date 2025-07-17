@@ -22,7 +22,7 @@ import {
 import SettingsHeader from '@/components/SettingsHeader';
 import EditorialProfileForm from '@/components/EditorialProfileForm';
 import { useClerkSupabaseClient } from '@/lib/supabase-clerk';
-import { useGetUser } from '@/lib/hooks/useGetUser';
+import { useGetUser } from '@/components/hooks/useGetUser';
 
 type EditorialProfile = {
   id: string;

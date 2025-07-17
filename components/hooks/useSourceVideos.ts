@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { Alert, ViewabilityConfig } from 'react-native';
 import { router, useFocusEffect } from 'expo-router';
-import { useGetUser } from '@/lib/hooks/useGetUser';
+import { useGetUser } from '@/components/hooks/useGetUser';
 import { useClerkSupabaseClient } from '@/lib/supabase-clerk';
 import { useRevenueCat } from '@/contexts/providers/RevenueCat';
 import { SupportService } from '@/lib/services/support/supportService';

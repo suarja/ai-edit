@@ -8,16 +8,15 @@ import {
   ActivityIndicator,
   Alert,
   KeyboardAvoidingView,
-  Platform,
   SafeAreaView,
 } from 'react-native';
 import { useAuth } from '@clerk/clerk-expo';
 import { API_ENDPOINTS } from '@/lib/config/api';
 import Icon from 'react-native-vector-icons/Ionicons';
-import { useGetUser } from '@/lib/hooks/useGetUser';
+import { useGetUser } from '@/components/hooks/useGetUser';
 import { router } from 'expo-router';
-import z from 'zod';
-import { JobType } from '@/hooks/useAccountAnalysis';
+import { z } from 'zod';
+import { JobType } from '@/components/hooks/useAccountAnalysis';
 import AnalysisHeader from './AnalysisHeader';
 
 // Local interface for clarity, though it's simpler now
@@ -30,18 +29,6 @@ export interface HandleValidationResult {
 interface StartAnalysisScreenProps {
   onAnalysisStart: (job: JobType) => void;
 }
-/* {
-      success: true,
-      message: 'TikTok analysis started',
-      data: {
-        run_id: scrapingJob.id,
-        status: scrapingJob.status,
-        progress: scrapingJob.progress,
-        tiktok_handle: cleanHandle,
-        account_id: accountId, // 🆕 Include account_id in response
-        started_at: scrapingJob.started_at
-      }
-    } */
 
 const ResponseSchema = z.object({
   success: z.boolean(),

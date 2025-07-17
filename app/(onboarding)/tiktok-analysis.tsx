@@ -16,11 +16,11 @@ import {
   UserSearch,
   Sparkles,
 } from 'lucide-react-native';
-  import { useOnboarding } from '@/components/providers/OnboardingProvider';
-import { useFeatureAccess } from '@/hooks/useFeatureAccess';
+import { useOnboarding } from '@/components/providers/OnboardingProvider';
+import { useFeatureAccess } from '@/components/hooks/useFeatureAccess';
 import { ProFeatureLock } from '@/components/guards/ProFeatureLock';
-import { useAccountAnalysisApi } from '@/hooks/useAccountAnalysisApi';
-import { useAccountAnalysis } from '@/hooks/useAccountAnalysis';
+import { useAccountAnalysisApi } from '@/components/hooks/useAccountAnalysisApi';
+import { useAccountAnalysis } from '@/components/hooks/useAccountAnalysis';
 
 /**
  * 🎯 ONBOARDING TIKTOK ANALYSIS - VERSION ASYNCHRONE
@@ -139,7 +139,8 @@ export default function TikTokAnalysisScreen() {
         <Text style={styles.title}>Analysez un Compte TikTok</Text>
         <Text style={styles.description}>
           Entrez le @handle d&apos;un compte pour que notre IA analyse sa
-          stratégie de contenu, ses performances et ses métriques d&apos;audience.
+          stratégie de contenu, ses performances et ses métriques
+          d&apos;audience.
         </Text>
         <View style={styles.inputContainer}>
           <Text style={styles.atSymbol}>@</Text>

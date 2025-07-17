@@ -10,8 +10,8 @@ import {
 } from 'react-native';
 import { supabase } from '@/lib/supabase';
 import { User, Shield } from 'lucide-react-native';
-import { useGetUser } from '@/lib/hooks/useGetUser';
 import { router } from 'expo-router';
+import { useGetUser } from './hooks/useGetUser';
 
 type AdminUsageControlProps = {
   userId: string;
@@ -41,7 +41,6 @@ export default function AdminUsageControl({
       }
 
       console.log(`Updating limit for user ${userId} to ${limitValue}`);
-
 
       const user = await fetchUser();
 

@@ -6,7 +6,7 @@ import Purchases, {
   PurchasesOffering,
 } from 'react-native-purchases';
 import { useClerkSupabaseClient } from '@/lib/supabase-clerk';
-import { useGetUser } from '@/lib/hooks/useGetUser';
+import { useGetUser } from '@/components/hooks/useGetUser';
 import { CustomPaywall } from '@/components/CustomPaywall';
 
 // Use keys from your RevenueCat API Keys
@@ -473,4 +473,3 @@ export const RevenueCatProvider = ({ children }: any) => {
 export const useRevenueCat = () => {
   return useContext(RevenueCatContext) as RevenueCatProps;
 };
-

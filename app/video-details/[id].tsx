@@ -8,7 +8,7 @@ import {
 } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useGetUser } from '@/lib/hooks/useGetUser';
+import { useGetUser } from '@/components/hooks/useGetUser';
 import { useClerkSupabaseClient } from '@/lib/supabase-clerk';
 import { API_ENDPOINTS, API_HEADERS } from '@/lib/config/api';
 import { useAuth } from '@clerk/clerk-expo';

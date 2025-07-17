@@ -9,10 +9,9 @@ import {
 import { useRouter } from 'expo-router';
 import { Mic, ChevronLeft, CheckCircle } from 'lucide-react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useFeatureAccess } from '@/hooks/useFeatureAccess';
+import { useFeatureAccess } from '@/components/hooks/useFeatureAccess';
 import { ProFeatureLock } from '@/components/guards/ProFeatureLock';
-import { useClerkSupabaseClient } from '@/lib/supabase-clerk';
-import { useGetUser } from '@/lib/hooks/useGetUser';
+import { useGetUser } from '@/components/hooks/useGetUser';
 
 export default function VoiceCloneOnboardingScreen() {
   const router = useRouter();
@@ -22,7 +21,6 @@ export default function VoiceCloneOnboardingScreen() {
     isPro,
     remainingUsage,
   } = useFeatureAccess('voice_clone');
-  const { client: supabase } = useClerkSupabaseClient();
   const { fetchUser } = useGetUser();
 
   const [isLoading, setIsLoading] = useState(true);

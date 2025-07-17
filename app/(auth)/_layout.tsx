@@ -1,6 +1,6 @@
 import { Redirect, Stack } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { useClerkAuth } from '@/hooks/useClerkAuth';
+import { useClerkAuth } from '@/components/hooks/useClerkAuth';
 
 export default function AuthLayout() {
   const [isNavigating, setIsNavigating] = useState(false);

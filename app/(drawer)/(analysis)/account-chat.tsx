@@ -19,7 +19,7 @@ import {
 } from 'lucide-react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useRevenueCat } from '@/contexts/providers/RevenueCat';
-import { useTikTokChatSimple } from '@/hooks/useTikTokChatSimple';
+import { useTikTokChatSimple } from '@/components/hooks/useTikTokChatSimple';
 import AnalysisHeader from '@/components/analysis/AnalysisHeader';
 import Markdown from 'react-native-markdown-display';
 import ProPaywall from '@/components/analysis/ProPaywall';

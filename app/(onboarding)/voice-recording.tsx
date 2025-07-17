@@ -25,7 +25,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useOnboarding } from '@/components/providers/OnboardingProvider';
 import { ProgressBar } from '@/components/onboarding/ProgressBar';
 import { useClerkSupabaseClient } from '@/lib/supabase-clerk';
-import { useGetUser } from '@/lib/hooks/useGetUser';
+import { useGetUser } from '@/components/hooks/useGetUser';
 import { VoiceRecordingUI } from '@/components/voice/VoiceRecordingUI';
 import {
   VoiceRecordingResult,

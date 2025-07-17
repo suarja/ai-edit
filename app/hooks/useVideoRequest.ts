@@ -1,8 +1,7 @@
 import { useState, useEffect } from 'react';
-import { Alert } from 'react-native';
 import { router } from 'expo-router';
 import { useAuth } from '@clerk/clerk-expo';
-import { useGetUser } from '@/lib/hooks/useGetUser';
+import { useGetUser } from '@/components/hooks/useGetUser';
 import { useClerkSupabaseClient } from '@/lib/supabase-clerk';
 import { VideoType, CaptionConfiguration } from '@/lib/types/video';
 import { CaptionConfigStorage } from '@/lib/utils/caption-config-storage';

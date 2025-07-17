@@ -1,12 +1,11 @@
-import { supabase } from '@/lib/supabase';
-import { API_ENDPOINTS, API_HEADERS } from '@/lib/config/api';
+import { API_ENDPOINTS } from '@/lib/config/api';
 import {
   VoiceRecordingResult,
   VoiceRecordingError,
   VOICE_RECORDING_ERROR_CODES,
   errorTaxonomy,
 } from '@/lib/types/voice-recording';
-import { DatabaseUser } from '../../lib/hooks/useGetUser';
+import { DatabaseUser } from '../hooks/useGetUser';
 
 interface VoiceRecordingSubmissionData {
   uri: string;

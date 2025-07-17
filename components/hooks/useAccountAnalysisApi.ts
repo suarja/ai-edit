@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useGetUser } from '@/lib/hooks/useGetUser';
+import { useGetUser } from '@/components/hooks/useGetUser';
 import { useAuth } from '@clerk/clerk-expo';
 
 export const useAccountAnalysisApi = () => {

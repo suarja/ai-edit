@@ -7,7 +7,7 @@ import {
   StyleSheet,
   TouchableOpacity,
 } from 'react-native';
-import { useClerkAuth } from '@/hooks/useClerkAuth';
+import { useClerkAuth } from '@/components/hooks/useClerkAuth';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import DrawerToggle from '@/components/DrawerToggle';
 import SidebarModal from '@/components/SidebarModal';

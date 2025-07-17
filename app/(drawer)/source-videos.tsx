@@ -15,9 +15,9 @@ import VideoMetadataEditor from '@/components/VideoMetadataEditor';
 import ErrorDisplay from '@/components/ErrorDisplay';
 import VideoList from '@/components/VideoList';
 
-import { useSourceVideos } from '@/hooks/useSourceVideos';
-import { useGetUser } from '@/lib/hooks/useGetUser';
+import { useSourceVideos } from '@/components/hooks/useSourceVideos';
 import { useRevenueCat } from '@/contexts/providers/RevenueCat';
+import { useGetUser } from '@/components/hooks/useGetUser';
 
 export default function SourceVideosScreen() {
   const {

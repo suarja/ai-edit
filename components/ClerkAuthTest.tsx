@@ -1,20 +1,20 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import { SignedIn, SignedOut } from '@clerk/clerk-expo';
-import { useClerkAuth } from '@/hooks/useClerkAuth';
+import { useClerkAuth } from '@/components/hooks/useClerkAuth';
 import { Link } from 'expo-router';
 
 export function ClerkAuthTest() {
-  const { 
-    isLoaded, 
-    isSignedIn, 
-    user, 
-    email, 
-    fullName, 
+  const {
+    isLoaded,
+    isSignedIn,
+    user,
+    email,
+    fullName,
     userId,
     sessionId,
     signOut,
-    loading 
+    loading,
   } = useClerkAuth();
 
   const handleSignOut = async () => {
@@ -23,10 +23,10 @@ export function ClerkAuthTest() {
       'Êtes-vous sûr de vouloir vous déconnecter ?',
       [
         { text: 'Annuler', style: 'cancel' },
-        { 
-          text: 'Se déconnecter', 
+        {
+          text: 'Se déconnecter',
           style: 'destructive',
-          onPress: signOut
+          onPress: signOut,
         },
       ]
     );
@@ -43,17 +43,23 @@ export function ClerkAuthTest() {
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Clerk Auth Test</Text>
-      
+
       <SignedIn>
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>✅ Signed In</Text>
           <Text style={styles.info}>Email: {email}</Text>
           <Text style={styles.info}>Full Name: {fullName}</Text>
           <Text style={styles.info}>User ID: {userId}</Text>
-          <Text style={styles.info}>Session ID: {sessionId?.substring(0, 20)}...</Text>
-          
-          <TouchableOpacity 
-            style={[styles.button, styles.signOutButton, loading && styles.buttonDisabled]}
+          <Text style={styles.info}>
+            Session ID: {sessionId?.substring(0, 20)}...
+          </Text>
+
+          <TouchableOpacity
+            style={[
+              styles.button,
+              styles.signOutButton,
+              loading && styles.buttonDisabled,
+            ]}
             onPress={handleSignOut}
             disabled={loading}
           >
@@ -68,13 +74,13 @@ export function ClerkAuthTest() {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>❌ Signed Out</Text>
           <Text style={styles.info}>No active session</Text>
-          
+
           <Link href="/(auth)/sign-in-clerk" asChild>
             <TouchableOpacity style={[styles.button, styles.signInButton]}>
               <Text style={styles.buttonText}>Go to Sign In</Text>
             </TouchableOpacity>
           </Link>
-          
+
           <Link href="/(auth)/sign-up-clerk" asChild>
             <TouchableOpacity style={[styles.button, styles.signUpButton]}>
               <Text style={styles.buttonText}>Go to Sign Up</Text>
@@ -82,12 +88,18 @@ export function ClerkAuthTest() {
           </Link>
         </View>
       </SignedOut>
-      
+
       <View style={styles.debugSection}>
         <Text style={styles.debugTitle}>Debug Info:</Text>
-        <Text style={styles.debugText}>isLoaded: {isLoaded ? 'true' : 'false'}</Text>
-        <Text style={styles.debugText}>isSignedIn: {isSignedIn ? 'true' : 'false'}</Text>
-        <Text style={styles.debugText}>loading: {loading ? 'true' : 'false'}</Text>
+        <Text style={styles.debugText}>
+          isLoaded: {isLoaded ? 'true' : 'false'}
+        </Text>
+        <Text style={styles.debugText}>
+          isSignedIn: {isSignedIn ? 'true' : 'false'}
+        </Text>
+        <Text style={styles.debugText}>
+          loading: {loading ? 'true' : 'false'}
+        </Text>
       </View>
     </View>
   );
@@ -176,4 +188,4 @@ const styles = StyleSheet.create({
     fontFamily: 'monospace',
     marginBottom: 5,
   },
-}); 
+});

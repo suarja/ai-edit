@@ -4,13 +4,11 @@ import {
   Text,
   StyleSheet,
   ActivityIndicator,
-  Alert,
   ScrollView,
   TouchableOpacity,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
-import * as Haptics from 'expo-haptics';
 import {
   AlertCircle,
   User,
@@ -24,7 +22,7 @@ import { useOnboarding } from '@/components/providers/OnboardingProvider';
 import { ProgressBar } from '@/components/onboarding/ProgressBar';
 import { useOnboardingSteps } from '@/components/onboarding/OnboardingSteps';
 import { useClerkSupabaseClient } from '@/lib/supabase-clerk';
-import { useGetUser } from '@/lib/hooks/useGetUser';
+import { useGetUser } from '@/components/hooks/useGetUser';
 
 type EditorialProfile = {
   id: string;
@@ -266,7 +264,7 @@ export default function EditorialProfileScreen() {
 
       <View style={styles.actions}>
         <TouchableOpacity style={styles.skipButton} onPress={handleSkip}>
-          <Text style={styles.skipButtonText}>Passer pour l'instant</Text>
+          <Text style={styles.skipButtonText}>Passer pour l&apos;instant</Text>
         </TouchableOpacity>
 
         <TouchableOpacity

@@ -2,8 +2,8 @@ import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { VideoSelector } from './VideoSelector';
 import { VideoAnalyzer } from './VideoAnalyzer';
-import { VideoAsset } from '@/hooks/useVideoSelector';
-import { AnalysisResult } from '@/hooks/useOnDeviceVideoAnalysis';
+import { VideoAsset } from '@/components/hooks/useVideoSelector';
+import { AnalysisResult } from '@/components/hooks/useOnDeviceVideoAnalysis';
 
 export const DebugPanel: React.FC = () => {
   const [selectedAsset, setSelectedAsset] = React.useState<VideoAsset | null>(

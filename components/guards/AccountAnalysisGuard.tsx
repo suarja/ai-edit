@@ -1,9 +1,12 @@
 import React, { useEffect } from 'react';
 import { View, ActivityIndicator } from 'react-native';
-import { JobType, useAccountAnalysis } from '@/hooks/useAccountAnalysis';
+import {
+  JobType,
+  useAccountAnalysis,
+} from '@/components/hooks/useAccountAnalysis';
 import StartAnalysisScreen from '../analysis/StartAnalysisScreen';
 import AnalysisInProgressScreen from '../analysis/AnalysisInProgressScreen';
-import { useFeatureAccess } from '@/hooks/useFeatureAccess';
+import { useFeatureAccess } from '@/components/hooks/useFeatureAccess';
 import { ProFeatureLock } from './ProFeatureLock';
 
 interface AccountAnalysisGuardProps {

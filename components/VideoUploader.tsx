@@ -6,10 +6,10 @@ import {
   TouchableOpacity,
   ActivityIndicator,
 } from 'react-native';
-import { useVideoSelector } from '@/hooks/useVideoSelector';
-import { useVideoUpload } from '@/hooks/useVideoUpload';
-import { useOnDeviceVideoAnalysis } from '@/hooks/useOnDeviceVideoAnalysis';
-import { UseSourceVideos } from '@/hooks/useSourceVideos';
+import { useVideoSelector } from '@/components/hooks/useVideoSelector';
+import { useVideoUpload } from '@/components/hooks/useVideoUpload';
+import { useOnDeviceVideoAnalysis } from '@/components/hooks/useOnDeviceVideoAnalysis';
+import { UseSourceVideos } from '@/components/hooks/useSourceVideos';
 
 interface VideoUploaderProps {
   onUploadComplete: UseSourceVideos['handleUploadComplete'];

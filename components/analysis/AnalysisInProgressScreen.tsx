@@ -11,7 +11,7 @@ import {
 } from 'react-native';
 import { API_ENDPOINTS } from '@/lib/config/api';
 import { useAuth } from '@clerk/clerk-expo';
-import { JobType } from '@/hooks/useAccountAnalysis';
+import { JobType } from '@/components/hooks/useAccountAnalysis';
 import AnalysisHeader from './AnalysisHeader';
 import { router } from 'expo-router';
 import AnalysisLogs from './AnalysisLogs';

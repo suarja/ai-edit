@@ -2,7 +2,7 @@ import { Stack, useRouter } from 'expo-router';
 import { useEffect, useState, useRef } from 'react';
 import { View, ActivityIndicator, Text, StyleSheet } from 'react-native';
 import { OnboardingProvider } from '@/components/providers/OnboardingProvider';
-import { useClerkAuth } from '@/hooks/useClerkAuth';
+import { useClerkAuth } from '@/components/hooks/useClerkAuth';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function OnboardingLayout() {
@@ -11,7 +11,7 @@ export default function OnboardingLayout() {
   const [isRedirecting, setIsRedirecting] = useState(false);
   const router = useRouter();
   const redirectTimeoutRef = useRef<number | null>(null);
-  
+
   // Use Clerk authentication state
   const { isLoaded, isSignedIn, initializing } = useClerkAuth();
 
@@ -85,7 +85,7 @@ export default function OnboardingLayout() {
               {isRedirecting
                 ? 'Redirection en cours...'
                 : !isLoaded
-                ? 'Chargement de l\'authentification...'
+                ? "Chargement de l'authentification..."
                 : 'Vérification de votre session...'}
             </Text>
           )}

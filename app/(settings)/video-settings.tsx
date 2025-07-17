@@ -14,8 +14,7 @@ import VideoSettingsSection from '@/components/VideoSettingsSection';
 import SettingsHeader from '@/components/SettingsHeader';
 import { CaptionConfiguration } from '@/lib/types/video';
 import { CaptionConfigStorage } from '@/lib/utils/caption-config-storage';
-import { useClerkSupabaseClient } from '@/lib/supabase-clerk';
-import { useGetUser } from '@/lib/hooks/useGetUser';
+import { useGetUser } from '@/components/hooks/useGetUser';
 
 export default function VideoSettingsScreen() {
   const [captionConfig, setCaptionConfig] =
@@ -23,7 +22,6 @@ export default function VideoSettingsScreen() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
-  const { client: supabase } = useClerkSupabaseClient();
   const { fetchUser } = useGetUser();
 
   useEffect(() => {

@@ -17,7 +17,7 @@ import {
   VoiceRecordingConfig,
   VoiceRecordingResult,
 } from '@/lib/types/voice-recording';
-import { useVoiceRecording } from '@/hooks/useVoiceRecording';
+import { useVoiceRecording } from '@/components/hooks/useVoiceRecording';
 import { VoiceRecordingErrorWrapper } from './VoiceRecordingErrorBoundary';
 import {
   useVoiceRecordingContext,

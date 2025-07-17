@@ -5,8 +5,7 @@ import { router } from 'expo-router';
 import AdminUsageSettings from '@/components/AdminUsageSettings';
 import { AlertTriangle } from 'lucide-react-native';
 import { useClerkSupabaseClient } from '@/lib/supabase-clerk';
-import { useGetUser } from '@/lib/hooks/useGetUser';
-
+import { useGetUser } from '@/components/hooks/useGetUser';
 export default function AdminUsageSettingsPage() {
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);

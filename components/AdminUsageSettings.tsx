@@ -12,7 +12,7 @@ import {
 import { supabase } from '@/lib/supabase';
 import { Shield, CheckCircle, XCircle, User } from 'lucide-react-native';
 import { env } from '@/lib/config/env';
-import { useGetUser } from '@/lib/hooks/useGetUser';
+import { useGetUser } from './hooks/useGetUser';
 import { router } from 'expo-router';
 
 export default function AdminUsageSettings() {
@@ -276,7 +276,7 @@ export default function AdminUsageSettings() {
       <View style={styles.card}>
         <Text style={styles.sectionTitle}>Find User</Text>
         <Text style={styles.description}>
-          Enter a user's email to view or modify their usage limits
+          Enter a user&apos;s email to view or modify their usage limits
         </Text>
 
         <View style={styles.searchContainer}>

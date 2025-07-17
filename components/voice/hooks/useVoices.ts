@@ -14,11 +14,9 @@ import {
   getVoiceSamples,
   getVoiceSampleAudioUrl,
 } from '@/components/voice/voice-recording-client';
-import { useClerkSupabaseClient } from '@/lib/supabase-clerk';
-import { useGetUser } from '@/lib/hooks/useGetUser';
 import { useAuth } from '@clerk/clerk-expo';
-import { useRevenueCat } from '@/contexts/providers/RevenueCat';
 import { useRouter } from 'expo-router';
+import { useGetUser } from '@/components/hooks/useGetUser';
 
 export type UseVoicesReturn = {
   data: {

@@ -12,7 +12,7 @@ import { router } from 'expo-router';
 import { Save, CircleAlert as AlertCircle, Mic } from 'lucide-react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useClerkSupabaseClient } from '@/lib/supabase-clerk';
-import { useGetUser } from '@/lib/hooks/useGetUser';
+import { useGetUser } from '@/components/hooks/useGetUser';
 
 export default function EditorialScreen() {
   const [loading, setLoading] = useState(true);

@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Alert } from 'react-native';
 import { useClerkSupabaseClient } from '@/lib/supabase-clerk';
 import { useClerk, useAuth } from '@clerk/clerk-expo';
-import { useGetUser } from '@/lib/hooks/useGetUser';
+import { useGetUser } from '@/components/hooks/useGetUser';
 import { API_ENDPOINTS, API_HEADERS } from '@/lib/config/api';
 import { router } from 'expo-router';
 

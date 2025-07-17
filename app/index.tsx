@@ -11,7 +11,7 @@ import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { withErrorBoundary } from '@/components/ErrorBoundary';
 import { IMAGES } from '@/lib/constants/images';
-import { useClerkAuth } from '@/hooks/useClerkAuth';
+import { useClerkAuth } from '@/components/hooks/useClerkAuth';
 
 function LandingScreen() {
   const [checking, setChecking] = useState(true);

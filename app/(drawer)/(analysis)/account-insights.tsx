@@ -31,7 +31,7 @@ import {
 import { useRevenueCat } from '@/contexts/providers/RevenueCat';
 import { useAuth } from '@clerk/clerk-expo';
 import { API_ENDPOINTS } from '@/lib/config/api';
-import { useAccountAnalysis } from '@/hooks/useAccountAnalysis';
+import { useAccountAnalysis } from '@/components/hooks/useAccountAnalysis';
 import AnalysisHeader from '@/components/analysis/AnalysisHeader';
 import ProPaywall from '@/components/analysis/ProPaywall';
 

@@ -3,7 +3,7 @@ import { TouchableOpacity, Text, ActivityIndicator } from 'react-native';
 import {
   useOnDeviceVideoAnalysis,
   AnalysisResult,
-} from '@/hooks/useOnDeviceVideoAnalysis';
+} from '@/components/hooks/useOnDeviceVideoAnalysis';
 
 interface VideoAnalyzerProps {
   uri?: string;

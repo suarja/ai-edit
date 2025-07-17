@@ -1,6 +1,9 @@
 import React from 'react';
 import { TouchableOpacity, Text, ActivityIndicator, View } from 'react-native';
-import { useVideoSelector, VideoAsset } from '@/hooks/useVideoSelector';
+import {
+  useVideoSelector,
+  VideoAsset,
+} from '@/components/hooks/useVideoSelector';
 
 interface VideoSelectorProps {
   onSelect: (asset: VideoAsset) => void;
