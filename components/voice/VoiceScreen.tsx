@@ -3,11 +3,7 @@ import { View } from 'react-native';
 import VoiceList from './VoiceList';
 import VoiceCreateButton from './VoiceCreateButton';
 import VoiceRecordingSection from './VoiceRecordingSection';
-import {
-  VoiceConfig,
-  VoiceConfigStorage,
-  VoiceService,
-} from '@/lib/services/voiceService';
+import { VoiceConfig, VoiceConfigStorage } from '@/lib/services/voiceService';
 
 export const VoiceScreen: React.FC = () => {
   const [step, setStep] = useState<'list' | 'record'>('list');
@@ -20,7 +16,7 @@ export const VoiceScreen: React.FC = () => {
     setVoices((prev) => [...prev, voice]);
     setSelectedVoiceId(voice.voiceId);
     setStep('list');
-    // TODO: sauvegarder dans VoiceConfigStorage
+    //  await VoiceConfigStorage.save(userId, voiceConfig);
   };
 
   const handleSelectVoice = async (

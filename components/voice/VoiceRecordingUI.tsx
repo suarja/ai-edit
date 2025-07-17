@@ -29,6 +29,7 @@ import {
   VoiceRecordingError,
   VoiceRecordingTimer,
 } from './VoiceRecordingUtils';
+import { useVoices } from './hooks/useVoices';
 
 interface VoiceRecordingUIProps {
   variant?: 'onboarding' | 'settings';
@@ -51,13 +52,16 @@ export const VoiceRecordingUI: React.FC<VoiceRecordingUIProps> = ({
   showTimer = true,
   className,
 }) => {
+  const { data, actions } = useVoices();
+
   // Merge config with variant-specific defaults
   const mergedConfig: VoiceRecordingConfig = {
     variant,
-    onSuccess: onComplete,
+    onSuccess: actions.handleRecordingComplete,
     onError,
     ...config,
   };
+
 
   const voiceRecording = useVoiceRecording(mergedConfig);
 

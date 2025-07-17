@@ -260,6 +260,8 @@ export const useVoices = (): UseVoicesReturn => {
       return;
     }
 
+    console.log('handleRecordingComplete', result);
+
     try {
       const recordingName = `Enregistrement ${recordings.length + 1}.m4a`;
       const newRecording = { uri: result.uri, name: recordingName };
@@ -289,6 +291,7 @@ export const useVoices = (): UseVoicesReturn => {
         await fetchExistingVoice();
       } else {
         // Pas de nom - juste ajouter à la liste
+        console.log('No name, adding to recordings', newRecording);
         setRecordings((prev) => [...prev, newRecording]);
         setRecordingMode(false);
       }
@@ -311,6 +314,8 @@ export const useVoices = (): UseVoicesReturn => {
       console.log('⚠️ Conditions non remplies ou soumission en cours');
       return;
     }
+
+    console.log('handleSubmit', name, recordings);
 
     try {
       setIsSubmitting(true);

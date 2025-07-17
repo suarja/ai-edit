@@ -135,9 +135,9 @@ export class VoiceService {
 export type VoiceConfig = {
   voiceId: string;
   voiceName: string;
-  voiceDescription: string;
-  voiceGender: 'male' | 'female';
-  voiceAge: string;
+  voiceDescription?: string;
+  voiceGender?: 'male' | 'female';
+  voiceAge?: string;
   voiceLink?: string;
   isPublic: boolean;
 };

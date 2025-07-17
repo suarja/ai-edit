@@ -7,7 +7,7 @@ type VoiceCreateButtonProps = {
 
 const VoiceCreateButton: React.FC<VoiceCreateButtonProps> = ({ onCreate }) => (
   <TouchableOpacity style={styles.button} onPress={onCreate}>
-    <Text style={styles.text}>Créer une Voix Personnalisée</Text>
+    <Text style={styles.text}>Créer une voix personnalisée</Text>
   </TouchableOpacity>
 );
 
