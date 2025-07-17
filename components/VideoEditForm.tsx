@@ -1,4 +1,4 @@
-import { UploadedVideoType } from '@/types/video';
+import { UploadedVideoType } from '@/lib/types/video';
 import { Check, X } from 'lucide-react-native';
 import { useState } from 'react';
 import {

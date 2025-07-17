@@ -12,7 +12,7 @@ import {
 } from 'react-native';
 import { User, MessageCircle, Users, FileText } from 'lucide-react-native';
 import VoiceDictation from './VoiceDictation';
-import { SHARED_STYLE_COLORS } from '@/constants/sharedStyles';
+import { SHARED_STYLE_COLORS } from '@/lib/constants/sharedStyles';
 
 type EditorialProfile = {
   id: string;

@@ -15,8 +15,8 @@ import {
   BarChart3,
   Star,
 } from 'lucide-react-native';
-import { useRevenueCat } from '@/providers/RevenueCat';
-import { sharedStyles } from '@/constants/sharedStyles';
+import { useRevenueCat } from '@/contexts/providers/RevenueCat';
+import { sharedStyles } from '@/lib/constants/sharedStyles';
 
 interface SubscriptionManagerProps {
   style?: any;

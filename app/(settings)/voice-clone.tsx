@@ -23,7 +23,7 @@ import { VoiceRecordingUI } from '@/components/voice/VoiceRecordingUI';
 
 import { ProFeatureLock } from '@/components/guards/ProFeatureLock';
 import { useVoices } from '@/components/voice/hooks/useVoices';
-import { useRevenueCat } from '@/providers/RevenueCat';
+import { useRevenueCat } from '@/contexts/providers/RevenueCat';
 
 export default function VoiceCloneScreen() {
   const { data, actions } = useVoices();
@@ -87,10 +87,13 @@ export default function VoiceCloneScreen() {
                 <Text style={styles.voiceName}>Clone Vocal Actif</Text>
                 <Text style={styles.voiceStatus}>
                   Statut :{' '}
-                  {data.existingVoice.status === 'ready' ? 'Prêt' : 'En traitement'}
+                  {data.existingVoice.status === 'ready'
+                    ? 'Prêt'
+                    : 'En traitement'}
                 </Text>
                 <Text style={styles.voiceId}>
-                  ID : {data.existingVoice.elevenlabs_voice_id.substring(0, 8)}...
+                  ID : {data.existingVoice.elevenlabs_voice_id.substring(0, 8)}
+                  ...
                 </Text>
               </View>
             </View>

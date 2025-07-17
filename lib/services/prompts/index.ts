@@ -1,4 +1,4 @@
-import { PromptBank, PromptDefinition } from '@/types/prompts';
+import { PromptBank, PromptDefinition } from '@/lib/types/prompts';
 import promptBank from '@/lib/config/prompt-bank.json';
 
 /**

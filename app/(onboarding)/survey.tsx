@@ -1,15 +1,15 @@
-import { useOnboardingSteps } from "@/components/onboarding/OnboardingSteps";
+import { useOnboardingSteps } from '@/components/onboarding/OnboardingSteps';
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useOnboarding } from '@/components/providers/OnboardingProvider';
 import { ProgressBar } from '@/components/onboarding/ProgressBar';
 import { Survey as SurveyComponent } from '@/components/onboarding/Survey';
-import { frenchSurveyQuestions } from '@/constants/onboardingQuestions';
+import { frenchSurveyQuestions } from '@/lib/constants/onboardingQuestions';
 
-
-  export default function SurveyScreen() {
-  const onboardingSteps = useOnboardingSteps();  const { nextStep, markStepCompleted, setSurveyAnswer, surveyAnswers } =
+export default function SurveyScreen() {
+  const onboardingSteps = useOnboardingSteps();
+  const { nextStep, markStepCompleted, setSurveyAnswer, surveyAnswers } =
     useOnboarding();
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [allQuestionsAnswered, setAllQuestionsAnswered] = useState(false);

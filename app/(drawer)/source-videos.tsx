@@ -17,7 +17,7 @@ import VideoList from '@/components/VideoList';
 
 import { useSourceVideos } from '@/hooks/useSourceVideos';
 import { useGetUser } from '@/lib/hooks/useGetUser';
-import { useRevenueCat } from '@/providers/RevenueCat';
+import { useRevenueCat } from '@/contexts/providers/RevenueCat';
 
 export default function SourceVideosScreen() {
   const {
@@ -203,14 +203,13 @@ export default function SourceVideosScreen() {
                     : undefined
                 }
                 onSave={async (metadata) => {
-                    setEditingVideo((prev) => ({
-                      ...prev,
-                      title: metadata.title,
-                      description: metadata.description,
-                      tags: metadata.tags.join(', '),
-                    }));
+                  setEditingVideo((prev) => ({
+                    ...prev,
+                    title: metadata.title,
+                    description: metadata.description,
+                    tags: metadata.tags.join(', '),
+                  }));
                   await updateVideoMetadata(metadata);
-                
                 }}
                 onCancel={() => {
                   setEditingVideo({
@@ -492,7 +491,6 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     padding: 16,
     gap: 16,
-    
   },
   metadataTitle: {
     color: '#fff',

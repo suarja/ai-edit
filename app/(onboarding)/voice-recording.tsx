@@ -30,11 +30,11 @@ import { VoiceRecordingUI } from '@/components/voice/VoiceRecordingUI';
 import {
   VoiceRecordingResult,
   VoiceRecordingError,
-} from '@/types/voice-recording';
+} from '@/lib/types/voice-recording';
 import { submitOnboardingRecording } from '@/components/voice/voice-recording-client';
 import { useAuth } from '@clerk/clerk-expo';
 import { router } from 'expo-router';
-import { useRevenueCat } from '@/providers/RevenueCat';
+import { useRevenueCat } from '@/contexts/providers/RevenueCat';
 
 export default function VoiceRecordingScreen() {
   const onboardingSteps = useOnboardingSteps();

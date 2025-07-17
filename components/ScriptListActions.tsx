@@ -1,15 +1,21 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  Alert,
+  ActivityIndicator,
+} from 'react-native';
 import { useRouter } from 'expo-router';
-import { 
-  MoreVertical, 
-  Copy, 
-  Trash2, 
+import {
+  MoreVertical,
+  Copy,
+  Trash2,
   CheckCircle,
   Video,
-  Edit3
+  Edit3,
 } from 'lucide-react-native';
-import { ScriptListItem } from '@/types/script';
+import { ScriptListItem } from '@/lib/types/script';
 import { useAuth } from '@clerk/clerk-expo';
 import { API_ENDPOINTS } from '@/lib/config/api';
 
@@ -40,10 +46,10 @@ export default function ScriptListActions({
   const handleEdit = () => {
     if (onToggle) onToggle(); // Close menu
     else setShowActions(false);
-          router.push({
-        pathname: '/chat',
-        params: { scriptId: script.id },
-      });
+    router.push({
+      pathname: '/chat',
+      params: { scriptId: script.id },
+    });
   };
 
   const handleDuplicate = async () => {
@@ -53,13 +59,16 @@ export default function ScriptListActions({
 
     try {
       const token = await getToken();
-      const response = await fetch(`${API_ENDPOINTS.SCRIPTS()}/${script.id}/duplicate`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-      });
+      const response = await fetch(
+        `${API_ENDPOINTS.SCRIPTS()}/${script.id}/duplicate`,
+        {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        }
+      );
 
       if (!response.ok) {
         throw new Error('Failed to duplicate script');
@@ -72,7 +81,7 @@ export default function ScriptListActions({
 
       Alert.alert(
         'Script dupliqué',
-        'Le script a été dupliqué avec succès. Voulez-vous l\'ouvrir ?',
+        "Le script a été dupliqué avec succès. Voulez-vous l'ouvrir ?",
         [
           { text: 'Plus tard', style: 'cancel' },
           {
@@ -110,13 +119,16 @@ export default function ScriptListActions({
             setActionLoading('delete');
             try {
               const token = await getToken();
-              const response = await fetch(`${API_ENDPOINTS.SCRIPTS()}/${script.id}`, {
-                method: 'DELETE',
-                headers: {
-                  'Authorization': `Bearer ${token}`,
-                  'Content-Type': 'application/json',
-                },
-              });
+              const response = await fetch(
+                `${API_ENDPOINTS.SCRIPTS()}/${script.id}`,
+                {
+                  method: 'DELETE',
+                  headers: {
+                    Authorization: `Bearer ${token}`,
+                    'Content-Type': 'application/json',
+                  },
+                }
+              );
 
               if (!response.ok) {
                 throw new Error('Failed to delete script');
@@ -143,13 +155,16 @@ export default function ScriptListActions({
 
     try {
       const token = await getToken();
-      const response = await fetch(`${API_ENDPOINTS.SCRIPTS()}/${script.id}/validate`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-      });
+      const response = await fetch(
+        `${API_ENDPOINTS.SCRIPTS()}/${script.id}/validate`,
+        {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        }
+      );
 
       if (!response.ok) {
         throw new Error('Failed to validate script');
@@ -169,7 +184,10 @@ export default function ScriptListActions({
     if (onToggle) onToggle(); // Close menu
     else setShowActions(false);
     if (!script.current_script?.trim()) {
-      Alert.alert('Erreur', 'Ce script est vide et ne peut pas être utilisé pour générer une vidéo');
+      Alert.alert(
+        'Erreur',
+        'Ce script est vide et ne peut pas être utilisé pour générer une vidéo'
+      );
       return;
     }
 
@@ -213,7 +231,7 @@ export default function ScriptListActions({
             }}
             activeOpacity={1}
           />
-          
+
           {/* Actions Menu */}
           <View style={styles.actionsMenu}>
             {/* Edit */}
@@ -224,7 +242,10 @@ export default function ScriptListActions({
 
             {/* Generate Video */}
             {hasScript && (
-              <TouchableOpacity style={styles.actionItem} onPress={handleGenerateVideo}>
+              <TouchableOpacity
+                style={styles.actionItem}
+                onPress={handleGenerateVideo}
+              >
                 <Video size={18} color="#007AFF" />
                 <Text style={styles.actionText}>Générer Vidéo</Text>
               </TouchableOpacity>
@@ -232,14 +253,22 @@ export default function ScriptListActions({
 
             {/* Validate */}
             {hasScript && !isValidated && (
-              <TouchableOpacity style={styles.actionItem} onPress={handleValidate}>
+              <TouchableOpacity
+                style={styles.actionItem}
+                onPress={handleValidate}
+              >
                 <CheckCircle size={18} color="#34C759" />
-                <Text style={[styles.actionText, { color: '#34C759' }]}>Valider</Text>
+                <Text style={[styles.actionText, { color: '#34C759' }]}>
+                  Valider
+                </Text>
               </TouchableOpacity>
             )}
 
             {/* Duplicate */}
-            <TouchableOpacity style={styles.actionItem} onPress={handleDuplicate}>
+            <TouchableOpacity
+              style={styles.actionItem}
+              onPress={handleDuplicate}
+            >
               <Copy size={18} color="#007AFF" />
               <Text style={styles.actionText}>Dupliquer</Text>
             </TouchableOpacity>
@@ -247,7 +276,9 @@ export default function ScriptListActions({
             {/* Delete */}
             <TouchableOpacity style={styles.actionItem} onPress={handleDelete}>
               <Trash2 size={18} color="#FF3B30" />
-              <Text style={[styles.actionText, { color: '#FF3B30' }]}>Supprimer</Text>
+              <Text style={[styles.actionText, { color: '#FF3B30' }]}>
+                Supprimer
+              </Text>
             </TouchableOpacity>
           </View>
         </>
@@ -302,4 +333,4 @@ const styles = {
     fontSize: 14,
     fontWeight: '500' as const,
   },
-}; 
+};

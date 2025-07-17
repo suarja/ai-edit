@@ -1,30 +1,24 @@
 import React from 'react';
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  StyleSheet,
-  Alert,
-} from 'react-native';
-import { useRevenueCat } from '@/providers/RevenueCat';
+import { View, Text, TouchableOpacity, StyleSheet, Alert } from 'react-native';
+import { useRevenueCat } from '@/contexts/providers/RevenueCat';
 
 interface DebugRevenueCatProps {
   visible?: boolean;
 }
 
-export const DebugRevenueCat: React.FC<DebugRevenueCatProps> = ({ 
-  visible = true 
+export const DebugRevenueCat: React.FC<DebugRevenueCatProps> = ({
+  visible = true,
 }) => {
-  const { 
-    isPro, 
-    isReady, 
-    hasOfferingError, 
+  const {
+    isPro,
+    isReady,
+    hasOfferingError,
     isDevMode,
     userUsage,
     videosRemaining,
     dynamicVideosLimit,
     goPro,
-    refreshUsage
+    refreshUsage,
   } = useRevenueCat();
 
   // Only show in development mode
@@ -52,9 +46,11 @@ export const DebugRevenueCat: React.FC<DebugRevenueCatProps> = ({
   return (
     <View style={styles.container}>
       <Text style={styles.title}>🔧 RevenueCat Debug</Text>
-      
+
       <View style={styles.infoContainer}>
-        <Text style={styles.infoText}>Status: {isReady ? '✅ Ready' : '⏳ Loading'}</Text>
+        <Text style={styles.infoText}>
+          Status: {isReady ? '✅ Ready' : '⏳ Loading'}
+        </Text>
         <Text style={styles.infoText}>Pro: {isPro ? '✅ Yes' : '❌ No'}</Text>
         <Text style={styles.infoText}>
           Offering Error: {hasOfferingError ? '⚠️ Yes' : '✅ No'}
@@ -70,8 +66,8 @@ export const DebugRevenueCat: React.FC<DebugRevenueCatProps> = ({
       </View>
 
       <View style={styles.buttonContainer}>
-        <TouchableOpacity 
-          style={styles.button} 
+        <TouchableOpacity
+          style={styles.button}
           onPress={handleTogglePro}
           disabled={!hasOfferingError}
         >
@@ -80,8 +76,8 @@ export const DebugRevenueCat: React.FC<DebugRevenueCatProps> = ({
           </Text>
         </TouchableOpacity>
 
-        <TouchableOpacity 
-          style={[styles.button, styles.secondaryButton]} 
+        <TouchableOpacity
+          style={[styles.button, styles.secondaryButton]}
           onPress={handleRefreshUsage}
         >
           <Text style={styles.buttonText}>Refresh Usage</Text>
@@ -151,4 +147,4 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     fontStyle: 'italic',
   },
-}); 
+});

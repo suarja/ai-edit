@@ -7,7 +7,7 @@ import {
   TouchableOpacity,
 } from 'react-native';
 import { router } from 'expo-router';
-import { VideoType } from '@/types/video';
+import { VideoType } from '@/lib/types/video';
 import { Upload, Video as VideoIcon } from 'lucide-react-native';
 import VideoSelectionCard from './VideoSelectionCard';
 

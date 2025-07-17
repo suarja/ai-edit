@@ -13,7 +13,10 @@ import {
   useSpeechRecognitionEvent,
   type ExpoSpeechRecognitionResult,
 } from 'expo-speech-recognition';
-import { SHARED_STYLE_COLORS, sharedStyles } from '@/constants/sharedStyles';
+import {
+  SHARED_STYLE_COLORS,
+  sharedStyles,
+} from '@/lib/constants/sharedStyles';
 
 type VoiceDictationProps = {
   onTranscriptChange: (transcript: string) => void;

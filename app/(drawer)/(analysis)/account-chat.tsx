@@ -18,7 +18,7 @@ import {
   AlertCircle,
 } from 'lucide-react-native';
 import { router, useLocalSearchParams } from 'expo-router';
-import { useRevenueCat } from '@/providers/RevenueCat';
+import { useRevenueCat } from '@/contexts/providers/RevenueCat';
 import { useTikTokChatSimple } from '@/hooks/useTikTokChatSimple';
 import AnalysisHeader from '@/components/analysis/AnalysisHeader';
 import Markdown from 'react-native-markdown-display';

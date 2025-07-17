@@ -10,16 +10,16 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
-import { 
-  Plus, 
-  MessageCircle, 
-  Clock, 
-  TrendingUp, 
+import {
+  Plus,
+  MessageCircle,
+  Clock,
+  TrendingUp,
   Users,
-  ChevronRight
+  ChevronRight,
 } from 'lucide-react-native';
 import { useAuth } from '@clerk/clerk-expo';
-import { useRevenueCat } from '@/providers/RevenueCat';
+import { useRevenueCat } from '@/contexts/providers/RevenueCat';
 import { API_ENDPOINTS } from '@/lib/config/api';
 import ProPaywall from '@/components/analysis/ProPaywall';
 import AnalysisHeader from '@/components/analysis/AnalysisHeader';
@@ -59,7 +59,7 @@ export default function AccountConversationsScreen() {
     try {
       const token = await getToken();
       const response = await fetch(API_ENDPOINTS.TIKTOK_CONVERSATIONS(), {
-        headers: { 'Authorization': `Bearer ${token}` },
+        headers: { Authorization: `Bearer ${token}` },
       });
 
       const data = await response.json();
@@ -95,7 +95,10 @@ export default function AccountConversationsScreen() {
     // Navigate to chat with conversationId (existing conversation)
     router.push({
       pathname: '/(drawer)/(analysis)/account-chat',
-      params: { conversationId: conversation.id, conversationTitle: getConversationTitle(conversation) },
+      params: {
+        conversationId: conversation.id,
+        conversationTitle: getConversationTitle(conversation),
+      },
     });
   };
 
@@ -135,10 +138,11 @@ export default function AccountConversationsScreen() {
 
   const getLastMessagePreview = (conversation: Conversation) => {
     if (!conversation.last_message) return 'Nouvelle conversation';
-    
+
     const { content, role } = conversation.last_message;
     const prefix = role === 'user' ? 'Vous: ' : 'IA: ';
-    const preview = content.length > 60 ? content.substring(0, 60) + '...' : content;
+    const preview =
+      content.length > 60 ? content.substring(0, 60) + '...' : content;
     return prefix + preview;
   };
 
@@ -150,9 +154,9 @@ export default function AccountConversationsScreen() {
         description="Accédez à vos conversations avec l'IA experte TikTok. Obtenez des conseils personnalisés et optimisez votre stratégie de contenu."
         features={[
           "Conversations illimitées avec l'IA TikTok",
-          "Conseils personnalisés basés sur vos analyses",
-          "Historique complet de vos discussions",
-          "Streaming en temps réel",
+          'Conseils personnalisés basés sur vos analyses',
+          'Historique complet de vos discussions',
+          'Streaming en temps réel',
         ]}
         onUpgrade={goPro}
       />
@@ -164,7 +168,9 @@ export default function AccountConversationsScreen() {
       <SafeAreaView style={styles.container} edges={['top']}>
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#007AFF" />
-          <Text style={styles.loadingText}>Chargement des conversations...</Text>
+          <Text style={styles.loadingText}>
+            Chargement des conversations...
+          </Text>
         </View>
       </SafeAreaView>
     );
@@ -172,10 +178,7 @@ export default function AccountConversationsScreen() {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-         <AnalysisHeader 
-        title={'Conversations'}
-        onBack={() => router.back()}
-      />
+      <AnalysisHeader title={'Conversations'} onBack={() => router.back()} />
       <ScrollView
         style={styles.content}
         showsVerticalScrollIndicator={false}
@@ -226,7 +229,7 @@ export default function AccountConversationsScreen() {
                   <MessageCircle size={20} color="#007AFF" />
                 )}
               </View>
-              
+
               <View style={styles.conversationInfo}>
                 <Text style={styles.conversationTitle} numberOfLines={1}>
                   {getConversationTitle(conversation)}
@@ -241,7 +244,8 @@ export default function AccountConversationsScreen() {
                   {formatDate(conversation.updated_at)}
                 </Text>
                 <Text style={styles.messageCount}>
-                  {conversation.message_count} message{conversation.message_count !== 1 ? 's' : ''}
+                  {conversation.message_count} message
+                  {conversation.message_count !== 1 ? 's' : ''}
                 </Text>
                 <ChevronRight size={16} color="#666" />
               </View>
@@ -250,7 +254,9 @@ export default function AccountConversationsScreen() {
             {conversation.context?.tiktok_handle && (
               <View style={styles.contextBadge}>
                 <Users size={12} color="#007AFF" />
-                <Text style={styles.contextText}>@{conversation.context.tiktok_handle}</Text>
+                <Text style={styles.contextText}>
+                  @{conversation.context.tiktok_handle}
+                </Text>
               </View>
             )}
           </TouchableOpacity>
@@ -494,4 +500,4 @@ const styles = StyleSheet.create({
     shadowRadius: 6,
     elevation: 8,
   },
-}); 
+});

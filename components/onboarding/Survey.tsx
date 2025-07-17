@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { OptionCard } from './OptionCard';
-import { SurveyOption } from '../../constants/onboardingQuestions';
+import { SurveyOption } from '../../lib/constants/onboardingQuestions';
 import * as Haptics from 'expo-haptics';
 
 interface SurveyProps {

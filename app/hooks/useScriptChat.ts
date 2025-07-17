@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useAuth } from '@clerk/clerk-expo';
-import { useRevenueCat } from '@/providers/RevenueCat';
+import { useRevenueCat } from '@/contexts/providers/RevenueCat';
 import {
   ScriptDraft,
   ChatMessage,
@@ -8,7 +8,7 @@ import {
   ScriptListItem,
   estimateScriptDuration,
   generateScriptTitle,
-} from '@/types/script';
+} from '@/lib/types/script';
 import { API_ENDPOINTS } from '@/lib/config/api';
 
 interface UseScriptChatOptions {
@@ -537,7 +537,7 @@ export function useScriptChat(
         if (!response.ok) {
           const result = await response.json();
           setModifyScriptError(result.error || 'Failed to modify script');
-          console.error('Error modifying script:', result.error); 
+          console.error('Error modifying script:', result.error);
           throw new Error(result.error || 'Failed to modify script');
         }
         // Reload the script draft to get updated data

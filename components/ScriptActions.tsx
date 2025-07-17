@@ -1,15 +1,21 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  Alert,
+  ActivityIndicator,
+} from 'react-native';
 import { useRouter } from 'expo-router';
-import { 
-  Copy, 
-  Trash2, 
-  CheckCircle, 
+import {
+  Copy,
+  Trash2,
+  CheckCircle,
   MoreHorizontal,
   Video,
-  Edit3
+  Edit3,
 } from 'lucide-react-native';
-import { ScriptDraft } from '@/types/script';
+import { ScriptDraft } from '@/lib/types/script';
 
 interface ScriptActionsProps {
   scriptDraft: ScriptDraft | null;
@@ -73,7 +79,7 @@ export default function ScriptActions({
       if (duplicatedScript) {
         Alert.alert(
           'Script dupliqué',
-          'Le script a été dupliqué avec succès. Voulez-vous l\'ouvrir ?',
+          "Le script a été dupliqué avec succès. Voulez-vous l'ouvrir ?",
           [
             { text: 'Plus tard', style: 'cancel' },
             {
@@ -331,4 +337,4 @@ const styles = {
     fontSize: 12,
     fontWeight: '500' as const,
   },
-}; 
+};

@@ -8,7 +8,7 @@ import {
   TouchableOpacity,
 } from 'react-native';
 import VideoSelectionChips from './VideoSelectionChips';
-import { VideoType } from '@/types/video';
+import { VideoType } from '@/lib/types/video';
 
 // Mock data that matches real VideoType structure
 const mockVideos: VideoType[] = [

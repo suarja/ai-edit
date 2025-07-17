@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useRevenueCat } from '@/providers/RevenueCat';
+import { useRevenueCat } from '@/contexts/providers/RevenueCat';
 import { useClerkSupabaseClient } from '@/lib/supabase-clerk';
 
 /**

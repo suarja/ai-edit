@@ -13,7 +13,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 // Custom hooks
 import useVideoRequest from '@/app/hooks/useVideoRequest';
 import useConfigurationStatus from '@/app/hooks/useConfigurationStatus';
-import { useRevenueCat } from '@/providers/RevenueCat';
+import { useRevenueCat } from '@/contexts/providers/RevenueCat';
 
 // Components
 import VideoTagFilterSystem from '@/components/VideoTagFilterSystem';

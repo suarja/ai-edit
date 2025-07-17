@@ -2,7 +2,7 @@ import {
   VoiceRecordingActions,
   VoiceRecordingState,
   VoiceRecordingStatus,
-} from '@/types/voice-recording';
+} from '@/lib/types/voice-recording';
 import { createContext, useContext } from 'react';
 
 // Context for sharing voice recording state
@@ -12,9 +12,8 @@ interface VoiceRecordingContextType {
   status: VoiceRecordingStatus;
 }
 
-export const VoiceRecordingContext = createContext<VoiceRecordingContextType | null>(
-  null
-);
+export const VoiceRecordingContext =
+  createContext<VoiceRecordingContextType | null>(null);
 
 // Hook to use voice recording context
 export const useVoiceRecordingContext = () => {

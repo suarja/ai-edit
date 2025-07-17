@@ -13,7 +13,7 @@ import { useClerkSupabaseClient } from '@/lib/supabase-clerk';
 import { API_ENDPOINTS, API_HEADERS } from '@/lib/config/api';
 import { useAuth } from '@clerk/clerk-expo';
 
-import { UploadedVideoType } from '@/types/video';
+import { UploadedVideoType } from '@/lib/types/video';
 import VideoPlayer from '@/components/VideoPlayer';
 import VideoDetailHeader from '@/components/VideoDetailHeader';
 import VideoDetails from '@/components/VideoDetails';

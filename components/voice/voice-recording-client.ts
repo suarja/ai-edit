@@ -5,7 +5,7 @@ import {
   VoiceRecordingError,
   VOICE_RECORDING_ERROR_CODES,
   errorTaxonomy,
-} from '@/types/voice-recording';
+} from '@/lib/types/voice-recording';
 import { DatabaseUser } from '../../lib/hooks/useGetUser';
 
 interface VoiceRecordingSubmissionData {

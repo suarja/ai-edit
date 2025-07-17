@@ -24,7 +24,7 @@ import { useClerkSupabaseClient } from '@/lib/supabase-clerk';
 import UserProfileManager from '@/components/UserProfileManager';
 import SupportPanel from '@/components/SupportPanel';
 import { DebugPanel } from '@/components/DebugPanel';
-import { sharedStyles } from '@/constants/sharedStyles';
+import { sharedStyles } from '@/lib/constants/sharedStyles';
 
 export default function SettingsScreen() {
   // Only keep state and logic for usage, admin, debug, and content creation

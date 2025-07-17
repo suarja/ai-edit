@@ -6,7 +6,7 @@ import {
   TouchableOpacity,
   ScrollView,
 } from 'react-native';
-import { VideoType } from '@/types/video';
+import { VideoType } from '@/lib/types/video';
 
 interface VideoTagFilterSystemProps {
   videos: VideoType[];

@@ -16,7 +16,7 @@ import {
 import {
   VoiceRecordingConfig,
   VoiceRecordingResult,
-} from '@/types/voice-recording';
+} from '@/lib/types/voice-recording';
 import { useVoiceRecording } from '@/hooks/useVoiceRecording';
 import { VoiceRecordingErrorWrapper } from './VoiceRecordingErrorBoundary';
 import {

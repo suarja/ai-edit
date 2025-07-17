@@ -1,7 +1,7 @@
-import { View, Text, StyleSheet, TouchableOpacity,  } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { router } from 'expo-router';
 import { Lock } from 'lucide-react-native';
-import { useRevenueCat } from '@/providers/RevenueCat';
+import { useRevenueCat } from '@/contexts/providers/RevenueCat';
 
 interface ProFeatureLockProps {
   featureTitle: string;

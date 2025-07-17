@@ -10,7 +10,7 @@ import {
   AlertCircle,
 } from 'lucide-react-native';
 import { VIDEO_PRESETS } from '@/lib/config/video-presets';
-import { CaptionConfiguration } from '@/types/video';
+import { CaptionConfiguration } from '@/lib/types/video';
 
 type ConfigurationCardsProps = {
   voiceConfigured: boolean;

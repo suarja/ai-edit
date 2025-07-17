@@ -1,4 +1,4 @@
-import { CaptionConfiguration } from '@/types/video';
+import { CaptionConfiguration } from '@/lib/types/video';
 import { VIDEO_PRESETS } from '@/lib/config/video-presets';
 
 /**

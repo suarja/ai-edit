@@ -8,7 +8,7 @@ import {
 } from 'react-native';
 import { Clock, FileVideo, Play } from 'lucide-react-native';
 import { useVideoPlayer, VideoView } from 'expo-video';
-import { VideoType } from '@/types/video';
+import { VideoType } from '@/lib/types/video';
 
 type VideoSelectionCardProps = {
   video: VideoType;

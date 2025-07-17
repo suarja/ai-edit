@@ -8,7 +8,7 @@ import {
   VoiceRecordingError,
   VoiceClone,
   ElevenLabsSample,
-} from '@/types/voice-recording';
+} from '@/lib/types/voice-recording';
 import {
   submitVoiceClone,
   getVoiceSamples,
@@ -17,7 +17,7 @@ import {
 import { useClerkSupabaseClient } from '@/lib/supabase-clerk';
 import { useGetUser } from '@/lib/hooks/useGetUser';
 import { useAuth } from '@clerk/clerk-expo';
-import { useRevenueCat } from '@/providers/RevenueCat';
+import { useRevenueCat } from '@/contexts/providers/RevenueCat';
 import { useRouter } from 'expo-router';
 
 export type UseVoicesReturn = {

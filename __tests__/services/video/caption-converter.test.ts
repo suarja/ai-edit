@@ -1,5 +1,5 @@
 import { convertCaptionConfigToCreatomate } from '@/lib/utils/video/caption-converter';
-import { CaptionConfiguration } from '@/types/video';
+import { CaptionConfiguration } from '@/lib/types/video';
 
 describe('Caption Converter', () => {
   it('returns default structure when no config is provided', () => {

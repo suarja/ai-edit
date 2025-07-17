@@ -9,16 +9,16 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
-import { 
-  Send, 
-  Loader, 
-  Save, 
-  CheckCircle2, 
+import {
+  Send,
+  Loader,
+  Save,
+  CheckCircle2,
   Copy,
   RotateCcw,
-  MessageSquare 
+  MessageSquare,
 } from 'lucide-react-native';
-import { ChatMessage, ScriptDraft } from '@/types/script';
+import { ChatMessage, ScriptDraft } from '@/lib/types/script';
 
 interface ScriptChatInterfaceProps {
   messages: ChatMessage[];
@@ -72,9 +72,7 @@ export const ScriptChatInterface: React.FC<ScriptChatInterfaceProps> = ({
   const canValidate = hasScript && scriptDraft?.status === 'draft';
 
   return (
-    <KeyboardAvoidingView 
-      style={styles.container}
-    >
+    <KeyboardAvoidingView style={styles.container}>
       {/* Header with script info */}
       <View style={styles.header}>
         <View style={styles.headerContent}>
@@ -87,16 +85,22 @@ export const ScriptChatInterface: React.FC<ScriptChatInterfaceProps> = ({
                 <Text style={styles.metadataText}>
                   {wordCount} mots • {Math.round(estimatedDuration)}s
                 </Text>
-                <View style={[
-                  styles.statusBadge,
-                  scriptDraft?.status === 'validated' && styles.statusValidated,
-                  scriptDraft?.status === 'used' && styles.statusUsed,
-                ]}>
-                  <Text style={[
-                    styles.statusText,
-                    scriptDraft?.status === 'validated' && styles.statusTextValidated,
-                    scriptDraft?.status === 'used' && styles.statusTextUsed,
-                  ]}>
+                <View
+                  style={[
+                    styles.statusBadge,
+                    scriptDraft?.status === 'validated' &&
+                      styles.statusValidated,
+                    scriptDraft?.status === 'used' && styles.statusUsed,
+                  ]}
+                >
+                  <Text
+                    style={[
+                      styles.statusText,
+                      scriptDraft?.status === 'validated' &&
+                        styles.statusTextValidated,
+                      scriptDraft?.status === 'used' && styles.statusTextUsed,
+                    ]}
+                  >
                     {scriptDraft?.status === 'draft' && 'Brouillon'}
                     {scriptDraft?.status === 'validated' && 'Validé'}
                     {scriptDraft?.status === 'used' && 'Utilisé'}
@@ -105,7 +109,7 @@ export const ScriptChatInterface: React.FC<ScriptChatInterfaceProps> = ({
               </View>
             )}
           </View>
-          
+
           {/* Action buttons */}
           <View style={styles.headerActions}>
             <TouchableOpacity
@@ -115,7 +119,7 @@ export const ScriptChatInterface: React.FC<ScriptChatInterfaceProps> = ({
             >
               <RotateCcw size={20} color="#007AFF" />
             </TouchableOpacity>
-            
+
             {hasScript && (
               <>
                 <TouchableOpacity
@@ -125,7 +129,7 @@ export const ScriptChatInterface: React.FC<ScriptChatInterfaceProps> = ({
                 >
                   <Save size={20} color="#007AFF" />
                 </TouchableOpacity>
-                
+
                 {canValidate && (
                   <TouchableOpacity
                     style={[styles.headerButton, styles.validateButton]}
@@ -161,9 +165,12 @@ export const ScriptChatInterface: React.FC<ScriptChatInterfaceProps> = ({
         {messages.length === 0 && !isLoading && (
           <View style={styles.emptyState}>
             <MessageSquare size={48} color="#666" />
-            <Text style={styles.emptyStateTitle}>Créons votre script ensemble</Text>
+            <Text style={styles.emptyStateTitle}>
+              Créons votre script ensemble
+            </Text>
             <Text style={styles.emptyStateDescription}>
-              Décrivez votre idée de vidéo et je vous aiderai à créer un script engageant
+              Décrivez votre idée de vidéo et je vous aiderai à créer un script
+              engageant
             </Text>
           </View>
         )}
@@ -213,17 +220,14 @@ export const ScriptChatInterface: React.FC<ScriptChatInterfaceProps> = ({
             editable={!isStreaming && !isLoading}
           />
           <TouchableOpacity
-            style={[
-              styles.sendButton,
-              canSend && styles.sendButtonActive,
-            ]}
+            style={[styles.sendButton, canSend && styles.sendButtonActive]}
             onPress={handleSendMessage}
             disabled={!canSend}
           >
             {isStreaming ? (
-              <Loader size={20} color={canSend ? "#fff" : "#888"} />
+              <Loader size={20} color={canSend ? '#fff' : '#888'} />
             ) : (
-              <Send size={20} color={canSend ? "#fff" : "#888"} />
+              <Send size={20} color={canSend ? '#fff' : '#888'} />
             )}
           </TouchableOpacity>
         </View>
@@ -243,28 +247,34 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({ message, isLast }) => {
   const isStreaming = message.metadata?.isStreaming;
 
   return (
-    <View style={[
-      styles.messageBubble,
-      isUser ? styles.userMessage : styles.assistantMessage,
-      isLast && styles.lastMessage,
-    ]}>
-      <Text style={[
-        styles.messageText,
-        isUser ? styles.userMessageText : styles.assistantMessageText,
-      ]}>
+    <View
+      style={[
+        styles.messageBubble,
+        isUser ? styles.userMessage : styles.assistantMessage,
+        isLast && styles.lastMessage,
+      ]}
+    >
+      <Text
+        style={[
+          styles.messageText,
+          isUser ? styles.userMessageText : styles.assistantMessageText,
+        ]}
+      >
         {message.content}
       </Text>
-      
+
       {isStreaming && (
         <View style={styles.streamingIndicator}>
           <Loader size={12} color="#007AFF" />
         </View>
       )}
-      
-      <Text style={[
-        styles.messageTime,
-        isUser ? styles.userMessageTime : styles.assistantMessageTime,
-      ]}>
+
+      <Text
+        style={[
+          styles.messageTime,
+          isUser ? styles.userMessageTime : styles.assistantMessageTime,
+        ]}
+      >
         {new Date(message.timestamp).toLocaleTimeString('fr-FR', {
           hour: '2-digit',
           minute: '2-digit',
@@ -521,4 +531,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default ScriptChatInterface; 
+export default ScriptChatInterface;

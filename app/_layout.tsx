@@ -13,7 +13,7 @@ import { logEnvironmentStatus, validateEnvironment } from '@/lib/config/env';
 import { ClerkProvider, ClerkLoaded } from '@clerk/clerk-expo';
 import 'react-native-reanimated';
 import * as SecureStore from 'expo-secure-store';
-import { RevenueCatProvider } from '@/providers/RevenueCat';
+import { RevenueCatProvider } from '@/contexts/providers/RevenueCat';
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();

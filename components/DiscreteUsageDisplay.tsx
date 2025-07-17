@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { BarChart3, Crown, AlertTriangle } from 'lucide-react-native';
-import { useRevenueCat } from '@/providers/RevenueCat';
+import { useRevenueCat } from '@/contexts/providers/RevenueCat';
 
 interface DiscreteUsageDisplayProps {
   onUpgradePress?: () => void;

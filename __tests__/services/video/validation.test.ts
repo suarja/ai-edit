@@ -7,7 +7,7 @@ import {
   VideoType,
   EditorialProfile,
   CaptionConfiguration,
-} from '@/types/video';
+} from '@/lib/types/video';
 import { jest, describe, beforeEach, test, expect } from '@jest/globals';
 
 describe('VideoValidationService', () => {

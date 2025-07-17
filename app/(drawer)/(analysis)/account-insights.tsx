@@ -8,16 +8,16 @@ import {
   Image,
   ActivityIndicator,
   Alert,
-  RefreshControl
+  RefreshControl,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
-import { 
-  BarChart3, 
-  TrendingUp, 
-  Users, 
-  Eye, 
-  Heart, 
+import {
+  BarChart3,
+  TrendingUp,
+  Users,
+  Eye,
+  Heart,
   MessageCircle,
   Crown,
   Zap,
@@ -26,9 +26,9 @@ import {
   Music,
   Video,
   Hash,
-  Briefcase
+  Briefcase,
 } from 'lucide-react-native';
-import { useRevenueCat } from '@/providers/RevenueCat';
+import { useRevenueCat } from '@/contexts/providers/RevenueCat';
 import { useAuth } from '@clerk/clerk-expo';
 import { API_ENDPOINTS } from '@/lib/config/api';
 import { useAccountAnalysis } from '@/hooks/useAccountAnalysis';
@@ -74,7 +74,7 @@ interface LlmInsights {
   };
   recommendations?: {
     content_strategy?: any[];
-  }
+  };
 }
 
 interface ComprehensiveContext {
@@ -88,7 +88,11 @@ export default function AccountInsightsScreen() {
   const router = useRouter();
   const { isPro, goPro } = useRevenueCat();
   const { getToken } = useAuth();
-  const { analysis, isLoading: isAnalysisLoading, refreshAnalysis } = useAccountAnalysis();
+  const {
+    analysis,
+    isLoading: isAnalysisLoading,
+    refreshAnalysis,
+  } = useAccountAnalysis();
 
   const [context, setContext] = useState<ComprehensiveContext | null>(null);
   const [loading, setLoading] = useState(true);
@@ -105,33 +109,40 @@ export default function AccountInsightsScreen() {
   }, [analysis, isAnalysisLoading]);
 
   const loadAccountContext = async (accountId: string) => {
-    console.log('🔄 loadAccountContext: Loading account context for accountId:', accountId);
+    console.log(
+      '🔄 loadAccountContext: Loading account context for accountId:',
+      accountId
+    );
     try {
       setLoading(true);
       const token = await getToken();
-      
-      const response = await fetch(API_ENDPOINTS.TIKTOK_ACCOUNT_CONTEXT(accountId), {
-        headers: { 'Authorization': `Bearer ${token}` },
-      });
+
+      const response = await fetch(
+        API_ENDPOINTS.TIKTOK_ACCOUNT_CONTEXT(accountId),
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
 
       const data = await response.json();
       console.log('🔄 data:', JSON.stringify(data, null, 2));
-      
-      if (!response.ok) {
-        throw new Error(data.error || "Failed to fetch account context");
-      }
-      
-      setContext(data);
 
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to fetch account context');
+      }
+
+      setContext(data);
     } catch (error) {
-      console.error('Erreur lors du chargement des données de contexte:', error);
-      Alert.alert("Erreur", "Impossible de charger les données du compte.");
+      console.error(
+        'Erreur lors du chargement des données de contexte:',
+        error
+      );
+      Alert.alert('Erreur', 'Impossible de charger les données du compte.');
       setContext(null);
     } finally {
       setLoading(false);
     }
   };
-
 
   const handleRefresh = async () => {
     setRefreshing(true);
@@ -153,12 +164,12 @@ export default function AccountInsightsScreen() {
         title="Insights Pro"
         description="Débloquez des analyses avancées de votre compte TikTok avec des insights personnalisés alimentés par l'IA pour optimiser votre stratégie de contenu."
         features={[
-          "Analyse complète de votre compte TikTok",
-          "Recommandations personnalisées par IA",
+          'Analyse complète de votre compte TikTok',
+          'Recommandations personnalisées par IA',
           "Métriques d'engagement détaillées",
-          "Meilleurs moments de publication",
-          "Analyse des tendances de contenu",
-          "Chat IA pour conseils stratégiques",
+          'Meilleurs moments de publication',
+          'Analyse des tendances de contenu',
+          'Chat IA pour conseils stratégiques',
         ]}
         onUpgrade={goPro}
       />
@@ -181,19 +192,19 @@ export default function AccountInsightsScreen() {
   // because the guard handles the no-analysis case.
   if (!context) {
     return (
-      <SafeAreaView style={styles.container} edges={["top"]}>
-        <AnalysisHeader 
-          title={'Insights'}
-          onBack={() => router.back()}
-        />
-        <ScrollView 
+      <SafeAreaView style={styles.container} edges={['top']}>
+        <AnalysisHeader title={'Insights'} onBack={() => router.back()} />
+        <ScrollView
           contentContainerStyle={styles.emptyStateContainer}
-          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />}
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
+          }
         >
           <BarChart3 size={64} color="#666" />
           <Text style={styles.emptyStateTitle}>Données non disponibles</Text>
           <Text style={styles.emptyStateDescription}>
-            Nous n'avons pas pu charger les données pour ce compte. Veuillez réessayer.
+            Nous n'avons pas pu charger les données pour ce compte. Veuillez
+            réessayer.
           </Text>
         </ScrollView>
       </SafeAreaView>
@@ -203,41 +214,73 @@ export default function AccountInsightsScreen() {
   const { account, stats, aggregates, insights } = context;
 
   return (
-    <SafeAreaView style={styles.container} edges={["top"]}>
-      <AnalysisHeader 
-        title={'Insights'}
-        onBack={() => router.back()}
-      />
-      <ScrollView 
+    <SafeAreaView style={styles.container} edges={['top']}>
+      <AnalysisHeader title={'Insights'} onBack={() => router.back()} />
+      <ScrollView
         style={styles.scrollView}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor="#fff" />}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={handleRefresh}
+            tintColor="#fff"
+          />
+        }
       >
         {/* Header with profile pic and handle */}
         <View style={styles.profileHeader}>
-            {/* Image component would go here */}
-            <Image source={{ uri: account.profile_pic_url }} style={styles.profilePic} />
-            <View style={styles.profileInfo}>
-                <Text style={styles.profileHandle}>@{account.tiktok_handle}</Text>
-                <Text style={styles.profileUsername}>{account.username}</Text>
-            </View>
+          {/* Image component would go here */}
+          <Image
+            source={{ uri: account.profile_pic_url }}
+            style={styles.profilePic}
+          />
+          <View style={styles.profileInfo}>
+            <Text style={styles.profileHandle}>@{account.tiktok_handle}</Text>
+            <Text style={styles.profileUsername}>{account.username}</Text>
+          </View>
         </View>
 
         {/* Stats Overview */}
         <View style={styles.statsContainer}>
           <Text style={styles.sectionTitle}>Vue d'ensemble</Text>
           <View style={styles.statsGrid}>
-            <StatCard icon={<Users size={24} color="#007AFF" />} value={stats.followers_count?.toLocaleString() || 'N/A'} label="Abonnés" />
-            <StatCard icon={<Eye size={24} color="#10b981" />} value={aggregates.avg_views?.toLocaleString(undefined, { maximumFractionDigits: 0 }) || 'N/A'} label="Vues moy." />
-            <StatCard icon={<Heart size={24} color="#ef4444" />} value={`${(aggregates.avg_views && aggregates.avg_likes ? (aggregates.avg_likes / aggregates.avg_views * 100) : 0).toFixed(1)}%`} label="Taux de Likes" />
-            <StatCard icon={<Video size={24} color="#f59e0b" />} value={stats.videos_count?.toLocaleString() || 'N/A'} label="Vidéos" />
+            <StatCard
+              icon={<Users size={24} color="#007AFF" />}
+              value={stats.followers_count?.toLocaleString() || 'N/A'}
+              label="Abonnés"
+            />
+            <StatCard
+              icon={<Eye size={24} color="#10b981" />}
+              value={
+                aggregates.avg_views?.toLocaleString(undefined, {
+                  maximumFractionDigits: 0,
+                }) || 'N/A'
+              }
+              label="Vues moy."
+            />
+            <StatCard
+              icon={<Heart size={24} color="#ef4444" />}
+              value={`${(aggregates.avg_views && aggregates.avg_likes
+                ? (aggregates.avg_likes / aggregates.avg_views) * 100
+                : 0
+              ).toFixed(1)}%`}
+              label="Taux de Likes"
+            />
+            <StatCard
+              icon={<Video size={24} color="#f59e0b" />}
+              value={stats.videos_count?.toLocaleString() || 'N/A'}
+              label="Vidéos"
+            />
           </View>
         </View>
-        
+
         {/* EditIA Insights */}
         <View style={styles.analysisContainer}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>Analyse EditIA</Text>
-            <TouchableOpacity style={styles.chatButton} onPress={navigateToAccountChat}>
+            <TouchableOpacity
+              style={styles.chatButton}
+              onPress={navigateToAccountChat}
+            >
               <MessageCircle size={20} color="#007AFF" />
               <Text style={styles.chatButtonText}>Chat IA</Text>
             </TouchableOpacity>
@@ -245,7 +288,9 @@ export default function AccountInsightsScreen() {
 
           <View style={styles.recommendationCard}>
             <Text style={styles.analysisSubtitle}>Forces Principales</Text>
-            {(insights.profile_summary?.strengths || ["Analyse en cours..."]).map((strength, index) => (
+            {(
+              insights.profile_summary?.strengths || ['Analyse en cours...']
+            ).map((strength, index) => (
               <View key={index} style={styles.recommendation}>
                 <Text style={styles.recommendationText}>• {strength}</Text>
               </View>
@@ -254,7 +299,9 @@ export default function AccountInsightsScreen() {
 
           <View style={[styles.recommendationCard, styles.marginTop]}>
             <Text style={styles.analysisSubtitle}>Axes d'Amélioration</Text>
-            {(insights.profile_summary?.weaknesses || ["Analyse en cours..."]).map((weakness, index) => (
+            {(
+              insights.profile_summary?.weaknesses || ['Analyse en cours...']
+            ).map((weakness, index) => (
               <View key={index} style={styles.recommendation}>
                 <Text style={styles.recommendationText}>• {weakness}</Text>
               </View>
@@ -275,7 +322,9 @@ export default function AccountInsightsScreen() {
             <MetricCard
               icon={<Music size={20} color="#fff" />}
               label="Musique Originale"
-              value={`${((aggregates.music_usage_stats?.original_music_ratio || 0) * 100).toFixed(0)}%`}
+              value={`${(
+                (aggregates.music_usage_stats?.original_music_ratio || 0) * 100
+              ).toFixed(0)}%`}
               description="Ratio de sons originaux utilisés"
             />
           </View>
@@ -301,19 +350,32 @@ export default function AccountInsightsScreen() {
 }
 
 // Helper components for cards
-const StatCard = ({ icon, value, label }: { icon: React.ReactNode, value: string, label: string }) => (
-    <View style={styles.statCard}>
-        {icon}
-        <Text style={styles.statValue}>{value}</Text>
-        <Text style={styles.statLabel}>{label}</Text>
-    </View>
+const StatCard = ({
+  icon,
+  value,
+  label,
+}: {
+  icon: React.ReactNode;
+  value: string;
+  label: string;
+}) => (
+  <View style={styles.statCard}>
+    {icon}
+    <Text style={styles.statValue}>{value}</Text>
+    <Text style={styles.statLabel}>{label}</Text>
+  </View>
 );
 
-const MetricCard = ({ icon, label, value, description }: { 
-  icon: React.ReactNode, 
-  label: string, 
-  value: string,
-  description: string 
+const MetricCard = ({
+  icon,
+  label,
+  value,
+  description,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  value: string;
+  description: string;
 }) => (
   <View style={styles.metricCard}>
     <View style={styles.metricHeader}>
@@ -369,8 +431,8 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   profileUsername: {
-      color: '#888',
-      fontSize: 14,
+    color: '#888',
+    fontSize: 14,
   },
   profileInfo: {
     alignItems: 'center',
@@ -597,4 +659,4 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     fontStyle: 'italic',
   },
-}); 
+});

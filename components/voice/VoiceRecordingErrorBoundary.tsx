@@ -1,7 +1,7 @@
 import React, { Component, ReactNode } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { RefreshCw, AlertTriangle } from 'lucide-react-native';
-import { VoiceRecordingError } from '@/types/voice-recording';
+import { VoiceRecordingError } from '@/lib/types/voice-recording';
 
 interface VoiceRecordingErrorBoundaryState {
   hasError: boolean;

@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { SubscriptionPlan } from '@/constants/subscriptionPlans';
+import { SubscriptionPlan } from '@/lib/constants/subscriptionPlans';
 
 interface SubscriptionCardProps {
   plan: SubscriptionPlan;

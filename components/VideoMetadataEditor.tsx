@@ -8,7 +8,7 @@ import {
   ScrollView,
   ActivityIndicator,
 } from 'react-native';
-import { VideoAnalysisData } from '@/types/videoAnalysis';
+import { VideoAnalysisData } from '@/lib/types/videoAnalysis';
 
 interface VideoMetadataEditorProps {
   videoId: string;

@@ -15,7 +15,7 @@ import {
   VOICE_RECORDING_ERROR_CODES,
   errorTaxonomy,
   DEFAULT_VOICE_RECORDING_CONFIG,
-} from '@/types/voice-recording';
+} from '@/lib/types/voice-recording';
 
 export const useVoiceRecording = (
   config: VoiceRecordingConfig = {}

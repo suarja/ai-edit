@@ -10,7 +10,7 @@ import {
   UIManager,
 } from 'react-native';
 import { AlertCircle, Mic, Bug, ChevronDown } from 'lucide-react-native';
-import { sharedStyles } from '@/constants/sharedStyles';
+import { sharedStyles } from '@/lib/constants/sharedStyles';
 
 if (
   Platform.OS === 'android' &&

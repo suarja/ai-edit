@@ -4,7 +4,7 @@ import { router } from 'expo-router';
 import { useAuth } from '@clerk/clerk-expo';
 import { useGetUser } from '@/lib/hooks/useGetUser';
 import { useClerkSupabaseClient } from '@/lib/supabase-clerk';
-import { VideoType, CaptionConfiguration } from '@/types/video';
+import { VideoType, CaptionConfiguration } from '@/lib/types/video';
 import { CaptionConfigStorage } from '@/lib/utils/caption-config-storage';
 import { API_ENDPOINTS } from '@/lib/config/api';
 

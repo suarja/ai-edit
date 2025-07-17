@@ -3,13 +3,13 @@ import { Alert, ViewabilityConfig } from 'react-native';
 import { router, useFocusEffect } from 'expo-router';
 import { useGetUser } from '@/lib/hooks/useGetUser';
 import { useClerkSupabaseClient } from '@/lib/supabase-clerk';
-import { useRevenueCat } from '@/providers/RevenueCat';
+import { useRevenueCat } from '@/contexts/providers/RevenueCat';
 import { SupportService } from '@/lib/services/support/supportService';
 import { useAuth } from '@clerk/clerk-expo';
 import {
   VideoTypeWithAnalysis,
   VideoAnalysisData,
-} from '@/types/videoAnalysis';
+} from '@/lib/types/videoAnalysis';
 import { API_ENDPOINTS } from '@/lib/config/api';
 
 export interface UseSourceVideos {
@@ -313,14 +313,11 @@ export function useSourceVideos(): UseSourceVideos {
     }
   };
 
-  const updateVideoMetadata = async (
-    metadata: {
-      title: string;
-      description: string;
-      tags: string[];
-    }
-  ) => {
-   
+  const updateVideoMetadata = async (metadata: {
+    title: string;
+    description: string;
+    tags: string[];
+  }) => {
     setSavingMetadata(true);
     clearError();
     try {

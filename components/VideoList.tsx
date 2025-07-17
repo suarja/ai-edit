@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Text, FlatList, RefreshControl, StyleSheet } from 'react-native';
 import { Video as VideoIcon } from 'lucide-react-native';
 import VideoCard from './VideoCard';
-import { VideoType } from '@/types/video';
+import { VideoType } from '@/lib/types/video';
 
 interface VideoListProps {
   videos: VideoType[];

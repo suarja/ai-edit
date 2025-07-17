@@ -1,5 +1,5 @@
-import { VideoType } from '@/types/video';
-import { VideoChipItem } from '@/types/video-chips';
+import { VideoType } from '@/lib/types/video';
+import { VideoChipItem } from '@/lib/types/video-chips';
 
 /**
  * Transform a VideoType object to a chip-compatible format

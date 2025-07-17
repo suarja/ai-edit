@@ -8,7 +8,7 @@ import {
   Alert,
 } from 'react-native';
 import { Crown, Zap } from 'lucide-react-native';
-import { useRevenueCat } from '@/providers/RevenueCat';
+import { useRevenueCat } from '@/contexts/providers/RevenueCat';
 
 interface VideoUsageDisplayProps {
   onUpgradePress?: () => void;
