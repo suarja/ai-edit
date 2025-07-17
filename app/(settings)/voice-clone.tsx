@@ -15,10 +15,7 @@ import {
   Trash,
   Plus,
   Send,
-  CircleStop as StopCircle,
   Volume2,
-  Crown,
-  Zap,
 } from 'lucide-react-native';
 import * as DocumentPicker from 'expo-document-picker';
 import { Audio } from 'expo-av';
@@ -97,22 +94,23 @@ export default function VoiceCloneScreen() {
         return;
       }
 
-      const { data: voice, error: fetchError } = await supabase
-        .from('voice_clones')
-        .select('*')
-        .eq('user_id', user.id)
-        .single();
+      // const { data: voice, error: fetchError } = await supabase
+      //   .from('voice_clones')
+      //   .select('*')
+      //   .eq('user_id', user.id)
+      //   .single();
 
-      if (fetchError && fetchError.code !== 'PGRST116') {
-        throw fetchError;
-      }
+      // if (fetchError && fetchError.code !== 'PGRST116') {
+      //   throw fetchError;
+      // }
 
-      setExistingVoice(voice as unknown as VoiceClone);
+      // setExistingVoice(voice as unknown as VoiceClone);
+      setExistingVoice(null);
 
       // Si on a une voix, charger ses échantillons depuis ElevenLabs
-      if (voice && voice.elevenlabs_voice_id) {
-        await loadVoiceSamples(voice.elevenlabs_voice_id as string);
-      }
+      // if (voice && voice.elevenlabs_voice_id) {
+      //   await loadVoiceSamples(voice.elevenlabs_voice_id as string);
+      // }
     } catch (err) {
       console.error('Failed to fetch voice:', err);
       setError('Échec du chargement des données vocales');

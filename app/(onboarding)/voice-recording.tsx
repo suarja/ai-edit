@@ -20,7 +20,7 @@ import {
   ActivityIndicator,
   ScrollView,
 } from 'react-native';
-import { ArrowRight, Square, Crown, Zap } from 'lucide-react-native';
+import { ArrowRight, Crown, Zap } from 'lucide-react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useOnboarding } from '@/components/providers/OnboardingProvider';
 import { ProgressBar } from '@/components/onboarding/ProgressBar';
@@ -32,15 +32,13 @@ import {
   VoiceRecordingError,
 } from '@/types/voice-recording';
 import { submitOnboardingRecording } from '@/lib/api/voice-recording-client';
-import { Audio } from 'expo-av';
 import { useAuth } from '@clerk/clerk-expo';
 import { router } from 'expo-router';
 import { useRevenueCat } from '@/providers/RevenueCat';
 
 export default function VoiceRecordingScreen() {
   const onboardingSteps = useOnboardingSteps();
-  const { nextStep, previousStep, markStepCompleted, surveyAnswers } =
-    useOnboarding();
+  const { markStepCompleted, surveyAnswers } = useOnboarding();
   const [isCompleted, setIsCompleted] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -113,24 +111,24 @@ export default function VoiceRecordingScreen() {
         router.push('/(auth)/sign-in');
         return;
       }
-      
+
       // Submit the recording with survey data and voice clone preference
-      await submitOnboardingRecording({
-        uri: result.uri,
-        name: result.fileName,
-        duration: result.duration,
-        fileName: result.fileName,
-        token,
-        user: user,
-        surveyData: {
-          content_goals: surveyAnswers.content_goals || null,
-          pain_points: surveyAnswers.pain_points || null,
-          content_style: surveyAnswers.content_style || null,
-          platform_focus: surveyAnswers.platform_focus || null,
-          content_frequency: surveyAnswers.content_frequency || null,
-        },
-        enableVoiceClone: wantsVoiceClone && isPro, // Only enable if user wants it AND is pro
-      });
+      // await submitOnboardingRecording({
+      //   uri: result.uri,
+      //   name: result.fileName,
+      //   duration: result.duration,
+      //   fileName: result.fileName,
+      //   token,
+      //   user: user,
+      //   surveyData: {
+      //     content_goals: surveyAnswers.content_goals || null,
+      //     pain_points: surveyAnswers.pain_points || null,
+      //     content_style: surveyAnswers.content_style || null,
+      //     platform_focus: surveyAnswers.platform_focus || null,
+      //     content_frequency: surveyAnswers.content_frequency || null,
+      //   },
+      //   enableVoiceClone: wantsVoiceClone && isPro, // Only enable if user wants it AND is pro
+      // });
 
       setProgress('Configuration de votre profil...');
       await new Promise((resolve) => setTimeout(resolve, 1000));
@@ -261,7 +259,7 @@ export default function VoiceRecordingScreen() {
       // Auto-advance when skipping since user explicitly chose to skip
       // Add a small delay to ensure processing state is cleared
       setTimeout(() => {
-         console.log('Voice recording skip: redirecting to TikTok analysis');
+        console.log('Voice recording skip: redirecting to TikTok analysis');
         router.replace('/(onboarding)/tiktok-analysis');
       }, 100);
     }
@@ -292,7 +290,10 @@ export default function VoiceRecordingScreen() {
         completedSteps={['welcome', 'survey']}
       />
 
-      <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
+      <ScrollView
+        style={styles.scrollView}
+        contentContainerStyle={styles.scrollContent}
+      >
         <View style={styles.header}>
           <Text style={styles.title}>Configuration vocale</Text>
           <Text style={styles.subtitle}>Personnalisez votre expérience</Text>
@@ -320,23 +321,30 @@ export default function VoiceRecordingScreen() {
                 <Crown size={32} color="#FFD700" />
                 <Text style={styles.paywallTitle}>Clonage Vocal Pro</Text>
               </View>
-              
+
               <Text style={styles.paywallDescription}>
-                Le clonage vocal avancé est une fonctionnalité exclusive Pro qui vous permet de :
+                Le clonage vocal avancé est une fonctionnalité exclusive Pro qui
+                vous permet de :
               </Text>
-              
+
               <View style={styles.featuresList}>
                 <View style={styles.featureItem}>
                   <Text style={styles.checkmark}>✓</Text>
-                  <Text style={styles.featureText}>Créer votre clone vocal IA</Text>
+                  <Text style={styles.featureText}>
+                    Créer votre clone vocal IA
+                  </Text>
                 </View>
                 <View style={styles.featureItem}>
                   <Text style={styles.checkmark}>✓</Text>
-                  <Text style={styles.featureText}>Générer des vidéos avec votre voix</Text>
+                  <Text style={styles.featureText}>
+                    Générer des vidéos avec votre voix
+                  </Text>
                 </View>
                 <View style={styles.featureItem}>
                   <Text style={styles.checkmark}>✓</Text>
-                  <Text style={styles.featureText}>Voix naturelle et authentique</Text>
+                  <Text style={styles.featureText}>
+                    Voix naturelle et authentique
+                  </Text>
                 </View>
               </View>
 
@@ -356,7 +364,8 @@ export default function VoiceRecordingScreen() {
                   Continuer sans clonage vocal
                 </Text>
                 <Text style={styles.continueWithoutSubtext}>
-                  (L'enregistrement servira uniquement à créer votre profil éditorial)
+                  (L&apos;enregistrement servira uniquement à créer votre profil
+                  éditorial)
                 </Text>
               </TouchableOpacity>
             </View>
@@ -396,16 +405,17 @@ export default function VoiceRecordingScreen() {
                   {!isPro && <Text style={styles.proBadge}>PRO</Text>}
                 </View>
                 <Text style={styles.optionDescription}>
-                  Créez votre clone vocal pour générer des vidéos avec votre propre voix
+                  Créez votre clone vocal pour générer des vidéos avec votre
+                  propre voix
                 </Text>
-                                 <TouchableOpacity
-                   style={[styles.optionButton, styles.voiceCloneButton]}
-                   onPress={handleVoiceCloneRequest}
-                 >
-                   <Text style={styles.voiceCloneButtonText}>
-                     {isPro ? 'Créer mon clone vocal' : 'Découvrir (Pro)'}
-                   </Text>
-                 </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.optionButton, styles.voiceCloneButton]}
+                  onPress={handleVoiceCloneRequest}
+                >
+                  <Text style={styles.voiceCloneButtonText}>
+                    {isPro ? 'Créer mon clone vocal' : 'Découvrir (Pro)'}
+                  </Text>
+                </TouchableOpacity>
               </View>
 
               <View style={styles.optionCard}>
@@ -419,7 +429,9 @@ export default function VoiceRecordingScreen() {
                   style={[styles.optionButton, styles.profileButton]}
                   onPress={handleStartRecording}
                 >
-                  <Text style={styles.optionButtonText}>Enregistrer ma voix</Text>
+                  <Text style={styles.optionButtonText}>
+                    Enregistrer ma voix
+                  </Text>
                 </TouchableOpacity>
               </View>
             </View>
@@ -435,9 +447,13 @@ export default function VoiceRecordingScreen() {
               <ArrowRight size={20} color="#fff" />
             </TouchableOpacity>
           ) : (
-            !recordingMode && !showVoiceClonePaywall && (
+            !recordingMode &&
+            !showVoiceClonePaywall && (
               <TouchableOpacity
-                style={[styles.skipButton, isProcessing && styles.disabledButton]}
+                style={[
+                  styles.skipButton,
+                  isProcessing && styles.disabledButton,
+                ]}
                 onPress={handleSkip}
                 disabled={isProcessing}
               >

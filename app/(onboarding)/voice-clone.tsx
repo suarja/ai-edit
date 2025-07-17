@@ -4,11 +4,10 @@ import {
   Text,
   StyleSheet,
   TouchableOpacity,
-  Image,
   ActivityIndicator,
 } from 'react-native';
-import { router, useRouter } from 'expo-router';
-import { Mic, ArrowRight, ChevronLeft, CheckCircle } from 'lucide-react-native';
+import { useRouter } from 'expo-router';
+import { Mic, ChevronLeft, CheckCircle } from 'lucide-react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFeatureAccess } from '@/hooks/useFeatureAccess';
 import { ProFeatureLock } from '@/components/guards/ProFeatureLock';
@@ -38,16 +37,17 @@ export default function VoiceCloneOnboardingScreen() {
         return;
       }
 
-      const { data, error } = await supabase
-        .from('voice_clones')
-        .select('*')
-        .eq('user_id', user.id)
-        .eq('status', 'ready')
-        .maybeSingle();
+      // const { data, error } = await supabase
+      //   .from('voice_clones')
+      //   .select('*')
+      //   .eq('user_id', user.id)
+      //   .eq('status', 'ready')
+      //   .maybeSingle();
 
-      if (data) {
-        setExistingClone(data);
-      }
+      // if (data) {
+      //   setExistingClone(data);
+      // }
+      setExistingClone(null);
       setIsLoading(false);
     };
 
@@ -56,10 +56,6 @@ export default function VoiceCloneOnboardingScreen() {
 
   const handleContinueToRecording = () => {
     router.push('/(onboarding)/voice-recording');
-  };
-
-  const handleSkip = () => {
-    router.push('/(onboarding)/tiktok-analysis');
   };
 
   if (isAccessLoading || isLoading) {
@@ -105,7 +101,7 @@ export default function VoiceCloneOnboardingScreen() {
           <Text style={styles.title}>Clone Vocal Déjà Actif</Text>
           <Text style={styles.description}>
             Nous avons détecté que vous avez déjà un clone vocal prêt à
-            l'emploi. Vous pouvez continuer.
+            l&apos;emploi. Vous pouvez continuer.
           </Text>
           <TouchableOpacity
             style={[styles.startButton, { backgroundColor: '#4CAF50' }]}
@@ -158,14 +154,16 @@ export default function VoiceCloneOnboardingScreen() {
         </View>
         <Text style={styles.title}>Créez votre clone vocal</Text>
         <Text style={styles.description}>
-          Enregistrez quelques secondes de votre voix pour permettre à l'IA de
-          générer des narrations avec votre propre timbre.
+          Enregistrez quelques secondes de votre voix pour permettre à l&apos;IA
+          de générer des narrations avec votre propre timbre.
         </Text>
         <TouchableOpacity
           style={styles.startButton}
           onPress={handleContinueToRecording}
         >
-          <Text style={styles.startButtonText}>Commencer l'enregistrement</Text>
+          <Text style={styles.startButtonText}>
+            Commencer l&apos;enregistrement
+          </Text>
         </TouchableOpacity>
       </View>
     </SafeAreaView>

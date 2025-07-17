@@ -107,8 +107,8 @@ export interface VoiceRecordingStatus {
 // Resource tracker for cleanup
 export interface VoiceRecordingResources {
   recording: Audio.Recording | null;
-  timers: NodeJS.Timeout[];
-  intervals: NodeJS.Timeout[];
+  timers: number[];
+  intervals: number[];
   sounds: Audio.Sound[];
 }
 

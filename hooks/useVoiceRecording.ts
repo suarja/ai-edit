@@ -53,7 +53,7 @@ export const useVoiceRecording = (
   // Duration tracking
   const durationTracker = useRef<{
     startTime: number | null;
-    interval: NodeJS.Timeout | null;
+    interval: number | null;
   }>({
     startTime: null,
     interval: null,

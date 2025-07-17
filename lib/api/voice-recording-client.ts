@@ -166,7 +166,10 @@ export async function submitOnboardingRecording(
     }
 
     // Add voice clone preference
-    formData.append('enable_voice_clone', data.enableVoiceClone ? 'true' : 'false');
+    formData.append(
+      'enable_voice_clone',
+      data.enableVoiceClone ? 'true' : 'false'
+    );
 
     console.log(`📡 Appel API onboarding: ${API_ENDPOINTS.ONBOARDING()}`);
 
