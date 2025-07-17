@@ -6,24 +6,15 @@ import {
   TouchableOpacity,
   StyleSheet,
   FlatList,
-  Alert,
   ScrollView,
+  Modal,
+  ActivityIndicator,
 } from 'react-native';
 import { Play, Trash, Upload, Mic, Send } from 'lucide-react-native';
 import { useVoiceRecording } from '@/components/hooks/useVoiceRecording';
 import { useVoices } from './hooks/useVoices';
+import { Audio } from 'expo-av';
 
-const ACCEPTED_FORMATS = [
-  'aac',
-  'aiff',
-  'ogg',
-  'mp3',
-  'opus',
-  'wav',
-  'flac',
-  'm4a',
-  'webm',
-];
 const ACCEPTED_FORMATS_LABEL =
   'AAC, AIFF, OGG, MP3, OPUS, WAV, FLAC, M4A, WEBM';
 const MAX_RECORDINGS = 3;
@@ -37,87 +28,37 @@ const RECORDING_INSTRUCTIONS = [
 
 export const VoiceRecordingUI: React.FC = () => {
   const { data: voicesData, actions: voicesActions } = useVoices();
-  const voiceRecording = useVoiceRecording();
-  const [name, setName] = useState('');
-  const [recordings, setRecordings] = useState<any[]>([]);
-  const [error, setError] = useState<string | null>(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [success, setSuccess] = useState<string | null>(null);
+  // Only local state: show/hide recording modal/flow
+  const [showRecorder, setShowRecorder] = useState(false);
 
-  // Ajout d'un enregistrement (depuis enregistrement ou import)
-  const handleAddRecording = (rec: any) => {
-    if (recordings.length >= MAX_RECORDINGS) {
-      setError('Vous ne pouvez ajouter que 3 enregistrements.');
-      return;
-    }
-    setRecordings((prev) => [...prev, rec]);
-    setError(null);
+  // Setup useVoiceRecording with handlers
+  const voiceRecording = useVoiceRecording({
+    onSuccess: async (result) => {
+      await voicesActions.handleRecordingComplete(result);
+      setShowRecorder(false);
+    },
+    onError: (error) => {
+      voicesActions.handleRecordingError(error);
+      setShowRecorder(false);
+    },
+    autoSubmit: true,
+  });
+
+  // UI state
+  const { recordings, isSubmitting, error } = voicesData;
+  const name = voicesData.name ?? '';
+
+  // Handlers
+  const handleStartRecording = () => {
+    setShowRecorder(true);
+    voiceRecording.actions.reset();
+    voiceRecording.actions.startRecording();
   };
 
-  // Suppression d'un enregistrement
-  const handleDeleteRecording = (index: number) => {
-    setRecordings((prev) => prev.filter((_, i) => i !== index));
-  };
 
-  // Import d'un fichier audio
-  const handleImport = async () => {
-    if (recordings.length >= MAX_RECORDINGS) {
-      setError('Vous ne pouvez ajouter que 3 enregistrements.');
-      return;
-    }
-    // Simuler un import (à remplacer par la vraie logique d'import)
-    const fakeFile = {
-      name: `imported_${Date.now()}.mp3`,
-      uri: 'fakeuri',
-      format: 'mp3',
-    };
-    if (!ACCEPTED_FORMATS.includes(fakeFile.format)) {
-      setError('Format non supporté.');
-      return;
-    }
-    handleAddRecording(fakeFile);
-  };
-
-  // Enregistrement audio (à brancher sur useVoiceRecording)
-  const handleRecord = async () => {
-    if (recordings.length >= MAX_RECORDINGS) {
-      setError('Vous ne pouvez ajouter que 3 enregistrements.');
-      return;
-    }
-    // Simuler un enregistrement
-    const fakeRec = {
-      name: `recording_${Date.now()}.wav`,
-      uri: 'fakeuri',
-      format: 'wav',
-    };
-    handleAddRecording(fakeRec);
-  };
-
-  // Lecture d'un enregistrement (à brancher sur useVoiceRecording)
-  const handlePlay = (rec: any) => {
-    // TODO: brancher la lecture réelle
-    Alert.alert('Lecture', `Lecture de ${rec.name}`);
-  };
-
-  // Soumission de la voix
-  const handleSubmit = async () => {
-    if (!name.trim()) {
-      setError('Le nom de la voix est obligatoire.');
-      return;
-    }
-    if (recordings.length === 0) {
-      setError('Ajoutez au moins un enregistrement.');
-      return;
-    }
-    setIsSubmitting(true);
-    setError(null);
-    setSuccess(null);
-    // TODO: synchroniser avec useVoices et VoiceConfigStorage
-    setTimeout(() => {
-      setIsSubmitting(false);
-      setSuccess('Voix enregistrée et sélectionnée.');
-      // TODO: retour à la liste (à gérer dans le parent)
-    }, 1000);
+  const handleCancelRecording = () => {
+    setShowRecorder(false);
+    voiceRecording.actions.cancelRecording();
   };
 
   return (
@@ -132,7 +73,7 @@ export const VoiceRecordingUI: React.FC = () => {
         <TextInput
           style={styles.input}
           value={name}
-          onChangeText={setName}
+          onChangeText={voicesActions.setName}
           placeholder="Entrez le nom de la voix"
           placeholderTextColor="#666"
         />
@@ -160,13 +101,13 @@ export const VoiceRecordingUI: React.FC = () => {
               <Text style={styles.recordingName}>{item.name}</Text>
               <View style={styles.recordingActions}>
                 <TouchableOpacity
-                  onPress={() => handlePlay(item)}
+                  onPress={() => voicesActions.playSound(item.uri, index)}
                   style={styles.roundButton}
                 >
                   <Play size={18} color="#fff" />
                 </TouchableOpacity>
                 <TouchableOpacity
-                  onPress={() => handleDeleteRecording(index)}
+                  onPress={() => voicesActions.deleteRecording(index)}
                   style={[styles.roundButton, styles.deleteButton]}
                 >
                   <Trash size={18} color="#fff" />
@@ -189,7 +130,7 @@ export const VoiceRecordingUI: React.FC = () => {
               styles.actionButtonSmall,
               recordings.length >= MAX_RECORDINGS && styles.disabledButton,
             ]}
-            onPress={handleRecord}
+            onPress={handleStartRecording}
             disabled={recordings.length >= MAX_RECORDINGS}
           >
             <Mic size={20} color="#fff" />
@@ -199,7 +140,7 @@ export const VoiceRecordingUI: React.FC = () => {
               styles.actionButtonSmall,
               recordings.length >= MAX_RECORDINGS && styles.disabledButton,
             ]}
-            onPress={handleImport}
+            onPress={voicesActions.pickAudio}
             disabled={recordings.length >= MAX_RECORDINGS}
           >
             <Upload size={20} color="#fff" />
@@ -216,7 +157,7 @@ export const VoiceRecordingUI: React.FC = () => {
           styles.submitButton,
           (!name.trim() || recordings.length === 0) && styles.disabledButton,
         ]}
-        onPress={handleSubmit}
+        onPress={voicesActions.handleSubmit}
         disabled={!name.trim() || recordings.length === 0 || isSubmitting}
       >
         <Send size={20} color="#fff" />
@@ -225,20 +166,130 @@ export const VoiceRecordingUI: React.FC = () => {
         </Text>
       </TouchableOpacity>
 
-      {/* Feedback erreur/succès */}
+      {/* Feedback erreur */}
       {error && (
         <View style={styles.feedbackCard}>
           <Text style={styles.errorText}>{error}</Text>
         </View>
       )}
-      {success && (
-        <View style={styles.feedbackCard}>
-          <Text style={styles.successText}>{success}</Text>
-        </View>
-      )}
 
       {/* Espace pour éviter que le bouton soit collé en bas */}
       <View style={{ height: 40 }} />
+
+      {/* Recording Modal/Overlay */}
+      <Modal
+        visible={showRecorder}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={handleCancelRecording}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.recorderModal}>
+            {/* Error state */}
+            {voiceRecording.state.error ? (
+              <>
+                <Text style={styles.errorText}>
+                  {voiceRecording.state.error.message}
+                </Text>
+                <TouchableOpacity
+                  style={styles.actionButtonSmall}
+                  onPress={() => {
+                    voiceRecording.actions.reset();
+                    voiceRecording.actions.startRecording();
+                  }}
+                >
+                  <Text style={styles.buttonText}>Réessayer</Text>
+                </TouchableOpacity>
+              </>
+            ) : voiceRecording.state.isProcessing ? (
+              // Uploading state
+              <>
+                <ActivityIndicator size="large" color="#007AFF" />
+                <Text style={styles.sectionLabel}>
+                  Enregistrement en cours de traitement…
+                </Text>
+              </>
+            ) : voiceRecording.state.isRecording ? (
+              // Recording state
+              <>
+                <Text style={styles.sectionLabel}>Enregistrement en cours</Text>
+                <Text style={styles.timerText}>
+                  {formatDuration(voiceRecording.state.recordingDuration)}
+                </Text>
+                <TouchableOpacity
+                  style={[
+                    styles.actionButtonLarge,
+                    { backgroundColor: '#ef4444', marginTop: 24 },
+                  ]}
+                  onPress={voiceRecording.actions.stopRecording}
+                  disabled={!voiceRecording.status.canStop}
+                >
+                  <Text style={styles.buttonText}>Arrêter</Text>
+                </TouchableOpacity>
+              </>
+            ) : voiceRecording.state.isCompleted &&
+              voiceRecording.state.recordingUri ? (
+              // Review state
+              <>
+                <Text style={styles.sectionLabel}>Enregistrement terminé</Text>
+                <Text style={styles.timerText}>
+                  Durée :{' '}
+                  {formatDuration(voiceRecording.state.recordingDuration)}
+                </Text>
+                <View style={{ flexDirection: 'row', gap: 12, marginTop: 16 }}>
+                  <TouchableOpacity
+                    style={styles.actionButtonSmall}
+                    onPress={async () => {
+                      const { sound } = await Audio.Sound.createAsync({
+                        uri: voiceRecording.state.recordingUri!,
+                      });
+                      await sound.playAsync();
+                    }}
+                  >
+                    <Text style={styles.buttonText}>Écouter</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={styles.actionButtonSmall}
+                    onPress={() => {
+                      voiceRecording.actions.reset();
+                      voiceRecording.actions.startRecording();
+                    }}
+                  >
+                    <Text style={styles.buttonText}>Réenregistrer</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={[
+                      styles.actionButtonSmall,
+                      { backgroundColor: '#10b981' },
+                    ]}
+                    onPress={voiceRecording.actions.submitRecording}
+                    disabled={!voiceRecording.status.canSubmit}
+                  >
+                    <Text style={styles.buttonText}>Valider</Text>
+                  </TouchableOpacity>
+                </View>
+              </>
+            ) : (
+              // Idle state
+              <>
+                <Text style={styles.sectionLabel}>Prêt à enregistrer</Text>
+                <TouchableOpacity
+                  style={[
+                    styles.actionButtonLarge,
+                    { backgroundColor: '#007AFF', marginTop: 24 },
+                  ]}
+                  onPress={voiceRecording.actions.startRecording}
+                  disabled={!voiceRecording.status.canStart}
+                >
+                  <Text style={styles.buttonText}>
+                    Démarrer l’enregistrement
+                  </Text>
+                </TouchableOpacity>
+              </>
+            )}
+          </View>
+        </View>
+      </Modal>
     </ScrollView>
   );
 };
@@ -367,6 +418,18 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 2,
   },
+  actionButtonLarge: {
+    backgroundColor: '#007AFF',
+    borderRadius: 12,
+    padding: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    elevation: 3,
+  },
   submitButton: {
     backgroundColor: '#10b981',
     borderRadius: 12,
@@ -422,4 +485,35 @@ const styles = StyleSheet.create({
     fontSize: 14,
     textAlign: 'center',
   },
+  modalOverlay: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0,0,0,0.7)',
+  },
+  recorderModal: {
+    backgroundColor: '#18181b',
+    borderRadius: 18,
+    padding: 24,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 10,
+    elevation: 5,
+  },
+  timerText: {
+    color: '#fff',
+    fontSize: 48,
+    fontWeight: 'bold',
+    marginTop: 16,
+    marginBottom: 24,
+  },
 });
+
+function formatDuration(ms: number) {
+  const totalSeconds = Math.floor(ms / 1000);
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = totalSeconds % 60;
+  return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+}
