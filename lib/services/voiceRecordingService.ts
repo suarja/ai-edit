@@ -6,6 +6,8 @@ import {
   VoiceRecordingResult,
 } from '../types/voice-recording';
 import { DatabaseUser } from '@/components/hooks/useGetUser';
+import { VoiceConfig } from './voiceService';
+import { z } from 'zod';
 
 interface VoiceCloneSubmissionData {
   name: string;
@@ -27,6 +29,15 @@ interface OnboardingSubmissionData extends VoiceRecordingSubmissionData {
   token: string;
   enableVoiceClone?: boolean;
 }
+
+const VoiceRecordingResultSchema = z.object({
+  successful: z.boolean(),
+  uri: z.string(),
+  fileName: z.string(),
+  duration: z.number(),
+  fileSize: z.number(),
+  voiceCloneId: z.string(),
+  });
 
 export class VoiceRecordingService {
   static async submitVoiceClone(
@@ -129,7 +140,7 @@ export class VoiceRecordingService {
       return {
         successful: true,
         uri: data.recordings[0].uri,
-        fileName: data.recordings[0].name,
+        fileName: data.name,
         duration: 0,
         fileSize: 0,
         voiceCloneId: result.voice_id,
@@ -335,4 +346,19 @@ export class VoiceRecordingService {
       );
     }
   }
+
+  static mapVoiceCloneResult(result: VoiceRecordingResult): VoiceConfig | null {
+    console.log('result', result);
+    const { success, data, error } = VoiceRecordingResultSchema.safeParse(result);
+    if (!success) {
+      console.error('Error parsing voice recording result:', error.format(), error, error.message);
+      return null;
+    }
+    return {
+      voiceId: data.voiceCloneId,
+      voiceName: data.fileName,
+      isPublic: false,
+    };
+  }
 }
+

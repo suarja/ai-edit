@@ -28,6 +28,13 @@ const RECORDING_INSTRUCTIONS = [
 export const VoiceRecordingUI: React.FC<{
   handleUpdateVoices: (voice: VoiceConfig) => void;
 }> = ({ handleUpdateVoices }) => {
+  console.log(
+    '[VoiceRecordingUI] handleUpdateVoices prop:',
+    handleUpdateVoices
+  );
+  console.log('[VoiceRecordingUI] Rendered with props:', {
+    handleUpdateVoices,
+  });
   const { data: voicesData, actions: voicesActions } = useVoices({
     handleUpdateVoices,
   });

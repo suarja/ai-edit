@@ -44,13 +44,22 @@ export const VoiceScreen: React.FC = () => {
   }, []);
 
   const handleAddClonedVoice = async (voice: VoiceConfig) => {
-    setVoices((prev) => [...prev, voice]);
+    console.log('[VoiceScreen] handleAddClonedVoice called with:', voice);
+    setVoices((prev) => {
+      const exists = prev.some((v) => v.voiceId === voice.voiceId);
+      const updated = exists ? prev : [...prev, voice];
+      console.log('[VoiceScreen] Updated voices after add:', updated);
+      return updated;
+    });
     setSelectedVoiceId(voice.voiceId);
+    console.log('[VoiceScreen] Set selectedVoiceId:', voice.voiceId);
     const user = await fetchUser();
     if (user) {
       await VoiceConfigStorage.save(user.id, voice);
+      console.log('[VoiceScreen] Saved voice config for user:', user.id);
     }
     setStep('list');
+    console.log('[VoiceScreen] Step set to list');
   };
 
   const handleSelectVoice = async (
@@ -59,7 +68,18 @@ export const VoiceScreen: React.FC = () => {
   ) => {
     setSelectedVoiceId(voiceConfig.voiceId);
     await VoiceConfigStorage.save(userId, voiceConfig);
+    console.log('[VoiceScreen] handleSelectVoice:', voiceConfig.voiceId);
   };
+
+  // Debug log for render
+  console.log(
+    '[VoiceScreen] Render: step=',
+    step,
+    'voices=',
+    voices,
+    'selectedVoiceId=',
+    selectedVoiceId
+  );
 
   return (
     <View>

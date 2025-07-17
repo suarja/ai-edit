@@ -6,7 +6,6 @@ import { Audio } from 'expo-av';
 import {
   VoiceRecordingResult,
   VoiceRecordingError,
-  VoiceClone,
   ElevenLabsSample,
 } from '@/lib/types/voice-recording';
 import { useAuth } from '@clerk/clerk-expo';
@@ -18,7 +17,7 @@ import { VoiceRecordingService } from '@/lib/services/voiceRecordingService';
 export type UseVoicesReturn = {
   data: {
     isCreating: boolean;
-    existingVoice: VoiceClone | null;
+    existingVoices: VoiceConfig[];
     voiceSamples: ElevenLabsSample[];
     loadingSamples: boolean;
     name: string;
@@ -55,7 +54,7 @@ export const useVoices = ({
   const router = useRouter();
 
   const [isCreating, setIsCreating] = useState(false);
-  const [existingVoice, setExistingVoice] = useState<VoiceClone | null>(null);
+  const [existingVoices, setExistingVoices] = useState<VoiceConfig[]>([]);
   const [voiceSamples, setVoiceSamples] = useState<ElevenLabsSample[]>([]);
   const [loadingSamples, setLoadingSamples] = useState(false);
   const [name, setName] = useState('');
@@ -89,15 +88,16 @@ export const useVoices = ({
         return;
       }
 
-      const voice = await VoiceService.getExistingVoice(token);
+      const voices = await VoiceService.getExistingVoice(token);
+      if (voices) {
+        const mappedVoices = VoiceService.voiceMapper(voices);
+        if (mappedVoices) {
+          setExistingVoices(mappedVoices);
+        }
+      }
 
       // setExistingVoice(voice as unknown as VoiceClone);
-      setExistingVoice(null);
-
-      // Si on a une voix, charger ses échantillons depuis ElevenLabs
-      // if (voice && voice.elevenlabs_voice_id) {
-      //   await loadVoiceSamples(voice.elevenlabs_voice_id as string);
-      // }
+      // setExistingVoice(null);
     } catch (err) {
       console.error('Failed to fetch voice:', err);
       setError('Échec du chargement des données vocales');
@@ -138,7 +138,7 @@ export const useVoices = ({
         await sound.unloadAsync();
       }
 
-      if (!existingVoice) return;
+      if (!existingVoices) return;
 
       console.log(`🔊 Lecture échantillon: ${sampleId}`);
       const token = await getToken();
@@ -148,7 +148,7 @@ export const useVoices = ({
       }
       // Obtenir l'URL de l'échantillon depuis notre serveur
       const audioUrl = await VoiceService.getVoiceSampleAudioUrl(
-        existingVoice.elevenlabs_voice_id,
+        existingVoices[0].voiceId,
         sampleId,
         { token }
       );
@@ -264,7 +264,7 @@ export const useVoices = ({
       return;
     }
 
-    console.log('handleRecordingComplete', result);
+    console.log('[useVoices] handleRecordingComplete called with:', result);
 
     try {
       const recordingName = `Enregistrement ${recordings.length + 1}.m4a`;
@@ -277,28 +277,38 @@ export const useVoices = ({
       }
 
       // Si on a un nom, soumettre directement
-      if (name.trim()) {
-        setIsSubmitting(true);
-        await VoiceRecordingService.submitVoiceClone({
-          name: name.trim(),
-          recordings: [...recordings, newRecording],
-          token,
-          user,
-        });
+      //   if (name.trim()) {
+      //     setIsSubmitting(true);
+      //     // const result = await VoiceRecordingService.submitVoiceClone({
+      //     //   name: name.trim(),
+      //     //   recordings: [...recordings, newRecording],
+      //     //   token,
+      //     //   user,
+      //     // });
 
-        // Succès - nettoyer et revenir à la liste
-        setName('');
-        setRecordings([]);
-        setError(null);
-        setIsCreating(false);
-        setRecordingMode(false);
-        await fetchExistingVoice();
-      } else {
-        // Pas de nom - juste ajouter à la liste
-        console.log('No name, adding to recordings', newRecording);
-        setRecordings((prev) => [...prev, newRecording]);
-        setRecordingMode(false);
-      }
+      //     // const mappedResult = VoiceRecordingService.mapVoiceCloneResult(result);
+      //     // console.log('[useVoices] mappedResult:', mappedResult);
+      //     // if (mappedResult) {
+      //     //   console.log(
+      //     //     '[useVoices] Calling handleUpdateVoices with:',
+      //     //     mappedResult
+      //     //   );
+      //     //   handleUpdateVoices(mappedResult);
+      //     // }
+
+      //     // Succès - nettoyer et revenir à la liste
+      //     setName('');
+      //     setRecordings([]);
+      //     setError(null);
+      //     setIsCreating(false);
+      //     setRecordingMode(false);
+      //     await fetchExistingVoice();
+      //   } else {
+      // Pas de nom - juste ajouter à la liste
+      console.log('[useVoices] No name, adding to recordings', newRecording);
+      setRecordings((prev) => [...prev, newRecording]);
+      setRecordingMode(false);
+      //   }
     } catch (err: any) {
       console.error('Error handling recording:', err);
       setError(err?.message || "Échec de l'enregistrement");
@@ -330,7 +340,7 @@ export const useVoices = ({
         router.push('/(auth)/sign-in');
         return;
       }
-      await VoiceRecordingService.submitVoiceClone({
+      const result = await VoiceRecordingService.submitVoiceClone({
         name: name,
         recordings: recordings.map((r) => ({
           uri: r.uri,
@@ -340,6 +350,15 @@ export const useVoices = ({
         token: token,
       });
 
+      const mappedResult = VoiceRecordingService.mapVoiceCloneResult(result);
+      console.log('[useVoices] mappedResult:', mappedResult);
+      if (mappedResult) {
+        console.log(
+          '[useVoices] Calling handleUpdateVoices with:',
+          mappedResult
+        );
+        handleUpdateVoices(mappedResult);
+      }
       setName('');
       setRecordings([]);
       setError(null);
@@ -368,7 +387,7 @@ export const useVoices = ({
   return {
     data: {
       isCreating,
-      existingVoice,
+      existingVoices,
       voiceSamples,
       loadingSamples,
       name,
