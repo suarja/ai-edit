@@ -31,7 +31,7 @@ import {
   VoiceRecordingResult,
   VoiceRecordingError,
 } from '@/types/voice-recording';
-import { submitOnboardingRecording } from '@/lib/api/voice-recording-client';
+import { submitOnboardingRecording } from '@/components/voice/voice-recording-client';
 import { useAuth } from '@clerk/clerk-expo';
 import { router } from 'expo-router';
 import { useRevenueCat } from '@/providers/RevenueCat';

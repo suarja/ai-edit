@@ -26,7 +26,7 @@ export default function AdminUsageControl({
 }: AdminUsageControlProps) {
   const [newLimit, setNewLimit] = useState(currentLimit.toString());
   const [loading, setLoading] = useState(false);
-  const { user } = useGetUser();
+  const { fetchUser } = useGetUser();
   const updateLimit = async () => {
     try {
       setLoading(true);
@@ -42,10 +42,12 @@ export default function AdminUsageControl({
 
       console.log(`Updating limit for user ${userId} to ${limitValue}`);
 
-      // First, check if current user has admin privileges in user_roles
+
+      const user = await fetchUser();
 
       if (!user) {
         router.push('/(auth)/sign-in');
+        return;
       }
 
       const { data: adminRole, error: roleError } = await supabase
@@ -105,7 +107,7 @@ export default function AdminUsageControl({
     <View style={styles.container}>
       <View style={styles.header}>
         <Shield size={20} color="#FF9500" />
-        <Text style={styles.title}>Admin: Contrôle d'Utilisation</Text>
+        <Text style={styles.title}>Admin: Contrôle d&apos;Utilisation</Text>
       </View>
 
       <View style={styles.infoContainer}>

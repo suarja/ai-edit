@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import {
   View,
   Text,
@@ -17,363 +17,19 @@ import {
   Send,
   Volume2,
 } from 'lucide-react-native';
-import * as DocumentPicker from 'expo-document-picker';
-import { Audio } from 'expo-av';
-import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import SettingsHeader from '@/components/SettingsHeader';
 import { VoiceRecordingUI } from '@/components/voice/VoiceRecordingUI';
-import {
-  VoiceRecordingResult,
-  VoiceRecordingError,
-} from '@/types/voice-recording';
-import {
-  submitVoiceClone,
-  getVoiceSamples,
-  getVoiceSampleAudioUrl,
-} from '@/lib/api/voice-recording-client';
-import { useClerkSupabaseClient } from '@/lib/supabase-clerk';
-import { useGetUser } from '@/lib/hooks/useGetUser';
-import { useAuth } from '@clerk/clerk-expo';
-import { useRevenueCat } from '@/providers/RevenueCat';
+
 import { ProFeatureLock } from '@/components/guards/ProFeatureLock';
-
-type VoiceClone = {
-  id: string;
-  elevenlabs_voice_id: string;
-  status: string;
-  sample_files: { name: string; uri: string }[];
-  created_at: string;
-};
-
-type ElevenLabsSample = {
-  sampleId: string;
-  fileName: string;
-  mimeType: string;
-  sizeBytes: number;
-  hash: string;
-  durationSecs: number;
-};
+import { useVoices } from '@/components/voice/hooks/useVoices';
+import { useRevenueCat } from '@/providers/RevenueCat';
 
 export default function VoiceCloneScreen() {
-  const router = useRouter();
-  const [isCreating, setIsCreating] = useState(false);
-  const [existingVoice, setExistingVoice] = useState<VoiceClone | null>(null);
-  const [voiceSamples, setVoiceSamples] = useState<ElevenLabsSample[]>([]);
-  const [loadingSamples, setLoadingSamples] = useState(false);
-  const [name, setName] = useState('');
-  const [recordings, setRecordings] = useState<{ uri: string; name: string }[]>(
-    []
-  );
-  const [sound, setSound] = useState<Audio.Sound | null>(null);
-  const [playingIndex, setPlayingIndex] = useState<number | null>(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [recordingMode, setRecordingMode] = useState(false);
+  const { data, actions } = useVoices();
+  const { isPro } = useRevenueCat();
 
-  const { client: supabase } = useClerkSupabaseClient();
-  const { fetchUser } = useGetUser();
-  const { getToken } = useAuth();
-  const { isPro, goPro } = useRevenueCat();
-
-  useEffect(() => {
-    fetchExistingVoice();
-    return () => {
-      if (sound) {
-        sound.unloadAsync();
-      }
-    };
-  }, []);
-
-  const fetchExistingVoice = async () => {
-    try {
-      const user = await fetchUser();
-      if (!user) {
-        router.replace('/(auth)/sign-in');
-        return;
-      }
-
-      // const { data: voice, error: fetchError } = await supabase
-      //   .from('voice_clones')
-      //   .select('*')
-      //   .eq('user_id', user.id)
-      //   .single();
-
-      // if (fetchError && fetchError.code !== 'PGRST116') {
-      //   throw fetchError;
-      // }
-
-      // setExistingVoice(voice as unknown as VoiceClone);
-      setExistingVoice(null);
-
-      // Si on a une voix, charger ses échantillons depuis ElevenLabs
-      // if (voice && voice.elevenlabs_voice_id) {
-      //   await loadVoiceSamples(voice.elevenlabs_voice_id as string);
-      // }
-    } catch (err) {
-      console.error('Failed to fetch voice:', err);
-      setError('Échec du chargement des données vocales');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const loadVoiceSamples = async (voiceId: string) => {
-    try {
-      setLoadingSamples(true);
-      console.log(`🔍 Chargement échantillons pour voix: ${voiceId}`);
-
-      const token = await getToken();
-      if (!token) {
-        router.push('/(auth)/sign-in');
-        return;
-      }
-      const samples = await getVoiceSamples(voiceId, { token });
-      console.log(
-        `🔍 Debug échantillons reçus:`,
-        JSON.stringify(samples, null, 2)
-      );
-      setVoiceSamples(samples);
-
-      console.log(`✅ ${samples.length} échantillons chargés`);
-    } catch (err: any) {
-      console.error('Failed to load voice samples:', err);
-      setError('Échec du chargement des échantillons vocaux');
-    } finally {
-      setLoadingSamples(false);
-    }
-  };
-
-  const playVoiceSample = async (sampleId: string, index: number) => {
-    try {
-      if (sound) {
-        await sound.unloadAsync();
-      }
-
-      if (!existingVoice) return;
-
-      console.log(`🔊 Lecture échantillon: ${sampleId}`);
-      const token = await getToken();
-      if (!token) {
-        router.push('/(auth)/sign-in');
-        return;
-      }
-      // Obtenir l'URL de l'échantillon depuis notre serveur
-      const audioUrl = await getVoiceSampleAudioUrl(
-        existingVoice.elevenlabs_voice_id,
-        sampleId,
-        { token }
-      );
-
-      const { sound: newSound } = await Audio.Sound.createAsync(
-        { uri: audioUrl },
-        { shouldPlay: true },
-        (status) => {
-          if (!status.isLoaded) return;
-          if (status.didJustFinish) {
-            setPlayingIndex(null);
-          }
-        }
-      );
-
-      setSound(newSound);
-      setPlayingIndex(index);
-      setError(null);
-    } catch (err) {
-      console.error('Failed to play voice sample', err);
-      setPlayingIndex(null);
-      setError("Échec de la lecture de l'échantillon vocal");
-    }
-  };
-
-  const playSound = async (uri: string, index: number) => {
-    try {
-      if (sound) {
-        await sound.unloadAsync();
-      }
-
-      const { sound: newSound } = await Audio.Sound.createAsync(
-        { uri },
-        { shouldPlay: true },
-        (status) => {
-          if (!status.isLoaded) return;
-          if (status.didJustFinish) {
-            setPlayingIndex(null);
-          }
-        }
-      );
-
-      setSound(newSound);
-      setPlayingIndex(index);
-      setError(null);
-    } catch (err) {
-      console.error('Failed to play sound', err);
-      setPlayingIndex(null);
-      setError('Échec de la lecture');
-    }
-  };
-
-  const stopSound = async () => {
-    if (sound) {
-      try {
-        await sound.stopAsync();
-      } catch (err) {
-        console.log('Stop failed, continuing with unload:', err);
-      }
-
-      try {
-        await sound.unloadAsync();
-      } catch (err) {
-        console.log('Unload failed:', err);
-      }
-
-      // Always reset state even if stop/unload failed
-      setSound(null);
-      setPlayingIndex(null);
-      setError(null);
-    }
-  };
-
-  const pickAudio = async () => {
-    try {
-      const result = await DocumentPicker.getDocumentAsync({
-        type: 'audio/*',
-        copyToCacheDirectory: true,
-      });
-
-      if (result.assets && result.assets.length > 0) {
-        const asset = result.assets[0];
-        setRecordings((prev) => [
-          ...prev,
-          { uri: asset.uri, name: asset.name },
-        ]);
-      }
-      setError(null);
-    } catch (err) {
-      console.error('Failed to pick audio', err);
-      setError('Échec de la sélection du fichier audio');
-    }
-  };
-
-  const deleteRecording = async (index: number) => {
-    try {
-      if (playingIndex === index && sound) {
-        await sound.unloadAsync();
-        setPlayingIndex(null);
-      }
-      setRecordings((prev) => prev.filter((_, i) => i !== index));
-      setError(null);
-    } catch (err) {
-      console.error('Failed to delete recording', err);
-      setError("Échec de la suppression de l'enregistrement");
-    }
-  };
-
-  const handleRecordingComplete = async (result: VoiceRecordingResult) => {
-    // Protection contre les soumissions multiples
-    if (isSubmitting) {
-      console.log('⚠️ Soumission déjà en cours, ignorer');
-      return;
-    }
-
-    try {
-      const recordingName = `Enregistrement ${recordings.length + 1}.m4a`;
-      const newRecording = { uri: result.uri, name: recordingName };
-      const user = await fetchUser();
-      const token = await getToken();
-      if (!token || !user) {
-        router.push('/(auth)/sign-in');
-        return;
-      }
-
-      // Si on a un nom, soumettre directement
-      if (name.trim()) {
-        setIsSubmitting(true);
-        await submitVoiceClone({
-          name: name.trim(),
-          recordings: [...recordings, newRecording],
-          token,
-          user,
-        });
-
-        // Succès - nettoyer et revenir à la liste
-        setName('');
-        setRecordings([]);
-        setError(null);
-        setIsCreating(false);
-        setRecordingMode(false);
-        await fetchExistingVoice();
-      } else {
-        // Pas de nom - juste ajouter à la liste
-        setRecordings((prev) => [...prev, newRecording]);
-        setRecordingMode(false);
-      }
-    } catch (err: any) {
-      console.error('Error handling recording:', err);
-      setError(err?.message || "Échec de l'enregistrement");
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  const handleRecordingError = (error: VoiceRecordingError) => {
-    console.error('Recording error:', error);
-    setError(error.message);
-  };
-
-  const handleSubmit = async () => {
-    // Protection contre les soumissions multiples
-    if (!name || recordings.length === 0 || isSubmitting) {
-      console.log('⚠️ Conditions non remplies ou soumission en cours');
-      return;
-    }
-
-    try {
-      setIsSubmitting(true);
-      setError(null);
-      const user = await fetchUser();
-      const token = await getToken();
-      if (!token || !user) {
-        router.push('/(auth)/sign-in');
-        return;
-      }
-      await submitVoiceClone({
-        name: name,
-        recordings: recordings.map((r) => ({
-          uri: r.uri,
-          name: r.name,
-        })),
-        user: user,
-        token: token,
-      });
-
-      setName('');
-      setRecordings([]);
-      setError(null);
-      setIsCreating(false);
-      await fetchExistingVoice();
-    } catch (err) {
-      console.error('Failed to submit voice clone:', err);
-      setError(
-        err instanceof Error
-          ? err.message
-          : 'Échec de la création du clone vocal'
-      );
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  const handleCancel = () => {
-    setIsCreating(false);
-    setRecordingMode(false);
-    setName('');
-    setRecordings([]);
-    setError(null);
-  };
-
-  if (isLoading) {
+  if (data.isLoading) {
     return (
       <SafeAreaView style={styles.container} edges={['top']}>
         <SettingsHeader title="Clone Vocal" />
@@ -394,7 +50,7 @@ export default function VoiceCloneScreen() {
     );
   }
 
-  if (!isCreating && !existingVoice) {
+  if (!data.isCreating && !data.existingVoice) {
     return (
       <SafeAreaView style={styles.container} edges={['top']}>
         <SettingsHeader title="Clone Vocal" />
@@ -406,7 +62,7 @@ export default function VoiceCloneScreen() {
             </Text>
             <TouchableOpacity
               style={styles.createButton}
-              onPress={() => setIsCreating(true)}
+              onPress={() => actions.setIsCreating(true)}
             >
               <Plus size={24} color="#fff" />
               <Text style={styles.buttonText}>Créer un Clone Vocal</Text>
@@ -417,7 +73,7 @@ export default function VoiceCloneScreen() {
     );
   }
 
-  if (existingVoice && !isCreating) {
+  if (data.existingVoice && !data.isCreating) {
     return (
       <SafeAreaView style={styles.container} edges={['top']}>
         <SettingsHeader title="Votre Clone Vocal" />
@@ -431,31 +87,31 @@ export default function VoiceCloneScreen() {
                 <Text style={styles.voiceName}>Clone Vocal Actif</Text>
                 <Text style={styles.voiceStatus}>
                   Statut :{' '}
-                  {existingVoice.status === 'ready' ? 'Prêt' : 'En traitement'}
+                  {data.existingVoice.status === 'ready' ? 'Prêt' : 'En traitement'}
                 </Text>
                 <Text style={styles.voiceId}>
-                  ID : {existingVoice.elevenlabs_voice_id.substring(0, 8)}...
+                  ID : {data.existingVoice.elevenlabs_voice_id.substring(0, 8)}...
                 </Text>
               </View>
             </View>
 
-            {error && (
+            {data.error && (
               <View style={styles.errorContainer}>
-                <Text style={styles.errorText}>{error}</Text>
+                <Text style={styles.errorText}>{data.error}</Text>
               </View>
             )}
 
             <View style={styles.sampleFiles}>
               <View style={styles.sampleHeader}>
                 <Text style={styles.sampleTitle}>Échantillons Vocaux</Text>
-                {loadingSamples && (
+                {data.loadingSamples && (
                   <ActivityIndicator size="small" color="#007AFF" />
                 )}
               </View>
 
-              {voiceSamples.length > 0 ? (
+              {data.voiceSamples.length > 0 ? (
                 <View style={styles.samplesList}>
-                  {voiceSamples.map((sample, index) => {
+                  {data.voiceSamples.map((sample, index) => {
                     const sampleId = sample.sampleId;
                     const fileName =
                       sample.fileName || `Échantillon ${index + 1}`;
@@ -471,14 +127,14 @@ export default function VoiceCloneScreen() {
                         </View>
                         <TouchableOpacity
                           onPress={() =>
-                            playingIndex === index
-                              ? stopSound()
-                              : playVoiceSample(sampleId, index)
+                            data.playingIndex === index
+                              ? actions.stopSound()
+                              : actions.playVoiceSample(sampleId, index)
                           }
                           style={styles.controlButton}
-                          disabled={loadingSamples || !sampleId}
+                          disabled={data.loadingSamples || !sampleId}
                         >
-                          {playingIndex === index ? (
+                          {data.playingIndex === index ? (
                             <Square size={20} color="#fff" />
                           ) : (
                             <Play size={20} color="#fff" />
@@ -491,7 +147,7 @@ export default function VoiceCloneScreen() {
               ) : (
                 <View style={styles.noSamplesContainer}>
                   <Text style={styles.noSamplesText}>
-                    {loadingSamples
+                    {data.loadingSamples
                       ? 'Chargement des échantillons...'
                       : 'Aucun échantillon disponible'}
                   </Text>
@@ -509,12 +165,12 @@ export default function VoiceCloneScreen() {
       <SettingsHeader
         title="Créer un Clone Vocal"
         rightButton={
-          name && recordings.length > 0 && !recordingMode
+          data.name && data.recordings.length > 0 && !data.recordingMode
             ? {
                 icon: <Send size={20} color="#fff" />,
-                onPress: handleSubmit,
-                disabled: isSubmitting,
-                loading: isSubmitting,
+                onPress: actions.handleSubmit,
+                disabled: data.isSubmitting,
+                loading: data.isSubmitting,
               }
             : undefined
         }
@@ -524,13 +180,13 @@ export default function VoiceCloneScreen() {
         contentContainerStyle={styles.scrollContent}
       >
         <View style={styles.form}>
-          {error && (
+          {data.error && (
             <View style={styles.errorContainer}>
-              <Text style={styles.errorText}>{error}</Text>
+              <Text style={styles.errorText}>{data.error}</Text>
             </View>
           )}
 
-          {isSubmitting && (
+          {data.isSubmitting && (
             <View style={styles.progressContainer}>
               <ActivityIndicator size="small" color="#007AFF" />
               <Text style={styles.progressText}>
@@ -539,43 +195,43 @@ export default function VoiceCloneScreen() {
             </View>
           )}
 
-          {!recordingMode && (
+          {!data.recordingMode && (
             <>
               <View style={styles.inputContainer}>
                 <Text style={styles.label}>Nom de la voix</Text>
                 <TextInput
                   style={styles.input}
-                  value={name}
-                  onChangeText={setName}
+                  value={data.name}
+                  onChangeText={actions.setName}
                   placeholder="Entrez le nom de la voix"
                   placeholderTextColor="#666"
                 />
               </View>
 
-              {recordings.length > 0 && (
+              {data.recordings.length > 0 && (
                 <View style={styles.recordingsContainer}>
                   <Text style={styles.label}>Enregistrements</Text>
                   <View style={styles.recordingsList}>
-                    {recordings.map((rec, index) => (
+                    {data.recordings.map((rec, index) => (
                       <View key={rec.uri} style={styles.recordingItem}>
                         <Text style={styles.recordingName}>{rec.name}</Text>
                         <View style={styles.recordingControls}>
                           <TouchableOpacity
                             onPress={() =>
-                              playingIndex === index
-                                ? stopSound()
-                                : playSound(rec.uri, index)
+                              data.playingIndex === index
+                                ? actions.stopSound()
+                                : actions.playSound(rec.uri, index)
                             }
                             style={styles.controlButton}
                           >
-                            {playingIndex === index ? (
+                            {data.playingIndex === index ? (
                               <Square size={20} color="#fff" />
                             ) : (
                               <Play size={20} color="#fff" />
                             )}
                           </TouchableOpacity>
                           <TouchableOpacity
-                            onPress={() => deleteRecording(index)}
+                            onPress={() => actions.deleteRecording(index)}
                             style={[styles.controlButton, styles.deleteButton]}
                           >
                             <Trash size={20} color="#fff" />
@@ -589,14 +245,17 @@ export default function VoiceCloneScreen() {
 
               <View style={styles.actionButtons}>
                 <TouchableOpacity
-                  onPress={() => setRecordingMode(true)}
-                  style={[styles.button, isSubmitting && styles.disabledButton]}
-                  disabled={isSubmitting}
+                  onPress={() => actions.setRecordingMode(true)}
+                  style={[
+                    styles.button,
+                    data.isSubmitting && styles.disabledButton,
+                  ]}
+                  disabled={data.isSubmitting}
                 >
                   <Text
                     style={[
                       styles.buttonText,
-                      isSubmitting && styles.disabledText,
+                      data.isSubmitting && styles.disabledText,
                     ]}
                   >
                     Enregistrer
@@ -604,15 +263,21 @@ export default function VoiceCloneScreen() {
                 </TouchableOpacity>
 
                 <TouchableOpacity
-                  onPress={pickAudio}
-                  style={[styles.button, isSubmitting && styles.disabledButton]}
-                  disabled={isSubmitting}
+                  onPress={actions.pickAudio}
+                  style={[
+                    styles.button,
+                    data.isSubmitting && styles.disabledButton,
+                  ]}
+                  disabled={data.isSubmitting}
                 >
-                  <Upload size={24} color={isSubmitting ? '#666' : '#fff'} />
+                  <Upload
+                    size={24}
+                    color={data.isSubmitting ? '#666' : '#fff'}
+                  />
                   <Text
                     style={[
                       styles.buttonText,
-                      isSubmitting && styles.disabledText,
+                      data.isSubmitting && styles.disabledText,
                     ]}
                   >
                     Importer
@@ -620,13 +285,13 @@ export default function VoiceCloneScreen() {
                 </TouchableOpacity>
               </View>
 
-              {recordings.length > 0 && name && (
+              {data.recordings.length > 0 && data.name && (
                 <TouchableOpacity
                   style={styles.submitButton}
-                  onPress={handleSubmit}
-                  disabled={isSubmitting}
+                  onPress={actions.handleSubmit}
+                  disabled={data.isSubmitting}
                 >
-                  {isSubmitting ? (
+                  {data.isSubmitting ? (
                     <ActivityIndicator size="small" color="#fff" />
                   ) : (
                     <>
@@ -639,7 +304,7 @@ export default function VoiceCloneScreen() {
             </>
           )}
 
-          {recordingMode && (
+          {data.recordingMode && (
             <View style={styles.recordingModeContainer}>
               <VoiceRecordingUI
                 variant="settings"
@@ -648,8 +313,8 @@ export default function VoiceCloneScreen() {
                   maxDuration: 120000, // 2 minutes
                   autoSubmit: false,
                 }}
-                onComplete={handleRecordingComplete}
-                onError={handleRecordingError}
+                onComplete={actions.handleRecordingComplete}
+                onError={actions.handleRecordingError}
                 customInstructions={[
                   'Parlez clairement dans le microphone',
                   'Enregistrez pendant au moins 3 secondes',
@@ -661,17 +326,17 @@ export default function VoiceCloneScreen() {
 
               <TouchableOpacity
                 style={styles.cancelButton}
-                onPress={() => setRecordingMode(false)}
+                onPress={() => actions.setRecordingMode(false)}
               >
                 <Text style={styles.buttonText}>Retour</Text>
               </TouchableOpacity>
             </View>
           )}
 
-          {isCreating && !recordingMode && (
+          {data.isCreating && !data.recordingMode && (
             <TouchableOpacity
               style={styles.cancelButton}
-              onPress={handleCancel}
+              onPress={actions.handleCancel}
             >
               <Text style={styles.buttonText}>Annuler</Text>
             </TouchableOpacity>

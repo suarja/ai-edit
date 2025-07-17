@@ -6,7 +6,7 @@ import {
   VOICE_RECORDING_ERROR_CODES,
   errorTaxonomy,
 } from '@/types/voice-recording';
-import { DatabaseUser } from '../hooks/useGetUser';
+import { DatabaseUser } from '../../lib/hooks/useGetUser';
 
 interface VoiceRecordingSubmissionData {
   uri: string;

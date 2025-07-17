@@ -1,5 +1,22 @@
 import { Audio } from 'expo-av';
 
+export type VoiceClone = {
+  id: string;
+  elevenlabs_voice_id: string;
+  status: string;
+  sample_files: { name: string; uri: string }[];
+  created_at: string;
+};
+
+export type ElevenLabsSample = {
+  sampleId: string;
+  fileName: string;
+  mimeType: string;
+  sizeBytes: number;
+  hash: string;
+  durationSecs: number;
+};
+
 // Voice recording configuration
 export interface VoiceRecordingConfig {
   minDuration?: number;
