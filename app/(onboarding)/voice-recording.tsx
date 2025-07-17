@@ -31,10 +31,10 @@ import {
   VoiceRecordingResult,
   VoiceRecordingError,
 } from '@/lib/types/voice-recording';
-import { submitOnboardingRecording } from '@/components/voice/voice-recording-client';
 import { useAuth } from '@clerk/clerk-expo';
 import { router } from 'expo-router';
 import { useRevenueCat } from '@/contexts/providers/RevenueCat';
+import { VoiceRecordingService } from '@/lib/services/voiceRecordingService';
 
 export default function VoiceRecordingScreen() {
   const onboardingSteps = useOnboardingSteps();
@@ -113,22 +113,22 @@ export default function VoiceRecordingScreen() {
       }
 
       // Submit the recording with survey data and voice clone preference
-      // await submitOnboardingRecording({
-      //   uri: result.uri,
-      //   name: result.fileName,
-      //   duration: result.duration,
-      //   fileName: result.fileName,
-      //   token,
-      //   user: user,
-      //   surveyData: {
-      //     content_goals: surveyAnswers.content_goals || null,
-      //     pain_points: surveyAnswers.pain_points || null,
-      //     content_style: surveyAnswers.content_style || null,
-      //     platform_focus: surveyAnswers.platform_focus || null,
-      //     content_frequency: surveyAnswers.content_frequency || null,
-      //   },
-      //   enableVoiceClone: wantsVoiceClone && isPro, // Only enable if user wants it AND is pro
-      // });
+      await VoiceRecordingService.submitOnboardingRecording({
+        uri: result.uri,
+        name: result.fileName,
+        duration: result.duration,
+        fileName: result.fileName,
+        token,
+        user: user,
+        surveyData: {
+          content_goals: surveyAnswers.content_goals || null,
+          pain_points: surveyAnswers.pain_points || null,
+          content_style: surveyAnswers.content_style || null,
+          platform_focus: surveyAnswers.platform_focus || null,
+          content_frequency: surveyAnswers.content_frequency || null,
+        },
+        enableVoiceClone: wantsVoiceClone && isPro, // Only enable if user wants it AND is pro
+      });
 
       setProgress('Configuration de votre profil...');
       await new Promise((resolve) => setTimeout(resolve, 1000));

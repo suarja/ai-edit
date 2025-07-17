@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 
 import * as DocumentPicker from 'expo-document-picker';
 import { Audio } from 'expo-av';
@@ -9,14 +9,11 @@ import {
   VoiceClone,
   ElevenLabsSample,
 } from '@/lib/types/voice-recording';
-import {
-  submitVoiceClone,
-  getVoiceSamples,
-  getVoiceSampleAudioUrl,
-} from '@/components/voice/voice-recording-client';
 import { useAuth } from '@clerk/clerk-expo';
 import { useRouter } from 'expo-router';
 import { useGetUser } from '@/components/hooks/useGetUser';
+import { VoiceService } from '@/lib/services/voiceService';
+import { VoiceRecordingService } from '@/lib/services/voiceRecordingService';
 
 export type UseVoicesReturn = {
   data: {
@@ -88,15 +85,7 @@ export const useVoices = (): UseVoicesReturn => {
         return;
       }
 
-      // const { data: voice, error: fetchError } = await supabase
-      //   .from('voice_clones')
-      //   .select('*')
-      //   .eq('user_id', user.id)
-      //   .single();
-
-      // if (fetchError && fetchError.code !== 'PGRST116') {
-      //   throw fetchError;
-      // }
+      const voice = await VoiceService.getExistingVoice(user.id);
 
       // setExistingVoice(voice as unknown as VoiceClone);
       setExistingVoice(null);
@@ -123,7 +112,7 @@ export const useVoices = (): UseVoicesReturn => {
         router.push('/(auth)/sign-in');
         return;
       }
-      const samples = await getVoiceSamples(voiceId, { token });
+      const samples = await VoiceService.getVoiceSamples(voiceId, { token });
       console.log(
         `🔍 Debug échantillons reçus:`,
         JSON.stringify(samples, null, 2)
@@ -154,7 +143,7 @@ export const useVoices = (): UseVoicesReturn => {
         return;
       }
       // Obtenir l'URL de l'échantillon depuis notre serveur
-      const audioUrl = await getVoiceSampleAudioUrl(
+      const audioUrl = await VoiceService.getVoiceSampleAudioUrl(
         existingVoice.elevenlabs_voice_id,
         sampleId,
         { token }
@@ -284,7 +273,7 @@ export const useVoices = (): UseVoicesReturn => {
       // Si on a un nom, soumettre directement
       if (name.trim()) {
         setIsSubmitting(true);
-        await submitVoiceClone({
+        await VoiceRecordingService.submitVoiceClone({
           name: name.trim(),
           recordings: [...recordings, newRecording],
           token,
@@ -332,7 +321,7 @@ export const useVoices = (): UseVoicesReturn => {
         router.push('/(auth)/sign-in');
         return;
       }
-      await submitVoiceClone({
+      await VoiceRecordingService.submitVoiceClone({
         name: name,
         recordings: recordings.map((r) => ({
           uri: r.uri,
