@@ -35,7 +35,6 @@ const VoiceList: React.FC<VoiceListProps> = ({
   if (!user || !defaultVoiceId) {
     return <View />;
   }
-  console.log('voices', voices);
 
   return (
     <View>

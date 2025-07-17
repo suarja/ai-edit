@@ -264,8 +264,6 @@ export const useVoices = ({
       return;
     }
 
-    console.log('[useVoices] handleRecordingComplete called with:', result);
-
     try {
       const recordingName = `Enregistrement ${recordings.length + 1}.m4a`;
       const newRecording = { uri: result.uri, name: recordingName };
@@ -276,36 +274,6 @@ export const useVoices = ({
         return;
       }
 
-      // Si on a un nom, soumettre directement
-      //   if (name.trim()) {
-      //     setIsSubmitting(true);
-      //     // const result = await VoiceRecordingService.submitVoiceClone({
-      //     //   name: name.trim(),
-      //     //   recordings: [...recordings, newRecording],
-      //     //   token,
-      //     //   user,
-      //     // });
-
-      //     // const mappedResult = VoiceRecordingService.mapVoiceCloneResult(result);
-      //     // console.log('[useVoices] mappedResult:', mappedResult);
-      //     // if (mappedResult) {
-      //     //   console.log(
-      //     //     '[useVoices] Calling handleUpdateVoices with:',
-      //     //     mappedResult
-      //     //   );
-      //     //   handleUpdateVoices(mappedResult);
-      //     // }
-
-      //     // Succès - nettoyer et revenir à la liste
-      //     setName('');
-      //     setRecordings([]);
-      //     setError(null);
-      //     setIsCreating(false);
-      //     setRecordingMode(false);
-      //     await fetchExistingVoice();
-      //   } else {
-      // Pas de nom - juste ajouter à la liste
-      console.log('[useVoices] No name, adding to recordings', newRecording);
       setRecordings((prev) => [...prev, newRecording]);
       setRecordingMode(false);
       //   }
@@ -328,8 +296,6 @@ export const useVoices = ({
       console.log('⚠️ Conditions non remplies ou soumission en cours');
       return;
     }
-
-    console.log('handleSubmit', name, recordings);
 
     try {
       setIsSubmitting(true);
@@ -354,12 +320,7 @@ export const useVoices = ({
         result,
         name
       );
-      console.log('[useVoices] mappedResult:', mappedResult);
       if (mappedResult) {
-        console.log(
-          '[useVoices] Calling handleUpdateVoices with:',
-          mappedResult
-        );
         handleUpdateVoices(mappedResult);
       }
       setName('');

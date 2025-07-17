@@ -21,7 +21,9 @@ export class VoiceService {
     }
     return null;
   }
-  static async getExistingVoice(userId: string): Promise<VoiceDatabase[] | null> {
+  static async getExistingVoice(
+    userId: string
+  ): Promise<VoiceDatabase[] | null> {
     try {
       const response = await fetch(`${API_ENDPOINTS.USER_VOICES()}`, {
         headers: API_HEADERS.CLERK_AUTH(userId),
@@ -137,7 +139,6 @@ export class VoiceService {
   }
 
   static voiceMapper(voice: VoiceDatabase[]): VoiceConfig[] | null {
-    console.log('voice', voice);
     const voices = voice.map((v) => {
       const { success, data, error } = VoiceDatabaseSchema.safeParse(v);
       if (!success) {

@@ -37,7 +37,7 @@ const VoiceRecordingResultSchema = z.object({
   duration: z.number(),
   fileSize: z.number(),
   voiceCloneId: z.string(),
-  });
+});
 
 export class VoiceRecordingService {
   static async submitVoiceClone(
@@ -347,11 +347,19 @@ export class VoiceRecordingService {
     }
   }
 
-  static mapVoiceCloneResult(result: VoiceRecordingResult, name: string): VoiceConfig | null {
-    console.log('result', result);
-    const { success, data, error } = VoiceRecordingResultSchema.safeParse(result);
+  static mapVoiceCloneResult(
+    result: VoiceRecordingResult,
+    name: string
+  ): VoiceConfig | null {
+    const { success, data, error } =
+      VoiceRecordingResultSchema.safeParse(result);
     if (!success) {
-      console.error('Error parsing voice recording result:', error.format(), error, error.message);
+      console.error(
+        'Error parsing voice recording result:',
+        error.format(),
+        error,
+        error.message
+      );
       return null;
     }
     return {
@@ -361,4 +369,3 @@ export class VoiceRecordingService {
     };
   }
 }
-

@@ -12,11 +12,6 @@ const VoiceRecordingSection: React.FC<VoiceRecordingSectionProps> = ({
   onComplete,
   onCancel,
 }) => {
-  console.log('[VoiceRecordingSection] onComplete prop:', onComplete);
-  console.log('[VoiceRecordingSection] Rendered with props:', {
-    onComplete,
-    onCancel,
-  });
   return (
     <View>
       <VoiceRecordingUI handleUpdateVoices={onComplete} />
