@@ -5,6 +5,13 @@ import { VoiceRecordingService } from './voiceRecordingService';
 import { VOICE_RECORDING_ERROR_CODES } from '../types/voice-recording';
 
 export class VoiceService {
+  static async getSelectedVoice(userId: string) {
+    const hasStoredConfig = await VoiceConfigStorage.hasStoredConfig(userId);
+    if (hasStoredConfig) {
+      return VoiceConfigStorage.load(userId);
+    }
+    return null;
+  }
   static async getExistingVoice(userId: string) {
     const { data: voice, error: fetchError } = await supabase
       .from('voice_clones')
@@ -15,6 +22,17 @@ export class VoiceService {
       throw fetchError;
     }
     return voice;
+  }
+
+  static async getPublicVoices() {
+    const { data: voices, error: fetchError } = await supabase
+      .from('voice_clones')
+      .select('*')
+      .eq('is_public', true);
+    if (fetchError && fetchError.code !== 'PGRST116') {
+      throw fetchError;
+    }
+    return voices;
   }
 
   static async getVoiceSamples(
@@ -114,12 +132,14 @@ export class VoiceService {
   }
 }
 
-type VoiceConfig = {
+export type VoiceConfig = {
   voiceId: string;
   voiceName: string;
   voiceDescription: string;
-  voiceGender: string;
+  voiceGender: 'male' | 'female';
   voiceAge: string;
+  voiceLink?: string;
+  isPublic: boolean;
 };
 export class VoiceConfigStorage {
   private static readonly STORAGE_KEY_PREFIX = 'voice_config_';
@@ -157,11 +177,54 @@ export class VoiceConfigStorage {
     const stored = await AsyncStorage.getItem(key);
     return stored !== null;
   }
+
   private static readonly DEFAULT_CONFIG: VoiceConfig = {
-    voiceId: '',
-    voiceName: '',
-    voiceDescription: '',
-    voiceGender: '',
-    voiceAge: '',
+    // Default voice ID
+
+    voiceId: 'jUHQdLfy668sllNiNTSW',
+    voiceName: 'Clément',
+    voiceDescription: 'Top Voice France- Narrative & calm',
+    voiceGender: 'male',
+    voiceAge: '20-30',
+    isPublic: true,
   };
+
+  static async getDefaultVoice(userId: string) {
+    const hasStoredConfig = await VoiceConfigStorage.hasStoredConfig(userId);
+    if (hasStoredConfig) {
+      return VoiceConfigStorage.load(userId);
+    }
+    return this.DEFAULT_VOICES[0];
+  }
+
+  private static readonly DEFAULT_VOICES: VoiceConfig[] = [
+    {
+      voiceId: 'McVZB9hVxVSk3Equu8EH',
+      voiceName: 'Audrey',
+      voiceDescription: 'Top Voice France- Narrative & calm',
+      voiceGender: 'female',
+      voiceAge: '20-30',
+      voiceLink:
+        'https://elevenlabs.io/app/voice-library?voiceId=McVZB9hVxVSk3Equu8EH',
+      isPublic: true,
+    },
+    {
+      voiceId: 'jUHQdLfy668sllNiNTSW',
+      voiceName: 'Clément',
+      voiceDescription: 'Top Voice France- Narrative & calm',
+      voiceGender: 'male',
+      voiceAge: '20-30',
+      isPublic: false,
+    },
+    {
+      voiceId: 'McVZB9hVxVSk3Equu8EH',
+      voiceName: 'Audrey',
+      voiceDescription: 'Top Voice France- Narrative & calm',
+      voiceGender: 'female',
+      voiceAge: '20-30',
+      voiceLink:
+        'https://elevenlabs.io/app/voice-library?voiceId=McVZB9hVxVSk3Equu8EH',
+      isPublic: true,
+    },
+  ];
 }

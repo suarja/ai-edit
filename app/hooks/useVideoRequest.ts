@@ -6,9 +6,7 @@ import { useClerkSupabaseClient } from '@/lib/supabase-clerk';
 import { VideoType, CaptionConfiguration } from '@/lib/types/video';
 import { CaptionConfigStorage } from '@/lib/utils/caption-config-storage';
 import { API_ENDPOINTS } from '@/lib/config/api';
-
-// Default voice ID
-const DEFAULT_VOICE_ID = 'NFcw9p0jKu3zbmXieNPE';
+import { VoiceConfig, VoiceConfigStorage, VoiceService } from '@/lib/services/voiceService';
 
 // Default language
 const DEFAULT_LANGUAGE = 'fr';
@@ -25,12 +23,6 @@ const DEFAULT_EDITORIAL_PROFILE = {
 
 // Default enhanced caption configuration
 const DEFAULT_CAPTION_CONFIG = CaptionConfigStorage.getDefault();
-
-type VoiceClone = {
-  id: string;
-  elevenlabs_voice_id: string;
-  status: string;
-};
 
 type EditorialProfile = {
   id: string;
@@ -63,7 +55,7 @@ export default function useVideoRequest() {
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [selectedVideos, setSelectedVideos] = useState<string[]>([]);
   const [sourceVideos, setSourceVideos] = useState<VideoType[]>([]);
-  const [voiceClone, setVoiceClone] = useState<VoiceClone | null>(null);
+  const [voiceClone, setVoiceClone] = useState<VoiceConfig | null>(null);
   const [editorialProfile, setEditorialProfile] =
     useState<EditorialProfile | null>(null);
   const [useEditorialProfile, setUseEditorialProfile] = useState(true);
@@ -105,15 +97,8 @@ export default function useVideoRequest() {
       if (videosError) throw videosError;
       setSourceVideos(videos as unknown as VideoType[]);
 
-      // Fetch voice clone using database ID
-      const { data: voice, error: voiceError } = await supabase
-        .from('voice_clones')
-        .select('id, elevenlabs_voice_id, status')
-        .eq('user_id', user.id)
-        .single();
-
-      if (voiceError && voiceError.code !== 'PGRST116') throw voiceError;
-      setVoiceClone(voice as unknown as VoiceClone);
+      const voice = await VoiceService.getSelectedVoice(user.id);
+      setVoiceClone(voice);
 
       // Fetch editorial profile using database ID
       const { data: profile, error: profileError } = await supabase
@@ -273,7 +258,9 @@ export default function useVideoRequest() {
             ? systemPrompt.trim()
             : '',
         selectedVideos: selectedVideoData,
-        voiceId: voiceClone?.elevenlabs_voice_id || DEFAULT_VOICE_ID,
+        voiceId:
+          voiceClone?.voiceId ||
+          (await VoiceConfigStorage.getDefaultVoice(user.id))?.voiceId,
         editorialProfile: profileData,
         captionConfig: currentCaptionConfig, // Use fresh config
         outputLanguage: outputLanguage,

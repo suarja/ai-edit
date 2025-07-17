@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import { CaptionConfiguration } from '@/lib/types/video';
+import { VoiceConfig } from '@/lib/services/voiceService';
 
 // VoiceClone type definition that matches useVideoRequest
 type VoiceClone = {
@@ -25,13 +26,13 @@ export default function useConfigurationStatus({
   editorialProfile,
   captionConfig,
 }: {
-  voiceClone: VoiceClone | null;
+  voiceClone: VoiceConfig | null;
   editorialProfile: EditorialProfile | null;
   captionConfig: CaptionConfiguration | null;
 }) {
   // Check if voice is configured
   const voiceConfigured = useMemo(() => {
-    return Boolean(voiceClone && voiceClone.status === 'ready');
+    return Boolean(voiceClone);
   }, [voiceClone]);
 
   // Check if editorial profile is configured
