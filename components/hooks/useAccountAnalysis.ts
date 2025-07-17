@@ -84,10 +84,6 @@ export function useAccountAnalysis(): UseAccountAnalysisReturn {
         if (analysisResponse.ok) {
           const analysisResult = await analysisResponse.json();
           if (analysisResult.success && analysisResult.data) {
-            console.log(
-              '✅ Existing analysis found, showing results:',
-              analysisResult.data
-            );
             setAnalysis(analysisResult.data);
             setIsLoading(false);
             return; // Exit early - show the analysis results

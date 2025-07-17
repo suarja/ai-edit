@@ -1,8 +1,17 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { API_ENDPOINTS } from '../config/api';
-import { supabase } from '../supabase';
+import { API_ENDPOINTS, API_HEADERS } from '../config/api';
 import { VoiceRecordingService } from './voiceRecordingService';
 import { VOICE_RECORDING_ERROR_CODES } from '../types/voice-recording';
+import { z } from 'zod';
+
+const VoiceDatabaseSchema = z.object({
+  elevenlabs_voice_id: z.string(),
+  name: z.string(),
+  is_public: z.boolean(),
+  status: z.string(),
+});
+
+type VoiceDatabase = z.infer<typeof VoiceDatabaseSchema>;
 
 export class VoiceService {
   static async getSelectedVoice(userId: string) {
@@ -12,27 +21,23 @@ export class VoiceService {
     }
     return null;
   }
-  static async getExistingVoice(userId: string) {
-    const { data: voice, error: fetchError } = await supabase
-      .from('voice_clones')
-      .select('*')
-      .eq('user_id', userId)
-      .single();
-    if (fetchError && fetchError.code !== 'PGRST116') {
-      throw fetchError;
+  static async getExistingVoice(userId: string): Promise<VoiceDatabase[] | null> {
+    try {
+      const response = await fetch(`${API_ENDPOINTS.USER_VOICES()}`, {
+        headers: API_HEADERS.CLERK_AUTH(userId),
+      });
+      if (!response.ok) {
+        throw new Error(`Failed to get existing voice: ${response.statusText}`);
+      }
+      const data = await response.json();
+      if (!data.success) {
+        throw new Error(`Failed to get existing voice: ${data.error}`);
+      }
+      return data.data;
+    } catch (error) {
+      console.error('Error getting existing voice:', error);
+      return null;
     }
-    return voice;
-  }
-
-  static async getPublicVoices() {
-    const { data: voices, error: fetchError } = await supabase
-      .from('voice_clones')
-      .select('*')
-      .eq('is_public', true);
-    if (fetchError && fetchError.code !== 'PGRST116') {
-      throw fetchError;
-    }
-    return voices;
   }
 
   static async getVoiceSamples(
@@ -129,6 +134,27 @@ export class VoiceService {
         VOICE_RECORDING_ERROR_CODES.BACKEND_ERROR
       );
     }
+  }
+
+  static voiceMapper(voice: VoiceDatabase[]): VoiceConfig[] | null {
+    console.log('voice', voice);
+    const voices = voice.map((v) => {
+      const { success, data, error } = VoiceDatabaseSchema.safeParse(v);
+      if (!success) {
+        console.error('Error parsing voice:', error);
+        return null;
+      }
+      return data;
+    });
+    return voices
+      .filter((v) => v !== null)
+      .map((e) => {
+        return {
+          voiceId: e.elevenlabs_voice_id,
+          voiceName: e.name || e.elevenlabs_voice_id,
+          isPublic: e.is_public,
+        };
+      }) as VoiceConfig[];
   }
 }
 

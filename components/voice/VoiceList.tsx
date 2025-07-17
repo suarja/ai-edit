@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { View } from 'react-native';
-import VoiceCard from './VoiceCard';
 import { VoiceConfig, VoiceConfigStorage } from '@/lib/services/voiceService';
 import { DatabaseUser, useGetUser } from '../hooks/useGetUser';
+import VoiceCard from './VoiceCard';
 
 type VoiceListProps = {
   voices: VoiceConfig[];
@@ -35,6 +35,7 @@ const VoiceList: React.FC<VoiceListProps> = ({
   if (!user || !defaultVoiceId) {
     return <View />;
   }
+  console.log('voices', voices);
 
   return (
     <View>

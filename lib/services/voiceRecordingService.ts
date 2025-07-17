@@ -43,10 +43,7 @@ export class VoiceRecordingService {
 
       // 2. Valider les fichiers
       for (const recording of data.recordings) {
-        await VoiceRecordingService.validateAudioFile(
-          recording.uri,
-          recording.name
-        );
+        await VoiceRecordingService.validateAudioFile(recording.uri, data.name);
       }
 
       // 3. Préparer FormData (plus simple que JSON/base64)

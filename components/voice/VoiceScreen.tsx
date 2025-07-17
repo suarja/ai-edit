@@ -1,22 +1,56 @@
-import React, { useState } from 'react';
-import { View } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { ActivityIndicator, View } from 'react-native';
 import VoiceList from './VoiceList';
+import {
+  VoiceConfig,
+  VoiceConfigStorage,
+  VoiceService,
+} from '@/lib/services/voiceService';
 import VoiceCreateButton from './VoiceCreateButton';
 import VoiceRecordingSection from './VoiceRecordingSection';
-import { VoiceConfig, VoiceConfigStorage } from '@/lib/services/voiceService';
+import { useGetUser } from '../hooks/useGetUser';
+import { useAuth } from '@clerk/clerk-expo';
 
 export const VoiceScreen: React.FC = () => {
   const [step, setStep] = useState<'list' | 'record'>('list');
+  const [selectedVoiceId, setSelectedVoiceId] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
   const [voices, setVoices] = useState<VoiceConfig[]>(
     VoiceConfigStorage.getDefaultVoicesList()
   );
-  const [selectedVoiceId, setSelectedVoiceId] = useState<string | null>(null);
+  const { getToken } = useAuth();
+  const { fetchUser } = useGetUser();
 
-  const handleAddClonedVoice = (voice: VoiceConfig) => {
+  useEffect(() => {
+    const fetchVoices = async () => {
+      setIsLoading(true);
+      const token = await getToken();
+      if (token) {
+        const voice = await VoiceService.getExistingVoice(token);
+        if (voice) {
+          const mappedVoices = VoiceService.voiceMapper(voice);
+          if (mappedVoices) {
+            mappedVoices.forEach((v) => {
+              if (!voices.some((voice) => voice.voiceId === v.voiceId)) {
+                setVoices((prev) => [...prev, v]);
+              }
+            });
+          }
+        }
+      }
+      setIsLoading(false);
+    };
+    fetchVoices();
+  }, []);
+
+  const handleAddClonedVoice = async (voice: VoiceConfig) => {
     setVoices((prev) => [...prev, voice]);
     setSelectedVoiceId(voice.voiceId);
+    const user = await fetchUser();
+    if (user) {
+      await VoiceConfigStorage.save(user.id, voice);
+    }
     setStep('list');
-    //  await VoiceConfigStorage.save(userId, voiceConfig);
   };
 
   const handleSelectVoice = async (
@@ -29,14 +63,24 @@ export const VoiceScreen: React.FC = () => {
 
   return (
     <View>
-      {step === 'list' && (
+      {isLoading ? (
+        <View
+          style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}
+        >
+          <ActivityIndicator size="small" color="#0000ff" />
+        </View>
+      ) : (
         <>
-          <VoiceList
-            voices={voices}
-            selectedVoiceId={selectedVoiceId}
-            onSelect={handleSelectVoice}
-          />
-          <VoiceCreateButton onCreate={() => setStep('record')} />
+          {step === 'list' && (
+            <>
+              <VoiceList
+                voices={voices}
+                selectedVoiceId={selectedVoiceId}
+                onSelect={handleSelectVoice}
+              />
+              <VoiceCreateButton onCreate={() => setStep('record')} />
+            </>
+          )}
         </>
       )}
       {step === 'record' && (

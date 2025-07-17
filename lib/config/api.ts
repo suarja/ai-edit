@@ -29,6 +29,7 @@ const API_CONFIGS = {
     scriptsModifyCurrentScript: '/api/scripts/modify-current-script',
     webhooksCreatomate: '/api/webhooks/creatomate',
     voiceClone: '/api/voice-clone',
+    userVoices: '/api/voice-clone/user-voices',
     onboarding: '/api/onboarding',
     userManagement: '/api/user-management',
 
@@ -66,6 +67,7 @@ const API_CONFIGS = {
     scriptsModifyCurrentScript: '/api/scripts/modify-current-script',
     webhooksCreatomate: '/api/webhooks/creatomate',
     voiceClone: '/api/voice-clone',
+    userVoices: '/api/voice-clone/user-voices',
     onboarding: '/api/onboarding',
     support: '/api/support',
     userManagement: '/api/user-management',
@@ -105,6 +107,7 @@ const API_CONFIGS = {
     scriptsModifyCurrentScript: '/api/scripts/modify-current-script',
     webhooksCreatomate: '/api/webhooks/creatomate',
     voiceClone: '/api/voice-clone',
+    userVoices: '/api/voice-clone/user-voices',
     onboarding: '/api/onboarding',
     support: '/api/support',
     userManagement: '/api/user-management',
@@ -244,6 +247,12 @@ export const API_ENDPOINTS = {
   VOICE_CLONE: () => {
     const config = getCurrentConfig();
     return config.baseUrl + config.voiceClone;
+  },
+
+  //* User voices (Node.js server)
+  USER_VOICES: () => {
+    const config = getCurrentConfig();
+    return config.baseUrl + config.userVoices;
   },
 
   //* Onboarding (Node.js server)

@@ -14,7 +14,7 @@ const VoiceRecordingSection: React.FC<VoiceRecordingSectionProps> = ({
 }) => {
   return (
     <View>
-      <VoiceRecordingUI />
+      <VoiceRecordingUI handleUpdateVoices={onComplete} />
       <Button title="Annuler" onPress={onCancel} />
     </View>
   );

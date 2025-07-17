@@ -12,6 +12,7 @@ import { Play, Trash, Upload, Mic, Send } from 'lucide-react-native';
 import { useVoiceRecording } from '@/components/hooks/useVoiceRecording';
 import { useVoices } from './hooks/useVoices';
 import { VoiceRecordingModal } from './VoiceRecordingModal';
+import { VoiceConfig } from '@/lib/services/voiceService';
 
 const ACCEPTED_FORMATS_LABEL =
   'AAC, AIFF, OGG, MP3, OPUS, WAV, FLAC, M4A, WEBM';
@@ -24,8 +25,12 @@ const RECORDING_INSTRUCTIONS = [
   'Format : mono, pas de musique, pas d’effets',
 ];
 
-export const VoiceRecordingUI: React.FC = () => {
-  const { data: voicesData, actions: voicesActions } = useVoices();
+export const VoiceRecordingUI: React.FC<{
+  handleUpdateVoices: (voice: VoiceConfig) => void;
+}> = ({ handleUpdateVoices }) => {
+  const { data: voicesData, actions: voicesActions } = useVoices({
+    handleUpdateVoices,
+  });
   // Only local state: show/hide recording modal/flow
   const [showRecorder, setShowRecorder] = useState(false);
 

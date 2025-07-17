@@ -12,7 +12,7 @@ import {
 import { useAuth } from '@clerk/clerk-expo';
 import { useRouter } from 'expo-router';
 import { useGetUser } from '@/components/hooks/useGetUser';
-import { VoiceService } from '@/lib/services/voiceService';
+import { VoiceConfig, VoiceService } from '@/lib/services/voiceService';
 import { VoiceRecordingService } from '@/lib/services/voiceRecordingService';
 
 export type UseVoicesReturn = {
@@ -47,7 +47,11 @@ export type UseVoicesReturn = {
     setRecordingMode: (recordingMode: boolean) => void;
   };
 };
-export const useVoices = (): UseVoicesReturn => {
+export const useVoices = ({
+  handleUpdateVoices,
+}: {
+  handleUpdateVoices: (voice: VoiceConfig) => void;
+}): UseVoicesReturn => {
   const router = useRouter();
 
   const [isCreating, setIsCreating] = useState(false);
@@ -79,13 +83,13 @@ export const useVoices = (): UseVoicesReturn => {
 
   const fetchExistingVoice = async () => {
     try {
-      const user = await fetchUser();
-      if (!user) {
+      const token = await getToken();
+      if (!token) {
         router.replace('/(auth)/sign-in');
         return;
       }
 
-      const voice = await VoiceService.getExistingVoice(user.id);
+      const voice = await VoiceService.getExistingVoice(token);
 
       // setExistingVoice(voice as unknown as VoiceClone);
       setExistingVoice(null);
