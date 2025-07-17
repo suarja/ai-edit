@@ -347,7 +347,7 @@ export class VoiceRecordingService {
     }
   }
 
-  static mapVoiceCloneResult(result: VoiceRecordingResult): VoiceConfig | null {
+  static mapVoiceCloneResult(result: VoiceRecordingResult, name: string): VoiceConfig | null {
     console.log('result', result);
     const { success, data, error } = VoiceRecordingResultSchema.safeParse(result);
     if (!success) {
@@ -356,7 +356,7 @@ export class VoiceRecordingService {
     }
     return {
       voiceId: data.voiceCloneId,
-      voiceName: data.fileName,
+      voiceName: name,
       isPublic: false,
     };
   }

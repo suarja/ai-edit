@@ -350,7 +350,10 @@ export const useVoices = ({
         token: token,
       });
 
-      const mappedResult = VoiceRecordingService.mapVoiceCloneResult(result);
+      const mappedResult = VoiceRecordingService.mapVoiceCloneResult(
+        result,
+        name
+      );
       console.log('[useVoices] mappedResult:', mappedResult);
       if (mappedResult) {
         console.log(
