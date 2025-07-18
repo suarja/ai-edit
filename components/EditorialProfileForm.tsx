@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -11,7 +11,6 @@ import {
 } from 'react-native';
 import { User, MessageCircle, Users, FileText } from 'lucide-react-native';
 import VoiceDictation from './VoiceDictation';
-import { SHARED_STYLE_COLORS } from '@/lib/constants/sharedStyles';
 import { EditorialProfile } from './hooks/useEditorialProfile';
 
 type EditorialProfileFormProps = {
@@ -150,32 +149,40 @@ export default function EditorialProfileForm({
       <View style={styles.modalOverlay}>
         <View style={styles.modalContent}>
           <RNScrollView
-            contentContainerStyle={{ flexGrow: 1 }}
+            contentContainerStyle={styles.scrollContent}
             keyboardShouldPersistTaps="handled"
             showsVerticalScrollIndicator={false}
           >
-            <Text style={styles.modalTitle}>{currentFieldConfig?.title}</Text>
-            <Text style={styles.fieldDescription}>
-              {currentFieldConfig?.description}
-            </Text>
-            <TextInput
-              style={styles.modalTextInput}
-              multiline
-              numberOfLines={currentFieldConfig?.numberOfLines || 3}
-              placeholder={currentFieldConfig?.placeholder}
-              placeholderTextColor="#666"
-              value={editingValue}
-              onChangeText={setEditingValue}
-              maxLength={currentFieldConfig?.maxLength}
-              autoFocus
-            />
-            <View style={{ alignItems: 'flex-end', marginVertical: 8 }}>
-              <VoiceDictation
-                currentValue={editingValue}
-                onTranscriptChange={setEditingValue}
-              />
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>{currentFieldConfig?.title}</Text>
+              <Text style={styles.fieldDescription}>
+                {currentFieldConfig?.description}
+              </Text>
             </View>
-            <View style={styles.modalButtonRow}>
+
+            <View style={styles.modalBody}>
+              <TextInput
+                style={styles.modalTextInput}
+                multiline
+                numberOfLines={currentFieldConfig?.numberOfLines || 6}
+                placeholder={currentFieldConfig?.placeholder}
+                placeholderTextColor="#666"
+                value={editingValue}
+                onChangeText={setEditingValue}
+                maxLength={currentFieldConfig?.maxLength}
+                autoFocus
+                textAlignVertical="top"
+              />
+
+              <View style={styles.voiceContainer}>
+                <VoiceDictation
+                  currentValue={editingValue}
+                  onTranscriptChange={setEditingValue}
+                />
+              </View>
+            </View>
+
+            <View style={styles.modalFooter}>
               <TouchableOpacity
                 style={styles.modalButton}
                 onPress={closeEditModal}
@@ -189,7 +196,18 @@ export default function EditorialProfileForm({
                 disabled={modalSaving}
               >
                 {modalSaving ? (
-                  <ActivityIndicator size="small" color="#fff" />
+                  <View style={styles.loadingContainer}>
+                    <ActivityIndicator size="small" color="#fff" />
+                    <Text
+                      style={[
+                        styles.modalButtonText,
+                        styles.modalButtonSaveText,
+                        styles.loadingText,
+                      ]}
+                    >
+                      Sauvegarde...
+                    </Text>
+                  </View>
                 ) : (
                   <Text
                     style={[styles.modalButtonText, styles.modalButtonSaveText]}
@@ -212,29 +230,47 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0,0,0,0.7)',
     justifyContent: 'center',
     alignItems: 'center',
+    padding: 20,
   },
   modalContent: {
-    backgroundColor: '#181818',
+    backgroundColor: '#18181b',
     borderRadius: 18,
-    padding: 24,
-    width: '90%',
-    maxWidth: 420,
-    minHeight: '60%',
+    width: '100%',
+    maxWidth: 400,
+    maxHeight: '80%',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-    elevation: 2,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 12,
+    elevation: 8,
+    borderWidth: 1,
+    borderColor: '#23232a',
+  },
+  scrollContent: {
+    flexGrow: 1,
+  },
+  modalHeader: {
+    padding: 20,
+    paddingBottom: 12,
   },
   modalTitle: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: '700',
     color: '#fff',
-    marginBottom: 8,
+    marginBottom: 6,
+  },
+  fieldDescription: {
+    fontSize: 14,
+    color: '#888',
+    lineHeight: 20,
+  },
+  modalBody: {
+    paddingHorizontal: 20,
+    paddingBottom: 20,
   },
   modalTextInput: {
-    backgroundColor: '#222',
-    borderRadius: 10,
+    backgroundColor: '#23232a',
+    borderRadius: 12,
     padding: 16,
     color: '#fff',
     fontSize: 15,
@@ -242,20 +278,29 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#333',
     lineHeight: 22,
-    marginTop: 12,
-    marginBottom: 8,
+    minHeight: 120,
   },
-  modalButtonRow: {
-    flexDirection: 'row',
-    justifyContent: 'flex-end',
-    gap: 12,
+  voiceContainer: {
     marginTop: 12,
+    alignItems: 'center',
+  },
+  modalFooter: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    padding: 20,
+    paddingTop: 0,
+    gap: 12,
   },
   modalButton: {
-    paddingVertical: 10,
-    paddingHorizontal: 18,
-    borderRadius: 8,
-    backgroundColor: '#222',
+    flex: 1,
+    paddingVertical: 14,
+    paddingHorizontal: 20,
+    borderRadius: 12,
+    backgroundColor: '#23232a',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: '#333',
   },
   modalButtonText: {
     color: '#fff',
@@ -263,9 +308,18 @@ const styles = StyleSheet.create({
     fontSize: 15,
   },
   modalButtonSave: {
-    backgroundColor: SHARED_STYLE_COLORS.secondary,
+    backgroundColor: '#007AFF',
+    borderColor: '#007AFF',
   },
   modalButtonSaveText: {
     color: '#fff',
+  },
+  loadingContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  loadingText: {
+    fontSize: 15,
   },
 });

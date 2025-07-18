@@ -98,7 +98,7 @@ export const useEditorialProfile = () => {
       setProfile(updatedProfile);
       setEditingField(null);
 
-      Alert.alert('Succès', 'Profil éditorial sauvegardé avec succès !');
+      // Feedback silencieux - pas d'alerte intrusive
     } catch (err) {
       console.error('Error saving profile:', err);
       Alert.alert('Erreur', 'Échec de la sauvegarde du profil');
