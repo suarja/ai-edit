@@ -7,16 +7,13 @@ import {
   ActivityIndicator,
   TextInput,
 } from 'react-native';
-import { Check, Mic, X } from 'lucide-react-native';
+import { Check, Mic } from 'lucide-react-native';
 import {
   ExpoSpeechRecognitionModule,
   useSpeechRecognitionEvent,
   type ExpoSpeechRecognitionResult,
 } from 'expo-speech-recognition';
-import {
-  SHARED_STYLE_COLORS,
-  sharedStyles,
-} from '@/lib/constants/sharedStyles';
+import { SHARED_STYLE_COLORS } from '@/lib/constants/sharedStyles';
 
 type VoiceDictationProps = {
   onTranscriptChange: (transcript: string) => void;
