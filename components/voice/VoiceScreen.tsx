@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, View } from 'react-native';
+import { ActivityIndicator, Button, View } from 'react-native';
 import VoiceList from './VoiceList';
 import {
   VoiceConfig,
@@ -7,9 +7,9 @@ import {
   VoiceService,
 } from '@/lib/services/voiceService';
 import VoiceCreateButton from './VoiceCreateButton';
-import VoiceRecordingSection from './VoiceRecordingSection';
 import { useGetUser } from '../hooks/useGetUser';
 import { useAuth } from '@clerk/clerk-expo';
+import { VoiceRecordingUI } from './VoiceRecordingUI';
 
 export const VoiceScreen: React.FC = () => {
   const [step, setStep] = useState<'list' | 'record'>('list');
@@ -22,27 +22,26 @@ export const VoiceScreen: React.FC = () => {
   const { fetchUser } = useGetUser();
 
   useEffect(() => {
-    const fetchVoices = async () => {
-      setIsLoading(true);
-      const token = await getToken();
-      if (token) {
-        const voice = await VoiceService.getExistingVoice(token);
-        if (voice) {
-          const mappedVoices = VoiceService.voiceMapper(voice);
-          if (mappedVoices) {
-            mappedVoices.forEach((v) => {
-              if (!voices.some((voice) => voice.voiceId === v.voiceId)) {
-                setVoices((prev) => [...prev, v]);
-              }
-            });
-          }
-        }
-      }
-      setIsLoading(false);
-    };
     fetchVoices();
   }, []);
-
+  const fetchVoices = async () => {
+    setIsLoading(true);
+    const token = await getToken();
+    if (token) {
+      const voice = await VoiceService.getExistingVoice(token);
+      if (voice) {
+        const mappedVoices = VoiceService.voiceMapper(voice);
+        if (mappedVoices) {
+          mappedVoices.forEach((v) => {
+            if (!voices.some((voice) => voice.voiceId === v.voiceId)) {
+              setVoices((prev) => [...prev, v]);
+            }
+          });
+        }
+      }
+    }
+    setIsLoading(false);
+  };
   const handleAddClonedVoice = async (voice: VoiceConfig) => {
     setVoices((prev) => {
       const exists = prev.some((v) => v.voiceId === voice.voiceId);
@@ -88,10 +87,10 @@ export const VoiceScreen: React.FC = () => {
         </>
       )}
       {step === 'record' && (
-        <VoiceRecordingSection
-          onComplete={handleAddClonedVoice}
-          onCancel={() => setStep('list')}
-        />
+        <View>
+          <VoiceRecordingUI handleUpdateVoices={handleAddClonedVoice} />
+          <Button title="Annuler" onPress={() => setStep('list')} />
+        </View>
       )}
     </View>
   );

@@ -173,7 +173,7 @@ export default function EditorialScreen() {
     );
   }
 
-  if (isEditing) {
+  // if (isEditing) {
     return (
       <SafeAreaView style={styles.container} edges={['top']}>
         <SettingsHeader
@@ -199,82 +199,82 @@ export default function EditorialScreen() {
         </KeyboardAvoidingView>
       </SafeAreaView>
     );
-  }
+  // }
 
-  return (
-    <SafeAreaView style={styles.container} edges={['top']}>
-      <SettingsHeader
-        title="Profil Éditorial"
-        rightButton={{
-          icon: <Edit size={20} color="#fff" />,
-          onPress: toggleEdit,
-        }}
-      />
+  // return (
+  //   <SafeAreaView style={styles.container} edges={['top']}>
+  //     <SettingsHeader
+  //       title="Profil Éditorial"
+  //       rightButton={{
+  //         icon: <Edit size={20} color="#fff" />,
+  //         onPress: toggleEdit,
+  //       }}
+  //     />
 
-      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        {!hasProfile ? (
-          <View style={styles.emptyState}>
-            <View style={styles.emptyIconContainer}>
-              <User size={48} color="#666" />
-            </View>
-            <Text style={styles.emptyTitle}>Aucun profil éditorial</Text>
-            <Text style={styles.emptyDescription}>
-              Créez votre profil éditorial pour personnaliser le style et le ton
-              de vos vidéos générées.
-            </Text>
-          </View>
-        ) : (
-          <View style={styles.profileContent}>
-            {profile.persona_description && (
-              <View style={styles.section}>
-                <View style={styles.sectionHeader}>
-                  <User size={20} color="#007AFF" />
-                  <Text style={styles.sectionTitle}>
-                    Description de la Persona
-                  </Text>
-                </View>
-                <Text style={styles.sectionContent}>
-                  {profile.persona_description}
-                </Text>
-              </View>
-            )}
+  //     <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+  //       {!hasProfile ? (
+  //         <View style={styles.emptyState}>
+  //           <View style={styles.emptyIconContainer}>
+  //             <User size={48} color="#666" />
+  //           </View>
+  //           <Text style={styles.emptyTitle}>Aucun profil éditorial</Text>
+  //           <Text style={styles.emptyDescription}>
+  //             Créez votre profil éditorial pour personnaliser le style et le ton
+  //             de vos vidéos générées.
+  //           </Text>
+  //         </View>
+  //       ) : (
+  //         <View style={styles.profileContent}>
+  //           {profile.persona_description && (
+  //             <View style={styles.section}>
+  //               <View style={styles.sectionHeader}>
+  //                 <User size={20} color="#007AFF" />
+  //                 <Text style={styles.sectionTitle}>
+  //                   Description de la Persona
+  //                 </Text>
+  //               </View>
+  //               <Text style={styles.sectionContent}>
+  //                 {profile.persona_description}
+  //               </Text>
+  //             </View>
+  //           )}
 
-            {profile.tone_of_voice && (
-              <View style={styles.section}>
-                <View style={styles.sectionHeader}>
-                  <MessageSquare size={20} color="#007AFF" />
-                  <Text style={styles.sectionTitle}>Ton de Voix</Text>
-                </View>
-                <Text style={styles.sectionContent}>
-                  {profile.tone_of_voice}
-                </Text>
-              </View>
-            )}
+  //           {profile.tone_of_voice && (
+  //             <View style={styles.section}>
+  //               <View style={styles.sectionHeader}>
+  //                 <MessageSquare size={20} color="#007AFF" />
+  //                 <Text style={styles.sectionTitle}>Ton de Voix</Text>
+  //               </View>
+  //               <Text style={styles.sectionContent}>
+  //                 {profile.tone_of_voice}
+  //               </Text>
+  //             </View>
+  //           )}
 
-            {profile.audience && (
-              <View style={styles.section}>
-                <View style={styles.sectionHeader}>
-                  <Users size={20} color="#007AFF" />
-                  <Text style={styles.sectionTitle}>Audience Cible</Text>
-                </View>
-                <Text style={styles.sectionContent}>{profile.audience}</Text>
-              </View>
-            )}
+  //           {profile.audience && (
+  //             <View style={styles.section}>
+  //               <View style={styles.sectionHeader}>
+  //                 <Users size={20} color="#007AFF" />
+  //                 <Text style={styles.sectionTitle}>Audience Cible</Text>
+  //               </View>
+  //               <Text style={styles.sectionContent}>{profile.audience}</Text>
+  //             </View>
+  //           )}
 
-            {profile.style_notes && (
-              <View style={styles.section}>
-                <View style={styles.sectionHeader}>
-                  <FileText size={20} color="#007AFF" />
-                  <Text style={styles.sectionTitle}>Notes de Style</Text>
-                </View>
-                <Text style={styles.sectionContent}>{profile.style_notes}</Text>
-              </View>
-            )}
-          </View>
-        )}
-      </ScrollView>
-    </SafeAreaView>
-  );
+  //           {profile.style_notes && (
+  //             <View style={styles.section}>
+  //               <View style={styles.sectionHeader}>
+  //                 <FileText size={20} color="#007AFF" />
+  //                 <Text style={styles.sectionTitle}>Notes de Style</Text>
+  //               </View>
+  //               <Text style={styles.sectionContent}>{profile.style_notes}</Text>
+  //             </View>
+  //           )}
+  //         </View>
+  //       )}
+  //     </ScrollView>
+  //   </SafeAreaView>
+  // );
 }
 
 const styles = StyleSheet.create({
