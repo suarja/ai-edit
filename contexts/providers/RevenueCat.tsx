@@ -44,15 +44,15 @@ export const RevenueCatProvider = ({ children }: any) => {
   const init = async () => {
     try {
       // In development mode on simulator, we might not have proper RevenueCat setup
-      if (isDevelopment && Platform.OS === 'ios') {
-        console.log(
-          '🚧 Development mode detected - using fallback for RevenueCat'
-        );
-        setHasOfferingError(true);
-        setIsReady(true);
-        await loadUserUsage();
-        return;
-      }
+      // if (isDevelopment && Platform.OS === 'ios') {
+      //   console.log(
+      //     '🚧 Development mode detected - using fallback for RevenueCat'
+      //   );
+      //   setHasOfferingError(true);
+      //   setIsReady(true);
+      //   await loadUserUsage();
+      //   return;
+      // }
 
       if (Platform.OS === 'android') {
         await Purchases.configure({ apiKey: APIKeys.google });
@@ -121,6 +121,7 @@ export const RevenueCatProvider = ({ children }: any) => {
 
       // Get offerings
       const offerings = await Purchases.getOfferings();
+      console.log('Offerings:', JSON.stringify(offerings, null, 2));
       if (offerings.current) {
         setCurrentOffering(offerings.current);
       } else {

@@ -193,22 +193,6 @@ export default function RootLayout() {
                   name="script-video-settings"
                   options={{ headerShown: false }}
                 />
-
-                {/* Auth callback screens - accessible via deep linking */}
-                <Stack.Screen
-                  name="auth/reset-password"
-                  options={{
-                    headerShown: false,
-                    presentation: 'modal',
-                  }}
-                />
-                <Stack.Screen
-                  name="auth/verify"
-                  options={{
-                    headerShown: false,
-                    presentation: 'modal',
-                  }}
-                />
               </Stack>
             </ThemeProvider>
           </RevenueCatProvider>
