@@ -55,7 +55,6 @@ export function useAccountAnalysis(): UseAccountAnalysisReturn {
 
   const fetchAnalysis = useCallback(
     async (job?: JobType) => {
-      console.log('🔄 useAccountAnalysis: Fetching analysis data...');
       setIsLoading(true);
       setError(null);
       setActiveJob(null);
@@ -91,9 +90,6 @@ export function useAccountAnalysis(): UseAccountAnalysisReturn {
         }
 
         // STEP 2: No completed analysis found, check for active job
-        console.log(
-          '🔍 No completed analysis found, checking for active jobs...'
-        );
         const activeJobResponse = await fetch(
           API_ENDPOINTS.TIKTOK_ANALYSIS_ACTIVE_JOB(),
           {
@@ -104,16 +100,11 @@ export function useAccountAnalysis(): UseAccountAnalysisReturn {
         if (activeJobResponse.ok) {
           const activeJobData = await activeJobResponse.json();
           if (activeJobData) {
-            console.log(
-              '✅ Found an active job, showing progress screen:',
-              activeJobData
-            );
             setActiveJob(activeJobData);
             setAnalysis(null);
             setIsLoading(false);
             return; // Exit early - show the progress screen
           } else {
-            console.log('ℹ️ No active job found in response');
           }
         } else {
           console.warn(

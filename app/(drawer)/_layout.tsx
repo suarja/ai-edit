@@ -47,13 +47,6 @@ function DrawerLayoutContent() {
         }}
       >
         <Tabs.Screen
-          name="index"
-          options={{
-            href: null,
-          }}
-        />
-
-        <Tabs.Screen
           name="(analysis)"
           options={{
             title: 'Chat TikTok',

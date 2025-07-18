@@ -8,6 +8,7 @@ import Purchases, {
 import { useClerkSupabaseClient } from '@/lib/supabase-clerk';
 import { useGetUser } from '@/components/hooks/useGetUser';
 import { CustomPaywall } from '@/components/CustomPaywall';
+import { Plan, RevenueCatProps, UserUsage } from '@/lib/types/revenueCat';
 
 // Use keys from your RevenueCat API Keys
 const APIKeys = {
@@ -17,49 +18,6 @@ const APIKeys = {
 
 // Check if we're in development mode
 const isDevelopment = __DEV__ || process.env.NODE_ENV === 'development';
-
-interface UserUsage {
-  videos_generated: number;
-  videos_generated_limit: number;
-  source_videos_used: number;
-  source_videos_limit: number;
-  voice_clones_used: number;
-  voice_clones_limit: number;
-  account_analysis_used: number;
-  account_analysis_limit: number;
-  next_reset_date: string;
-}
-
-export interface Plan {
-  id: string;
-  name: string;
-  features: string[];
-  videos_generated_limit: number;
-  source_videos_limit: number;
-  voice_clones_limit: number;
-  account_analysis_limit: number;
-}
-
-interface RevenueCatProps {
-  isPro: boolean;
-  isReady: boolean;
-  userUsage: UserUsage | null;
-  videosRemaining: number;
-  sourceVideosRemaining: number;
-  voiceClonesRemaining: number;
-  accountAnalysisRemaining: number;
-  goPro: () => Promise<boolean>;
-  refreshUsage: () => Promise<void>;
-  hasOfferingError: boolean;
-  restorePurchases: () => Promise<boolean>;
-  currentPlan: 'free' | 'pro';
-  dynamicVideosLimit: number; // The actual limit based on subscription status
-  showPaywall: boolean;
-  setShowPaywall: (show: boolean) => void;
-  isDevMode: boolean; // Add development mode indicator
-  plans: Record<string, Plan> | null;
-  currentOffering: PurchasesOffering | null;
-}
 
 const RevenueCatContext = createContext<RevenueCatProps | null>(null);
 
@@ -80,88 +38,85 @@ export const RevenueCatProvider = ({ children }: any) => {
   const { fetchUser } = useGetUser();
 
   useEffect(() => {
-    const init = async () => {
-      try {
-        // In development mode on simulator, we might not have proper RevenueCat setup
-        if (isDevelopment && Platform.OS === 'ios') {
-          console.log(
-            '🚧 Development mode detected - using fallback for RevenueCat'
-          );
-          setHasOfferingError(true);
-          setIsReady(true);
-          await loadUserUsage();
-          return;
-        }
-
-        if (Platform.OS === 'android') {
-          await Purchases.configure({ apiKey: APIKeys.google });
-        } else {
-          await Purchases.configure({ apiKey: APIKeys.apple });
-        }
-
-        // Use more logging during debug if want!
-        Purchases.setLogLevel(
-          isDevelopment ? LOG_LEVEL.DEBUG : LOG_LEVEL.ERROR
-        );
-
-        // Listen for customer updates
-        Purchases.addCustomerInfoUpdateListener(async (info) => {
-          await updateCustomerInformation(info);
-        });
-
-        // Load initial customer info and usage
-        await loadInitialData();
-
-        setIsReady(true);
-      } catch (error) {
-        console.error('🍎 RevenueCat initialization error:', error);
-        console.log(`🔄 Attempt ${initAttempts + 1}/${maxInitAttempts + 1}`);
-
-        // If we've tried enough times, proceed with fallback
-        if (initAttempts >= maxInitAttempts) {
-          console.log(
-            '🚧 Using fallback mode due to RevenueCat initialization failure'
-          );
-          setHasOfferingError(true);
-          setIsReady(true); // Still mark as ready so UI can render with fallbacks
-          await loadUserUsage(); // Still load usage from database
-        } else {
-          // Try again (but not too many times)
-          setInitAttempts((prev) => prev + 1);
-        }
-      }
-    };
-
-    const loadSubscriptionPlans = async () => {
-      try {
-        const { data, error } = await supabase
-          .from('subscription_plans')
-          .select('*');
-
-        if (error) {
-          console.error('Failed to fetch subscription plans:', error);
-          return;
-        }
-
-        const plansData = data.reduce((acc, plan) => {
-          acc[plan.id] = plan;
-          return acc;
-        }, {} as Record<string, Plan>);
-        setPlans(plansData);
-      } catch (error) {
-        console.error('Error loading subscription plans:', error);
-      }
-    };
-
     init();
     loadSubscriptionPlans();
   }, [initAttempts]);
+  const init = async () => {
+    try {
+      // In development mode on simulator, we might not have proper RevenueCat setup
+      if (isDevelopment && Platform.OS === 'ios') {
+        console.log(
+          '🚧 Development mode detected - using fallback for RevenueCat'
+        );
+        setHasOfferingError(true);
+        setIsReady(true);
+        await loadUserUsage();
+        return;
+      }
 
+      if (Platform.OS === 'android') {
+        await Purchases.configure({ apiKey: APIKeys.google });
+      } else {
+        await Purchases.configure({ apiKey: APIKeys.apple });
+      }
+
+      // Use more logging during debug if want!
+      Purchases.setLogLevel(isDevelopment ? LOG_LEVEL.DEBUG : LOG_LEVEL.ERROR);
+
+      // Listen for customer updates
+      Purchases.addCustomerInfoUpdateListener(async (info) => {
+        await updateCustomerInformation(info);
+      });
+
+      // Load initial customer info and usage
+      await loadInitialData();
+
+      setIsReady(true);
+    } catch (error) {
+      console.error('🍎 RevenueCat initialization error:', error);
+      console.log(`🔄 Attempt ${initAttempts + 1}/${maxInitAttempts + 1}`);
+
+      // If we've tried enough times, proceed with fallback
+      if (initAttempts >= maxInitAttempts) {
+        console.log(
+          '🚧 Using fallback mode due to RevenueCat initialization failure'
+        );
+        setHasOfferingError(true);
+        setIsReady(true); // Still mark as ready so UI can render with fallbacks
+        await loadUserUsage(); // Still load usage from database
+      } else {
+        // Try again (but not too many times)
+        setInitAttempts((prev) => prev + 1);
+      }
+    }
+  };
+
+  const loadSubscriptionPlans = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('subscription_plans')
+        .select('*');
+
+      if (error) {
+        console.error('Failed to fetch subscription plans:', error);
+        return;
+      }
+
+      const plansData = data.reduce((acc, plan) => {
+        acc[plan.id] = plan;
+        return acc;
+      }, {} as Record<string, Plan>);
+      setPlans(plansData);
+    } catch (error) {
+      console.error('Error loading subscription plans:', error);
+    }
+  };
   // Load initial customer info and user usage
   const loadInitialData = async () => {
     try {
       // Get current customer info from RevenueCat
       const customerInfo = await Purchases.getCustomerInfo();
+      console.log('Customer info:', JSON.stringify(customerInfo, null, 2));
       await updateCustomerInformation(customerInfo);
 
       // Get offerings
