@@ -46,7 +46,7 @@ export interface RevenueCatProps {
   isReady: boolean;
   userUsage: UserUsage | null;
   currentPlan: PlanIdentifier; // Remplacer isPro
-  offerings: PurchasesOffering | null;
+  offerings: any; // Tous les offerings RevenueCat
   // Les compteurs restants sont toujours utiles
   videosRemaining: number;
   sourceVideosRemaining: number;

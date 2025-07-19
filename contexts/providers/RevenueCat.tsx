@@ -7,7 +7,7 @@ import Purchases, {
 } from 'react-native-purchases';
 import { useClerkSupabaseClient } from '@/lib/config/supabase-clerk';
 import { useGetUser } from '@/components/hooks/useGetUser';
-import { CustomPaywall } from '@/components/CustomPaywall';
+import { Paywall } from '@/components/Paywall';
 import {
   Plan,
   PlanIdentifier,
@@ -37,7 +37,7 @@ export const RevenueCatProvider = ({ children }: any) => {
   const [plans, setPlans] = useState<Record<string, Plan> | null>(null);
   const [currentOffering, setCurrentOffering] =
     useState<PurchasesOffering | null>(null);
-  const [offerings, setOfferings] = useState<PurchasesOffering | null>(null);
+  const [allOfferings, setAllOfferings] = useState<any>(null);
   const maxInitAttempts = 2;
 
   const { client: supabase } = useClerkSupabaseClient();
@@ -54,7 +54,10 @@ export const RevenueCatProvider = ({ children }: any) => {
         throw new Error('User not found');
       }
       if (Platform.OS === 'android') {
-        await Purchases.configure({ apiKey: APIKeys.google, appUserID: user.id });
+        await Purchases.configure({
+          apiKey: APIKeys.google,
+          appUserID: user.id,
+        });
       } else {
         await Purchases.configure({ apiKey: APIKeys.apple });
       }
@@ -121,7 +124,7 @@ export const RevenueCatProvider = ({ children }: any) => {
       // Get offerings
       const offerings = await Purchases.getOfferings();
       console.log('Offerings:', JSON.stringify(offerings, null, 2));
-      setOfferings(offerings.all.default);
+      setAllOfferings(offerings);
       if (offerings.current) {
         setCurrentOffering(offerings.current);
       } else {
@@ -389,7 +392,7 @@ export const RevenueCatProvider = ({ children }: any) => {
     : 0;
 
   const value: RevenueCatProps = {
-    offerings,
+    offerings: allOfferings,
     isReady,
     userUsage,
     videosRemaining,
@@ -413,7 +416,7 @@ export const RevenueCatProvider = ({ children }: any) => {
   return (
     <RevenueCatContext.Provider value={value}>
       {children}
-      <CustomPaywall
+      <Paywall
         visible={showPaywall}
         onClose={() => setShowPaywall(false)}
         onPurchaseComplete={handlePurchaseComplete}
