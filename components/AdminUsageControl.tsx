@@ -8,10 +8,10 @@ import {
   TouchableOpacity,
   ActivityIndicator,
 } from 'react-native';
-import { supabase } from '@/lib/supabase';
 import { User, Shield } from 'lucide-react-native';
 import { router } from 'expo-router';
 import { useGetUser } from './hooks/useGetUser';
+import { useClerkSupabaseClient } from '@/lib/config/supabase-clerk';
 
 type AdminUsageControlProps = {
   userId: string;
@@ -27,6 +27,7 @@ export default function AdminUsageControl({
   const [newLimit, setNewLimit] = useState(currentLimit.toString());
   const [loading, setLoading] = useState(false);
   const { fetchUser } = useGetUser();
+  const { client: supabase } = useClerkSupabaseClient();
   const updateLimit = async () => {
     try {
       setLoading(true);

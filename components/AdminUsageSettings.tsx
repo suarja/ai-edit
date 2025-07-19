@@ -9,11 +9,11 @@ import {
   Alert,
   ScrollView,
 } from 'react-native';
-import { supabase } from '@/lib/supabase';
 import { Shield, CheckCircle, XCircle, User } from 'lucide-react-native';
 import { env } from '@/lib/config/env';
 import { useGetUser } from './hooks/useGetUser';
 import { router } from 'expo-router';
+import { useClerkSupabaseClient } from '@/lib/config/supabase-clerk';
 
 export default function AdminUsageSettings() {
   const [email, setEmail] = useState('');
@@ -24,6 +24,7 @@ export default function AdminUsageSettings() {
     message: string;
     userData?: any;
   } | null>(null);
+  const { client: supabase } = useClerkSupabaseClient();
   const { fetchUser } = useGetUser();
   const findUser = async () => {
     if (!email.trim()) {
