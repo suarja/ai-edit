@@ -3,19 +3,23 @@ import { StyleSheet } from 'react-native';
 export const paywallStyles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: '#000',
   },
   background: {
     flex: 1,
     backgroundColor: '#000',
+    paddingTop: 0,
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'flex-end',
-    padding: 20,
-    paddingBottom: 10,
+    paddingHorizontal: 20,
+    paddingTop: 10,
+    paddingBottom: 20,
   },
   closeButton: {
     padding: 8,
+    marginTop: 10,
   },
   content: {
     flex: 1,

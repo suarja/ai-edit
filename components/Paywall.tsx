@@ -48,10 +48,13 @@ export const Paywall: React.FC<PaywallProps> = ({
     <Modal
       visible={visible}
       animationType="slide"
-      presentationStyle="fullScreen"
+      presentationStyle="pageSheet"
       onRequestClose={onClose}
     >
-      <SafeAreaView style={paywallStyles.container} edges={['top']}>
+      <SafeAreaView
+        style={paywallStyles.container}
+        edges={['top', 'left', 'right']}
+      >
         <View style={paywallStyles.background}>
           {/* Header */}
           <View style={paywallStyles.header}>
