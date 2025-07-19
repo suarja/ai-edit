@@ -49,10 +49,14 @@ export const RevenueCatProvider = ({ children }: any) => {
   }, [initAttempts]);
   const init = async () => {
     try {
+      const user = await fetchUser();
+      if (!user) {
+        throw new Error('User not found');
+      }
       if (Platform.OS === 'android') {
-        await Purchases.configure({ apiKey: APIKeys.google });
+        await Purchases.configure({ apiKey: APIKeys.google, appUserID: user.id });
       } else {
-        await Purchases.configure({ apiKey: APIKeys.apple });
+        await Purchases.configure({ apiKey: APIKeys.apple, appUserID: user.id });
       }
 
       // Use more logging during debug if want!
