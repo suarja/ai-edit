@@ -2,33 +2,193 @@
 
 ## 1. Vue d'ensemble
 
-Ce document sert de référence complète pour le système de feature flags d'Editia. Il documente toutes les fonctionnalités, leur gating, et leur utilisation dans l'application.
+Ce document sert de référence complète pour le système de feature flags d'Editia. Il documente toutes les fonctionnalités, leur gating, et leur utilisation dans l'application mobile et les serveurs backend.
 
 ## 2. Architecture du Système
 
 ### 2.1. Composants Principaux
 
-- **Table `feature_flags`** : Configuration centralisée des fonctionnalités
+#### Frontend (Mobile)
+
 - **Hook `useFeatureAccess`** : Logique de vérification d'accès
 - **Composant `FeatureLock`** : UI de gating
 - **Guard `AccountAnalysisGuard`** : Guard de niveau layout
+- **Contexte `RevenueCat`** : Gestion des abonnements
+
+#### Backend (Serveurs)
+
+- **Server Primary** : `usageTrackingService`, `usageLimitMiddleware`
+- **Server Analyzer** : `usageTrackingService`, `usageLimitMiddleware`
+- **Base de données** : Tables `feature_flags`, `user_usage`, `subscription_plans`
 
 ### 2.2. Flux de Vérification
 
 ```mermaid
 graph TD
-    A[useFeatureAccess] --> B[Vérifier feature_flags]
+    A[Frontend: useFeatureAccess] --> B[Vérifier feature_flags]
     B --> C{required_plan = null?}
     C -->|Oui| D[Accès accordé]
     C -->|Non| E[Vérifier plan utilisateur]
     E --> F[Vérifier limites d'usage]
     F --> G[Retourner hasAccess]
     D --> G
+
+    H[Backend: usageLimitMiddleware] --> I[Vérifier user_usage]
+    I --> J{Limite atteinte?}
+    J -->|Non| K[Traiter la requête]
+    J -->|Oui| L[Retourner 429]
+    K --> M[Incrémenter usage]
 ```
 
 ## 3. Configuration des Feature Flags
 
-### 3.1. Structure de la Table
+### 3.1. Table `feature_flags`
+
+| ID                   | Nom                          | Description                                         | Plan Requis   | Statut   | Backend Endpoints   |
+| -------------------- | ---------------------------- | --------------------------------------------------- | ------------- | -------- | ------------------- |
+| `account_analysis`   | Analyse de Compte            | Analyse approfondie de votre compte TikTok          | `null` (tous) | ✅ Actif | `/api/analysis`     |
+| `chat_ai`            | Chat IA Éditorial            | Chat avec l'IA pour conseils éditoriaux             | `free` (tous) | ✅ Actif | `/api/chat`         |
+| `script_generation`  | Génération de Scripts        | Générer des scripts personnalisés avec IA           | `creator`     | ✅ Actif | `/api/scripts`      |
+| `video_generation`   | Génération de Vidéos         | Générer des vidéos automatiquement avec IA          | `creator`     | ✅ Actif | `/api/videos`       |
+| `source_videos`      | Upload de Vidéos Sources     | Uploader des vidéos B-roll pour vos créations       | `creator`     | ✅ Actif | `/api/sourceVideos` |
+| `advanced_subtitles` | Sous-titres Avancés          | Styles de sous-titres personnalisés                 | `creator`     | ✅ Actif | `/api/videos`       |
+| `voice_clone`        | Clonage Vocal                | Créer un clone de votre voix pour la narration      | `pro`         | ✅ Actif | `/api/voiceClone`   |
+| `multiple_voices`    | Voix Multiples               | Gérer plusieurs voix clonées                        | `pro`         | ✅ Actif | `/api/voiceClone`   |
+| `niche_analysis`     | Analyse de Niche/Compétition | Analyses concurrentielles et rapports hebdomadaires | `pro`         | ✅ Actif | `/api/analysis`     |
+| `content_ideas`      | Idées de Contenu Proactives  | Notifications de tendances et suggestions           | `pro`         | ✅ Actif | `/api/insights`     |
+| `scheduling`         | Programmation de Contenu     | Connecter et programmer sur TikTok/YouTube          | `pro`         | ✅ Actif | `/api/scheduling`   |
+
+### 3.2. Plans d'Abonnement
+
+| Plan ID   | Nom             | Vidéos | Sources | Voix | Analyses | Statut   |
+| --------- | --------------- | ------ | ------- | ---- | -------- | -------- |
+| `free`    | Plan Découverte | 1      | 5       | 0    | 1        | ✅ Actif |
+| `creator` | Plan Créateur   | 15     | 50      | 1    | 4        | ✅ Actif |
+| `pro`     | Plan Pro        | ∞      | ∞       | 2    | ∞        | ✅ Actif |
+
+## 4. Utilisation Frontend
+
+### 4.1. Hook `useFeatureAccess`
+
+```typescript
+// Vérification d'une fonctionnalité
+const { hasAccess, isLoading, remainingUsage } =
+  useFeatureAccess('video_generation');
+
+if (isLoading) return <LoadingSpinner />;
+if (!hasAccess) return <FeatureLock requiredPlan="creator" />;
+return <VideoGenerationComponent />;
+```
+
+### 4.2. Hook `useMultipleFeatureAccess`
+
+```typescript
+// Vérification de plusieurs fonctionnalités
+const { hasAccess, remainingUsage } = useMultipleFeatureAccess([
+  'video_generation',
+  'voice_clone',
+]);
+
+if (!hasAccess) return <FeatureLock requiredPlan="pro" />;
+return <AdvancedFeaturesComponent />;
+```
+
+### 4.3. Composant `FeatureLock`
+
+```typescript
+<FeatureLock requiredPlan="creator" onLockPress={presentPaywall}>
+  <VideoGenerationComponent />
+</FeatureLock>
+```
+
+## 5. Utilisation Backend
+
+### 5.1. Middleware Usage Limit
+
+#### Server Primary
+
+```typescript
+// Endpoint avec vérification d'usage
+app.post(
+  '/api/videos',
+  usageLimiter(ResourceType.VIDEOS_GENERATED),
+  async (req, res) => {
+    // Traitement de la requête
+    await incrementResourceUsage(req.user.id, ResourceType.VIDEOS_GENERATED);
+  }
+);
+```
+
+#### Server Analyzer
+
+```typescript
+// Endpoint avec vérification d'usage
+app.post(
+  '/api/analysis',
+  usageLimiter(ResourceType.ACCOUNT_ANALYSIS),
+  async (req, res) => {
+    // Traitement de l'analyse
+    await incrementResourceUsage(
+      req.body.userId,
+      ResourceType.ACCOUNT_ANALYSIS
+    );
+  }
+);
+```
+
+### 5.2. Service Usage Tracking
+
+```typescript
+// Vérification manuelle d'usage
+const { limitReached, usage } = await checkUsageLimit(
+  userId,
+  ResourceType.VIDEOS_GENERATED
+);
+
+if (limitReached) {
+  return res.status(429).json({
+    error: 'Usage limit reached',
+    details: {
+      limit: usage.videos_generated_limit,
+      used: usage.videos_generated,
+    },
+  });
+}
+```
+
+## 6. Types de Ressources
+
+### 6.1. Frontend (Mobile)
+
+```typescript
+export type ResourceType =
+  | 'videos' // Génération de vidéos
+  | 'source_videos' // Upload de vidéos sources
+  | 'voice_clones' // Clonage de voix
+  | 'account_analysis'; // Analyse de compte
+```
+
+### 6.2. Backend (Server Primary)
+
+```typescript
+export enum ResourceType {
+  SOURCE_VIDEOS = 'source_videos',
+  VOICE_CLONES = 'voice_clones',
+  VIDEOS_GENERATED = 'videos_generated',
+  // ⚠️ Manque ACCOUNT_ANALYSIS
+}
+```
+
+### 6.3. Backend (Server Analyzer)
+
+```typescript
+type ResourceType = 'account_analysis';
+// ⚠️ Très limité
+```
+
+## 7. Tables de Base de Données
+
+### 7.1. Table `feature_flags`
 
 ```sql
 CREATE TABLE feature_flags (
@@ -41,213 +201,187 @@ CREATE TABLE feature_flags (
 );
 ```
 
-### 3.2. Valeurs de `required_plan`
-
-- `null` : Accessible à tous les utilisateurs
-- `'free'` : Accessible aux utilisateurs gratuits et plus
-- `'creator'` : Accessible aux plans Creator et Pro
-- `'pro'` : Accessible uniquement au plan Pro
-
-## 4. Référence Complète des Fonctionnalités
-
-### 4.1. Fonctionnalités Gratuites (Plan Découverte)
-
-| ID                 | Nom               | Description                                | Plan Requis | Utilisation              |
-| ------------------ | ----------------- | ------------------------------------------ | ----------- | ------------------------ |
-| `account_analysis` | Analyse de Compte | Analyse approfondie de votre compte TikTok | `null`      | ✅ Tous les utilisateurs |
-| `chat_ai`          | Chat IA Éditorial | Chat avec l'IA pour conseils éditoriaux    | `free`      | ✅ Tous les utilisateurs |
-
-### 4.2. Fonctionnalités Plan Créateur (€29/mois)
-
-| ID                   | Nom                      | Description                                   | Plan Requis | Limites         |
-| -------------------- | ------------------------ | --------------------------------------------- | ----------- | --------------- |
-| `script_generation`  | Génération de Scripts    | Générer des scripts personnalisés avec IA     | `creator`   | Illimité        |
-| `video_generation`   | Génération de Vidéos     | Générer des vidéos automatiquement avec IA    | `creator`   | 15 vidéos/mois  |
-| `source_videos`      | Upload de Vidéos Sources | Uploader des vidéos B-roll pour vos créations | `creator`   | 50 vidéos       |
-| `advanced_subtitles` | Sous-titres Avancés      | Styles de sous-titres personnalisés           | `creator`   | Tous les styles |
-
-### 4.3. Fonctionnalités Plan Pro (€79/mois)
-
-| ID                | Nom                          | Description                                         | Plan Requis | Limites        |
-| ----------------- | ---------------------------- | --------------------------------------------------- | ----------- | -------------- |
-| `voice_clone`     | Clonage Vocal                | Créer un clone de votre voix pour la narration      | `pro`       | 2 voix         |
-| `multiple_voices` | Voix Multiples               | Gérer plusieurs voix clonées                        | `pro`       | Jusqu'à 3 voix |
-| `niche_analysis`  | Analyse de Niche/Compétition | Analyses concurrentielles et rapports hebdomadaires | `pro`       | Illimité       |
-| `content_ideas`   | Idées de Contenu Proactives  | Notifications de tendances et suggestions           | `pro`       | Illimité       |
-| `scheduling`      | Programmation de Contenu     | Connecter et programmer sur TikTok/YouTube          | `pro`       | Illimité       |
-
-## 5. Utilisation dans le Code
-
-### 5.1. Hook `useFeatureAccess`
-
-```typescript
-// Vérification d'accès à une fonctionnalité
-const { hasAccess, isLoading, remainingUsage } =
-  useFeatureAccess('video_generation');
-
-if (isLoading) return <LoadingSpinner />;
-if (!hasAccess) return <FeatureLock requiredPlan="creator" />;
-return <VideoGenerationComponent />;
-```
-
-### 5.2. Composant `FeatureLock`
-
-```typescript
-// Gating d'une fonctionnalité
-<FeatureLock requiredPlan="creator" onLockPress={presentPaywall}>
-  <VideoGenerationComponent />
-</FeatureLock>
-```
-
-### 5.3. Guard de Layout
-
-```typescript
-// Guard au niveau layout
-<AccountAnalysisGuard>
-  <Slot />
-</AccountAnalysisGuard>
-```
-
-## 6. Gestion des Limites d'Utilisation
-
-### 6.1. Table `user_usage`
+### 7.2. Table `user_usage`
 
 ```sql
 CREATE TABLE user_usage (
-  user_id UUID PRIMARY KEY REFERENCES auth.users(id),
-  current_plan_id TEXT REFERENCES subscription_plans(id),
-
-  -- Compteurs de consommation
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  user_id UUID NOT NULL REFERENCES users(id),
   videos_generated INT DEFAULT 0,
+  videos_generated_limit INT DEFAULT 5,
   source_videos_used INT DEFAULT 0,
-  account_analysis_used INT DEFAULT 0,
+  source_videos_limit INT DEFAULT 3,
   voice_clones_used INT DEFAULT 0,
-
-  -- Limites actuelles
-  videos_generated_limit INT,
-  source_videos_limit INT,
-  account_analysis_limit INT,
-  voice_clones_limit INT,
-
-  next_reset_date TIMESTAMPTZ,
+  voice_clones_limit INT DEFAULT 0,
+  account_analysis_used INT DEFAULT 0,
+  account_analysis_limit INT DEFAULT 0,
+  current_plan_id TEXT DEFAULT 'free' REFERENCES subscription_plans(id),
+  next_reset_date TIMESTAMPTZ DEFAULT (NOW() + '30 days'::interval),
+  created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 ```
 
-### 6.2. Calcul des Limites
+### 7.3. Table `subscription_plans`
 
-Le hook `useFeatureAccess` calcule automatiquement les limites restantes :
-
-```typescript
-// Exemple pour video_generation
-remaining = Math.max(
-  0,
-  userUsage.videos_generated_limit - userUsage.videos_generated
+```sql
+CREATE TABLE subscription_plans (
+  id TEXT PRIMARY KEY,
+  name TEXT NOT NULL,
+  description TEXT,
+  videos_generated_limit INT NOT NULL,
+  source_videos_limit INT NOT NULL,
+  voice_clones_limit INT NOT NULL,
+  account_analysis_limit INT NOT NULL,
+  is_active BOOLEAN DEFAULT true,
+  is_unlimited BOOLEAN DEFAULT false,
+  created_at TIMESTAMPTZ DEFAULT NOW()
 );
 ```
 
-## 7. Stratégies de Gating
+## 8. Endpoints Backend avec Gating
 
-### 7.1. Gating Strict
+### 8.1. Server Primary
 
-```typescript
-// Bloque complètement l'accès
-<FeatureLock requiredPlan="pro">
-  <AdvancedFeature />
-</FeatureLock>
-```
+- **`POST /api/sourceVideos`** : Upload de vidéos sources
 
-### 7.2. Gating avec Bouton de Fermeture
+  - Middleware : `usageLimiter(ResourceType.SOURCE_VIDEOS)`
+  - Incrémentation : `incrementResourceUsage(userId, ResourceType.SOURCE_VIDEOS)`
 
-Le `FeatureLock` inclut un bouton de fermeture discret (croix) qui permet à l'utilisateur de quitter sans contourner le gating.
+- **`POST /api/videos`** : Génération de vidéos
 
-### 7.3. Gating Contextuel
+  - Middleware : `usageLimiter(ResourceType.VIDEOS_GENERATED)`
+  - Incrémentation : `incrementResourceUsage(userId, ResourceType.VIDEOS_GENERATED)`
 
-```typescript
-// Affiche un message contextuel
-if (remainingUsage === 0) {
-  return <UpgradePrompt feature="video_generation" />;
-}
-```
+- **`POST /api/voiceClone`** : Clonage de voix
 
-## 8. Maintenance et Évolution
+  - Middleware : `usageLimiter(ResourceType.VOICE_CLONES)`
+  - Incrémentation : `incrementResourceUsage(userId, ResourceType.VOICE_CLONES)`
 
-### 8.1. Ajout d'une Nouvelle Fonctionnalité
+- **`POST /api/scripts`** : Génération de scripts
+  - Incrémentation : `incrementResourceUsage(userId, ResourceType.VIDEOS_GENERATED)`
 
-1. **Ajouter l'entrée dans `feature_flags`** :
+### 8.2. Server Analyzer
 
-```sql
-INSERT INTO feature_flags (id, name, description, required_plan, is_active)
-VALUES ('new_feature', 'Nouvelle Fonctionnalité', 'Description...', 'creator', true);
-```
+- **`POST /api/analysis`** : Analyse de compte
+  - Middleware : `usageLimiter(ResourceType.ACCOUNT_ANALYSIS)`
+  - Incrémentation : `incrementResourceUsage(userId, ResourceType.ACCOUNT_ANALYSIS)`
 
-2. **Utiliser dans le code** :
+## 9. Problèmes Identifiés
 
-```typescript
-const { hasAccess } = useFeatureAccess('new_feature');
-```
+### 9.1. Incohérences de Types
 
-3. **Ajouter les limites dans `user_usage`** si nécessaire
+- **Server Primary** : `ResourceType` enum manque `account_analysis`
+- **Server Analyzer** : `ResourceType` limité à `account_analysis` uniquement
+- **Mobile** : `ResourceType` utilise des strings au lieu d'enum
 
-### 8.2. Modification du Gating
+### 9.2. Duplication de Code
 
-Pour changer le plan requis d'une fonctionnalité :
+- Services `usageTrackingService` dupliqués dans les deux serveurs
+- Middleware `usageLimitMiddleware` dupliqués
+- Logique de vérification d'usage répétée
 
-```sql
-UPDATE feature_flags
-SET required_plan = 'pro'
-WHERE id = 'feature_id';
-```
+### 9.3. Gestion d'Erreurs Incohérente
 
-### 8.3. Désactivation d'une Fonctionnalité
+- **Server Primary** : Fail open en cas d'erreur
+- **Server Analyzer** : Fail closed en cas d'erreur
+- **Mobile** : Gestion d'erreur personnalisée
 
-```sql
-UPDATE feature_flags
-SET is_active = false
-WHERE id = 'feature_id';
-```
+## 10. Stratégie d'Harmonisation
 
-## 9. Tests et Validation
+### 10.1. Phase 1 : Standardisation des Types
 
-### 9.1. Tests de Gating
+- Créer un package partagé `@editia/shared`
+- Définir des types unifiés pour tous les composants
+- Migrer vers un enum `ResourceType` complet
 
-```typescript
-// Test que le gating fonctionne correctement
-test('video_generation requires creator plan', () => {
-  const { hasAccess } = useFeatureAccess('video_generation');
-  expect(hasAccess).toBe(false); // Pour un utilisateur gratuit
-});
-```
+### 10.2. Phase 2 : Service Partagé
 
-### 9.2. Validation des Limites
+- Créer un service `UsageService` unifié
+- Éliminer la duplication de code
+- Standardiser la gestion d'erreurs
 
-```typescript
-// Test que les limites sont respectées
-test('user cannot exceed video generation limit', () => {
-  const { remainingUsage } = useFeatureAccess('video_generation');
-  expect(remainingUsage).toBeGreaterThanOrEqual(0);
-});
-```
+### 10.3. Phase 3 : Middleware Unifié
 
-## 10. Monitoring et Analytics
+- Créer un middleware `usageMiddleware` partagé
+- Harmoniser la logique de vérification
+- Standardiser les réponses d'erreur
 
-### 10.1. Métriques à Suivre
+### 10.4. Phase 4 : Feature Flags Backend
 
-- **Taux de conversion** par fonctionnalité gated
-- **Utilisation des limites** par plan
-- **Erreurs de gating** (accès refusé vs accordé)
-- **Performance du hook** `useFeatureAccess`
+- Créer un service `FeatureFlagsService`
+- Implémenter un middleware `featureFlagsMiddleware`
+- Intégrer la vérification de feature flags dans les endpoints
 
-### 10.2. Logs de Debug
+## 11. Bonnes Pratiques
 
-Le hook `useFeatureAccess` inclut des logs de debug pour tracer les décisions d'accès :
+### 11.1. Frontend
 
-```typescript
-console.log('🔒 Access Check:', {
-  currentUserLevel,
-  requiredLevel,
-  hasAccess,
-});
-```
+- Toujours utiliser `useFeatureAccess` pour vérifier l'accès
+- Gérer les états de chargement
+- Afficher des messages d'erreur clairs
+- Utiliser `FeatureLock` pour le gating UI
 
-Cette référence complète permet de maintenir et faire évoluer le système de gating de manière cohérente et documentée.
+### 11.2. Backend
+
+- Toujours utiliser le middleware `usageLimiter`
+- Incrémenter l'usage après un traitement réussi
+- Retourner des codes d'erreur appropriés (429 pour limite atteinte)
+- Logger les vérifications d'usage pour le debugging
+
+### 11.3. Base de Données
+
+- Maintenir la cohérence entre `feature_flags` et `subscription_plans`
+- Utiliser des contraintes de clés étrangères
+- Indexer les colonnes fréquemment utilisées
+- Surveiller les performances des requêtes
+
+## 12. Monitoring et Debugging
+
+### 12.1. Métriques à Surveiller
+
+- Taux de rejet par limite d'usage
+- Distribution des plans d'abonnement
+- Performance des requêtes de vérification d'usage
+- Erreurs de synchronisation RevenueCat
+
+### 12.2. Logs Importants
+
+- Vérifications d'usage réussies/échouées
+- Incrémentations d'usage
+- Changements de plan d'abonnement
+- Erreurs de base de données
+
+### 12.3. Alertes
+
+- Taux de rejet > 10% pour une fonctionnalité
+- Erreurs de synchronisation RevenueCat
+- Performance dégradée des requêtes d'usage
+- Incohérences dans les données d'usage
+
+## 13. Évolution Future
+
+### 13.1. Nouvelles Fonctionnalités
+
+- Système de crédits flexibles
+- Limites par période (quotidiennes, hebdomadaires)
+- Gating basé sur le comportement utilisateur
+- A/B testing des limites
+
+### 13.2. Améliorations Techniques
+
+- Cache Redis pour les vérifications d'usage
+- Batch processing pour les incrémentations
+- Analytics avancées d'usage
+- Intégration avec d'autres systèmes de paiement
+
+## 14. Conclusion
+
+Le système de feature flags d'Editia est robuste mais nécessite une harmonisation entre les composants frontend et backend. La stratégie d'harmonisation proposée permettra d'améliorer la cohérence, la maintenabilité et la fiabilité du système.
+
+**Prochaines étapes prioritaires** :
+
+1. Standardiser les types `ResourceType`
+2. Créer un service partagé pour l'usage tracking
+3. Harmoniser les middlewares backend
+4. Implémenter la vérification de feature flags côté backend
