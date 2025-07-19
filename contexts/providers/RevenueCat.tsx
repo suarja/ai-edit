@@ -43,16 +43,7 @@ export const RevenueCatProvider = ({ children }: any) => {
   }, [initAttempts]);
   const init = async () => {
     try {
-      // In development mode on simulator, we might not have proper RevenueCat setup
-      // if (isDevelopment && Platform.OS === 'ios') {
-      //   console.log(
-      //     '🚧 Development mode detected - using fallback for RevenueCat'
-      //   );
-      //   setHasOfferingError(true);
-      //   setIsReady(true);
-      //   await loadUserUsage();
-      //   return;
-      // }
+
 
       if (Platform.OS === 'android') {
         await Purchases.configure({ apiKey: APIKeys.google });
