@@ -1,26 +1,26 @@
-import { PurchasesOffering } from "react-native-purchases";
+import { PurchasesOffering } from 'react-native-purchases';
+import { Database } from './supabase-types';
 
-export interface UserUsage {
-  videos_generated: number;
-  videos_generated_limit: number;
-  source_videos_used: number;
-  source_videos_limit: number;
-  voice_clones_used: number;
-  voice_clones_limit: number;
-  account_analysis_used: number;
-  account_analysis_limit: number;
-  next_reset_date: string;
-}
+export type UserUsage = Pick<
+  Database['public']['Tables']['user_usage']['Row'],
+  | 'videos_generated'
+  | 'videos_generated_limit'
+  | 'source_videos_used'
+  | 'source_videos_limit'
+  | 'voice_clones_used'
+  | 'voice_clones_limit'
+  | 'account_analysis_used'
+  | 'account_analysis_limit'
+>;
 
-export interface Plan {
-  id: string;
-  name: string;
-  features: string[];
-  videos_generated_limit: number;
-  source_videos_limit: number;
-  voice_clones_limit: number;
-  account_analysis_limit: number;
-}
+export type Plan = Pick<
+  Database['public']['Tables']['subscription_plans']['Row'],
+  'id' | 'name' | 'description' | 'is_active' | 'videos_generated_limit' | 'source_videos_limit'
+  | 'voice_clones_limit'
+  | 'account_analysis_limit'
+>;
+
+
 
 export interface RevenueCatProps {
   isPro: boolean;
