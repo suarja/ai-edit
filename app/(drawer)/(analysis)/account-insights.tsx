@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
-  StyleSheet,
   ScrollView,
   TouchableOpacity,
   Image,
@@ -14,26 +13,20 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import {
   BarChart3,
-  TrendingUp,
   Users,
   Eye,
   Heart,
   MessageCircle,
-  Crown,
-  Zap,
-  ChevronRight,
   Clock,
   Music,
   Video,
   Hash,
-  Briefcase,
 } from 'lucide-react-native';
 import { useRevenueCat } from '@/contexts/providers/RevenueCat';
 import { useAuth } from '@clerk/clerk-expo';
 import { API_ENDPOINTS } from '@/lib/config/api';
 import { useAccountAnalysis } from '@/components/hooks/useAccountAnalysis';
 import AnalysisHeader from '@/components/analysis/AnalysisHeader';
-import ProPaywall from '@/components/analysis/ProPaywall';
 import { accountInsightsStyles } from '@/lib/utils/styles/accountInsights.styles';
 
 // Updated types to match the new comprehensive context
@@ -158,24 +151,8 @@ export default function AccountInsightsScreen() {
     router.push('/(drawer)/(analysis)/account-conversations');
   };
 
-  // Paywall is still relevant
-  if (currentPlan === 'free') {
-    return (
-      <ProPaywall
-        title="Insights Pro"
-        description="Débloquez des analyses avancées de votre compte TikTok avec des insights personnalisés alimentés par l'IA pour optimiser votre stratégie de contenu."
-        features={[
-          'Analyse complète de votre compte TikTok',
-          'Recommandations personnalisées par IA',
-          "Métriques d'engagement détaillées",
-          'Meilleurs moments de publication',
-          'Analyse des tendances de contenu',
-          'Chat IA pour conseils stratégiques',
-        ]}
-        onUpgrade={presentPaywall}
-      />
-    );
-  }
+  // Account Insights should be accessible to all users
+  // No paywall gating for this feature
 
   // Use the hook's loading state initially
   if (isAnalysisLoading || loading) {

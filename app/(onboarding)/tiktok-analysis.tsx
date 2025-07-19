@@ -18,9 +18,10 @@ import {
 } from 'lucide-react-native';
 import { useOnboarding } from '@/components/providers/OnboardingProvider';
 import { useFeatureAccess } from '@/components/hooks/useFeatureAccess';
-import { ProFeatureLock } from '@/components/guards/ProFeatureLock';
 import { useAccountAnalysisApi } from '@/components/hooks/useAccountAnalysisApi';
 import { useAccountAnalysis } from '@/components/hooks/useAccountAnalysis';
+import { FeatureLock } from '@/components/guards/FeatureLock';
+import { useRevenueCat } from '@/contexts/providers/RevenueCat';
 
 /**
  * 🎯 ONBOARDING TIKTOK ANALYSIS - VERSION ASYNCHRONE
@@ -37,6 +38,7 @@ export default function TikTokAnalysisScreen() {
   const { analysis: existingAnalysis, isLoading: isAnalysisLoading } =
     useAccountAnalysis();
   const { nextStep } = useOnboarding();
+  const { presentPaywall } = useRevenueCat();
 
   const handleStartAnalysis = async () => {
     if (!handle.trim()) {
@@ -76,10 +78,38 @@ export default function TikTokAnalysisScreen() {
 
   if (!hasAccess) {
     return (
-      <ProFeatureLock
-        featureTitle="Analyse de Compte Approfondie"
-        featureDescription="Obtenez une analyse complète de n'importe quel compte TikTok, identifiez les stratégies virales et recevez des recommandations personnalisées."
-      />
+      <FeatureLock requiredPlan="creator" onLockPress={presentPaywall}>
+        <SafeAreaView style={styles.container} edges={['top']}>
+          <View style={styles.header}>
+            <TouchableOpacity
+              onPress={() => router.back()}
+              style={styles.backButton}
+            >
+              <ChevronLeft size={24} color="#fff" />
+            </TouchableOpacity>
+            <Text style={styles.headerTitle}>Analyse de Compte</Text>
+          </View>
+          <View style={styles.content}>
+            <View style={styles.iconContainer}>
+              <UserSearch size={64} color="#007AFF" />
+            </View>
+            <Text style={styles.title}>Analyse de Compte Approfondie</Text>
+            <Text style={styles.description}>
+              Obtenez une analyse complète de n&apos;importe quel compte TikTok,
+              identifiez les stratégies virales et recevez des recommandations
+              personnalisées.
+            </Text>
+            <TouchableOpacity
+              style={styles.startButton}
+              onPress={presentPaywall}
+            >
+              <Text style={styles.startButtonText}>
+                Débloquer avec le Plan Créateur
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </SafeAreaView>
+      </FeatureLock>
     );
   }
 

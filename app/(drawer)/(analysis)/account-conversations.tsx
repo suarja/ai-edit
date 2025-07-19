@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
-  StyleSheet,
   ScrollView,
   TouchableOpacity,
   ActivityIndicator,
@@ -13,7 +12,6 @@ import { router } from 'expo-router';
 import {
   Plus,
   MessageCircle,
-  Clock,
   TrendingUp,
   Users,
   ChevronRight,
@@ -21,9 +19,9 @@ import {
 import { useAuth } from '@clerk/clerk-expo';
 import { useRevenueCat } from '@/contexts/providers/RevenueCat';
 import { API_ENDPOINTS } from '@/lib/config/api';
-import ProPaywall from '@/components/analysis/ProPaywall';
 import AnalysisHeader from '@/components/analysis/AnalysisHeader';
 import { accountConversationsStyles } from '@/lib/utils/styles/accountConversations.styles';
+import { FeatureLock } from '@/components/guards/FeatureLock';
 
 interface Conversation {
   id: string;
@@ -44,7 +42,8 @@ interface Conversation {
 
 export default function AccountConversationsScreen() {
   const { getToken } = useAuth();
-  const { currentPlan, presentPaywall } = useRevenueCat();  const [conversations, setConversations] = useState<Conversation[]>([]);
+  const { currentPlan, presentPaywall } = useRevenueCat();
+  const [conversations, setConversations] = useState<Conversation[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -149,23 +148,57 @@ export default function AccountConversationsScreen() {
   // Show paywall for non-pro users
   if (currentPlan === 'free') {
     return (
-      <ProPaywall
-        title="Chat TikTok Pro"
-        description="Accédez à vos conversations avec l'IA experte TikTok. Obtenez des conseils personnalisés et optimisez votre stratégie de contenu."
-        features={[
-          "Conversations illimitées avec l'IA TikTok",
-          'Conseils personnalisés basés sur vos analyses',
-          'Historique complet de vos discussions',
-          'Streaming en temps réel',
-        ]}
-        onUpgrade={presentPaywall}
-      />
+      <FeatureLock requiredPlan="pro" onLockPress={presentPaywall}>
+        <SafeAreaView
+          style={accountConversationsStyles.container}
+          edges={['top']}
+        >
+          <AnalysisHeader
+            title={'Conversations'}
+            onBack={() => router.back()}
+          />
+          <View style={accountConversationsStyles.loadingContainer}>
+            <MessageCircle size={64} color="#007AFF" />
+            <Text style={accountConversationsStyles.emptyTitle}>
+              Conversations Pro
+            </Text>
+            <Text style={accountConversationsStyles.emptyDescription}>
+              Accédez à vos conversations IA personnalisées et obtenez des
+              conseils stratégiques pour votre compte TikTok.
+            </Text>
+            <TouchableOpacity
+              style={{
+                backgroundColor: '#007AFF',
+                paddingVertical: 16,
+                paddingHorizontal: 32,
+                borderRadius: 12,
+                marginTop: 20,
+                alignItems: 'center',
+              }}
+              onPress={presentPaywall}
+            >
+              <Text
+                style={{
+                  color: '#fff',
+                  fontSize: 16,
+                  fontWeight: '600',
+                }}
+              >
+                Débloquer avec le Plan Pro
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </SafeAreaView>
+      </FeatureLock>
     );
   }
 
   if (loading) {
     return (
-      <SafeAreaView style={accountConversationsStyles.container} edges={['top']}>
+      <SafeAreaView
+        style={accountConversationsStyles.container}
+        edges={['top']}
+      >
         <View style={accountConversationsStyles.loadingContainer}>
           <ActivityIndicator size="large" color="#007AFF" />
           <Text style={accountConversationsStyles.loadingText}>
@@ -200,7 +233,9 @@ export default function AccountConversationsScreen() {
         {!loading && conversations.length === 0 && (
           <View style={accountConversationsStyles.emptyState}>
             <MessageCircle size={64} color="#666" />
-            <Text style={accountConversationsStyles.emptyTitle}>Aucune conversation</Text>
+            <Text style={accountConversationsStyles.emptyTitle}>
+              Aucune conversation
+            </Text>
             <Text style={accountConversationsStyles.emptyDescription}>
               Commencez votre première conversation avec l&apos;expert IA TikTok
             </Text>
@@ -209,7 +244,9 @@ export default function AccountConversationsScreen() {
               onPress={handleCreateNewConversation}
             >
               <Plus size={20} color="#007AFF" />
-              <Text style={accountConversationsStyles.emptyButtonText}>Nouvelle conversation</Text>
+              <Text style={accountConversationsStyles.emptyButtonText}>
+                Nouvelle conversation
+              </Text>
             </TouchableOpacity>
           </View>
         )}
@@ -231,10 +268,16 @@ export default function AccountConversationsScreen() {
               </View>
 
               <View style={accountConversationsStyles.conversationInfo}>
-                <Text style={accountConversationsStyles.conversationTitle} numberOfLines={1}>
+                <Text
+                  style={accountConversationsStyles.conversationTitle}
+                  numberOfLines={1}
+                >
                   {getConversationTitle(conversation)}
                 </Text>
-                <Text style={accountConversationsStyles.conversationPreview} numberOfLines={2}>
+                <Text
+                  style={accountConversationsStyles.conversationPreview}
+                  numberOfLines={2}
+                >
                   {getLastMessagePreview(conversation)}
                 </Text>
               </View>
@@ -273,5 +316,3 @@ export default function AccountConversationsScreen() {
     </SafeAreaView>
   );
 }
-
-

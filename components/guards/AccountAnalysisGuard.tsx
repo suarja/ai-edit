@@ -1,5 +1,11 @@
 import React, { useEffect } from 'react';
-import { View, ActivityIndicator } from 'react-native';
+import {
+  View,
+  ActivityIndicator,
+  Text,
+  TouchableOpacity,
+  StyleSheet,
+} from 'react-native';
 import {
   JobType,
   useAccountAnalysis,
@@ -7,7 +13,9 @@ import {
 import StartAnalysisScreen from '../analysis/StartAnalysisScreen';
 import AnalysisInProgressScreen from '../analysis/AnalysisInProgressScreen';
 import { useFeatureAccess } from '@/components/hooks/useFeatureAccess';
-import { ProFeatureLock } from './ProFeatureLock';
+import { FeatureLock } from './FeatureLock';
+import { useRevenueCat } from '@/contexts/providers/RevenueCat';
+import { Lock, BarChart3, TrendingUp, Users } from 'lucide-react-native';
 
 interface AccountAnalysisGuardProps {
   children: React.ReactNode;
@@ -25,6 +33,7 @@ const AccountAnalysisGuard: React.FC<AccountAnalysisGuardProps> = ({
     error,
     refreshAnalysis,
   } = useAccountAnalysis();
+  const { presentPaywall } = useRevenueCat();
 
   const handleAnalysisStart = (job: JobType) => {
     refreshAnalysis(job);
@@ -57,10 +66,43 @@ const AccountAnalysisGuard: React.FC<AccountAnalysisGuardProps> = ({
   // 🆕 If user doesn't have access, show the lock screen.
   if (!hasAccess) {
     return (
-      <ProFeatureLock
-        featureTitle="Analyse de Compte Approfondie"
-        featureDescription="Obtenez une analyse complète de n'importe quel compte TikTok, identifiez les stratégies virales et recevez des recommandations personnalisées."
-      />
+      <FeatureLock requiredPlan="creator" onLockPress={presentPaywall}>
+        <View style={styles.lockContainer}>
+          <Lock size={48} color="#007AFF" />
+          <Text style={styles.lockTitle}>Analyse de Compte Approfondie</Text>
+          <Text style={styles.lockDescription}>
+            Obtenez une analyse complète de n&apos;importe quel compte TikTok,
+            identifiez les stratégies virales et recevez des recommandations
+            personnalisées.
+          </Text>
+
+          <View style={styles.featuresPreview}>
+            <View style={styles.featureItem}>
+              <BarChart3 size={20} color="#10b981" />
+              <Text style={styles.featureText}>Analyses détaillées</Text>
+            </View>
+            <View style={styles.featureItem}>
+              <TrendingUp size={20} color="#3b82f6" />
+              <Text style={styles.featureText}>Stratégies virales</Text>
+            </View>
+            <View style={styles.featureItem}>
+              <Users size={20} color="#f59e0b" />
+              <Text style={styles.featureText}>
+                Recommandations personnalisées
+              </Text>
+            </View>
+          </View>
+
+          <TouchableOpacity
+            style={styles.upgradeButton}
+            onPress={presentPaywall}
+          >
+            <Text style={styles.upgradeButtonText}>
+              Débloquer avec le Plan Créateur
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </FeatureLock>
     );
   }
 
@@ -83,5 +125,53 @@ const AccountAnalysisGuard: React.FC<AccountAnalysisGuardProps> = ({
   // If analysis exists, let user see the content
   return <>{children}</>;
 };
+
+const styles = StyleSheet.create({
+  lockContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 24,
+    gap: 20,
+    backgroundColor: '#111',
+  },
+  lockTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#fff',
+    textAlign: 'center',
+  },
+  lockDescription: {
+    fontSize: 16,
+    color: '#888',
+    textAlign: 'center',
+    lineHeight: 22,
+  },
+  featuresPreview: {
+    gap: 12,
+    marginVertical: 20,
+  },
+  featureItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  featureText: {
+    color: '#fff',
+    fontSize: 16,
+  },
+  upgradeButton: {
+    backgroundColor: '#007AFF',
+    paddingVertical: 16,
+    paddingHorizontal: 32,
+    borderRadius: 12,
+    marginTop: 16,
+  },
+  upgradeButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+});
 
 export default AccountAnalysisGuard;

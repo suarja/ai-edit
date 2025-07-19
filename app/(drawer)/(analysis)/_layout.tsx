@@ -14,4 +14,4 @@ export default function AnalysisLayout() {
       <Slot />
     </AccountAnalysisGuard>
   );
-} 
+}

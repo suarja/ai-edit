@@ -5,86 +5,65 @@ import {
   TextInput,
   TouchableOpacity,
   ScrollView,
-  StyleSheet,
   ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { router } from 'expo-router';
 import {
   Send,
-  CheckCircle2,
   TrendingUp,
   AlertCircle,
+  Lock,
+  MessageCircle,
+  Sparkles,
+  Zap,
+  Users,
 } from 'lucide-react-native';
-import { router, useLocalSearchParams } from 'expo-router';
 import { useRevenueCat } from '@/contexts/providers/RevenueCat';
+import { useAccountAnalysis } from '@/components/hooks/useAccountAnalysis';
 import { useTikTokChatSimple } from '@/components/hooks/useTikTokChatSimple';
 import AnalysisHeader from '@/components/analysis/AnalysisHeader';
-import Markdown from 'react-native-markdown-display';
-import ProPaywall from '@/components/analysis/ProPaywall';
+import { FeatureLock } from '@/components/guards/FeatureLock';
 import VoiceDictation from '@/components/VoiceDictation';
-import {
-  accountChatStyles,
-  markdownStyles,
-} from '@/lib/utils/styles/accountChat.styles';
+import { accountChatStyles } from '@/lib/utils/styles/accountChat.styles';
+import { useLocalSearchParams } from 'expo-router';
 
-/**
- * 🎯 SIMPLIFIED TIKTOK ANALYSIS CHAT
- *
- * Simple flow like the working chat.tsx:
- * 1. Paywall check (if not Pro)
- * 2. Simple chat interface
- * 3. Regular JSON API calls (no streaming)
- */
 export default function AccountChatScreen() {
   const { currentPlan, presentPaywall } = useRevenueCat();
-  const { conversationId, conversationTitle } = useLocalSearchParams<{
-    conversationId?: string;
-    conversationTitle?: string;
-  }>();
-  const [inputMessage, setInputMessage] = useState('');
-  const scrollViewRef = useRef<ScrollView>(null);
-  const [chatTitle, setChatTitle] = useState<string | null>(
-    conversationTitle || null
-  );
-  // Use TikTok chat hook with streaming enabled
+  const { analysis, isLoading, error, refreshAnalysis } = useAccountAnalysis();
   const {
     messages,
-    isLoading,
-    isStreaming,
-    isLoadingMessages,
-    error,
     sendMessage,
+    isLoading: isStreaming,
+    error: chatError,
     clearError,
-    existingAnalysis,
-    chatTitle: chatTitleHook,
-  } = useTikTokChatSimple({
-    enableStreaming: false,
-    conversationId: conversationId || undefined,
-    conversationTitle: conversationTitle || undefined,
-  });
+  } = useTikTokChatSimple();
+  const [inputMessage, setInputMessage] = useState('');
+  const [showLockScreen, setShowLockScreen] = useState(true);
+  const scrollViewRef = useRef<ScrollView>(null);
 
-  useEffect(() => {
-    setChatTitle(chatTitleHook);
-  }, [chatTitleHook]);
+  // Get conversation ID and title from route params
+  const { conversationId, chatTitle } = useLocalSearchParams<{
+    conversationId?: string;
+    chatTitle?: string;
+  }>();
 
-  // Auto-scroll to bottom when messages change
+  // Get existing analysis for context
+  const existingAnalysis = analysis;
+
+  // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
-    scrollViewRef.current?.scrollToEnd({ animated: true });
+    if (messages.length > 0) {
+      setTimeout(() => {
+        scrollViewRef.current?.scrollToEnd({ animated: true });
+      }, 100);
+    }
   }, [messages]);
 
-  // Reset input when conversation changes
-  useEffect(() => {
-    setInputMessage('');
-    console.log('conversationId', conversationId);
-    console.log('conversationTitle', conversationTitle);
-  }, [conversationId]);
-
-  // Helper function to render chat messages (same as working chat.tsx)
   function renderMessage(message: any) {
     const isUser = message.role === 'user';
-
     return (
       <View
         key={message.id}
@@ -95,68 +74,85 @@ export default function AccountChatScreen() {
             : accountChatStyles.assistantMessage,
         ]}
       >
-        <View
-          style={[
-            accountChatStyles.messageBubble,
-            isUser
-              ? accountChatStyles.userBubble
-              : accountChatStyles.assistantBubble,
-          ]}
-        >
-          {isUser ? (
-            <Text style={accountChatStyles.messageText}>{message.content}</Text>
-          ) : (
-            <Markdown style={markdownStyles}>{message.content}</Markdown>
-          )}
-
-          <View style={accountChatStyles.messageFooter}>
-            <Text style={accountChatStyles.timestamp}>
-              {new Date(message.timestamp).toLocaleTimeString([], {
-                hour: '2-digit',
-                minute: '2-digit',
-              })}
-            </Text>
-            {isUser && (
-              <CheckCircle2
-                size={12}
-                color="#4CD964"
-                style={accountChatStyles.checkmark}
-              />
-            )}
-          </View>
-        </View>
+        <Text style={accountChatStyles.messageText}>{message.content}</Text>
+        <Text style={accountChatStyles.messageTime}>
+          {new Date(message.created_at).toLocaleTimeString('fr-FR', {
+            hour: '2-digit',
+            minute: '2-digit',
+          })}
+        </Text>
       </View>
     );
   }
 
-  // Handle sending chat messages with streaming support
   const handleSendMessage = async () => {
     if (!inputMessage.trim() || isLoading || isStreaming) return;
-    const currentMessage = inputMessage.trim();
-    setInputMessage(''); // Vide l'input tout de suite
+
+    const messageToSend = inputMessage.trim();
+    setInputMessage('');
 
     try {
-      await sendMessage(currentMessage);
+      await sendMessage(messageToSend);
     } catch (err) {
       console.error('Error sending message:', err);
     }
   };
 
-  // Paywall for non-Pro users (simplified)
-  if (currentPlan === 'free') {
+  // Paywall for non-Pro users using FeatureLock
+  console.log('🔍 AccountChat Debug - currentPlan:', currentPlan);
+
+  if (currentPlan === 'free' && showLockScreen) {
+    console.log('🔍 Showing lock screen for free user');
     return (
-      <ProPaywall
-        title="Chat TikTok Pro"
-        description="Analysez votre compte TikTok et discutez avec notre IA experte pour obtenir des conseils personnalisés et optimiser votre stratégie de contenu."
-        features={[
-          'Analyse complète de votre compte TikTok',
-          'Chat intelligent avec votre expert IA',
-          'Recommandations personnalisées en temps réel',
-          "Stratégies d'engagement optimisées",
-          'Analyse des tendances de votre niche',
-        ]}
-        onUpgrade={presentPaywall}
-      />
+      <SafeAreaView style={accountChatStyles.container} edges={['top']}>
+        <FeatureLock requiredPlan="creator" onLockPress={presentPaywall}>
+          <View style={accountChatStyles.lockContainer}>
+            <Lock size={48} color="#007AFF" />
+            <Text style={accountChatStyles.lockTitle}>Chat TikTok Pro</Text>
+            <Text style={accountChatStyles.lockDescription}>
+              Analysez votre compte TikTok et discutez avec notre IA experte
+              pour obtenir des conseils personnalisés et optimiser votre
+              stratégie de contenu.
+            </Text>
+
+            <View style={accountChatStyles.featuresPreview}>
+              <View style={accountChatStyles.featureItem}>
+                <MessageCircle size={20} color="#10b981" />
+                <Text style={accountChatStyles.featureText}>
+                  Chat intelligent avec votre expert IA
+                </Text>
+              </View>
+              <View style={accountChatStyles.featureItem}>
+                <Sparkles size={20} color="#3b82f6" />
+                <Text style={accountChatStyles.featureText}>
+                  Recommandations personnalisées en temps réel
+                </Text>
+              </View>
+              <View style={accountChatStyles.featureItem}>
+                <Zap size={20} color="#f59e0b" />
+                <Text style={accountChatStyles.featureText}>
+                  Stratégies d&apos;engagement optimisées
+                </Text>
+              </View>
+              <View style={accountChatStyles.featureItem}>
+                <Users size={20} color="#8b5cf6" />
+                <Text style={accountChatStyles.featureText}>
+                  Analyse des tendances de votre niche
+                </Text>
+              </View>
+            </View>
+
+            <TouchableOpacity
+              style={accountChatStyles.upgradeButton}
+              onPress={presentPaywall}
+            >
+              <Text style={accountChatStyles.upgradeButtonText}>
+                Débloquer avec le Plan Créateur
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </FeatureLock>
+      </SafeAreaView>
     );
   }
 
@@ -188,18 +184,18 @@ export default function AccountChatScreen() {
           showsVerticalScrollIndicator={false}
         >
           {/* Welcome message */}
-          {messages.length === 0 && !isLoadingMessages && (
+          {messages.length === 0 && !isLoading && (
             <View style={accountChatStyles.welcomeMessage}>
               <TrendingUp size={24} color="#007AFF" />
               <Text style={accountChatStyles.welcomeText}>
                 {existingAnalysis
                   ? `👋 Salut ! Je connais votre compte @${existingAnalysis.tiktok_handle} et peux vous donner des conseils personnalisés basés sur votre analyse TikTok.`
-                  : `👋 Salut ! Je suis votre expert TikTok IA. Posez-moi des questions sur la stratégie de contenu, l'engagement, ou donnez-moi votre handle TikTok pour une analyse personnalisée.`}
+                  : `👋 Salut ! Je suis votre expert TikTok IA. Posez-moi des questions sur la stratégie de contenu, l&apos;engagement, ou donnez-moi votre handle TikTok pour une analyse personnalisée.`}
               </Text>
             </View>
           )}
 
-          {isLoadingMessages && (
+          {isLoading && (
             <View style={accountChatStyles.loadingMessagesContainer}>
               <ActivityIndicator size="small" color="#007AFF" />
             </View>

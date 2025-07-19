@@ -46,7 +46,27 @@ export function useFeatureAccess(featureId: string): {
 
         // Accès basé sur le plan requis
         const requiresPro = featureData?.required_plan === 'pro';
-        const hasFeatureAccess = requiresPro ? currentPlan !== 'free' : true;
+        const requiresCreator = featureData?.required_plan === 'creator';
+        const noPlanRequired = featureData?.required_plan === null;
+        
+        // Si aucun plan n'est requis, l'accès est automatiquement accordé
+        if (noPlanRequired) {
+          setHasAccess(true);
+          setRemainingUsage(999);
+          setTotalLimit(999);
+          setIsLoading(false);
+          return;
+        }
+        
+        // Vérifier l'accès basé sur le plan
+        let hasFeatureAccess = false;
+        if (requiresPro) {
+          hasFeatureAccess = currentPlan === 'pro';
+        } else if (requiresCreator) {
+          hasFeatureAccess = currentPlan === 'creator' || currentPlan === 'pro';
+        } else {
+          hasFeatureAccess = true; // Aucun plan requis
+        }
 
         // Calcul des limites d'utilisation
         let remaining = 0;
@@ -95,7 +115,9 @@ export function useFeatureAccess(featureId: string): {
         // L'utilisateur a accès si:
         // 1. La fonctionnalité est disponible pour son plan ET
         // 2. Soit il est Pro (donc pas de limite), soit il a encore des utilisations disponibles
-        setHasAccess(hasFeatureAccess && (currentPlan !== 'free' || remaining > 0));
+        // Si aucun plan n'est requis, l'accès est automatiquement accordé
+        const finalAccess = noPlanRequired ? true : (hasFeatureAccess && (currentPlan !== 'free' || remaining > 0));
+        setHasAccess(finalAccess);
         setRemainingUsage(remaining);
         setTotalLimit(limit);
       } catch (error) {
@@ -184,7 +206,28 @@ export function useMultipleFeatureAccess(featureIds: string[]): {
         for (const featureId of featureIds) {
           const feature = featureMap.get(featureId);
           const requiresPro = feature?.required_plan === 'pro';
-          const hasFeatureAccess = requiresPro ? currentPlan !== 'free' : true;
+          const requiresCreator = feature?.required_plan === 'creator';
+          const noPlanRequired = feature?.required_plan === null;
+          
+          // Si aucun plan n'est requis, l'accès est automatiquement accordé
+          if (noPlanRequired) {
+            newAccessMap[featureId] = {
+              hasAccess: true,
+              remainingUsage: 999,
+              totalLimit: 999,
+            };
+            continue;
+          }
+          
+          // Vérifier l'accès basé sur le plan
+          let hasFeatureAccess = false;
+          if (requiresPro) {
+            hasFeatureAccess = currentPlan === 'pro';
+          } else if (requiresCreator) {
+            hasFeatureAccess = currentPlan === 'creator' || currentPlan === 'pro';
+          } else {
+            hasFeatureAccess = true; // Aucun plan requis
+          }
 
           let remaining = 0;
           let limit = 0;
@@ -229,7 +272,7 @@ export function useMultipleFeatureAccess(featureIds: string[]): {
           }
 
           newAccessMap[featureId] = {
-            hasAccess: hasFeatureAccess && (currentPlan !== 'free' || remaining > 0),
+            hasAccess: noPlanRequired ? true : (hasFeatureAccess && (currentPlan !== 'free' || remaining > 0)),
             remainingUsage: remaining,
             totalLimit: limit,
           };

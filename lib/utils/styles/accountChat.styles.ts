@@ -226,13 +226,54 @@ const accountChatStyles = StyleSheet.create({
   featureItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 12,
+    gap: 12,
   },
   featureText: {
     color: '#fff',
     fontSize: 16,
   },
-  upgradeButton: {},
+  upgradeButton: {
+    backgroundColor: '#007AFF',
+    paddingVertical: 16,
+    paddingHorizontal: 32,
+    borderRadius: 12,
+    marginTop: 16,
+  },
+  upgradeButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+
+  lockContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 24,
+    gap: 20,
+  },
+  lockTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#fff',
+    textAlign: 'center',
+  },
+  lockDescription: {
+    fontSize: 16,
+    color: '#888',
+    textAlign: 'center',
+    lineHeight: 22,
+  },
+  featuresPreview: {
+    gap: 12,
+    marginVertical: 20,
+  },
+  messageTime: {
+    fontSize: 12,
+    color: '#888',
+    marginTop: 4,
+    textAlign: 'right',
+  },
 });
 
 export const markdownStyles = StyleSheet.create({

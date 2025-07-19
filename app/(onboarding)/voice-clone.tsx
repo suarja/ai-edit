@@ -7,11 +7,20 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { useRouter } from 'expo-router';
-import { Mic, ChevronLeft, CheckCircle } from 'lucide-react-native';
+import {
+  Mic,
+  ChevronLeft,
+  CheckCircle,
+  Lock,
+  Sparkles,
+  Zap,
+  Users,
+} from 'lucide-react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFeatureAccess } from '@/components/hooks/useFeatureAccess';
-import { ProFeatureLock } from '@/components/guards/ProFeatureLock';
+import { FeatureLock } from '@/components/guards/FeatureLock';
 import { useGetUser } from '@/components/hooks/useGetUser';
+import { useRevenueCat } from '@/contexts/providers/RevenueCat';
 
 export default function VoiceCloneOnboardingScreen() {
   const router = useRouter();
@@ -22,9 +31,16 @@ export default function VoiceCloneOnboardingScreen() {
     remainingUsage,
   } = useFeatureAccess('voice_clone');
   const { fetchUser } = useGetUser();
+  const { presentPaywall } = useRevenueCat();
 
   const [isLoading, setIsLoading] = useState(true);
   const [existingClone, setExistingClone] = useState<any | null>(null);
+  const [showLockScreen, setShowLockScreen] = useState(true);
+  const [isRecording, setIsRecording] = useState(false);
+  const [recordingTime, setRecordingTime] = useState(0);
+  const [audioUri, setAudioUri] = useState<string | null>(null);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const checkExistingClone = async () => {
@@ -66,15 +82,62 @@ export default function VoiceCloneOnboardingScreen() {
     );
   }
 
-  if (!hasAccess) {
+  // Si l'utilisateur n'a pas accès, afficher le lock
+  if (!hasAccess && showLockScreen) {
     return (
-      <ProFeatureLock
-        featureTitle="Clonage Vocal Professionnel"
-        featureDescription="Créez une version IA de votre voix pour générer des narrations audio de haute qualité pour toutes vos vidéos."
-      />
+      <SafeAreaView style={styles.container} edges={['top']}>
+        <FeatureLock
+          requiredPlan="creator"
+          showAsDisabled={false}
+          onLockPress={presentPaywall}
+          onSkip={() => setShowLockScreen(false)}
+          showSkipButton={true}
+          skipButtonText="Continuer sans voix clonée"
+        >
+          <View style={styles.lockContainer}>
+            <Mic size={48} color="#007AFF" />
+            <Text style={styles.lockTitle}>Clonage de Voix IA</Text>
+            <Text style={styles.lockDescription}>
+              Créez votre voix clonée personnalisée pour des vidéos authentiques
+              et engageantes.
+            </Text>
+
+            <View style={styles.featuresPreview}>
+              <View style={styles.featureItem}>
+                <Mic size={20} color="#10b981" />
+                <Text style={styles.featureText}>
+                  Voix clonée en 30 secondes
+                </Text>
+              </View>
+              <View style={styles.featureItem}>
+                <Sparkles size={20} color="#3b82f6" />
+                <Text style={styles.featureText}>Qualité professionnelle</Text>
+              </View>
+              <View style={styles.featureItem}>
+                <Zap size={20} color="#f59e0b" />
+                <Text style={styles.featureText}>Vidéos authentiques</Text>
+              </View>
+              <View style={styles.featureItem}>
+                <Users size={20} color="#8b5cf6" />
+                <Text style={styles.featureText}>Engagement amélioré</Text>
+              </View>
+            </View>
+
+            <TouchableOpacity
+              style={styles.upgradeButton}
+              onPress={presentPaywall}
+            >
+              <Text style={styles.upgradeButtonText}>
+                Débloquer avec le Plan Créateur
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </FeatureLock>
+      </SafeAreaView>
     );
   }
 
+  // Si l'utilisateur a déjà un clone vocal
   if (existingClone) {
     return (
       <SafeAreaView style={styles.container} edges={['top']}>
@@ -85,55 +148,30 @@ export default function VoiceCloneOnboardingScreen() {
           >
             <ChevronLeft size={24} color="#fff" />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>Clonage Vocal</Text>
         </View>
+
         <View style={styles.content}>
-          <View
-            style={[
-              styles.iconContainer,
-              { backgroundColor: 'rgba(76, 175, 80, 0.1)' },
-            ]}
-          >
-            <CheckCircle size={64} color="#4CAF50" />
+          <View style={styles.successContainer}>
+            <CheckCircle size={64} color="#10b981" />
+            <Text style={styles.successTitle}>Voix Clonée Prête !</Text>
+            <Text style={styles.successDescription}>
+              Votre voix clonée est déjà configurée et prête à être utilisée
+              dans vos vidéos.
+            </Text>
           </View>
-          <Text style={styles.title}>Clone Vocal Déjà Actif</Text>
-          <Text style={styles.description}>
-            Nous avons détecté que vous avez déjà un clone vocal prêt à
-            l&apos;emploi. Vous pouvez continuer.
-          </Text>
+
           <TouchableOpacity
-            style={[styles.startButton, { backgroundColor: '#4CAF50' }]}
-            onPress={() => router.back()}
+            style={styles.continueButton}
+            onPress={() => router.push('/(onboarding)/completion')}
           >
-            <Text style={styles.startButtonText}>Retour</Text>
+            <Text style={styles.continueButtonText}>Continuer</Text>
           </TouchableOpacity>
         </View>
       </SafeAreaView>
     );
   }
 
-  // Si l'utilisateur est Pro mais a déjà utilisé son clone vocal
-  if (isPro && remainingUsage <= 0) {
-    return (
-      <SafeAreaView style={styles.container}>
-        <View style={styles.proLockContainer}>
-          <Mic size={48} color="#007AFF" />
-          <Text style={styles.proLockTitle}>Clone Vocal Déjà Créé</Text>
-          <Text style={styles.proLockDescription}>
-            Vous avez déjà utilisé votre crédit de clonage vocal. Vous pouvez
-            maintenant continuer vers la prochaine étape.
-          </Text>
-          <TouchableOpacity
-            style={styles.upgradeButton}
-            onPress={() => router.push('/(onboarding)/tiktok-analysis')}
-          >
-            <Text style={styles.upgradeButtonText}>Continuer</Text>
-          </TouchableOpacity>
-        </View>
-      </SafeAreaView>
-    );
-  }
-
+  // Interface normale pour créer un clone vocal
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <View style={styles.header}>
@@ -143,24 +181,40 @@ export default function VoiceCloneOnboardingScreen() {
         >
           <ChevronLeft size={24} color="#fff" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Clonage Vocal</Text>
       </View>
 
       <View style={styles.content}>
         <View style={styles.iconContainer}>
-          <Mic size={64} color="#007AFF" />
+          <Mic size={80} color="#007AFF" />
         </View>
-        <Text style={styles.title}>Créez votre clone vocal</Text>
+
+        <Text style={styles.title}>Clonage Vocal</Text>
         <Text style={styles.description}>
-          Enregistrez quelques secondes de votre voix pour permettre à l&apos;IA
-          de générer des narrations avec votre propre timbre.
+          Créez votre voix clonée personnalisée pour des vidéos authentiques et
+          engageantes.
         </Text>
+
+        <View style={styles.featuresList}>
+          <View style={styles.featureItem}>
+            <CheckCircle size={20} color="#10b981" />
+            <Text style={styles.featureText}>Voix personnalisée</Text>
+          </View>
+          <View style={styles.featureItem}>
+            <CheckCircle size={20} color="#10b981" />
+            <Text style={styles.featureText}>Vidéos authentiques</Text>
+          </View>
+          <View style={styles.featureItem}>
+            <CheckCircle size={20} color="#10b981" />
+            <Text style={styles.featureText}>Qualité professionnelle</Text>
+          </View>
+        </View>
+
         <TouchableOpacity
-          style={styles.startButton}
+          style={styles.continueButton}
           onPress={handleContinueToRecording}
         >
-          <Text style={styles.startButtonText}>
-            Commencer l&apos;enregistrement
+          <Text style={styles.continueButtonText}>
+            Commencer l'enregistrement
           </Text>
         </TouchableOpacity>
       </View>
@@ -173,88 +227,56 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#000',
   },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    position: 'relative',
-    justifyContent: 'center',
+    padding: 20,
   },
   backButton: {
-    position: 'absolute',
-    left: 16,
-  },
-  headerTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#fff',
+    padding: 8,
   },
   content: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 20,
+    padding: 24,
   },
-  iconContainer: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
-    backgroundColor: 'rgba(0, 122, 255, 0.1)',
+  loadingContainer: {
+    flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 32,
   },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#fff',
-    textAlign: 'center',
-    marginBottom: 16,
-  },
-  description: {
-    fontSize: 16,
-    color: '#888',
-    textAlign: 'center',
-    marginBottom: 32,
-    lineHeight: 24,
-  },
-  startButton: {
-    backgroundColor: '#007AFF',
-    paddingVertical: 16,
-    paddingHorizontal: 32,
-    borderRadius: 12,
-  },
-  startButtonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  proLockContainer: {
+  lockContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
     padding: 24,
-    gap: 16,
-    backgroundColor: '#111',
+    gap: 20,
   },
-  proLockTitle: {
+  lockTitle: {
     fontSize: 24,
     fontWeight: 'bold',
     color: '#fff',
     textAlign: 'center',
-    lineHeight: 22,
   },
-  proLockDescription: {
+  lockDescription: {
     fontSize: 16,
     color: '#888',
     textAlign: 'center',
     lineHeight: 22,
+  },
+  featuresPreview: {
+    gap: 12,
+    marginVertical: 20,
+  },
+  featureItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  featureText: {
+    color: '#fff',
+    fontSize: 16,
   },
   upgradeButton: {
     backgroundColor: '#007AFF',
@@ -268,4 +290,56 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
   },
+  iconContainer: {
+    marginBottom: 32,
+  },
+  title: {
+    fontSize: 28,
+    fontWeight: 'bold',
+    color: '#fff',
+    textAlign: 'center',
+    marginBottom: 16,
+  },
+  description: {
+    fontSize: 16,
+    color: '#888',
+    textAlign: 'center',
+    lineHeight: 22,
+    marginBottom: 32,
+  },
+  featuresList: {
+    gap: 16,
+    marginBottom: 40,
+  },
+  continueButton: {
+    backgroundColor: '#007AFF',
+    paddingVertical: 16,
+    paddingHorizontal: 32,
+    borderRadius: 12,
+    width: '100%',
+    alignItems: 'center',
+  },
+  continueButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  successContainer: {
+    alignItems: 'center',
+    marginBottom: 40,
+  },
+  successTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#fff',
+    marginTop: 16,
+    marginBottom: 8,
+  },
+  successDescription: {
+    fontSize: 16,
+    color: '#888',
+    textAlign: 'center',
+    lineHeight: 22,
+  },
+
 });
