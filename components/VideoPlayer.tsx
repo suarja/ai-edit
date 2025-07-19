@@ -8,10 +8,10 @@ import {
 } from 'react-native';
 import { Volume2, VolumeX, FileVideo } from 'lucide-react-native';
 import { useVideoPlayer, VideoView } from 'expo-video';
-import { AnyVideoType, getVideoUrl } from '@/lib/types/video';
+import { getVideoUrl, IUploadedVideo } from '@/lib/types/video';
 
 interface VideoPlayerProps {
-  video: AnyVideoType | null;
+  video: IUploadedVideo | null;
   style?: any;
   showControls?: boolean;
   onLoadStart?: () => void;

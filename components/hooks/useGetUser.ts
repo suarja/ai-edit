@@ -1,14 +1,7 @@
 import { useClerkAuth } from '@/components/hooks/useClerkAuth';
 import { useClerkSupabaseClient } from '@/lib/config/supabase-clerk';
+import { DatabaseUser } from '@/lib/types/user.types';
 
-export type DatabaseUser = {
-  id: string; // Database UUID
-  email: string;
-  full_name: string | null;
-  avatar_url: string | null;
-  role: string;
-  clerk_user_id: string;
-};
 
 export const useGetUser = () => {
   const { user: clerkUser, isLoaded: clerkLoaded, isSignedIn } = useClerkAuth();

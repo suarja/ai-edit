@@ -73,9 +73,9 @@ export function useFeatureAccess(featureId: string): {
             case 'video_generation':
               remaining = Math.max(
                 0,
-                userUsage.videos_limit - userUsage.videos_generated
+                userUsage.videos_generated_limit - userUsage.videos_generated
               );
-              limit = userUsage.videos_limit;
+              limit = userUsage.videos_generated_limit;
               break;
             case 'source_videos':
               remaining = Math.max(
@@ -210,9 +210,9 @@ export function useMultipleFeatureAccess(featureIds: string[]): {
               case 'video_generation':
                 remaining = Math.max(
                   0,
-                  userUsage.videos_limit - userUsage.videos_generated
+                  userUsage.videos_generated_limit - userUsage.videos_generated
                 );
-                limit = userUsage.videos_limit;
+                limit = userUsage.videos_generated_limit;
                 break;
               case 'source_videos':
                 remaining = Math.max(

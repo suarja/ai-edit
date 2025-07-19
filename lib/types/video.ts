@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { Database } from './supabase-types';
 
 // Type definitions for color constraints
 export type HexColor = `#${string}`;
@@ -83,25 +84,17 @@ export interface EnhancedGeneratedVideoType {
 }
 
 // Uploaded video type for the video details page
-export interface UploadedVideoType {
-  id: string;
-  type: 'uploaded';
-  title: string;
-  description: string;
-  tags: string[];
-  upload_url: string;
-  duration_seconds: number;
-  created_at: string;
-  storage_path?: string;
-  user_id: string;
-}
 
+export type IUploadedVideo = Pick<
+  Database['public']['Tables']['videos']['Row'],
+  'id' | 'title' | 'description' | 'tags' | 'upload_url' | 'duration_seconds' | 'created_at' | 'storage_path' | 'user_id'
+>;
 // Union type for any video type
 export type AnyVideoType =
   | VideoType
   | GeneratedVideo
   | EnhancedGeneratedVideoType
-  | UploadedVideoType;
+  | IUploadedVideo;
 
 export interface VideoRequest {
   id: string;
@@ -223,6 +216,6 @@ export const isValidEditorialProfile = (
 };
 
 // Type guard for uploaded videos
-export const isUploadedVideo = (video: any): video is UploadedVideoType => {
-  return video && video.type === 'uploaded';
+export const isUploadedVideo = (video: any): video is IUploadedVideo => {
+  return videoSchema.safeParse(video).success;
 };

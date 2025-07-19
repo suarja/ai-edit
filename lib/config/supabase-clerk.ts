@@ -2,6 +2,7 @@ import { createClient } from '@supabase/supabase-js';
 import { useSession, useUser } from '@clerk/clerk-expo';
 import { useMemo } from 'react';
 import { env } from './env';
+import { Database } from '../types/supabase-types';
 
 /**
  * Custom hook that creates a Supabase client with Clerk session token injection
@@ -12,7 +13,7 @@ export function useClerkSupabaseClient() {
   const { session } = useSession();
 
   const client = useMemo(() => {
-    return createClient(env.SUPABASE_URL, env.SUPABASE_ANON_KEY, {
+    return createClient<Database>(env.SUPABASE_URL, env.SUPABASE_ANON_KEY, {
       global: {
         // Inject Clerk session token into all Supabase requests
         fetch: async (url, options = {}) => {

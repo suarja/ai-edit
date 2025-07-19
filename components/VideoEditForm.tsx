@@ -1,4 +1,3 @@
-import { UploadedVideoType } from '@/lib/types/video';
 import { Check, X } from 'lucide-react-native';
 import { useState } from 'react';
 import {
@@ -10,13 +9,14 @@ import {
   StyleSheet,
 } from 'react-native';
 import VoiceDictation from './VoiceDictation';
+import { IUploadedVideo } from '@/lib/types/video';
 
 export default function VideoEditForm({
   video,
   onSave,
   onCancel,
 }: {
-  video: UploadedVideoType;
+  video: IUploadedVideo;
   onSave: (data: {
     title: string;
     description: string;

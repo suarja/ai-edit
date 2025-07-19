@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { View } from 'react-native';
 import { VoiceConfig, VoiceConfigStorage } from '@/lib/services/voiceService';
-import { DatabaseUser, useGetUser } from '../hooks/useGetUser';
+import { useGetUser } from '../hooks/useGetUser';
 import VoiceCard from './VoiceCard';
+import { DatabaseUser } from '@/lib/types/user.types';
 
 type VoiceListProps = {
   voices: VoiceConfig[];

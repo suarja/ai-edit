@@ -1,11 +1,11 @@
 import { API_ENDPOINTS } from '../config/api';
+import { DatabaseUser } from '../types/user.types';
 import {
   errorTaxonomy,
   VOICE_RECORDING_ERROR_CODES,
   VoiceRecordingError,
   VoiceRecordingResult,
 } from '../types/voice-recording';
-import { DatabaseUser } from '@/components/hooks/useGetUser';
 import { VoiceConfig } from './voiceService';
 import { z } from 'zod';
 

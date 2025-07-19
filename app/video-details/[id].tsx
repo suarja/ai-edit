@@ -13,16 +13,16 @@ import { useClerkSupabaseClient } from '@/lib/config/supabase-clerk';
 import { API_ENDPOINTS, API_HEADERS } from '@/lib/config/api';
 import { useAuth } from '@clerk/clerk-expo';
 
-import { UploadedVideoType } from '@/lib/types/video';
 import VideoPlayer from '@/components/VideoPlayer';
 import VideoDetailHeader from '@/components/VideoDetailHeader';
 import VideoDetails from '@/components/VideoDetails';
 import VideoActionButtons from '@/components/VideoActionButtons';
 import VideoEditForm from '@/components/VideoEditForm';
+import { IUploadedVideo } from '@/lib/types/video';
 
 export default function UploadedVideoDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
-  const [video, setVideo] = useState<UploadedVideoType | null>(null);
+  const [video, setVideo] = useState<IUploadedVideo | null>(null);
   const [loading, setLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -72,9 +72,8 @@ export default function UploadedVideoDetailScreen() {
       if (fetchError) throw fetchError;
 
       // Format as UploadedVideoType
-      const formattedVideo: UploadedVideoType = {
+      const formattedVideo: IUploadedVideo = {
         id: data.id,
-        type: 'uploaded',
         title: data.title || '',
         description: data.description || '',
         tags: data.tags || [],

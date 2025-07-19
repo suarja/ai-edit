@@ -49,7 +49,7 @@ export type UseVoicesReturn = {
 export const useVoices = ({
   handleUpdateVoices,
 }: {
-  handleUpdateVoices: (voice: VoiceConfig) => void;
+  handleUpdateVoices?: (voice: VoiceConfig) => void;
 }): UseVoicesReturn => {
   const router = useRouter();
 
@@ -321,7 +321,7 @@ export const useVoices = ({
         name
       );
       if (mappedResult) {
-        handleUpdateVoices(mappedResult);
+        handleUpdateVoices?.(mappedResult);
       }
       setName('');
       setRecordings([]);

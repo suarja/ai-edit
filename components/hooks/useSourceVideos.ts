@@ -11,6 +11,7 @@ import {
   VideoAnalysisData,
 } from '@/lib/types/videoAnalysis';
 import { API_ENDPOINTS } from '@/lib/config/api';
+import { Json } from '@/lib/types/supabase-types';
 
 export interface UseSourceVideos {
   videos: VideoTypeWithAnalysis[];
@@ -182,7 +183,7 @@ export function useSourceVideos(): UseSourceVideos {
         .eq('user_id', user.id)
         .order('created_at', { ascending: false });
       if (error) throw error;
-      setVideos((data || []) as VideoTypeWithAnalysis[]);
+      setVideos((data || []) as unknown as VideoTypeWithAnalysis[]);
     } catch (err) {
       setError('Échec du chargement des vidéos');
     } finally {
@@ -270,7 +271,7 @@ export function useSourceVideos(): UseSourceVideos {
           .from('videos')
           .update({
             analysis_status: 'completed',
-            analysis_data: data,
+            analysis_data: data as unknown as Json,
             description: data.description,
             title: data.title,
             tags: data.tags,
@@ -321,6 +322,9 @@ export function useSourceVideos(): UseSourceVideos {
     setSavingMetadata(true);
     clearError();
     try {
+      if (!editingVideo.id) {
+        throw new Error('Editing video ID is required');
+      }
       const tagsArray = metadata.tags;
       if (tagsArray.length === 0) {
         Alert.alert('Erreur', 'Au moins un tag est requis');

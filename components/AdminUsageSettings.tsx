@@ -213,7 +213,7 @@ export default function AdminUsageSettings() {
         // Update existing record
         const { error: updateError } = await supabase
           .from('user_usage')
-          .update({ videos_limit: limit })
+          .update({ videos_generated_limit: limit })
           .eq('user_id', result.userData.id);
 
         if (updateError) throw updateError;

@@ -35,6 +35,7 @@ import { useAuth } from '@clerk/clerk-expo';
 import { router } from 'expo-router';
 import { useRevenueCat } from '@/contexts/providers/RevenueCat';
 import { VoiceRecordingService } from '@/lib/services/voiceRecordingService';
+import { ISurvey } from '@/lib/types/survey.types';
 
 export default function VoiceRecordingScreen() {
   const onboardingSteps = useOnboardingSteps();
@@ -64,13 +65,13 @@ export default function VoiceRecordingScreen() {
       }
 
       // Create survey data object
-      const surveyData = {
+      const surveyData: ISurvey = {
         user_id: user.id,
-        content_goals: surveyAnswers.content_goals || null,
-        pain_points: surveyAnswers.pain_points || null,
-        content_style: surveyAnswers.content_style || null,
-        platform_focus: surveyAnswers.platform_focus || null,
-        content_frequency: surveyAnswers.content_frequency || null,
+        content_goals: surveyAnswers.content_goals || '',
+        pain_points: surveyAnswers.pain_points || '',
+        content_style: surveyAnswers.content_style || '',
+        platform_focus: surveyAnswers.platform_focus || '',
+        content_frequency: surveyAnswers.content_frequency || '',
       };
 
       // Now that the database schema is fixed, we can use the Supabase client directly
@@ -373,18 +374,7 @@ export default function VoiceRecordingScreen() {
 
           {recordingMode && (
             <View style={styles.recordingContainer}>
-              <VoiceRecordingUI
-                variant="onboarding"
-                config={{
-                  minDuration: 3000, // 3 seconds
-                  maxDuration: 120000, // 2 minutes
-                  autoSubmit: true,
-                }}
-                onComplete={handleRecordingComplete}
-                onError={handleRecordingError}
-                showInstructions={true}
-                showTimer={true}
-              />
+              <VoiceRecordingUI />
 
               <TouchableOpacity
                 style={styles.backButton}

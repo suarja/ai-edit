@@ -66,7 +66,7 @@ export default function AdminUsageControl({
       // Proceed with update
       const { error } = await supabase
         .from('user_usage')
-        .update({ videos_limit: limitValue })
+        .update({ videos_generated_limit: limitValue })
         .eq('user_id', userId);
 
       if (error) {

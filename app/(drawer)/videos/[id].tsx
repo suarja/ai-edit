@@ -57,6 +57,10 @@ export default function GeneratedVideoDetailScreen() {
 
   const fetchVideoDetails = async () => {
     try {
+      if (!id || typeof id !== 'string') {
+        setError('Video ID is required');
+        return;
+      }
       setError(null);
 
       // Get the database user first
@@ -85,6 +89,10 @@ export default function GeneratedVideoDetailScreen() {
       if (videoError) {
         console.error('Supabase error:', videoError);
         throw videoError;
+      }
+
+      if (!videoRequest.script_id) {
+        throw new Error('Script ID is required');
       }
 
       const { data: scriptData, error: scriptError } = await supabase
