@@ -11,12 +11,11 @@ export const DiscreteUsageDisplay: React.FC<DiscreteUsageDisplayProps> = ({
   onUpgradePress,
 }) => {
   const {
-    isPro,
+    currentPlan,
     videosRemaining,
     userUsage,
     isReady,
-    dynamicVideosLimit,
-    goPro,
+    presentPaywall,
   } = useRevenueCat();
 
   if (!isReady || !userUsage) {
@@ -27,12 +26,12 @@ export const DiscreteUsageDisplay: React.FC<DiscreteUsageDisplayProps> = ({
     if (onUpgradePress) {
       onUpgradePress();
     } else {
-      await goPro();
+      await presentPaywall();
     }
   };
 
   const usagePercentage =
-    (userUsage.videos_generated / dynamicVideosLimit) * 100;
+    (userUsage.videos_generated / userUsage.videos_generated_limit) * 100;
   const isNearLimit = usagePercentage >= 80;
   const isAtLimit = videosRemaining === 0;
 
@@ -40,7 +39,7 @@ export const DiscreteUsageDisplay: React.FC<DiscreteUsageDisplayProps> = ({
     <View style={styles.container}>
       <View style={styles.usageInfo}>
         <View style={styles.iconContainer}>
-          {isPro ? (
+          {currentPlan !== 'free' ? (
             <Crown size={16} color="#FFD700" />
           ) : isAtLimit ? (
             <AlertTriangle size={16} color="#ef4444" />
@@ -51,7 +50,7 @@ export const DiscreteUsageDisplay: React.FC<DiscreteUsageDisplayProps> = ({
 
         <View style={styles.textContainer}>
           <Text style={styles.usageText}>
-            {isPro ? 'Premium' : 'Gratuit'} • {videosRemaining} vidéo
+            {currentPlan !== 'free' ? 'Premium' : 'Gratuit'} • {videosRemaining} vidéo
             {videosRemaining !== 1 ? 's' : ''} restante
             {videosRemaining !== 1 ? 's' : ''}
           </Text>
@@ -67,7 +66,7 @@ export const DiscreteUsageDisplay: React.FC<DiscreteUsageDisplayProps> = ({
                       ? '#ef4444'
                       : isNearLimit
                       ? '#f59e0b'
-                      : isPro
+                      : currentPlan !== 'free'
                       ? '#4CAF50'
                       : '#007AFF',
                   },
@@ -79,7 +78,7 @@ export const DiscreteUsageDisplay: React.FC<DiscreteUsageDisplayProps> = ({
       </View>
 
       {/* Show upgrade button only for free users who are near/at limit */}
-      {!isPro && (isNearLimit || isAtLimit) && (
+      {currentPlan === 'free' && (isNearLimit || isAtLimit) && (
         <TouchableOpacity
           style={[
             styles.upgradeButton,

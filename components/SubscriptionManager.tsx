@@ -29,15 +29,13 @@ export const SubscriptionManager: React.FC<SubscriptionManagerProps> = ({
   const [isRestoring, setIsRestoring] = useState(false);
 
   const {
-    isPro,
     isReady,
     userUsage,
     videosRemaining,
-    goPro,
+    presentPaywall,
     restorePurchases,
     hasOfferingError,
     currentPlan,
-    dynamicVideosLimit,
     plans,
     currentOffering,
   } = useRevenueCat();
@@ -70,7 +68,7 @@ export const SubscriptionManager: React.FC<SubscriptionManagerProps> = ({
         return;
       }
 
-      const success = await goPro();
+      const success = await presentPaywall();
       if (success) {
         Alert.alert(
           'Félicitations! 🎉',
@@ -121,7 +119,7 @@ export const SubscriptionManager: React.FC<SubscriptionManagerProps> = ({
   };
 
   const usagePercentage =
-    (userUsage.videos_generated / dynamicVideosLimit) * 100;
+    (userUsage.videos_generated / userUsage.videos_generated_limit) * 100;
   const isNearLimit = usagePercentage >= 80;
 
   const proPlan = plans.pro;
@@ -129,7 +127,7 @@ export const SubscriptionManager: React.FC<SubscriptionManagerProps> = ({
 
   const priceToShow = currentOffering?.monthly?.product.priceString || 'N/A';
 
-  if (isPro) {
+  if (currentPlan !== 'free') {
     return (
       <View style={[styles.container, styles.proContainer, style]}>
         <View style={styles.header}>
@@ -176,8 +174,8 @@ export const SubscriptionManager: React.FC<SubscriptionManagerProps> = ({
 
           <View style={styles.usageStats}>
             <Text style={styles.usageText}>
-              {userUsage.videos_generated} / {dynamicVideosLimit} vidéos
-              utilisées
+              {userUsage.videos_generated} / {userUsage.videos_generated_limit}{' '}
+              vidéos utilisées
             </Text>
             <Text style={styles.usageRemaining}>
               {videosRemaining} restantes
@@ -238,8 +236,8 @@ export const SubscriptionManager: React.FC<SubscriptionManagerProps> = ({
 
           <View style={styles.usageStats}>
             <Text style={styles.usageText}>
-              {userUsage.videos_generated} / {dynamicVideosLimit} vidéos
-              utilisées
+              {userUsage.videos_generated} / {userUsage.videos_generated_limit}{' '}
+              vidéos utilisées
             </Text>
             <Text
               style={[

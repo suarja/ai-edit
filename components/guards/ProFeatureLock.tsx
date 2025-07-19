@@ -14,10 +14,10 @@ export const ProFeatureLock = ({
   featureDescription,
   onSkip,
 }: ProFeatureLockProps) => {
-  const { goPro } = useRevenueCat();
+  const { presentPaywall } = useRevenueCat();
 
   const handleUpgrade = async () => {
-    await goPro();
+    await presentPaywall();
   };
 
   const handleSkip = onSkip || (() => router.push('/'));

@@ -13,32 +13,58 @@ export type UserUsage = Pick<
   | 'account_analysis_limit'
 >;
 
-export type Plan = Pick<
-  Database['public']['Tables']['subscription_plans']['Row'],
-  'id' | 'name' | 'description' | 'is_active' | 'videos_generated_limit' | 'source_videos_limit'
-  | 'voice_clones_limit'
-  | 'account_analysis_limit'
->;
+export type Plan = 
+  Database['public']['Tables']['subscription_plans']['Row']
+
+// Le type du plan est maintenant une union de chaînes
+export type PlanIdentifier = 'free' | 'creator' | 'pro';
+
+// export interface RevenueCatProps {
+//   isPro: boolean;
+//   isReady: boolean;
+//   userUsage: UserUsage | null;
+//   videosRemaining: number;
+//   sourceVideosRemaining: number;
+//   voiceClonesRemaining: number;
+//   accountAnalysisRemaining: number;
+//   goPro: () => Promise<boolean>;
+//   refreshUsage: () => Promise<void>;
+//   hasOfferingError: boolean;
+//   restorePurchases: () => Promise<boolean>;
+//   currentPlan: 'free' | 'pro';
+//   dynamicVideosLimit: number; // The actual limit based on subscription status
+//   showPaywall: boolean;
+//   setShowPaywall: (show: boolean) => void;
+//   isDevMode: boolean; // Add development mode indicator
+//   plans: Record<string, Plan> | null;
+//   currentOffering: PurchasesOffering | null;
+// }
 
 
 
 export interface RevenueCatProps {
-  isPro: boolean;
   isReady: boolean;
   userUsage: UserUsage | null;
+  currentPlan: PlanIdentifier; // Remplacer isPro
+  offerings: PurchasesOffering | null;
+  // Les compteurs restants sont toujours utiles
   videosRemaining: number;
   sourceVideosRemaining: number;
   voiceClonesRemaining: number;
   accountAnalysisRemaining: number;
-  goPro: () => Promise<boolean>;
-  refreshUsage: () => Promise<void>;
-  hasOfferingError: boolean;
+  
+  // Renommer goPro pour plus de clarté
+  presentPaywall: () => Promise<boolean>;
   restorePurchases: () => Promise<boolean>;
-  currentPlan: 'free' | 'pro';
-  dynamicVideosLimit: number; // The actual limit based on subscription status
+  refreshUsage: () => Promise<void>;
+  
+  // Garder les états de l'UI
   showPaywall: boolean;
   setShowPaywall: (show: boolean) => void;
-  isDevMode: boolean; // Add development mode indicator
+  
+  // Infos contextuelles
+  hasOfferingError: boolean;
+  isDevMode: boolean;
   plans: Record<string, Plan> | null;
   currentOffering: PurchasesOffering | null;
 }

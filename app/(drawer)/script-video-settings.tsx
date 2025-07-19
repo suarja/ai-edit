@@ -44,7 +44,7 @@ export default function ScriptVideoSettingsScreen() {
     : params.estimatedDuration;
 
   // RevenueCat integration
-  const { isPro, videosRemaining, refreshUsage, isReady, userUsage } =
+  const { currentPlan, videosRemaining, refreshUsage, isReady, userUsage } =
     useRevenueCat();
 
   const { getToken } = useAuth();
@@ -69,7 +69,7 @@ export default function ScriptVideoSettingsScreen() {
 
   // Check if user can generate video (quota + other validations)
   const canGenerateVideo =
-    !isReady || !userUsage || isPro || videosRemaining > 0;
+    !isReady || !userUsage || currentPlan !== 'free' || videosRemaining > 0;
 
   // Compute if submit button should be disabled
   const isSubmitDisabled =

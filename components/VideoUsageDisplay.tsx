@@ -26,14 +26,13 @@ export const VideoUsageDisplay: React.FC<VideoUsageDisplayProps> = ({
   style,
 }) => {
   const {
-    isPro,
+    currentPlan,
     videosRemaining,
     userUsage,
-    isEarlyAdopter,
-    goPro,
+    presentPaywall,
+    offerings,
     isReady,
     hasOfferingError,
-    dynamicVideosLimit,
   } = useRevenueCat();
 
   if (!isReady || !userUsage) {
@@ -59,11 +58,11 @@ export const VideoUsageDisplay: React.FC<VideoUsageDisplayProps> = ({
         return;
       }
 
-      await goPro();
+      await presentPaywall();
     }
   };
 
-  if (isPro) {
+  if (currentPlan !== 'free') {
     return (
       <View style={[styles.container, styles.proContainer, style]}>
         <View style={styles.iconContainer}>
@@ -72,7 +71,7 @@ export const VideoUsageDisplay: React.FC<VideoUsageDisplayProps> = ({
         <View style={styles.textContainer}>
           <Text style={styles.proTitle}>Membre Premium</Text>
           <Text style={styles.proSubtitle}>
-            {dynamicVideosLimit - userUsage.videos_generated} vidéos restantes
+            {userUsage.videos_generated_limit - userUsage.videos_generated} vidéos restantes
             ce mois
           </Text>
         </View>
@@ -84,9 +83,7 @@ export const VideoUsageDisplay: React.FC<VideoUsageDisplayProps> = ({
   const isLimitReached = videosRemaining <= 0;
 
   // Get appropriate price to display (use fallback if there's an offering error)
-  const priceToShow = isEarlyAdopter
-    ? FALLBACK_PRICES.earlyAdopter
-    : FALLBACK_PRICES.regular;
+  const priceToShow = offerings?.monthly?.product.priceString || FALLBACK_PRICES.regular;
 
   return (
     <View style={[styles.container, style]}>
@@ -97,7 +94,7 @@ export const VideoUsageDisplay: React.FC<VideoUsageDisplayProps> = ({
             {videosRemaining !== 1 ? 's' : ''}
           </Text>
           <Text style={styles.quotaSubtitle}>
-            {userUsage.videos_generated}/{dynamicVideosLimit} utilisées ce mois
+            {userUsage.videos_generated}/{userUsage.videos_generated_limit} utilisées ce mois
           </Text>
         </View>
 
@@ -108,7 +105,7 @@ export const VideoUsageDisplay: React.FC<VideoUsageDisplayProps> = ({
                 styles.progressFill,
                 {
                   width: `${
-                    (userUsage.videos_generated / dynamicVideosLimit) * 100
+                    (userUsage.videos_generated / userUsage.videos_generated_limit) * 100
                   }%`,
                   backgroundColor: isLimitReached ? '#FF3B30' : '#007AFF',
                 },
@@ -121,21 +118,13 @@ export const VideoUsageDisplay: React.FC<VideoUsageDisplayProps> = ({
       <TouchableOpacity
         style={[
           styles.upgradeButton,
-          isEarlyAdopter && styles.earlyAdopterButton,
         ]}
         onPress={handleUpgrade}
       >
         <Zap size={16} color="#fff" />
         <Text style={styles.upgradeButtonText}>
-          {isEarlyAdopter
-            ? `Passer Pro (${priceToShow})`
-            : `Passer Pro (${priceToShow})`}
+          Passer Pro ({priceToShow})
         </Text>
-        {isEarlyAdopter && (
-          <View style={styles.earlyAdopterBadge}>
-            <Text style={styles.earlyAdopterBadgeText}>-50%</Text>
-          </View>
-        )}
       </TouchableOpacity>
 
       {isLimitReached && (

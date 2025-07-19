@@ -53,7 +53,7 @@ export function useScriptChat(
   options: UseScriptChatOptions = {}
 ): UseScriptChatReturn {
   const { getToken } = useAuth();
-  const { isPro } = useRevenueCat();
+  const { currentPlan } = useRevenueCat();
 
   // State
   const [scriptDraft, setScriptDraft] = useState<ScriptDraft | null>(null);
@@ -159,7 +159,7 @@ export function useScriptChat(
           message,
           outputLanguage: options.outputLanguage || 'fr',
           editorialProfileId: options.editorialProfileId,
-          isPro: isPro,
+          isPro: currentPlan !== 'free',
         };
 
         const token = await getToken();

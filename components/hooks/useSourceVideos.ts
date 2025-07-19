@@ -140,7 +140,7 @@ export function useSourceVideos(): UseSourceVideos {
   const { fetchUser, clerkLoaded, isSignedIn } = useGetUser();
   const { client: supabase } = useClerkSupabaseClient();
   const {
-    isPro,
+    currentPlan,
     isReady: revenueCatReady,
     userUsage,
     sourceVideosRemaining,
@@ -206,7 +206,7 @@ export function useSourceVideos(): UseSourceVideos {
     try {
       console.log('handleUploadComplete', data);
       clearError();
-      if (!isPro && sourceVideosRemaining <= 0) {
+      if (currentPlan === 'free' && sourceVideosRemaining <= 0) {
         setError(
           `Limite atteinte : ${
             userUsage?.source_videos_limit || 0
@@ -418,7 +418,7 @@ export function useSourceVideos(): UseSourceVideos {
           context: {
             ...context,
             videosCount: videos.length,
-            isPro,
+            currentPlan,
             lastAction: 'video_analysis',
           },
         });
@@ -453,7 +453,7 @@ export function useSourceVideos(): UseSourceVideos {
     };
   };
 
-  const canUploadMore = isPro || sourceVideosRemaining > 0;
+  const canUploadMore = currentPlan !== 'free' || sourceVideosRemaining > 0;
 
   return {
     videos,

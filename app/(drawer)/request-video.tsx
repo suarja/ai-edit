@@ -28,7 +28,7 @@ import { DiscreteUsageDisplay } from '@/components/DiscreteUsageDisplay';
 
 export default function RequestVideoScreen() {
   // RevenueCat integration
-  const { isPro, videosRemaining, refreshUsage, isReady, userUsage } =
+  const { currentPlan, videosRemaining, refreshUsage, isReady, userUsage } =
     useRevenueCat();
 
   // Main state and actions from hooks
@@ -44,7 +44,7 @@ export default function RequestVideoScreen() {
   // Check if user can generate video (quota + other validations)
   // Default to allowing video generation if RevenueCat data isn't available yet
   const canGenerateVideo =
-    !isReady || !userUsage || isPro || videosRemaining > 0;
+    !isReady || !userUsage || currentPlan !== 'free' || videosRemaining > 0;
 
   // Compute if submit button should be disabled
   const isSubmitDisabled =

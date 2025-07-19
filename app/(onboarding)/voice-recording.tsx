@@ -51,7 +51,7 @@ export default function VoiceRecordingScreen() {
   const { client: supabase } = useClerkSupabaseClient();
   const { fetchUser } = useGetUser();
   const { getToken } = useAuth();
-  const { isPro, isReady, goPro } = useRevenueCat();
+  const { currentPlan, isReady, presentPaywall } = useRevenueCat();
 
   // Function to save survey data without audio processing
   const saveSurveyData = async (): Promise<boolean> => {
@@ -128,7 +128,7 @@ export default function VoiceRecordingScreen() {
           platform_focus: surveyAnswers.platform_focus || null,
           content_frequency: surveyAnswers.content_frequency || null,
         },
-        enableVoiceClone: wantsVoiceClone && isPro, // Only enable if user wants it AND is pro
+        enableVoiceClone: wantsVoiceClone && currentPlan !== 'free', // Only enable if user wants it AND is pro
       });
 
       setProgress('Configuration de votre profil...');
@@ -180,7 +180,7 @@ export default function VoiceRecordingScreen() {
   };
 
   const handleVoiceCloneRequest = () => {
-    if (isPro) {
+    if (currentPlan !== 'free') {
       setWantsVoiceClone(true);
       setRecordingMode(true);
     } else {
@@ -190,7 +190,7 @@ export default function VoiceRecordingScreen() {
 
   const handleUpgradeToPro = async () => {
     try {
-      const success = await goPro();
+      const success = await presentPaywall();
       if (success) {
         setWantsVoiceClone(true);
         setShowVoiceClonePaywall(false);
@@ -392,7 +392,9 @@ export default function VoiceRecordingScreen() {
                 <View style={styles.optionHeader}>
                   <Crown size={24} color="#FFD700" />
                   <Text style={styles.optionTitle}>Clonage Vocal IA</Text>
-                  {!isPro && <Text style={styles.proBadge}>PRO</Text>}
+                  {currentPlan === 'free' && (
+                    <Text style={styles.proBadge}>PRO</Text>
+                  )}
                 </View>
                 <Text style={styles.optionDescription}>
                   Créez votre clone vocal pour générer des vidéos avec votre
@@ -403,7 +405,9 @@ export default function VoiceRecordingScreen() {
                   onPress={handleVoiceCloneRequest}
                 >
                   <Text style={styles.voiceCloneButtonText}>
-                    {isPro ? 'Créer mon clone vocal' : 'Découvrir (Pro)'}
+                    {currentPlan !== 'free'
+                      ? 'Créer mon clone vocal'
+                      : 'Découvrir (Pro)'}
                   </Text>
                 </TouchableOpacity>
               </View>

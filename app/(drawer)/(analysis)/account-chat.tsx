@@ -34,7 +34,7 @@ import VoiceDictation from '@/components/VoiceDictation';
  * 3. Regular JSON API calls (no streaming)
  */
 export default function AccountChatScreen() {
-  const { isPro, goPro } = useRevenueCat();
+  const { currentPlan, presentPaywall } = useRevenueCat();
   const { conversationId, conversationTitle } = useLocalSearchParams<{
     conversationId?: string;
     conversationTitle?: string;
@@ -135,7 +135,7 @@ export default function AccountChatScreen() {
   };
 
   // Paywall for non-Pro users (simplified)
-  if (!isPro) {
+  if (currentPlan === 'free') {
     return (
       <ProPaywall
         title="Chat TikTok Pro"
@@ -147,7 +147,7 @@ export default function AccountChatScreen() {
           "Stratégies d'engagement optimisées",
           'Analyse des tendances de votre niche',
         ]}
-        onUpgrade={goPro}
+        onUpgrade={presentPaywall}
       />
     );
   }

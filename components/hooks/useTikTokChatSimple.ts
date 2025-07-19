@@ -41,7 +41,7 @@ export function useTikTokChatSimple(
 ): UseTikTokChatSimpleReturn {
   const { enableStreaming = false, conversationId, conversationTitle } = props;
   const { getToken } = useAuth();
-  const { isPro } = useRevenueCat();
+  const { currentPlan } = useRevenueCat();
 
   // Use the centralized hook for analysis context
   const { analysis: existingAnalysis, isLoading: isAnalysisLoading } =
@@ -66,12 +66,12 @@ export function useTikTokChatSimple(
   // Handle conversation changes (existing or new)
   useEffect(() => {
     console.log('🔄 useEffect triggered:', {
-      isPro,
+      currentPlan,
       conversationId,
       loadedConversationId,
     });
 
-    if (isPro) {
+    if (currentPlan !== 'free') {
       // Check if the conversationId from props is different from the one we have loaded
       if (conversationId !== loadedConversationId) {
         console.log('🔄 Conversation changed:', {
@@ -95,7 +95,7 @@ export function useTikTokChatSimple(
         console.log('📋 No conversation change detected');
       }
     }
-  }, [isPro, conversationId, loadedConversationId]);
+  }, [currentPlan, conversationId, loadedConversationId]);
 
   /**
    * Load conversation messages for existing conversation

@@ -8,7 +8,12 @@ import Purchases, {
 import { useClerkSupabaseClient } from '@/lib/config/supabase-clerk';
 import { useGetUser } from '@/components/hooks/useGetUser';
 import { CustomPaywall } from '@/components/CustomPaywall';
-import { Plan, RevenueCatProps, UserUsage } from '@/lib/types/revenueCat';
+import {
+  Plan,
+  PlanIdentifier,
+  RevenueCatProps,
+  UserUsage,
+} from '@/lib/types/revenueCat';
 
 // Use keys from your RevenueCat API Keys
 const APIKeys = {
@@ -24,7 +29,7 @@ const RevenueCatContext = createContext<RevenueCatProps | null>(null);
 // Provide RevenueCat functions to our app
 export const RevenueCatProvider = ({ children }: any) => {
   const [isReady, setIsReady] = useState(false);
-  const [isPro, setIsPro] = useState(false);
+  const [currentPlan, setCurrentPlan] = useState<PlanIdentifier>('free');
   const [userUsage, setUserUsage] = useState<UserUsage | null>(null);
   const [hasOfferingError, setHasOfferingError] = useState(false);
   const [initAttempts, setInitAttempts] = useState(0);
@@ -32,6 +37,7 @@ export const RevenueCatProvider = ({ children }: any) => {
   const [plans, setPlans] = useState<Record<string, Plan> | null>(null);
   const [currentOffering, setCurrentOffering] =
     useState<PurchasesOffering | null>(null);
+  const [offerings, setOfferings] = useState<PurchasesOffering | null>(null);
   const maxInitAttempts = 2;
 
   const { client: supabase } = useClerkSupabaseClient();
@@ -43,8 +49,6 @@ export const RevenueCatProvider = ({ children }: any) => {
   }, [initAttempts]);
   const init = async () => {
     try {
-
-
       if (Platform.OS === 'android') {
         await Purchases.configure({ apiKey: APIKeys.google });
       } else {
@@ -113,6 +117,7 @@ export const RevenueCatProvider = ({ children }: any) => {
       // Get offerings
       const offerings = await Purchases.getOfferings();
       console.log('Offerings:', JSON.stringify(offerings, null, 2));
+      setOfferings(offerings.all.default);
       if (offerings.current) {
         setCurrentOffering(offerings.current);
       } else {
@@ -132,14 +137,20 @@ export const RevenueCatProvider = ({ children }: any) => {
 
   // Update user state based on previous purchases
   const updateCustomerInformation = async (customerInfo: CustomerInfo) => {
-    const hasProEntitlement =
-      customerInfo?.entitlements.active['Pro'] !== undefined;
+    const hasPro = customerInfo?.entitlements.active['Pro'] !== undefined;
+    const hasCreator =
+      customerInfo?.entitlements.active['Creator'] !== undefined;
 
-    console.log('Customer info updated. Pro status:', hasProEntitlement);
-    setIsPro(hasProEntitlement);
+    let plan: PlanIdentifier = 'free';
+    if (hasPro) {
+      plan = 'pro';
+    } else if (hasCreator) {
+      plan = 'creator';
+    }
 
-    // Sync the user's limit in database with their subscription status
-    await syncUserLimitWithSubscription(hasProEntitlement);
+    setCurrentPlan(plan);
+    console.log('Customer info updated. Current plan:', plan);
+    await syncUserLimitWithSubscription(plan);
   };
 
   // Load user usage from Supabase
@@ -243,12 +254,10 @@ export const RevenueCatProvider = ({ children }: any) => {
   };
 
   // Sync user's limits with their subscription status
-  const syncUserLimitWithSubscription = async (isProUser: boolean) => {
+  const syncUserLimitWithSubscription = async (planId: PlanIdentifier) => {
     try {
       const user = await fetchUser();
       if (!user) return;
-
-      const planId = isProUser ? 'pro' : 'free';
 
       // Récupérer les limites du plan depuis la base de données
       const { data: planData, error: planError } = await supabase
@@ -266,6 +275,7 @@ export const RevenueCatProvider = ({ children }: any) => {
       const { error } = await supabase
         .from('user_usage')
         .update({
+          current_plan_id: planId,
           videos_generated_limit: planData.videos_generated_limit,
           source_videos_limit: planData.source_videos_limit,
           voice_clones_limit: planData.voice_clones_limit,
@@ -287,7 +297,7 @@ export const RevenueCatProvider = ({ children }: any) => {
   };
 
   // Present paywall
-  const goPro = async (): Promise<boolean> => {
+  const presentPaywall = async (): Promise<boolean> => {
     try {
       // If we have offering errors (common in development), show a fallback alert instead
       if (hasOfferingError) {
@@ -296,8 +306,7 @@ export const RevenueCatProvider = ({ children }: any) => {
         if (isDevelopment) {
           // In development mode, simulate Pro access for testing
           console.log('🔧 Development mode: simulating Pro access');
-          setIsPro(true);
-          await syncUserLimitWithSubscription(true);
+          await syncUserLimitWithSubscription('pro');
           return true;
         }
 
@@ -347,12 +356,6 @@ export const RevenueCatProvider = ({ children }: any) => {
     await loadUserUsage();
   };
 
-  // Calculate current plan
-  const currentPlan: 'free' | 'pro' = isPro ? 'pro' : 'free';
-
-  // Calculate dynamic limits based on current plan
-  const dynamicVideosLimit = userUsage ? userUsage.videos_generated_limit : 0;
-
   // Calculate remaining resources
   const videosRemaining = userUsage
     ? Math.max(0, userUsage.videos_generated_limit - userUsage.videos_generated)
@@ -381,20 +384,19 @@ export const RevenueCatProvider = ({ children }: any) => {
       )
     : 0;
 
-  const value = {
-    isPro,
+  const value: RevenueCatProps = {
+    offerings,
     isReady,
     userUsage,
     videosRemaining,
     sourceVideosRemaining,
     voiceClonesRemaining,
     accountAnalysisRemaining,
-    goPro,
+    presentPaywall,
     refreshUsage,
     hasOfferingError,
     restorePurchases,
     currentPlan,
-    dynamicVideosLimit,
     showPaywall,
     setShowPaywall,
     isDevMode: isDevelopment,

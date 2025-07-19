@@ -86,7 +86,7 @@ interface ComprehensiveContext {
 
 export default function AccountInsightsScreen() {
   const router = useRouter();
-  const { isPro, goPro } = useRevenueCat();
+  const { currentPlan, presentPaywall } = useRevenueCat();
   const { getToken } = useAuth();
   const {
     analysis,
@@ -158,7 +158,7 @@ export default function AccountInsightsScreen() {
   };
 
   // Paywall is still relevant
-  if (!isPro) {
+  if (currentPlan === 'free') {
     return (
       <ProPaywall
         title="Insights Pro"
@@ -171,7 +171,7 @@ export default function AccountInsightsScreen() {
           'Analyse des tendances de contenu',
           'Chat IA pour conseils stratégiques',
         ]}
-        onUpgrade={goPro}
+        onUpgrade={presentPaywall}
       />
     );
   }
@@ -203,7 +203,7 @@ export default function AccountInsightsScreen() {
           <BarChart3 size={64} color="#666" />
           <Text style={styles.emptyStateTitle}>Données non disponibles</Text>
           <Text style={styles.emptyStateDescription}>
-            Nous n'avons pas pu charger les données pour ce compte. Veuillez
+            Nous n&apos;avons pas pu charger les données pour ce compte. Veuillez
             réessayer.
           </Text>
         </ScrollView>
@@ -241,7 +241,7 @@ export default function AccountInsightsScreen() {
 
         {/* Stats Overview */}
         <View style={styles.statsContainer}>
-          <Text style={styles.sectionTitle}>Vue d'ensemble</Text>
+          <Text style={styles.sectionTitle}>Vue d&apos;ensemble</Text>
           <View style={styles.statsGrid}>
             <StatCard
               icon={<Users size={24} color="#007AFF" />}
@@ -298,7 +298,7 @@ export default function AccountInsightsScreen() {
           </View>
 
           <View style={[styles.recommendationCard, styles.marginTop]}>
-            <Text style={styles.analysisSubtitle}>Axes d'Amélioration</Text>
+            <Text style={styles.analysisSubtitle}>Axes d&apos;Amélioration</Text>
             {(
               insights.profile_summary?.weaknesses || ['Analyse en cours...']
             ).map((weakness, index) => (

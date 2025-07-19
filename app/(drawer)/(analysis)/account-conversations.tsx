@@ -43,17 +43,16 @@ interface Conversation {
 
 export default function AccountConversationsScreen() {
   const { getToken } = useAuth();
-  const { isPro, goPro } = useRevenueCat();
-  const [conversations, setConversations] = useState<Conversation[]>([]);
+  const { currentPlan, presentPaywall } = useRevenueCat();  const [conversations, setConversations] = useState<Conversation[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (isPro) {
+    if (currentPlan !== 'free') {
       loadConversations();
     }
-  }, [isPro]);
+  }, [currentPlan]);
 
   const loadConversations = async () => {
     try {
@@ -147,7 +146,7 @@ export default function AccountConversationsScreen() {
   };
 
   // Show paywall for non-pro users
-  if (!isPro) {
+  if (currentPlan === 'free') {
     return (
       <ProPaywall
         title="Chat TikTok Pro"
@@ -158,7 +157,7 @@ export default function AccountConversationsScreen() {
           'Historique complet de vos discussions',
           'Streaming en temps réel',
         ]}
-        onUpgrade={goPro}
+        onUpgrade={presentPaywall}
       />
     );
   }
@@ -202,7 +201,7 @@ export default function AccountConversationsScreen() {
             <MessageCircle size={64} color="#666" />
             <Text style={styles.emptyTitle}>Aucune conversation</Text>
             <Text style={styles.emptyDescription}>
-              Commencez votre première conversation avec l'expert IA TikTok
+              Commencez votre première conversation avec l&apos;expert IA TikTok
             </Text>
             <TouchableOpacity
               style={styles.emptyButton}

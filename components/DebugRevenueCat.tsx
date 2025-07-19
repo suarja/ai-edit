@@ -10,14 +10,13 @@ export const DebugRevenueCat: React.FC<DebugRevenueCatProps> = ({
   visible = true,
 }) => {
   const {
-    isPro,
+    currentPlan,
     isReady,
     hasOfferingError,
     isDevMode,
     userUsage,
     videosRemaining,
-    dynamicVideosLimit,
-    goPro,
+    presentPaywall,
     refreshUsage,
   } = useRevenueCat();
 
@@ -29,7 +28,7 @@ export const DebugRevenueCat: React.FC<DebugRevenueCatProps> = ({
   const handleTogglePro = async () => {
     if (hasOfferingError) {
       // This will trigger the development mode simulation
-      await goPro();
+      await presentPaywall();
     } else {
       Alert.alert(
         'RevenueCat Debug',
@@ -51,12 +50,14 @@ export const DebugRevenueCat: React.FC<DebugRevenueCatProps> = ({
         <Text style={styles.infoText}>
           Status: {isReady ? '✅ Ready' : '⏳ Loading'}
         </Text>
-        <Text style={styles.infoText}>Pro: {isPro ? '✅ Yes' : '❌ No'}</Text>
+        <Text style={styles.infoText}>
+          Pro: {currentPlan !== 'free' ? '✅ Yes' : '❌ No'}
+        </Text>
         <Text style={styles.infoText}>
           Offering Error: {hasOfferingError ? '⚠️ Yes' : '✅ No'}
         </Text>
         <Text style={styles.infoText}>
-          Videos: {videosRemaining}/{dynamicVideosLimit}
+          Videos: {videosRemaining}/{userUsage?.videos_generated_limit}
         </Text>
         {userUsage && (
           <Text style={styles.infoText}>
@@ -85,7 +86,7 @@ export const DebugRevenueCat: React.FC<DebugRevenueCatProps> = ({
       </View>
 
       <Text style={styles.note}>
-        Ce panel n'apparaît qu'en mode développement
+        Ce panel n&apos;apparaît qu&apos;en mode développement
       </Text>
     </View>
   );

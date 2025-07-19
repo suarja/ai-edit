@@ -12,9 +12,9 @@ export function useFeatureAccess(featureId: string): {
   isLoading: boolean;
   remainingUsage: number;
   totalLimit: number;
-  isPro: boolean;
+  currentPlan: string;
 } {
-  const { isPro, userUsage, isReady } = useRevenueCat();
+  const { currentPlan, userUsage, isReady } = useRevenueCat();
   const [hasAccess, setHasAccess] = useState(false);
   const [remainingUsage, setRemainingUsage] = useState(0);
   const [totalLimit, setTotalLimit] = useState(0);
@@ -39,14 +39,14 @@ export function useFeatureAccess(featureId: string): {
         if (error) {
           console.error(`Error fetching feature flag ${featureId}:`, error);
           // Si erreur, on utilise une logique de fallback basée uniquement sur isPro
-          setHasAccess(isPro);
+          setHasAccess(currentPlan !== 'free');
           setIsLoading(false);
           return;
         }
 
         // Accès basé sur le plan requis
         const requiresPro = featureData?.required_plan === 'pro';
-        const hasFeatureAccess = requiresPro ? isPro : true;
+        const hasFeatureAccess = requiresPro ? currentPlan !== 'free' : true;
 
         // Calcul des limites d'utilisation
         let remaining = 0;
@@ -87,30 +87,30 @@ export function useFeatureAccess(featureId: string): {
               break;
             default:
               // Pour les fonctionnalités sans limite spécifique
-              remaining = isPro ? 999 : 0;
-              limit = isPro ? 999 : 0;
+              remaining = currentPlan !== 'free' ? 999 : 0;
+              limit = currentPlan !== 'free' ? 999 : 0;
           }
         }
 
         // L'utilisateur a accès si:
         // 1. La fonctionnalité est disponible pour son plan ET
         // 2. Soit il est Pro (donc pas de limite), soit il a encore des utilisations disponibles
-        setHasAccess(hasFeatureAccess && (isPro || remaining > 0));
+        setHasAccess(hasFeatureAccess && (currentPlan !== 'free' || remaining > 0));
         setRemainingUsage(remaining);
         setTotalLimit(limit);
       } catch (error) {
         console.error(`Error checking access for feature ${featureId}:`, error);
         // En cas d'erreur, on utilise une logique de fallback basée uniquement sur isPro
-        setHasAccess(isPro);
+        setHasAccess(currentPlan !== 'free');
       } finally {
         setIsLoading(false);
       }
     };
 
     checkAccess();
-  }, [featureId, isPro, isReady, userUsage]);
+  }, [featureId, currentPlan, isReady, userUsage]);
 
-  return { hasAccess, isLoading, remainingUsage, totalLimit, isPro };
+  return { hasAccess, isLoading, remainingUsage, totalLimit, currentPlan };
 }
 
 /**
@@ -124,9 +124,9 @@ export function useMultipleFeatureAccess(featureIds: string[]): {
     { hasAccess: boolean; remainingUsage: number; totalLimit: number }
   >;
   isLoading: boolean;
-  isPro: boolean;
+  currentPlan: string;
 } {
-  const { isPro, userUsage, isReady } = useRevenueCat();
+  const { currentPlan, userUsage, isReady } = useRevenueCat();
   const [accessMap, setAccessMap] = useState<
     Record<
       string,
@@ -159,9 +159,9 @@ export function useMultipleFeatureAccess(featureIds: string[]): {
           > = {};
           featureIds.forEach((id) => {
             fallbackMap[id] = {
-              hasAccess: isPro,
-              remainingUsage: isPro ? 999 : 0,
-              totalLimit: isPro ? 999 : 0,
+              hasAccess: currentPlan !== 'free',
+              remainingUsage: currentPlan !== 'free' ? 999 : 0,
+              totalLimit: currentPlan !== 'free' ? 999 : 0,
             };
           });
           setAccessMap(fallbackMap);
@@ -184,7 +184,7 @@ export function useMultipleFeatureAccess(featureIds: string[]): {
         for (const featureId of featureIds) {
           const feature = featureMap.get(featureId);
           const requiresPro = feature?.required_plan === 'pro';
-          const hasFeatureAccess = requiresPro ? isPro : true;
+          const hasFeatureAccess = requiresPro ? currentPlan !== 'free' : true;
 
           let remaining = 0;
           let limit = 0;
@@ -223,13 +223,13 @@ export function useMultipleFeatureAccess(featureIds: string[]): {
                 limit = userUsage.source_videos_limit || 30;
                 break;
               default:
-                remaining = isPro ? 999 : 0;
-                limit = isPro ? 999 : 0;
+                remaining = currentPlan !== 'free' ? 999 : 0;
+                limit = currentPlan !== 'free' ? 999 : 0;
             }
           }
 
           newAccessMap[featureId] = {
-            hasAccess: hasFeatureAccess && (isPro || remaining > 0),
+            hasAccess: hasFeatureAccess && (currentPlan !== 'free' || remaining > 0),
             remainingUsage: remaining,
             totalLimit: limit,
           };
@@ -245,9 +245,9 @@ export function useMultipleFeatureAccess(featureIds: string[]): {
         > = {};
         featureIds.forEach((id) => {
           fallbackMap[id] = {
-            hasAccess: isPro,
-            remainingUsage: isPro ? 999 : 0,
-            totalLimit: isPro ? 999 : 0,
+            hasAccess: currentPlan !== 'free',
+            remainingUsage: currentPlan !== 'free' ? 999 : 0,
+            totalLimit: currentPlan !== 'free' ? 999 : 0,
           };
         });
         setAccessMap(fallbackMap);
@@ -257,7 +257,7 @@ export function useMultipleFeatureAccess(featureIds: string[]): {
     };
 
     checkMultipleAccess();
-  }, [featureIds, isPro, isReady, userUsage]);
+  }, [featureIds, currentPlan, isReady, userUsage]);
 
-  return { accessMap, isLoading, isPro };
+  return { accessMap, isLoading, currentPlan };
 }

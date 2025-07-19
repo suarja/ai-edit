@@ -61,7 +61,7 @@ export default function SourceVideosScreen() {
   const { clerkLoaded, isSignedIn } = useGetUser();
 
   // Get subscription info for free tier limits
-  const { isPro, isReady: revenueCatReady, userUsage } = useRevenueCat();
+  const { currentPlan, isReady: revenueCatReady, userUsage } = useRevenueCat();
 
   React.useEffect(() => {
     if (clerkLoaded) {
@@ -86,7 +86,7 @@ export default function SourceVideosScreen() {
   return (
     <SafeAreaView style={styles.container} edges={[]}>
       <View style={styles.content}>
-        {revenueCatReady && userUsage && !isPro && (
+        {revenueCatReady && userUsage && currentPlan === 'free' && (
           <View style={styles.planInfoContainer}>
             <Text style={styles.planInfoText}>
               {userUsage.source_videos_used}/{userUsage.source_videos_limit}{' '}

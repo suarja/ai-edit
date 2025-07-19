@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { View, Text, StyleSheet, ActivityIndicator } from 'react-native';
-import { BarChart3, AlertCircle } from 'lucide-react-native';
+import { BarChart3 } from 'lucide-react-native';
 import { useRevenueCat } from '@/contexts/providers/RevenueCat';
 
 type UsageData = {
@@ -17,14 +17,7 @@ export default function UsageDashboard({
   usageData,
   forceRefresh = false,
 }: UsageDashboardProps) {
-  const {
-    isReady,
-    userUsage,
-    videosRemaining,
-    dynamicVideosLimit,
-    isPro,
-    refreshUsage,
-  } = useRevenueCat();
+  const { isReady, userUsage, refreshUsage } = useRevenueCat();
 
   // Use RevenueCat data or prop data
   const usage =
@@ -32,7 +25,7 @@ export default function UsageDashboard({
     (userUsage
       ? {
           videos_generated: userUsage.videos_generated,
-          videos_limit: dynamicVideosLimit,
+          videos_limit: userUsage.videos_generated_limit,
         }
       : null);
 
@@ -107,8 +100,8 @@ export default function UsageDashboard({
 
         {isNearLimit && (
           <Text style={styles.warningMessage}>
-            You're approaching your video generation limit. Consider upgrading
-            for unlimited access.
+            Vous approchez de votre limite de génération de vidéos. Considérez
+            de vous abonner pour accéder à un accès illimité.
           </Text>
         )}
       </View>
