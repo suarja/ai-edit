@@ -81,7 +81,33 @@ export default function SettingsScreen() {
         <SubscriptionManager />
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Création de Contenu</Text>
-          {/* ... existing content creation items */}
+          <TouchableOpacity
+            style={styles.settingItem}
+            onPress={() => router.push('/(settings)/voice-clone')}
+          >
+            <View style={styles.settingInfo}>
+              <Mic size={24} color="#fff" />
+              <Text style={styles.settingText}>Clone Vocal</Text>
+            </View>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.settingItem}
+            onPress={() => router.push('/(settings)/editorial')}
+          >
+            <View style={styles.settingInfo}>
+              <Edit3 size={24} color="#fff" />
+              <Text style={styles.settingText}>Profil Éditorial</Text>
+            </View>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.settingItem}
+            onPress={() => router.push('/(settings)/video-settings')}
+          >
+            <View style={styles.settingInfo}>
+              <Play size={24} color="#fff" />
+              <Text style={styles.settingText}>Configuration Vidéo</Text>
+            </View>
+          </TouchableOpacity>
         </View>
 
         <View style={styles.section}>
@@ -118,7 +144,49 @@ export default function SettingsScreen() {
         <SupportPanel />
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Administration</Text>
-          {/* ... existing admin panel */}
+          <View style={styles.adminContainer}>
+            <Text style={styles.adminTitle}>
+              Contrôle d&apos;Utilisation Utilisateur
+            </Text>
+            <View style={styles.searchContainer}>
+              <TextInput
+                style={styles.searchInput}
+                value={searchUserId}
+                onChangeText={setSearchUserId}
+                placeholder="ID Utilisateur"
+                placeholderTextColor="#666"
+              />
+              <TouchableOpacity
+                style={[
+                  styles.searchButton,
+                  searchLoading && styles.searchButtonDisabled,
+                ]}
+                onPress={handleSearchUser}
+                disabled={searchLoading}
+              >
+                {searchLoading ? (
+                  <ActivityIndicator size="small" color="#fff" />
+                ) : (
+                  <Search size={20} color="#fff" />
+                )}
+              </TouchableOpacity>
+            </View>
+            {searchError && (
+              <View style={styles.searchErrorContainer}>
+                <AlertCircle size={16} color="#ef4444" />
+                <Text style={styles.searchErrorText}>{searchError}</Text>
+              </View>
+            )}
+            {foundUserUsage &&
+              foundUserUsage.user_id &&
+              foundUserUsage.videos_limit && (
+                <AdminUsageControl
+                  userId={foundUserUsage.user_id}
+                  currentLimit={foundUserUsage.videos_limit}
+                  onUpdate={handleSearchUser}
+                />
+              )}
+          </View>
         </View>
         {__DEV__ && <DebugPanel />}
       </ScrollView>
