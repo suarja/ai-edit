@@ -1,5 +1,5 @@
 import { useClerkAuth } from '@/components/hooks/useClerkAuth';
-import { useClerkSupabaseClient } from '@/lib/supabase-clerk';
+import { useClerkSupabaseClient } from '@/lib/config/supabase-clerk';
 
 export type DatabaseUser = {
   id: string; // Database UUID

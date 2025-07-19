@@ -20,7 +20,7 @@ import {
 } from 'lucide-react-native';
 import AdminUsageControl from '@/components/AdminUsageControl';
 import { SubscriptionManager } from '@/components/SubscriptionManager';
-import { useClerkSupabaseClient } from '@/lib/supabase-clerk';
+import { useClerkSupabaseClient } from '@/lib/config/supabase-clerk';
 import UserProfileManager from '@/components/UserProfileManager';
 import SupportPanel from '@/components/SupportPanel';
 import { DebugPanel } from '@/components/DebugPanel';

@@ -21,7 +21,7 @@ import {
 import { useOnboarding } from '@/components/providers/OnboardingProvider';
 import { ProgressBar } from '@/components/onboarding/ProgressBar';
 import { useOnboardingSteps } from '@/components/onboarding/OnboardingSteps';
-import { useClerkSupabaseClient } from '@/lib/supabase-clerk';
+import { useClerkSupabaseClient } from '@/lib/config/supabase-clerk';
 import { useGetUser } from '@/components/hooks/useGetUser';
 
 type EditorialProfile = {

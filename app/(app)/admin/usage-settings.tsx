@@ -4,7 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import AdminUsageSettings from '@/components/AdminUsageSettings';
 import { AlertTriangle } from 'lucide-react-native';
-import { useClerkSupabaseClient } from '@/lib/supabase-clerk';
+import { useClerkSupabaseClient } from '@/lib/config/supabase-clerk';
 import { useGetUser } from '@/components/hooks/useGetUser';
 export default function AdminUsageSettingsPage() {
   const [loading, setLoading] = useState(true);

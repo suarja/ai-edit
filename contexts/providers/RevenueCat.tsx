@@ -5,7 +5,7 @@ import Purchases, {
   CustomerInfo,
   PurchasesOffering,
 } from 'react-native-purchases';
-import { useClerkSupabaseClient } from '@/lib/supabase-clerk';
+import { useClerkSupabaseClient } from '@/lib/config/supabase-clerk';
 import { useGetUser } from '@/components/hooks/useGetUser';
 import { CustomPaywall } from '@/components/CustomPaywall';
 import { Plan, RevenueCatProps, UserUsage } from '@/lib/types/revenueCat';

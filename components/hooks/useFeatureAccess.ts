@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useRevenueCat } from '@/contexts/providers/RevenueCat';
-import { useClerkSupabaseClient } from '@/lib/supabase-clerk';
+import { useClerkSupabaseClient } from '@/lib/config/supabase-clerk';
 
 /**
  * Hook pour vérifier l'accès à une fonctionnalité spécifique

@@ -1,7 +1,7 @@
 import { createClient } from '@supabase/supabase-js';
 import { useSession, useUser } from '@clerk/clerk-expo';
 import { useMemo } from 'react';
-import { env } from './config/env';
+import { env } from './env';
 
 /**
  * Custom hook that creates a Supabase client with Clerk session token injection
@@ -42,6 +42,7 @@ export function useClerkSupabaseClient() {
 /**
  * Alternative approach: Function to create Clerk-authenticated Supabase client
  * Use this if you need a client outside of React components
+ * @deprecated
  */
 export function createClerkSupabaseClient(session: any) {
   return createClient(env.SUPABASE_URL, env.SUPABASE_ANON_KEY, {

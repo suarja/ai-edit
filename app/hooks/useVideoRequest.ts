@@ -2,11 +2,15 @@ import { useState, useEffect } from 'react';
 import { router } from 'expo-router';
 import { useAuth } from '@clerk/clerk-expo';
 import { useGetUser } from '@/components/hooks/useGetUser';
-import { useClerkSupabaseClient } from '@/lib/supabase-clerk';
+import { useClerkSupabaseClient } from '@/lib/config/supabase-clerk';
 import { VideoType, CaptionConfiguration } from '@/lib/types/video';
 import { CaptionConfigStorage } from '@/lib/utils/caption-config-storage';
 import { API_ENDPOINTS } from '@/lib/config/api';
-import { VoiceConfig, VoiceConfigStorage, VoiceService } from '@/lib/services/voiceService';
+import {
+  VoiceConfig,
+  VoiceConfigStorage,
+  VoiceService,
+} from '@/lib/services/voiceService';
 
 // Default language
 const DEFAULT_LANGUAGE = 'fr';

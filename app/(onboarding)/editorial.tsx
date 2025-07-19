@@ -11,7 +11,7 @@ import {
 import { router } from 'expo-router';
 import { Save, CircleAlert as AlertCircle, Mic } from 'lucide-react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useClerkSupabaseClient } from '@/lib/supabase-clerk';
+import { useClerkSupabaseClient } from '@/lib/config/supabase-clerk';
 import { useGetUser } from '@/components/hooks/useGetUser';
 
 export default function EditorialScreen() {

@@ -13,7 +13,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { useGetUser } from '@/components/hooks/useGetUser';
-import { useClerkSupabaseClient } from '@/lib/supabase-clerk';
+import { useClerkSupabaseClient } from '@/lib/config/supabase-clerk';
 import { CircleAlert as AlertCircle, Plus } from 'lucide-react-native';
 import GeneratedVideoCard from '@/components/GeneratedVideoCard';
 import EmptyGeneratedVideos from '@/components/EmptyGeneratedVideos';
