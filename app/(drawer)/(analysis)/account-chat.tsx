@@ -24,6 +24,10 @@ import AnalysisHeader from '@/components/analysis/AnalysisHeader';
 import Markdown from 'react-native-markdown-display';
 import ProPaywall from '@/components/analysis/ProPaywall';
 import VoiceDictation from '@/components/VoiceDictation';
+import {
+  accountChatStyles,
+  markdownStyles,
+} from '@/lib/utils/styles/accountChat.styles';
 
 /**
  * 🎯 SIMPLIFIED TIKTOK ANALYSIS CHAT
@@ -85,24 +89,28 @@ export default function AccountChatScreen() {
       <View
         key={message.id}
         style={[
-          styles.messageContainer,
-          isUser ? styles.userMessage : styles.assistantMessage,
+          accountChatStyles.messageContainer,
+          isUser
+            ? accountChatStyles.userMessage
+            : accountChatStyles.assistantMessage,
         ]}
       >
         <View
           style={[
-            styles.messageBubble,
-            isUser ? styles.userBubble : styles.assistantBubble,
+            accountChatStyles.messageBubble,
+            isUser
+              ? accountChatStyles.userBubble
+              : accountChatStyles.assistantBubble,
           ]}
         >
           {isUser ? (
-            <Text style={styles.messageText}>{message.content}</Text>
+            <Text style={accountChatStyles.messageText}>{message.content}</Text>
           ) : (
             <Markdown style={markdownStyles}>{message.content}</Markdown>
           )}
 
-          <View style={styles.messageFooter}>
-            <Text style={styles.timestamp}>
+          <View style={accountChatStyles.messageFooter}>
+            <Text style={accountChatStyles.timestamp}>
               {new Date(message.timestamp).toLocaleTimeString([], {
                 hour: '2-digit',
                 minute: '2-digit',
@@ -112,7 +120,7 @@ export default function AccountChatScreen() {
               <CheckCircle2
                 size={12}
                 color="#4CD964"
-                style={styles.checkmark}
+                style={accountChatStyles.checkmark}
               />
             )}
           </View>
@@ -161,7 +169,7 @@ export default function AccountChatScreen() {
     >
       <SafeAreaView
         key={conversationId || 'new'}
-        style={styles.container}
+        style={accountChatStyles.container}
         edges={['top']}
       >
         {/* Header with reset button for testing */}
@@ -176,14 +184,14 @@ export default function AccountChatScreen() {
         {/* Messages */}
         <ScrollView
           ref={scrollViewRef}
-          style={styles.messagesContainer}
+          style={accountChatStyles.messagesContainer}
           showsVerticalScrollIndicator={false}
         >
           {/* Welcome message */}
           {messages.length === 0 && !isLoadingMessages && (
-            <View style={styles.welcomeMessage}>
+            <View style={accountChatStyles.welcomeMessage}>
               <TrendingUp size={24} color="#007AFF" />
-              <Text style={styles.welcomeText}>
+              <Text style={accountChatStyles.welcomeText}>
                 {existingAnalysis
                   ? `👋 Salut ! Je connais votre compte @${existingAnalysis.tiktok_handle} et peux vous donner des conseils personnalisés basés sur votre analyse TikTok.`
                   : `👋 Salut ! Je suis votre expert TikTok IA. Posez-moi des questions sur la stratégie de contenu, l'engagement, ou donnez-moi votre handle TikTok pour une analyse personnalisée.`}
@@ -192,21 +200,21 @@ export default function AccountChatScreen() {
           )}
 
           {isLoadingMessages && (
-            <View style={styles.loadingMessagesContainer}>
+            <View style={accountChatStyles.loadingMessagesContainer}>
               <ActivityIndicator size="small" color="#007AFF" />
             </View>
           )}
 
           {/* Error display */}
           {error && (
-            <View style={styles.errorContainer}>
+            <View style={accountChatStyles.errorContainer}>
               <AlertCircle size={16} color="#ff5555" />
-              <Text style={styles.errorText}>{error}</Text>
+              <Text style={accountChatStyles.errorText}>{error}</Text>
               <TouchableOpacity
                 onPress={clearError}
-                style={styles.errorDismiss}
+                style={accountChatStyles.errorDismiss}
               >
-                <Text style={styles.errorDismissText}>Fermer</Text>
+                <Text style={accountChatStyles.errorDismissText}>Fermer</Text>
               </TouchableOpacity>
             </View>
           )}
@@ -216,9 +224,9 @@ export default function AccountChatScreen() {
 
           {/* Loading/Streaming indicator */}
           {(isLoading || isStreaming) && (
-            <View style={styles.typingContainer}>
+            <View style={accountChatStyles.typingContainer}>
               <ActivityIndicator size="small" color="#007AFF" />
-              <Text style={styles.typingText}>
+              <Text style={accountChatStyles.typingText}>
                 {isStreaming ? 'EditIA écrit...' : 'EditIA réfléchit...'}
               </Text>
             </View>
@@ -226,35 +234,37 @@ export default function AccountChatScreen() {
         </ScrollView>
 
         {/* Input Section (simplified like chat.tsx) */}
-        <View style={styles.inputContainer}>
+        <View style={accountChatStyles.inputContainer}>
           {/* Suggestions for first message */}
           {messages.length === 0 && (
-            <View style={styles.suggestionsContainer}>
+            <View style={accountChatStyles.suggestionsContainer}>
               {existingAnalysis ? (
                 <>
                   <TouchableOpacity
-                    style={styles.suggestionCard}
+                    style={accountChatStyles.suggestionCard}
                     onPress={() =>
                       setInputMessage(
                         `Quels sont mes points forts sur @${existingAnalysis.tiktok_handle} ?`
                       )
                     }
                   >
-                    <Text style={styles.suggestionTitle}>Mes points forts</Text>
-                    <Text style={styles.suggestionSubtitle}>
+                    <Text style={accountChatStyles.suggestionTitle}>
+                      Mes points forts
+                    </Text>
+                    <Text style={accountChatStyles.suggestionSubtitle}>
                       Analyse de mes forces
                     </Text>
                   </TouchableOpacity>
                   <TouchableOpacity
-                    style={styles.suggestionCard}
+                    style={accountChatStyles.suggestionCard}
                     onPress={() =>
                       setInputMessage('Comment améliorer mon engagement ?')
                     }
                   >
-                    <Text style={styles.suggestionTitle}>
+                    <Text style={accountChatStyles.suggestionTitle}>
                       Améliorer l&apos;engagement
                     </Text>
-                    <Text style={styles.suggestionSubtitle}>
+                    <Text style={accountChatStyles.suggestionSubtitle}>
                       Conseils personnalisés
                     </Text>
                   </TouchableOpacity>
@@ -262,28 +272,28 @@ export default function AccountChatScreen() {
               ) : (
                 <>
                   <TouchableOpacity
-                    style={styles.suggestionCard}
+                    style={accountChatStyles.suggestionCard}
                     onPress={() =>
                       setInputMessage('Analyse mon compte @username')
                     }
                   >
-                    <Text style={styles.suggestionTitle}>
+                    <Text style={accountChatStyles.suggestionTitle}>
                       Analyser un compte
                     </Text>
-                    <Text style={styles.suggestionSubtitle}>
+                    <Text style={accountChatStyles.suggestionSubtitle}>
                       @username pour analyse complète
                     </Text>
                   </TouchableOpacity>
                   <TouchableOpacity
-                    style={styles.suggestionCard}
+                    style={accountChatStyles.suggestionCard}
                     onPress={() =>
                       setInputMessage('Comment améliorer mon engagement ?')
                     }
                   >
-                    <Text style={styles.suggestionTitle}>
+                    <Text style={accountChatStyles.suggestionTitle}>
                       Conseils d&apos;engagement
                     </Text>
-                    <Text style={styles.suggestionSubtitle}>
+                    <Text style={accountChatStyles.suggestionSubtitle}>
                       Stratégies personnalisées
                     </Text>
                   </TouchableOpacity>
@@ -292,9 +302,9 @@ export default function AccountChatScreen() {
             </View>
           )}
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-            <View style={styles.inputWrapper}>
+            <View style={accountChatStyles.inputWrapper}>
               <TextInput
-                style={styles.textInput}
+                style={accountChatStyles.textInput}
                 value={inputMessage}
                 onChangeText={setInputMessage}
                 placeholder="Posez une question ou donnez votre handle TikTok..."
@@ -311,9 +321,9 @@ export default function AccountChatScreen() {
 
             <TouchableOpacity
               style={[
-                styles.sendButton,
+                accountChatStyles.sendButton,
                 (!inputMessage.trim() || isLoading || isStreaming) &&
-                  styles.sendButtonDisabled,
+                  accountChatStyles.sendButtonDisabled,
               ]}
               onPress={handleSendMessage}
               disabled={!inputMessage.trim() || isLoading || isStreaming}
@@ -330,291 +340,3 @@ export default function AccountChatScreen() {
     </KeyboardAvoidingView>
   );
 }
-
-const markdownStyles = StyleSheet.create({
-  body: {
-    color: '#fff',
-    fontSize: 16,
-    lineHeight: 22,
-  },
-  heading1: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#fff',
-    marginTop: 16,
-    marginBottom: 8,
-    borderBottomWidth: 1,
-    borderColor: '#333',
-    paddingBottom: 4,
-  },
-  heading2: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#fff',
-    marginTop: 12,
-    marginBottom: 6,
-  },
-  list_item: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    marginVertical: 4,
-  },
-  bullet_list_icon: {
-    color: '#007AFF',
-    fontSize: 16,
-    lineHeight: 22,
-    marginRight: 8,
-    fontWeight: 'bold',
-  },
-  ordered_list_icon: {
-    color: '#007AFF',
-    fontSize: 16,
-    lineHeight: 22,
-    marginRight: 8,
-    fontWeight: 'bold',
-  },
-  strong: {
-    fontWeight: 'bold',
-  },
-  em: {
-    fontStyle: 'italic',
-  },
-  link: {
-    color: '#007AFF',
-    textDecorationLine: 'underline',
-  },
-});
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#000',
-  },
-  centeredContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    gap: 16,
-  },
-  centeredText: {
-    color: '#888',
-    fontSize: 16,
-    textAlign: 'center',
-  },
-  scrollView: {
-    flex: 1,
-  },
-
-  // Chat Styles (like working chat.tsx)
-  messagesContainer: {
-    flex: 1,
-    padding: 16,
-  },
-  welcomeMessage: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: 'rgba(0, 122, 255, 0.1)',
-    padding: 16,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: 'rgba(0, 122, 255, 0.3)',
-    marginBottom: 20,
-    gap: 12,
-  },
-  welcomeText: {
-    color: '#fff',
-    fontSize: 14,
-    lineHeight: 20,
-    flex: 1,
-  },
-  loadingMessagesContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 16,
-  },
-  errorContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: 'rgba(255, 85, 85, 0.1)',
-    padding: 12,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 85, 85, 0.3)',
-    marginBottom: 16,
-    gap: 8,
-  },
-  errorText: {
-    color: '#ff5555',
-    fontSize: 14,
-    flex: 1,
-  },
-  errorDismiss: {
-    padding: 4,
-  },
-  errorDismissText: {
-    color: '#ff5555',
-    fontSize: 12,
-    fontWeight: '600',
-  },
-  messageContainer: {
-    marginBottom: 16,
-  },
-  userMessage: {
-    alignItems: 'flex-end',
-  },
-  assistantMessage: {
-    alignItems: 'flex-start',
-  },
-  messageBubble: {
-    maxWidth: '85%',
-    padding: 12,
-    borderRadius: 16,
-  },
-  userBubble: {
-    backgroundColor: '#007AFF',
-    borderBottomRightRadius: 4,
-  },
-  assistantBubble: {
-    backgroundColor: '#1a1a1a',
-    borderBottomLeftRadius: 4,
-    borderWidth: 1,
-    borderColor: '#333',
-  },
-  messageText: {
-    fontSize: 16,
-    lineHeight: 22,
-    color: '#fff',
-  },
-  userText: {
-    color: '#fff',
-  },
-  assistantText: {
-    color: '#fff',
-  },
-  messageFooter: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginTop: 6,
-  },
-  timestamp: {
-    fontSize: 11,
-    color: '#fff',
-  },
-  typingContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 16,
-    gap: 8,
-  },
-  typingText: {
-    color: '#888',
-    fontSize: 14,
-    fontStyle: 'italic',
-  },
-
-  // Input Styles (like working chat.tsx)
-  inputContainer: {
-    padding: 20,
-    paddingTop: 10,
-  },
-  suggestionsContainer: {
-    flexDirection: 'row',
-    gap: 12,
-    marginBottom: 20,
-  },
-  suggestionCard: {
-    flex: 1,
-    backgroundColor: '#1a1a1a',
-    borderRadius: 12,
-    padding: 16,
-    borderWidth: 1,
-    borderColor: '#333',
-  },
-  suggestionTitle: {
-    color: '#fff',
-    fontSize: 14,
-    fontWeight: '600',
-    marginBottom: 4,
-  },
-  suggestionSubtitle: {
-    color: '#888',
-    fontSize: 12,
-    lineHeight: 16,
-  },
-  inputWrapper: {
-    backgroundColor: '#1a1a1a',
-    borderRadius: 25,
-    borderWidth: 1,
-    borderColor: '#333',
-    paddingLeft: 16,
-    paddingRight: 8,
-    paddingVertical: 4,
-    flexDirection: 'row',
-    alignItems: 'center',
-    flex: 1,
-  },
-  textInput: {
-    flex: 1,
-    backgroundColor: 'transparent',
-    paddingVertical: 8,
-    color: '#fff',
-    fontSize: 16,
-    maxHeight: 100,
-    minHeight: 44, // Ensure minHeight for alignment
-  },
-  sendButton: {
-    backgroundColor: '#007AFF',
-    borderRadius: 20,
-    width: 36,
-    height: 36,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 4,
-  },
-  sendButtonDisabled: {
-    backgroundColor: '#333',
-  },
-
-  // Header Styles
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 16,
-    gap: 16,
-  },
-  headerTitle: {
-    color: '#fff',
-    fontSize: 18,
-    fontWeight: 'bold',
-    flex: 1,
-  },
-  resetButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  resetButtonText: {
-    color: '#007AFF',
-    fontSize: 14,
-    fontWeight: '600',
-  },
-  checkmark: {
-    marginLeft: 4,
-  },
-  featuresList: {
-    marginBottom: 24,
-    alignSelf: 'stretch',
-  },
-  featureItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  featureText: {
-    color: '#fff',
-    fontSize: 16,
-  },
-  upgradeButton: {},
-});

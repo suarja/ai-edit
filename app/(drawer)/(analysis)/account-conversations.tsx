@@ -23,6 +23,7 @@ import { useRevenueCat } from '@/contexts/providers/RevenueCat';
 import { API_ENDPOINTS } from '@/lib/config/api';
 import ProPaywall from '@/components/analysis/ProPaywall';
 import AnalysisHeader from '@/components/analysis/AnalysisHeader';
+import { accountConversationsStyles } from '@/lib/utils/styles/accountConversations.styles';
 
 interface Conversation {
   id: string;
@@ -164,10 +165,10 @@ export default function AccountConversationsScreen() {
 
   if (loading) {
     return (
-      <SafeAreaView style={styles.container} edges={['top']}>
-        <View style={styles.loadingContainer}>
+      <SafeAreaView style={accountConversationsStyles.container} edges={['top']}>
+        <View style={accountConversationsStyles.loadingContainer}>
           <ActivityIndicator size="large" color="#007AFF" />
-          <Text style={styles.loadingText}>
+          <Text style={accountConversationsStyles.loadingText}>
             Chargement des conversations...
           </Text>
         </View>
@@ -176,10 +177,10 @@ export default function AccountConversationsScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
+    <SafeAreaView style={accountConversationsStyles.container} edges={['top']}>
       <AnalysisHeader title={'Conversations'} onBack={() => router.back()} />
       <ScrollView
-        style={styles.content}
+        style={accountConversationsStyles.content}
         showsVerticalScrollIndicator={false}
         refreshControl={
           <RefreshControl
@@ -190,25 +191,25 @@ export default function AccountConversationsScreen() {
         }
       >
         {error && (
-          <View style={styles.errorContainer}>
-            <Text style={styles.errorText}>❌ {error}</Text>
+          <View style={accountConversationsStyles.errorContainer}>
+            <Text style={accountConversationsStyles.errorText}>❌ {error}</Text>
           </View>
         )}
 
         {/* Empty State */}
         {!loading && conversations.length === 0 && (
-          <View style={styles.emptyState}>
+          <View style={accountConversationsStyles.emptyState}>
             <MessageCircle size={64} color="#666" />
-            <Text style={styles.emptyTitle}>Aucune conversation</Text>
-            <Text style={styles.emptyDescription}>
+            <Text style={accountConversationsStyles.emptyTitle}>Aucune conversation</Text>
+            <Text style={accountConversationsStyles.emptyDescription}>
               Commencez votre première conversation avec l&apos;expert IA TikTok
             </Text>
             <TouchableOpacity
-              style={styles.emptyButton}
+              style={accountConversationsStyles.emptyButton}
               onPress={handleCreateNewConversation}
             >
               <Plus size={20} color="#007AFF" />
-              <Text style={styles.emptyButtonText}>Nouvelle conversation</Text>
+              <Text style={accountConversationsStyles.emptyButtonText}>Nouvelle conversation</Text>
             </TouchableOpacity>
           </View>
         )}
@@ -217,11 +218,11 @@ export default function AccountConversationsScreen() {
         {conversations.map((conversation) => (
           <TouchableOpacity
             key={conversation.id}
-            style={styles.conversationCard}
+            style={accountConversationsStyles.conversationCard}
             onPress={() => handleOpenConversation(conversation)}
           >
-            <View style={styles.conversationHeader}>
-              <View style={styles.conversationIcon}>
+            <View style={accountConversationsStyles.conversationHeader}>
+              <View style={accountConversationsStyles.conversationIcon}>
                 {conversation.context?.tiktok_handle ? (
                   <TrendingUp size={20} color="#007AFF" />
                 ) : (
@@ -229,20 +230,20 @@ export default function AccountConversationsScreen() {
                 )}
               </View>
 
-              <View style={styles.conversationInfo}>
-                <Text style={styles.conversationTitle} numberOfLines={1}>
+              <View style={accountConversationsStyles.conversationInfo}>
+                <Text style={accountConversationsStyles.conversationTitle} numberOfLines={1}>
                   {getConversationTitle(conversation)}
                 </Text>
-                <Text style={styles.conversationPreview} numberOfLines={2}>
+                <Text style={accountConversationsStyles.conversationPreview} numberOfLines={2}>
                   {getLastMessagePreview(conversation)}
                 </Text>
               </View>
 
-              <View style={styles.conversationMeta}>
-                <Text style={styles.conversationTime}>
+              <View style={accountConversationsStyles.conversationMeta}>
+                <Text style={accountConversationsStyles.conversationTime}>
                   {formatDate(conversation.updated_at)}
                 </Text>
-                <Text style={styles.messageCount}>
+                <Text style={accountConversationsStyles.messageCount}>
                   {conversation.message_count} message
                   {conversation.message_count !== 1 ? 's' : ''}
                 </Text>
@@ -251,9 +252,9 @@ export default function AccountConversationsScreen() {
             </View>
 
             {conversation.context?.tiktok_handle && (
-              <View style={styles.contextBadge}>
+              <View style={accountConversationsStyles.contextBadge}>
                 <Users size={12} color="#007AFF" />
-                <Text style={styles.contextText}>
+                <Text style={accountConversationsStyles.contextText}>
                   @{conversation.context.tiktok_handle}
                 </Text>
               </View>
@@ -264,7 +265,7 @@ export default function AccountConversationsScreen() {
 
       {/* Floating Action Button */}
       <TouchableOpacity
-        style={styles.floatingButton}
+        style={accountConversationsStyles.floatingButton}
         onPress={handleCreateNewConversation}
       >
         <Plus size={24} color="#fff" />
@@ -273,230 +274,4 @@ export default function AccountConversationsScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#000',
-  },
-  scrollView: {
-    flex: 1,
-  },
-  content: {
-    flex: 1,
-    padding: 20,
-  },
 
-  // Paywall Styles
-  paywallContainer: {
-    padding: 20,
-    alignItems: 'center',
-    justifyContent: 'center',
-    minHeight: '80%',
-  },
-  paywallHeader: {
-    alignItems: 'center',
-    marginBottom: 20,
-  },
-  paywallTitle: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#fff',
-    marginTop: 12,
-  },
-  paywallDescription: {
-    color: '#fff',
-    fontSize: 16,
-    marginBottom: 20,
-    lineHeight: 22,
-    textAlign: 'center',
-  },
-  featuresList: {
-    marginBottom: 24,
-    alignSelf: 'stretch',
-  },
-  featureItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  checkmark: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#4CAF50',
-    marginRight: 12,
-  },
-  featureText: {
-    color: '#fff',
-    fontSize: 16,
-  },
-  upgradeButton: {
-    backgroundColor: '#FFD700',
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: 16,
-    borderRadius: 12,
-    gap: 8,
-    marginBottom: 16,
-    alignSelf: 'stretch',
-  },
-  upgradeButtonText: {
-    color: '#000',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  paywallFooter: {
-    color: '#888',
-    fontSize: 14,
-    textAlign: 'center',
-    fontStyle: 'italic',
-  },
-
-  // Loading & Error
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    gap: 16,
-  },
-  loadingText: {
-    color: '#666',
-    fontSize: 16,
-  },
-  errorContainer: {
-    backgroundColor: 'rgba(255, 59, 48, 0.1)',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 59, 48, 0.3)',
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 16,
-  },
-  errorText: {
-    color: '#FF3B30',
-    fontSize: 14,
-    textAlign: 'center',
-  },
-
-  // Empty State
-  emptyState: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingVertical: 60,
-  },
-  emptyTitle: {
-    fontSize: 20,
-    fontWeight: '600',
-    color: '#fff',
-    marginTop: 16,
-  },
-  emptyDescription: {
-    fontSize: 16,
-    color: '#888',
-    textAlign: 'center',
-    marginTop: 8,
-    marginBottom: 24,
-  },
-  emptyButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: 'rgba(0, 122, 255, 0.1)',
-    borderWidth: 1,
-    borderColor: '#007AFF',
-    borderRadius: 12,
-    paddingHorizontal: 20,
-    paddingVertical: 12,
-    gap: 8,
-  },
-  emptyButtonText: {
-    color: '#007AFF',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-
-  // Conversation Cards
-  conversationCard: {
-    backgroundColor: '#1a1a1a',
-    borderRadius: 16,
-    padding: 16,
-    borderWidth: 1,
-    borderColor: '#333',
-    marginBottom: 12,
-  },
-  conversationHeader: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    marginBottom: 8,
-  },
-  conversationIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 10,
-    backgroundColor: 'rgba(0, 122, 255, 0.1)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 12,
-  },
-  conversationInfo: {
-    flex: 1,
-  },
-  conversationTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#fff',
-    marginBottom: 4,
-  },
-  conversationPreview: {
-    fontSize: 14,
-    color: '#888',
-    lineHeight: 20,
-  },
-  conversationMeta: {
-    alignItems: 'flex-end',
-    gap: 4,
-  },
-  conversationTime: {
-    fontSize: 12,
-    color: '#666',
-  },
-  messageCount: {
-    fontSize: 11,
-    color: '#666',
-  },
-  contextBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: 'rgba(0, 122, 255, 0.1)',
-    borderRadius: 8,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    alignSelf: 'flex-start',
-    gap: 4,
-  },
-  contextText: {
-    fontSize: 12,
-    color: '#007AFF',
-    fontWeight: '500',
-  },
-
-  // Floating Button
-  floatingButton: {
-    position: 'absolute',
-    bottom: 30,
-    right: 20,
-    backgroundColor: '#007AFF',
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 4,
-    },
-    shadowOpacity: 0.3,
-    shadowRadius: 6,
-    elevation: 8,
-  },
-});

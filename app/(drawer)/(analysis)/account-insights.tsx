@@ -34,6 +34,7 @@ import { API_ENDPOINTS } from '@/lib/config/api';
 import { useAccountAnalysis } from '@/components/hooks/useAccountAnalysis';
 import AnalysisHeader from '@/components/analysis/AnalysisHeader';
 import ProPaywall from '@/components/analysis/ProPaywall';
+import { accountInsightsStyles } from '@/lib/utils/styles/accountInsights.styles';
 
 // Updated types to match the new comprehensive context
 interface AccountData {
@@ -179,10 +180,12 @@ export default function AccountInsightsScreen() {
   // Use the hook's loading state initially
   if (isAnalysisLoading || loading) {
     return (
-      <SafeAreaView style={styles.container} edges={[]}>
-        <View style={styles.loadingContainer}>
+      <SafeAreaView style={accountInsightsStyles.container} edges={[]}>
+        <View style={accountInsightsStyles.loadingContainer}>
           <ActivityIndicator size="large" color="#007AFF" />
-          <Text style={styles.loadingText}>Chargement de vos insights...</Text>
+          <Text style={accountInsightsStyles.loadingText}>
+            Chargement de vos insights...
+          </Text>
         </View>
       </SafeAreaView>
     );
@@ -192,19 +195,21 @@ export default function AccountInsightsScreen() {
   // because the guard handles the no-analysis case.
   if (!context) {
     return (
-      <SafeAreaView style={styles.container} edges={['top']}>
+      <SafeAreaView style={accountInsightsStyles.container} edges={['top']}>
         <AnalysisHeader title={'Insights'} onBack={() => router.back()} />
         <ScrollView
-          contentContainerStyle={styles.emptyStateContainer}
+          contentContainerStyle={accountInsightsStyles.emptyStateContainer}
           refreshControl={
             <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
           }
         >
           <BarChart3 size={64} color="#666" />
-          <Text style={styles.emptyStateTitle}>Données non disponibles</Text>
-          <Text style={styles.emptyStateDescription}>
-            Nous n&apos;avons pas pu charger les données pour ce compte. Veuillez
-            réessayer.
+          <Text style={accountInsightsStyles.emptyStateTitle}>
+            Données non disponibles
+          </Text>
+          <Text style={accountInsightsStyles.emptyStateDescription}>
+            Nous n&apos;avons pas pu charger les données pour ce compte.
+            Veuillez réessayer.
           </Text>
         </ScrollView>
       </SafeAreaView>
@@ -214,10 +219,10 @@ export default function AccountInsightsScreen() {
   const { account, stats, aggregates, insights } = context;
 
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
+    <SafeAreaView style={accountInsightsStyles.container} edges={['top']}>
       <AnalysisHeader title={'Insights'} onBack={() => router.back()} />
       <ScrollView
-        style={styles.scrollView}
+        style={accountInsightsStyles.scrollView}
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
@@ -227,22 +232,28 @@ export default function AccountInsightsScreen() {
         }
       >
         {/* Header with profile pic and handle */}
-        <View style={styles.profileHeader}>
+        <View style={accountInsightsStyles.profileHeader}>
           {/* Image component would go here */}
           <Image
             source={{ uri: account.profile_pic_url }}
-            style={styles.profilePic}
+            style={accountInsightsStyles.profilePic}
           />
-          <View style={styles.profileInfo}>
-            <Text style={styles.profileHandle}>@{account.tiktok_handle}</Text>
-            <Text style={styles.profileUsername}>{account.username}</Text>
+          <View style={accountInsightsStyles.profileInfo}>
+            <Text style={accountInsightsStyles.profileHandle}>
+              @{account.tiktok_handle}
+            </Text>
+            <Text style={accountInsightsStyles.profileUsername}>
+              {account.username}
+            </Text>
           </View>
         </View>
 
         {/* Stats Overview */}
-        <View style={styles.statsContainer}>
-          <Text style={styles.sectionTitle}>Vue d&apos;ensemble</Text>
-          <View style={styles.statsGrid}>
+        <View style={accountInsightsStyles.statsContainer}>
+          <Text style={accountInsightsStyles.sectionTitle}>
+            Vue d&apos;ensemble
+          </Text>
+          <View style={accountInsightsStyles.statsGrid}>
             <StatCard
               icon={<Users size={24} color="#007AFF" />}
               value={stats.followers_count?.toLocaleString() || 'N/A'}
@@ -274,45 +285,62 @@ export default function AccountInsightsScreen() {
         </View>
 
         {/* EditIA Insights */}
-        <View style={styles.analysisContainer}>
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Analyse EditIA</Text>
+        <View style={accountInsightsStyles.analysisContainer}>
+          <View style={accountInsightsStyles.sectionHeader}>
+            <Text style={accountInsightsStyles.sectionTitle}>
+              Analyse EditIA
+            </Text>
             <TouchableOpacity
-              style={styles.chatButton}
+              style={accountInsightsStyles.chatButton}
               onPress={navigateToAccountChat}
             >
               <MessageCircle size={20} color="#007AFF" />
-              <Text style={styles.chatButtonText}>Chat IA</Text>
+              <Text style={accountInsightsStyles.chatButtonText}>Chat IA</Text>
             </TouchableOpacity>
           </View>
 
-          <View style={styles.recommendationCard}>
-            <Text style={styles.analysisSubtitle}>Forces Principales</Text>
+          <View style={accountInsightsStyles.recommendationCard}>
+            <Text style={accountInsightsStyles.analysisSubtitle}>
+              Forces Principales
+            </Text>
             {(
               insights.profile_summary?.strengths || ['Analyse en cours...']
             ).map((strength, index) => (
-              <View key={index} style={styles.recommendation}>
-                <Text style={styles.recommendationText}>• {strength}</Text>
+              <View key={index} style={accountInsightsStyles.recommendation}>
+                <Text style={accountInsightsStyles.recommendationText}>
+                  • {strength}
+                </Text>
               </View>
             ))}
           </View>
 
-          <View style={[styles.recommendationCard, styles.marginTop]}>
-            <Text style={styles.analysisSubtitle}>Axes d&apos;Amélioration</Text>
+          <View
+            style={[
+              accountInsightsStyles.recommendationCard,
+              accountInsightsStyles.marginTop,
+            ]}
+          >
+            <Text style={accountInsightsStyles.analysisSubtitle}>
+              Axes d&apos;Amélioration
+            </Text>
             {(
               insights.profile_summary?.weaknesses || ['Analyse en cours...']
             ).map((weakness, index) => (
-              <View key={index} style={styles.recommendation}>
-                <Text style={styles.recommendationText}>• {weakness}</Text>
+              <View key={index} style={accountInsightsStyles.recommendation}>
+                <Text style={accountInsightsStyles.recommendationText}>
+                  • {weakness}
+                </Text>
               </View>
             ))}
           </View>
         </View>
 
         {/* Performance Metrics */}
-        <View style={styles.analysisContainer}>
-          <Text style={styles.sectionTitle}>Métriques de Performance</Text>
-          <View style={styles.metricsGrid}>
+        <View style={accountInsightsStyles.analysisContainer}>
+          <Text style={accountInsightsStyles.sectionTitle}>
+            Métriques de Performance
+          </Text>
+          <View style={accountInsightsStyles.metricsGrid}>
             <MetricCard
               icon={<Clock size={20} color="#fff" />}
               label="Meilleur moment de publication"
@@ -332,13 +360,17 @@ export default function AccountInsightsScreen() {
 
         {/* Hashtag Analysis */}
         {aggregates.top_hashtags && aggregates.top_hashtags.length > 0 && (
-          <View style={styles.analysisContainer}>
-            <Text style={styles.sectionTitle}>Analyse des Hashtags</Text>
-            <View style={styles.hashtagsContainer}>
+          <View style={accountInsightsStyles.analysisContainer}>
+            <Text style={accountInsightsStyles.sectionTitle}>
+              Analyse des Hashtags
+            </Text>
+            <View style={accountInsightsStyles.hashtagsContainer}>
               {aggregates.top_hashtags.map((hashtag, index) => (
-                <View key={index} style={styles.hashtagPill}>
+                <View key={index} style={accountInsightsStyles.hashtagPill}>
                   <Hash size={16} color="#007AFF" />
-                  <Text style={styles.hashtagText}>{hashtag}</Text>
+                  <Text style={accountInsightsStyles.hashtagText}>
+                    {hashtag}
+                  </Text>
                 </View>
               ))}
             </View>
@@ -359,10 +391,10 @@ const StatCard = ({
   value: string;
   label: string;
 }) => (
-  <View style={styles.statCard}>
+  <View style={accountInsightsStyles.statCard}>
     {icon}
-    <Text style={styles.statValue}>{value}</Text>
-    <Text style={styles.statLabel}>{label}</Text>
+    <Text style={accountInsightsStyles.statValue}>{value}</Text>
+    <Text style={accountInsightsStyles.statLabel}>{label}</Text>
   </View>
 );
 
@@ -377,286 +409,12 @@ const MetricCard = ({
   value: string;
   description: string;
 }) => (
-  <View style={styles.metricCard}>
-    <View style={styles.metricHeader}>
-      <View style={styles.metricIcon}>{icon}</View>
-      <Text style={styles.metricLabel}>{label}</Text>
+  <View style={accountInsightsStyles.metricCard}>
+    <View style={accountInsightsStyles.metricHeader}>
+      <View style={accountInsightsStyles.metricIcon}>{icon}</View>
+      <Text style={accountInsightsStyles.metricLabel}>{label}</Text>
     </View>
-    <Text style={styles.metricValue}>{value}</Text>
-    <Text style={styles.metricDescription}>{description}</Text>
+    <Text style={accountInsightsStyles.metricValue}>{value}</Text>
+    <Text style={accountInsightsStyles.metricDescription}>{description}</Text>
   </View>
 );
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#000',
-  },
-  scrollView: {
-    flex: 1,
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    gap: 16,
-  },
-  loadingText: {
-    color: '#666',
-    fontSize: 16,
-  },
-  // Profile Header
-  profileHeader: {
-    flexDirection: 'column',
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: 20,
-    gap: 16,
-    backgroundColor: '#000',
-  },
-  profilePicPlaceholder: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    backgroundColor: '#333',
-  },
-  profilePic: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-  },
-  profileHandle: {
-    color: '#fff',
-    fontSize: 20,
-    fontWeight: 'bold',
-  },
-  profileUsername: {
-    color: '#888',
-    fontSize: 14,
-  },
-  profileInfo: {
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  // Common
-  sectionTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#fff',
-    marginBottom: 16,
-  },
-  // Stats Grid
-  statsContainer: {
-    padding: 20,
-  },
-  statsGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    margin: -6, // To counteract card margins
-  },
-  statCard: {
-    backgroundColor: '#1a1a1a',
-    borderRadius: 12,
-    padding: 16,
-    alignItems: 'center',
-    flexGrow: 1,
-    flexBasis: '40%', // Roughly 2 per row
-    margin: 6,
-    gap: 8,
-  },
-  statValue: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#fff',
-  },
-  statLabel: {
-    fontSize: 12,
-    color: '#666',
-    textAlign: 'center',
-  },
-  // Aggregates
-  analysisContainer: {
-    paddingHorizontal: 20,
-    paddingBottom: 20,
-  },
-  sectionHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  chatButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: 'rgba(0, 122, 255, 0.1)',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 20,
-    gap: 6,
-  },
-  chatButtonText: {
-    color: '#007AFF',
-    fontSize: 14,
-    fontWeight: '600',
-  },
-  marginTop: {
-    marginTop: 16,
-  },
-  recommendationCard: {
-    backgroundColor: '#1a1a1a',
-    borderRadius: 16,
-    padding: 20,
-    gap: 16,
-  },
-  analysisSubtitle: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#007AFF',
-    marginBottom: 4,
-  },
-  recommendation: {
-    paddingLeft: 8,
-  },
-  recommendationText: {
-    color: '#fff',
-    fontSize: 14,
-    lineHeight: 20,
-  },
-  // Metrics
-  metricsGrid: {
-    gap: 12,
-  },
-  metricCard: {
-    backgroundColor: '#1a1a1a',
-    borderRadius: 16,
-    padding: 20,
-  },
-  metricHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    marginBottom: 12,
-  },
-  metricIcon: {
-    backgroundColor: 'rgba(255,255,255,0.1)',
-    padding: 8,
-    borderRadius: 8,
-  },
-  metricLabel: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#fff',
-    flex: 1,
-  },
-  metricValue: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#fff',
-    marginBottom: 8,
-  },
-  metricDescription: {
-    fontSize: 14,
-    color: '#666',
-  },
-  // Hashtags
-  hashtagsContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-  },
-  hashtagPill: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: 'rgba(0, 122, 255, 0.1)',
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 20,
-    gap: 6,
-  },
-  hashtagText: {
-    color: '#007AFF',
-    fontSize: 14,
-    fontWeight: '500',
-  },
-  // Empty State
-  emptyStateContainer: {
-    padding: 40,
-    alignItems: 'center',
-    justifyContent: 'center',
-    flex: 1,
-  },
-  emptyStateTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#fff',
-    marginTop: 16,
-    marginBottom: 8,
-    textAlign: 'center',
-  },
-  emptyStateDescription: {
-    fontSize: 16,
-    color: '#888',
-    textAlign: 'center',
-    lineHeight: 22,
-    marginBottom: 24,
-  },
-  // Paywall Styles (Restored)
-  paywallContainer: {
-    padding: 20,
-  },
-  paywallHeader: {
-    alignItems: 'center',
-    marginBottom: 20,
-  },
-  paywallTitle: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#fff',
-    marginTop: 12,
-  },
-  paywallDescription: {
-    color: '#fff',
-    fontSize: 16,
-    marginBottom: 20,
-    lineHeight: 22,
-  },
-  featuresList: {
-    marginBottom: 24,
-  },
-  featureItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  checkmark: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#4CAF50',
-    marginRight: 12,
-  },
-  featureText: {
-    color: '#fff',
-    fontSize: 16,
-  },
-  upgradeButton: {
-    backgroundColor: '#FFD700',
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: 16,
-    borderRadius: 12,
-    gap: 8,
-    marginBottom: 16,
-  },
-  upgradeButtonText: {
-    color: '#000',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  paywallFooter: {
-    color: '#888',
-    fontSize: 14,
-    textAlign: 'center',
-    fontStyle: 'italic',
-  },
-});

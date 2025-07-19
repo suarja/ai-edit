@@ -18,6 +18,7 @@ import VideoList from '@/components/VideoList';
 import { useSourceVideos } from '@/components/hooks/useSourceVideos';
 import { useRevenueCat } from '@/contexts/providers/RevenueCat';
 import { useGetUser } from '@/components/hooks/useGetUser';
+import { sourceVideoStyle } from '@/lib/utils/styles/sourceVideoStyles';
 
 export default function SourceVideosScreen() {
   const {
@@ -75,8 +76,8 @@ export default function SourceVideosScreen() {
 
   if (loading) {
     return (
-      <SafeAreaView style={styles.container} edges={[]}>
-        <View style={styles.loadingContainer}>
+      <SafeAreaView style={sourceVideoStyle.container} edges={[]}>
+        <View style={sourceVideoStyle.loadingContainer}>
           <ActivityIndicator size="large" color="#007AFF" />
         </View>
       </SafeAreaView>
@@ -84,11 +85,11 @@ export default function SourceVideosScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.container} edges={[]}>
-      <View style={styles.content}>
+    <SafeAreaView style={sourceVideoStyle.container} edges={[]}>
+      <View style={sourceVideoStyle.content}>
         {revenueCatReady && userUsage && currentPlan === 'free' && (
-          <View style={styles.planInfoContainer}>
-            <Text style={styles.planInfoText}>
+          <View style={sourceVideoStyle.planInfoContainer}>
+            <Text style={sourceVideoStyle.planInfoText}>
               {userUsage.source_videos_used}/{userUsage.source_videos_limit}{' '}
               vidéos sources (Plan Gratuit)
             </Text>
@@ -114,13 +115,13 @@ export default function SourceVideosScreen() {
 
         {/* Free tier limit warning */}
         {revenueCatReady && !canUploadMore && (
-          <View style={styles.limitContainer}>
+          <View style={sourceVideoStyle.limitContainer}>
             <Crown size={20} color="#FFD700" />
-            <View style={styles.limitTextContainer}>
-              <Text style={styles.limitTitle}>
+            <View style={sourceVideoStyle.limitTextContainer}>
+              <Text style={sourceVideoStyle.limitTitle}>
                 Limite de vidéos sources atteinte
               </Text>
-              <Text style={styles.limitDescription}>
+              <Text style={sourceVideoStyle.limitDescription}>
                 Vous avez atteint la limite de{' '}
                 {userUsage?.source_videos_limit || 0} vidéos sources du plan
                 gratuit. Passez Pro pour uploader plus de vidéos.
@@ -129,7 +130,7 @@ export default function SourceVideosScreen() {
           </View>
         )}
 
-        <View style={styles.uploadSection}>
+        <View style={sourceVideoStyle.uploadSection}>
           {/*
             Nouveau flow :
             - L'utilisateur clique sur "Uploader une vidéo" (VideoUploader)
@@ -187,7 +188,7 @@ export default function SourceVideosScreen() {
           >
             <SafeAreaView
               style={[
-                styles.metadataEditorContainer,
+                sourceVideoStyle.metadataEditorContainer,
                 { width: '90%', height: '70%' },
               ]}
               edges={['top', 'bottom']}
@@ -225,16 +226,16 @@ export default function SourceVideosScreen() {
                 isSaving={savingMetadata}
               />
               {hasAnalysisData && (
-                <View style={styles.analysisActions}>
+                <View style={sourceVideoStyle.analysisActions}>
                   <TouchableOpacity
-                    style={styles.rejectButton}
+                    style={sourceVideoStyle.rejectButton}
                     onPress={rejectAnalysis}
                   >
-                    <Text style={styles.rejectButtonText}>
+                    <Text style={sourceVideoStyle.rejectButtonText}>
                       Rejeter l&apos;analyse
                     </Text>
                   </TouchableOpacity>
-                  <Text style={styles.analysisHelperText}>
+                  <Text style={sourceVideoStyle.analysisHelperText}>
                     Rejeter l&apos;analyse supprimera les suggestions
                     automatiques
                   </Text>
@@ -244,8 +245,8 @@ export default function SourceVideosScreen() {
           </View>
         </Modal>
 
-        <View style={styles.videosList}>
-          <Text style={styles.sectionTitle}>Vos Vidéos</Text>
+        <View style={sourceVideoStyle.videosList}>
+          <Text style={sourceVideoStyle.sectionTitle}>Vos Vidéos</Text>
           <VideoList
             videos={videos}
             playingVideoId={playingVideoId}
@@ -266,317 +267,3 @@ export default function SourceVideosScreen() {
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#000',
-    height: '100%',
-    display: 'flex',
-    flexDirection: 'column',
-  },
-  header: {
-    paddingHorizontal: 20,
-    paddingBottom: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#333',
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#fff',
-  },
-  limitText: {
-    fontSize: 14,
-    color: '#888',
-    marginTop: 4,
-  },
-  content: {
-    flex: 1,
-    padding: 20,
-    height: '100%',
-    display: 'flex',
-    flexDirection: 'column',
-  },
-  planInfoContainer: {
-    backgroundColor: '#1a1a1a',
-    padding: 12,
-    borderRadius: 8,
-    marginBottom: 16,
-    alignItems: 'center',
-  },
-  planInfoText: {
-    color: '#888',
-    fontSize: 14,
-  },
-  errorContainer: {
-    backgroundColor: '#2D1116',
-    padding: 16,
-    borderRadius: 12,
-    marginBottom: 16,
-  },
-  errorHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    marginBottom: 8,
-  },
-  errorTitle: {
-    color: '#ef4444',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  errorText: {
-    color: '#ef4444',
-    fontSize: 14,
-    marginBottom: 12,
-  },
-  errorActions: {
-    flexDirection: 'row',
-    justifyContent: 'flex-end',
-    gap: 8,
-  },
-  errorButton: {
-    backgroundColor: '#ef4444',
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 8,
-  },
-  supportButton: {
-    backgroundColor: '#1a1a1a',
-    borderWidth: 1,
-    borderColor: '#ef4444',
-  },
-  errorButtonText: {
-    color: '#fff',
-    fontSize: 14,
-    fontWeight: '500',
-  },
-  limitContainer: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    backgroundColor: '#2D1A00',
-    padding: 16,
-    borderRadius: 12,
-    marginBottom: 20,
-    gap: 12,
-  },
-  limitTextContainer: {
-    flex: 1,
-  },
-  limitTitle: {
-    color: '#FFD700',
-    fontSize: 16,
-    fontWeight: '600',
-    marginBottom: 4,
-  },
-  limitDescription: {
-    color: '#FFA500',
-    fontSize: 14,
-    lineHeight: 20,
-  },
-  uploadSection: {
-    gap: 20,
-  },
-  uploadDisabled: {
-    width: '100%',
-    height: 120,
-    backgroundColor: '#1a1a1a',
-    borderRadius: 12,
-    justifyContent: 'center',
-    alignItems: 'center',
-    opacity: 0.6,
-    gap: 8,
-  },
-  uploadDisabledText: {
-    color: '#888',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  uploadDisabledSubtext: {
-    color: '#666',
-    fontSize: 14,
-    textAlign: 'center',
-  },
-  form: {
-    gap: 12,
-  },
-  formTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#fff',
-    marginBottom: 12,
-  },
-  input: {
-    backgroundColor: '#1a1a1a',
-    borderRadius: 12,
-    padding: 16,
-    color: '#fff',
-    fontSize: 16,
-  },
-  textArea: {
-    backgroundColor: '#1a1a1a',
-    borderRadius: 12,
-    padding: 16,
-    color: '#fff',
-    fontSize: 16,
-    textAlignVertical: 'top',
-    minHeight: 100,
-  },
-  button: {
-    backgroundColor: '#007AFF',
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: 16,
-    borderRadius: 12,
-    gap: 8,
-    minWidth: 120,
-  },
-  buttonDisabled: {
-    opacity: 0.5,
-  },
-  buttonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  formActions: {
-    flexDirection: 'row',
-    justifyContent: 'flex-end',
-    alignItems: 'center',
-    gap: 12,
-    marginTop: 8,
-  },
-  skipButton: {
-    padding: 12,
-  },
-  skipButtonText: {
-    color: '#888',
-    fontSize: 14,
-  },
-  videosList: {
-    marginTop: 32,
-    gap: 16,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#fff',
-    marginBottom: 12,
-  },
-  emptyState: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 20,
-  },
-  emptyText: {
-    color: '#fff',
-    fontSize: 18,
-    fontWeight: '600',
-    marginBottom: 12,
-  },
-  emptySubtext: {
-    color: '#888',
-    fontSize: 14,
-  },
-  metadataEditorContainer: {
-    backgroundColor: '#1a1a1a',
-    borderRadius: 12,
-    padding: 16,
-    gap: 16,
-  },
-  metadataTitle: {
-    color: '#fff',
-    fontSize: 18,
-    fontWeight: '600',
-    marginBottom: 8,
-  },
-  metadataInputContainer: {
-    gap: 8,
-  },
-  metadataInputLabel: {
-    color: '#fff',
-    fontSize: 14,
-    fontWeight: '500',
-  },
-  metadataInput: {
-    backgroundColor: '#2a2a2a',
-    borderRadius: 8,
-    padding: 12,
-    color: '#fff',
-    fontSize: 16,
-    borderWidth: 1,
-    borderColor: '#333',
-  },
-  metadataTextArea: {
-    backgroundColor: '#2a2a2a',
-    borderRadius: 8,
-    padding: 12,
-    color: '#fff',
-    fontSize: 16,
-    minHeight: 100,
-    textAlignVertical: 'top',
-    borderWidth: 1,
-    borderColor: '#333',
-  },
-  metadataActions: {
-    flexDirection: 'row',
-    justifyContent: 'flex-end',
-    gap: 12,
-    marginTop: 16,
-  },
-  cancelButton: {
-    backgroundColor: '#333',
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 8,
-  },
-  cancelButtonText: {
-    color: '#fff',
-    fontSize: 14,
-    fontWeight: '500',
-  },
-  saveButton: {
-    backgroundColor: '#007AFF',
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 8,
-  },
-  saveButtonText: {
-    color: '#fff',
-    fontSize: 14,
-    fontWeight: '600',
-  },
-  inputError: {
-    borderColor: '#ef4444',
-  },
-  helperText: {
-    color: '#888',
-    fontSize: 12,
-    marginTop: 4,
-  },
-  analysisActions: {
-    marginBottom: 16,
-  },
-  rejectButton: {
-    backgroundColor: '#ef4444',
-    padding: 12,
-    borderRadius: 8,
-  },
-  rejectButtonText: {
-    color: '#fff',
-    fontSize: 14,
-    fontWeight: '600',
-  },
-  analysisHelperText: {
-    color: '#888',
-    fontSize: 12,
-  },
-});

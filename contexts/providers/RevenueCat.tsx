@@ -56,7 +56,7 @@ export const RevenueCatProvider = ({ children }: any) => {
       if (Platform.OS === 'android') {
         await Purchases.configure({ apiKey: APIKeys.google, appUserID: user.id });
       } else {
-        await Purchases.configure({ apiKey: APIKeys.apple, appUserID: user.id });
+        await Purchases.configure({ apiKey: APIKeys.apple });
       }
 
       // Use more logging during debug if want!
