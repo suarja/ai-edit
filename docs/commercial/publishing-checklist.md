@@ -4,17 +4,21 @@
 
 Ce document sert de checklist finale pour s'assurer que l'application Editia respecte toutes les directives des plateformes (notamment celles d'Apple, qui sont les plus strictes) avant de soumettre une version pour validation. L'objectif est de minimiser les risques de rejet et d'accélérer le processus de publication.
 
-## 2. Pré-requis Légaux et Métadonnées
+## 2. Legal & Metadata Prerequisites (All documents in English)
 
-*   `[x]` **Politique de Confidentialité (Privacy Policy) :**
-    *   `[x]` Une politique de confidentialité **personnalisée et hébergée** a été créée.
-    *   `[ ]` **URL :** [https://editia.app/privacy-policy](https://editia.app/privacy-policy)
-    *   `[ ]` Un lien vers cette politique est présent et facilement accessible dans l'application (ex: dans les paramètres).
-    *   `[ ]` L'URL de la politique est ajoutée dans App Store Connect et la Play Console.
-*   `[x]` **Conditions d'Utilisation (Terms of Use / EULA) :**
-    *   `[x]` Des conditions d'utilisation personnalisées ont été créées et hébergées.
-    *   `[ ]` **URL :** [https://editia.app/terms-of-service](https://editia.app/terms-of-service)
-    *   `[ ]` Un lien vers les conditions est accessible dans l'application.
+*   `[x]` **Privacy Policy:**
+    *   `[x]` A custom, hosted Privacy Policy has been created.
+    *   `[ ]` **URL:** [https://editia.app/privacy-policy](https://editia.app/privacy-policy)
+    *   `[ ]` A link to this policy is easily accessible within the app (e.g., in Settings).
+    *   `[ ]` The policy URL is added to App Store Connect and the Play Console.
+*   `[x]` **Terms of Use (EULA):**
+    *   `[x]` Custom Terms of Use have been created and hosted.
+    *   `[ ]` **URL:** [https://editia.app/terms-of-service](https://editia.app/terms-of-service)
+    *   `[ ]` A link to the terms is accessible within the app.
+*   `[x]` **Payment Policy:**
+    *   `[x]` A custom Payment Policy has been created and hosted.
+    *   `[ ]` **URL:** [https://editia.app/payment-policy](https://editia.app/payment-policy)
+    *   `[ ]` A link to this policy is accessible from the paywall and/or settings.
 
 ## 3. Directives du Paywall (Critique pour la Validation)
 
