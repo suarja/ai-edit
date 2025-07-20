@@ -29,7 +29,7 @@ const SubmitButton: React.FC<SubmitButtonProps> = ({
       <View style={styles.container}>
         <View style={styles.dualButtonContainer}>
           <TouchableOpacity
-            style={[styles.generateButton, styles.generateButtonWithWatermark]}
+            style={[styles.generateButton, styles.generateButtonWithWatermark, isDisabled && styles.generateButtonDisabled]}
             onPress={onSubmit}
             disabled={isSubmitting || isDisabled}
           >
@@ -121,6 +121,7 @@ const styles = StyleSheet.create({
   },
   generateButtonWithWatermark: {
     flex: 1,
+  
   },
   generateButtonDisabled: {
     opacity: 0.5,

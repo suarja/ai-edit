@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState,  useMemo } from 'react';
 import {
   View,
   Text,
@@ -10,14 +10,16 @@ import { VideoType } from '@/lib/types/video';
 
 interface VideoTagFilterSystemProps {
   videos: VideoType[];
-  selectedVideoIds: string[];
-  onVideoToggle: (videoId: string) => void;
+  selectedVideoIds: VideoType[];
+  onVideoToggle: (video: VideoType) => void;
+  clearSelectedVideos: () => void;
 }
 
 export default function VideoTagFilterSystem({
   videos,
   selectedVideoIds,
   onVideoToggle,
+  clearSelectedVideos,
 }: VideoTagFilterSystemProps) {
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
 
@@ -114,16 +116,14 @@ export default function VideoTagFilterSystem({
           )}
         </View>
         <Text style={styles.sectionSubtitle}>
-          Filtrez par tags puis sélectionnez vos vidéos
+          Filtrez par catégories puis sélectionnez vos vidéos
         </Text>
       </View>
 
       {/* Tag Filter Section */}
       {allTags.length > 0 && (
         <View style={styles.tagSection}>
-          <Text style={styles.tagSectionTitle}>
-            🏷️ Filtrer par tags ({allTags.length} disponibles)
-          </Text>
+       
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
@@ -162,7 +162,10 @@ export default function VideoTagFilterSystem({
               </Text>
               <TouchableOpacity
                 style={styles.clearFiltersButton}
-                onPress={() => setSelectedTags([])}
+                onPress={() => {
+                  setSelectedTags([]);
+                  clearSelectedVideos();
+                }}
               >
                 <Text style={styles.clearFiltersText}>Effacer</Text>
               </TouchableOpacity>
@@ -179,21 +182,17 @@ export default function VideoTagFilterSystem({
 
         {filteredVideos.length === 0 ? (
           <View style={styles.emptyState}>
-            <Text style={styles.emptyText}>
-              {selectedTags.length > 0
-                ? 'Aucune vidéo ne correspond aux tags sélectionnés'
-                : 'Sélectionnez un ou plusieurs tags pour voir les vidéos'}
-            </Text>
+            
             {selectedTags.length === 0 && (
               <Text style={styles.emptySubtext}>
-                👆 Choisissez vos tags ci-dessus pour filtrer les vidéos
+                👆 Choisissez vos catégories ci-dessus pour filtrer les vidéos
               </Text>
             )}
           </View>
         ) : (
           <View style={styles.videoGrid}>
             {filteredVideos.map((video) => {
-              const isSelected = selectedVideoIds.includes(video.id);
+              const isSelected = selectedVideoIds.includes(video);
 
               return (
                 <TouchableOpacity
@@ -202,7 +201,7 @@ export default function VideoTagFilterSystem({
                     styles.videoChip,
                     isSelected && styles.videoChipSelected,
                   ]}
-                  onPress={() => onVideoToggle(video.id)}
+                  onPress={() => onVideoToggle(video)}
                 >
                   <View style={styles.videoChipContent}>
                     <View

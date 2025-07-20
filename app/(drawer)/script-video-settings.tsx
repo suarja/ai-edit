@@ -27,6 +27,7 @@ import LanguageSelector from '@/app/components/LanguageSelector';
 import { DiscreteUsageDisplay } from '@/components/DiscreteUsageDisplay';
 import { useAuth } from '@clerk/clerk-expo';
 import AnalysisHeader from '@/components/analysis/AnalysisHeader';
+import { ScriptService } from '@/lib/services/scriptService';
 
 export default function ScriptVideoSettingsScreen() {
   // Get script parameters from navigation
@@ -74,15 +75,27 @@ export default function ScriptVideoSettingsScreen() {
     }
   }, [script, videoRequest.prompt, scriptId]);
 
-  // Check if user can generate video (quota + other validations)
-  const canGenerateVideo =
-    !isReady || !userUsage || currentPlan !== 'free' || videosRemaining > 0;
+  // État 0: Conditions de base (script + vidéo sélectionnée) - pour tous les utilisateurs
+  const hasBasicConditions = script && videoRequest.selectedVideos.length > 0;
+
+  // État utilisateur gratuit avec vidéos restantes
+  const isFreeUserWithVideos = currentPlan === 'free' && videosRemaining > 0;
+
+  // État utilisateur gratuit sans vidéos restantes
+  const isFreeUserWithoutVideos =
+    currentPlan === 'free' && videosRemaining === 0;
 
   // Compute if submit button should be disabled
   const isSubmitDisabled =
-    !script ||
-    videoRequest.selectedVideos.length === 0 ||
-    (isReady && userUsage && !canGenerateVideo);
+    !userUsage ||
+    !hasBasicConditions ||
+    (isReady && userUsage && isFreeUserWithoutVideos) ||
+    !ScriptService.validateScript({
+      script,
+      plan: currentPlan,
+      userUsage,
+      videos: videoRequest.selectedVideos,
+    });
 
   // Show loading state for the entire screen only if video request data is loading
   if (videoRequest.loading) {
@@ -135,15 +148,15 @@ export default function ScriptVideoSettingsScreen() {
       // Notifier l'équipe via SupportService
       try {
         // On tente de récupérer le jobId ou scriptId pour le contexte
-        const jobId = scriptId || 'unknown';
-        const token = await getToken();
-        await SupportService.reportIssue({
-          jobId,
-          token: token || '',
-          errorMessage: error instanceof Error ? error.message : String(error),
-          context: { script, selectedVideos: videoRequest.selectedVideos },
-          notifyUser: false, // On gère la popup manuellement
-        });
+        // const jobId = scriptId || 'unknown';
+        // const token = await getToken();
+        // await SupportService.reportIssue({
+        //   jobId,
+        //   token: token || '',
+        //   errorMessage: error instanceof Error ? error.message : String(error),
+        //   context: { script, selectedVideos: videoRequest.selectedVideos },
+        //   notifyUser: false, // On gère la popup manuellement
+        // });
       } catch (supportError) {
         // On ignore les erreurs du support pour ne pas bloquer l'utilisateur
         console.warn('Support notification failed:', supportError);
@@ -151,7 +164,7 @@ export default function ScriptVideoSettingsScreen() {
       // Afficher la popup d'erreur générique
       Alert.alert(
         'Erreur',
-        'Une erreur est survenue lors de la génération. Notre équipe a été notifiée. Veuillez réessayer plus tard.',
+        error instanceof Error ? error.message : String(error),
         [
           {
             text: 'OK',
@@ -200,6 +213,7 @@ export default function ScriptVideoSettingsScreen() {
           videos={videoRequest.sourceVideos}
           selectedVideoIds={videoRequest.selectedVideos}
           onVideoToggle={videoRequest.toggleVideoSelection}
+          clearSelectedVideos={() => videoRequest.handleReset()}
         />
 
         {/* Toggle for advanced settings */}
@@ -231,7 +245,7 @@ export default function ScriptVideoSettingsScreen() {
         )}
 
         {/* Show quota warning if limit reached and RevenueCat data is loaded */}
-        {isReady && userUsage && !canGenerateVideo && (
+        {isReady && userUsage && isFreeUserWithoutVideos && (
           <View style={styles.quotaWarning}>
             <Text style={styles.quotaWarningText}>
               ⚠️ Limite de vidéos atteinte. Passez Pro pour continuer à créer
@@ -239,18 +253,46 @@ export default function ScriptVideoSettingsScreen() {
             </Text>
           </View>
         )}
+
+        {/* Show basic conditions warning */}
+        {displayRequirementsWarning().map((warning, index) => (
+          <View key={index} style={styles.conditionsWarning}>
+            <Text style={styles.conditionsWarningText}>{warning}</Text>
+          </View>
+        ))}
       </ScrollView>
 
       {/* Submit button */}
       <SubmitButton
         onSubmit={handleGenerateVideo}
         isSubmitting={videoRequest.submitting}
-        isDisabled={isSubmitDisabled || !canGenerateVideo}
-        showWatermarkInfo={isReady && currentPlan === 'free'}
+        isDisabled={!!isSubmitDisabled}
+        showWatermarkInfo={isReady && isFreeUserWithVideos}
         onUpgradePress={() => setShowPaywall(true)}
       />
     </SafeAreaView>
   );
+
+  function displayRequirementsWarning() {
+    const warning = [];
+    if (!script) {
+      warning.push('📝 Sélectionnez un script à générer');
+    }
+
+    if (userUsage && currentPlan) {
+      const { isValid, warnings } = ScriptService.validateScript({
+        script,
+        plan: currentPlan,
+        userUsage,
+        videos: videoRequest.selectedVideos,
+      });
+      if (!isValid) {
+        warning.push(...warnings);
+      }
+    }
+
+    return warning;
+  }
 }
 
 const styles = StyleSheet.create({
@@ -317,6 +359,20 @@ const styles = StyleSheet.create({
   },
   quotaWarningText: {
     color: '#FF3B30',
+    fontSize: 14,
+    textAlign: 'center',
+    fontWeight: '500',
+  },
+  conditionsWarning: {
+    backgroundColor: 'rgba(255, 149, 0, 0.1)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 149, 0, 0.3)',
+    borderRadius: 12,
+    padding: 16,
+    marginVertical: 8,
+  },
+  conditionsWarningText: {
+    color: '#FF9500',
     fontSize: 14,
     textAlign: 'center',
     fontWeight: '500',

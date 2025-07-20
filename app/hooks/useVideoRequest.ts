@@ -11,6 +11,8 @@ import {
   VoiceConfigStorage,
   VoiceService,
 } from '@/lib/services/voiceService';
+import { ScriptService } from '@/lib/services/scriptService';
+import { useRevenueCat } from '@/contexts/providers/RevenueCat';
 
 // Default language
 const DEFAULT_LANGUAGE = 'fr';
@@ -48,6 +50,7 @@ export default function useVideoRequest() {
   const { getToken } = useAuth();
   const { fetchUser, clerkLoaded, isSignedIn } = useGetUser();
   const { client: supabase } = useClerkSupabaseClient();
+  const { currentPlan, userUsage } = useRevenueCat();
 
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -57,7 +60,7 @@ export default function useVideoRequest() {
   const [scriptId, setScriptId] = useState<string | null>(null);
   const [systemPrompt, setSystemPrompt] = useState('');
   const [showAdvanced, setShowAdvanced] = useState(false);
-  const [selectedVideos, setSelectedVideos] = useState<string[]>([]);
+  const [selectedVideos, setSelectedVideos] = useState<VideoType[]>([]);
   const [sourceVideos, setSourceVideos] = useState<VideoType[]>([]);
   const [voiceClone, setVoiceClone] = useState<VoiceConfig | null>(null);
   const [editorialProfile, setEditorialProfile] =
@@ -156,11 +159,11 @@ export default function useVideoRequest() {
     fetchInitialData();
   };
 
-  const toggleVideoSelection = (videoId: string) => {
+  const toggleVideoSelection = (video: VideoType) => {
     setSelectedVideos((prev) =>
-      prev.includes(videoId)
-        ? prev.filter((id) => id !== videoId)
-        : [...prev, videoId]
+      prev.includes(video)
+        ? prev.filter((id) => id !== video)
+        : [...prev, video]
     );
   };
 
@@ -177,10 +180,17 @@ export default function useVideoRequest() {
       );
     }
 
-    if (selectedVideos.length === 0) {
-      throw new Error(
-        'Aucune vidéo sélectionnée : veuillez sélectionner au moins une vidéo source.'
-      );
+    if (!currentPlan) {
+      throw new Error('Plan manquant : veuillez sélectionner un plan pour générer une vidéo.');
+    }
+
+    if (!userUsage) {
+      throw new Error('Utilisateur manquant : veuillez sélectionner un utilisateur pour générer une vidéo.');
+    }
+
+    const { isValid, warnings } = ScriptService.validateScript({script: prompt, plan: currentPlan, userUsage, videos: selectedVideos});
+    if (!isValid) {
+      throw new Error(warnings.join('\n'));
     }
 
     if (
@@ -247,7 +257,7 @@ export default function useVideoRequest() {
 
       // Get storage paths for selected videos
       const selectedVideoData = sourceVideos.filter((video) =>
-        selectedVideos.includes(video.id)
+        selectedVideos.includes(video)
       );
 
       // Prepare editorial profile data
@@ -276,26 +286,26 @@ export default function useVideoRequest() {
         throw new Error('No authentication token available');
       }
 
-      const response = await fetch(
-        API_ENDPOINTS.SCRIPT_GENERATE_VIDEO(scriptId!),
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${clerkToken}`,
-          },
-          body: JSON.stringify(requestPayload),
-        }
-      );
+      // const response = await fetch(
+      //   API_ENDPOINTS.SCRIPT_GENERATE_VIDEO(scriptId!),
+      //   {
+      //     method: 'POST',
+      //     headers: {
+      //       'Content-Type': 'application/json',
+      //       Authorization: `Bearer ${clerkToken}`,
+      //     },
+      //     body: JSON.stringify(requestPayload),
+      //   }
+      // );
 
-      const result = await response.json();
+      // const result = await response.json();
 
-      if (!response.ok) {
-        throw new Error('Erreur lors de la génération de la vidéo.');
-      }
+      // if (!response.ok) {
+      //   throw new Error('Erreur lors de la génération de la vidéo.');
+      // }
 
-      // Reset form after successful submission
-      handleReset();
+      // // Reset form after successful submission
+      // handleReset();
       return true;
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to submit request');
@@ -304,6 +314,7 @@ export default function useVideoRequest() {
       setSubmitting(false);
     }
   };
+
 
   return {
     // State
