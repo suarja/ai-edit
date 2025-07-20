@@ -1,4 +1,10 @@
-import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
+import React, {
+  createContext,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from 'react';
 import { Platform } from 'react-native';
 import Purchases, {
   LOG_LEVEL,
@@ -78,7 +84,6 @@ export const RevenueCatProvider = ({ children }: any) => {
 
       // If we've tried enough times, proceed with fallback
       if (initAttempts >= maxInitAttempts) {
-      
         setHasOfferingError(true);
         setIsReady(true); // Still mark as ready so UI can render with fallbacks
         await loadUserUsage(); // Still load usage from database
@@ -266,6 +271,7 @@ export const RevenueCatProvider = ({ children }: any) => {
           voice_clones_limit: planData.voice_clones_limit,
           account_analysis_limit: planData.account_analysis_limit,
           updated_at: new Date().toISOString(),
+          script_conversations_limit: planData.script_conversations_limit,
         })
         .eq('user_id', user.id);
 
@@ -348,32 +354,43 @@ export const RevenueCatProvider = ({ children }: any) => {
   // Calculate remaining resources
   const videosRemaining = useMemo(() => {
     if (!userUsage) return 0;
-    return Math.max(0, userUsage.videos_generated_limit - userUsage.videos_generated)
+    return Math.max(
+      0,
+      userUsage.videos_generated_limit - userUsage.videos_generated
+    );
   }, [userUsage]);
 
   const sourceVideosRemaining = useMemo(() => {
     console.log(' 🤣User usage', !!userUsage);
     if (!userUsage) return 0;
     return calculateRemainingUsage(
-        userUsage.source_videos_used,
-        userUsage.source_videos_limit
-      )
+      userUsage.source_videos_used,
+      userUsage.source_videos_limit
+    );
   }, [userUsage]);
 
   const voiceClonesRemaining = useMemo(() => {
     if (!userUsage) return 0;
     return calculateRemainingUsage(
-        userUsage.voice_clones_used,
-        userUsage.voice_clones_limit
-      )
+      userUsage.voice_clones_used,
+      userUsage.voice_clones_limit
+    );
   }, [userUsage]);
 
   const accountAnalysisRemaining = useMemo(() => {
     if (!userUsage) return 0;
     return calculateRemainingUsage(
-        userUsage.account_analysis_used,
-        userUsage.account_analysis_limit
-      )
+      userUsage.account_analysis_used,
+      userUsage.account_analysis_limit
+    );
+  }, [userUsage]);
+
+  const scriptConversationsRemaining = useMemo(() => {
+    if (!userUsage) return 0;
+    return calculateRemainingUsage(
+      userUsage.script_conversations_used,
+      userUsage.script_conversations_limit
+    );
   }, [userUsage]);
 
   const value: RevenueCatProps = {
@@ -384,6 +401,7 @@ export const RevenueCatProvider = ({ children }: any) => {
     sourceVideosRemaining,
     voiceClonesRemaining,
     accountAnalysisRemaining,
+    scriptConversationsRemaining,
     presentPaywall,
     refreshUsage,
     hasOfferingError,

@@ -23,13 +23,21 @@ import { useScriptList } from '@/app/hooks/useScriptChat';
 
 // Components
 import ScriptActionsModal from '@/components/ScriptActionsModal';
+import { useRevenueCat } from '@/contexts/providers/RevenueCat';
 
 export default function ScriptsScreen() {
   const { scripts, isLoading, error, loadScripts, deleteScript } =
     useScriptList();
   const [selectedScript, setSelectedScript] = useState<any | null>(null);
+  const { scriptConversationsRemaining, userUsage, presentPaywall } = useRevenueCat();
 
-  const handleCreateNewScript = () => {
+  const handleCreateNewScript = async () => {
+    if (!scriptConversationsRemaining) {
+      const result = await presentPaywall();
+      if (!result) {
+        return;
+      }
+    }
     // Navigate to chat interface without scriptId (new script)
     router.push('/chat?new=true');
   };

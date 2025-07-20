@@ -21,6 +21,7 @@ export interface RevenueCatProps {
   sourceVideosRemaining: number;
   voiceClonesRemaining: number;
   accountAnalysisRemaining: number;
+  scriptConversationsRemaining: number;
   
   // Renommer goPro pour plus de clarté
   presentPaywall: () => Promise<boolean>;
