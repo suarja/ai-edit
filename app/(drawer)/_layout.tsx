@@ -101,6 +101,7 @@ function DrawerLayoutContent() {
           name="script-video-settings"
           options={{
             title: 'Configuration Vidéo',
+            headerShown: false,
           }}
         />
       </Tabs>

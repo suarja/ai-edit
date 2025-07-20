@@ -6,25 +6,69 @@ import {
   ActivityIndicator,
   StyleSheet,
 } from 'react-native';
-import { Send } from 'lucide-react-native';
+import { Send, Crown } from 'lucide-react-native';
 
 type SubmitButtonProps = {
   onSubmit: () => void;
   isSubmitting: boolean;
   isDisabled: boolean;
+  showWatermarkInfo?: boolean;
+  onUpgradePress?: () => void;
 };
 
 const SubmitButton: React.FC<SubmitButtonProps> = ({
   onSubmit,
   isSubmitting,
   isDisabled,
+  showWatermarkInfo = false,
+  onUpgradePress,
 }) => {
+  if (showWatermarkInfo && onUpgradePress) {
+    // Design avec deux boutons alignés pour les utilisateurs gratuits
+    return (
+      <View style={styles.container}>
+        <View style={styles.dualButtonContainer}>
+          <TouchableOpacity
+            style={[styles.generateButton, styles.generateButtonWithWatermark]}
+            onPress={onSubmit}
+            disabled={isSubmitting || isDisabled}
+          >
+            {isSubmitting ? (
+              <>
+                <ActivityIndicator color="#fff" size="small" />
+                <Text style={styles.generateButtonText}>Génération...</Text>
+              </>
+            ) : (
+              <>
+                <Send size={18} color="#fff" />
+                <Text style={styles.generateButtonText}>Générer</Text>
+              </>
+            )}
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.upgradeButton}
+            onPress={onUpgradePress}
+          >
+            <Crown size={18} color="#fff" />
+            <Text style={styles.upgradeButtonText}>Pro</Text>
+          </TouchableOpacity>
+        </View>
+
+        <Text style={styles.watermarkInfoText}>
+          📹 Vidéo avec filigrane Editia
+        </Text>
+      </View>
+    );
+  }
+
+  // Design classique pour les utilisateurs payants
   return (
     <View style={styles.container}>
       <TouchableOpacity
         style={[
-          styles.submitButton,
-          (isSubmitting || isDisabled) && styles.submitButtonDisabled,
+          styles.generateButton,
+          (isSubmitting || isDisabled) && styles.generateButtonDisabled,
         ]}
         onPress={onSubmit}
         disabled={isSubmitting || isDisabled}
@@ -32,12 +76,14 @@ const SubmitButton: React.FC<SubmitButtonProps> = ({
         {isSubmitting ? (
           <>
             <ActivityIndicator color="#fff" size="small" />
-            <Text style={styles.submitButtonText}>Génération en cours...</Text>
+            <Text style={styles.generateButtonText}>
+              Génération en cours...
+            </Text>
           </>
         ) : (
           <>
             <Send size={20} color="#fff" />
-            <Text style={styles.submitButtonText}>Générer la Vidéo</Text>
+            <Text style={styles.generateButtonText}>Générer la Vidéo</Text>
           </>
         )}
       </TouchableOpacity>
@@ -50,7 +96,13 @@ const styles = StyleSheet.create({
     padding: 16,
     backgroundColor: '#000',
   },
-  submitButton: {
+  dualButtonContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    gap: 12,
+    marginBottom: 12,
+  },
+  generateButton: {
     backgroundColor: '#007AFF',
     flexDirection: 'row',
     alignItems: 'center',
@@ -67,14 +119,46 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 4,
   },
-  submitButtonDisabled: {
+  generateButtonWithWatermark: {
+    flex: 1,
+  },
+  generateButtonDisabled: {
     opacity: 0.5,
     shadowOpacity: 0,
   },
-  submitButtonText: {
+  generateButtonText: {
     color: '#fff',
     fontSize: 16,
     fontWeight: '600',
+  },
+  upgradeButton: {
+    backgroundColor: '#10b981',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 14,
+    borderRadius: 12,
+    gap: 8,
+    shadowColor: '#10b981',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 4,
+    minWidth: 80,
+  },
+  upgradeButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  watermarkInfoText: {
+    color: '#999',
+    fontSize: 13,
+    fontWeight: '400',
+    textAlign: 'center',
   },
 });
 

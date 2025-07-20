@@ -26,6 +26,7 @@ import AdvancedToggle from '@/app/components/AdvancedToggle';
 import LanguageSelector from '@/app/components/LanguageSelector';
 import { DiscreteUsageDisplay } from '@/components/DiscreteUsageDisplay';
 import { useAuth } from '@clerk/clerk-expo';
+import AnalysisHeader from '@/components/analysis/AnalysisHeader';
 
 export default function ScriptVideoSettingsScreen() {
   // Get script parameters from navigation
@@ -44,8 +45,14 @@ export default function ScriptVideoSettingsScreen() {
     : params.estimatedDuration;
 
   // RevenueCat integration
-  const { currentPlan, videosRemaining, refreshUsage, isReady, userUsage } =
-    useRevenueCat();
+  const {
+    currentPlan,
+    videosRemaining,
+    refreshUsage,
+    isReady,
+    userUsage,
+    setShowPaywall,
+  } = useRevenueCat();
 
   const { getToken } = useAuth();
 
@@ -156,7 +163,7 @@ export default function ScriptVideoSettingsScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.container} edges={[]}>
+    <SafeAreaView style={styles.container} edges={['top']}>
       <ScrollView
         style={styles.content}
         showsVerticalScrollIndicator={false}
@@ -168,6 +175,7 @@ export default function ScriptVideoSettingsScreen() {
           />
         }
       >
+        <AnalysisHeader title="Configuration Vidéo" showBackButton />
         <ErrorDisplay error={videoRequest.error} />
 
         {/* Discrete Usage Display */}
@@ -238,6 +246,8 @@ export default function ScriptVideoSettingsScreen() {
         onSubmit={handleGenerateVideo}
         isSubmitting={videoRequest.submitting}
         isDisabled={isSubmitDisabled || !canGenerateVideo}
+        showWatermarkInfo={isReady && currentPlan === 'free'}
+        onUpgradePress={() => setShowPaywall(true)}
       />
     </SafeAreaView>
   );

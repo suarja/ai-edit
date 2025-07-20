@@ -16,7 +16,6 @@ import { useGetUser } from '@/components/hooks/useGetUser';
 import { Paywall } from '@/components/Paywall';
 import { RevenueCatProps } from '@/lib/types/revenueCat';
 import { PlanIdentifier, UserUsage, SubscriptionPlan } from 'editia-core';
-import { sl } from 'date-fns/locale';
 
 // Use keys from your RevenueCat API Keys
 const APIKeys = {

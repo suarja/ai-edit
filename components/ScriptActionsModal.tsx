@@ -18,6 +18,7 @@ import {
 } from 'lucide-react-native';
 import { useAuth } from '@clerk/clerk-expo';
 import { API_ENDPOINTS } from '@/lib/config/api';
+import { useRevenueCat } from '@/contexts/providers/RevenueCat';
 
 interface ScriptActionsModalProps {
   script: any | null; // Peut être ScriptListItem ou ScriptDraft
@@ -42,6 +43,8 @@ export default function ScriptActionsModal({
 }: ScriptActionsModalProps) {
   const router = useRouter();
   const { getToken } = useAuth();
+  const { userUsage, presentPaywall, videosRemaining, currentPlan } =
+    useRevenueCat();
   const [actionLoading, setActionLoading] = React.useState<string | null>(null);
 
   if (!script) return null;
@@ -205,6 +208,8 @@ export default function ScriptActionsModal({
 
   const isValidated = script.status === 'validated';
   const hasScript = script.current_script?.trim().length > 0;
+  const videosLeft = !!videosRemaining;
+  const videoWithWatermark = currentPlan === 'free' ? true : false;
 
   return (
     <Modal
@@ -233,8 +238,10 @@ export default function ScriptActionsModal({
               onPress={handleEdit}
               disabled={actionLoading !== null}
             >
-              <Edit3 size={20} color="#007AFF" />
-              <Text style={styles.actionText}>Modifier</Text>
+              <Edit3 size={22} color="#10b981" />
+              <Text style={[styles.actionText, { color: '#10b981' }]}>
+                Modifier
+              </Text>
             </TouchableOpacity>
 
             {/* Generate Video */}
@@ -244,8 +251,17 @@ export default function ScriptActionsModal({
                 onPress={handleGenerateVideo}
                 disabled={actionLoading !== null}
               >
-                <Video size={20} color="#007AFF" />
-                <Text style={styles.actionText}>Générer Vidéo</Text>
+                <Video size={22} color="#3b82f6" />
+                <View style={styles.generateVideoContent}>
+                  <Text style={[{ fontSize: 16, fontWeight: '600' }, { color: '#3b82f6' }]}>
+                    Générer Vidéo
+                  </Text>
+                  {currentPlan === 'free' && (
+                    <Text style={styles.watermarkNote}>
+                      Avec filigrane Editia
+                    </Text>
+                  )}
+                </View>
               </TouchableOpacity>
             )}
 
@@ -257,11 +273,11 @@ export default function ScriptActionsModal({
                 disabled={actionLoading !== null}
               >
                 {actionLoading === 'validate' ? (
-                  <ActivityIndicator size="small" color="#34C759" />
+                  <ActivityIndicator size="small" color="#10b981" />
                 ) : (
-                  <CheckCircle size={20} color="#34C759" />
+                  <CheckCircle size={22} color="#10b981" />
                 )}
-                <Text style={[styles.actionText, { color: '#34C759' }]}>
+                <Text style={[styles.actionText, { color: '#10b981' }]}>
                   Valider
                 </Text>
               </TouchableOpacity>
@@ -274,11 +290,13 @@ export default function ScriptActionsModal({
               disabled={actionLoading !== null}
             >
               {actionLoading === 'duplicate' ? (
-                <ActivityIndicator size="small" color="#007AFF" />
+                <ActivityIndicator size="small" color="#8b5cf6" />
               ) : (
-                <Copy size={20} color="#007AFF" />
+                <Copy size={22} color="#8b5cf6" />
               )}
-              <Text style={styles.actionText}>Dupliquer</Text>
+              <Text style={[styles.actionText, { color: '#8b5cf6' }]}>
+                Dupliquer
+              </Text>
             </TouchableOpacity>
 
             {/* Delete */}
@@ -288,11 +306,11 @@ export default function ScriptActionsModal({
               disabled={actionLoading !== null}
             >
               {actionLoading === 'delete' ? (
-                <ActivityIndicator size="small" color="#FF3B30" />
+                <ActivityIndicator size="small" color="#ef4444" />
               ) : (
-                <Trash2 size={20} color="#FF3B30" />
+                <Trash2 size={22} color="#ef4444" />
               )}
-              <Text style={[styles.actionText, { color: '#FF3B30' }]}>
+              <Text style={[styles.actionText, { color: '#ef4444' }]}>
                 Supprimer
               </Text>
             </TouchableOpacity>
@@ -306,62 +324,85 @@ export default function ScriptActionsModal({
 const styles = {
   overlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    backgroundColor: 'rgba(0, 0, 0, 0.6)',
     justifyContent: 'center' as const,
     alignItems: 'center' as const,
     padding: 20,
   },
   modal: {
     backgroundColor: '#1a1a1a',
-    borderRadius: 16,
-    minWidth: 280,
-    maxWidth: 340,
+    borderRadius: 20,
+    minWidth: 300,
+    maxWidth: 360,
     borderWidth: 1,
-    borderColor: '#333',
+    borderColor: '#2a2a2a',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 10,
+    },
+    shadowOpacity: 0.3,
+    shadowRadius: 20,
+    elevation: 10,
   },
   header: {
     flexDirection: 'row' as const,
     alignItems: 'center' as const,
     justifyContent: 'space-between' as const,
-    padding: 20,
+    padding: 24,
     borderBottomWidth: 1,
-    borderBottomColor: '#333',
+    borderBottomColor: '#2a2a2a',
   },
   title: {
     fontSize: 18,
-    fontWeight: '600' as const,
+    fontWeight: '700' as const,
     color: '#fff',
     flex: 1,
     marginRight: 12,
   },
   closeButton: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: '#333',
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: '#2a2a2a',
     justifyContent: 'center' as const,
     alignItems: 'center' as const,
   },
   actions: {
-    padding: 8,
+    padding: 12,
   },
   actionItem: {
     flexDirection: 'row' as const,
     alignItems: 'center' as const,
-    padding: 16,
-    borderRadius: 12,
-    marginVertical: 2,
+    padding: 18,
+    borderRadius: 16,
+    marginVertical: 3,
+    backgroundColor: 'transparent',
   },
   deleteAction: {
-    marginTop: 8,
+    marginTop: 12,
     borderTopWidth: 1,
-    borderTopColor: '#333',
+    borderTopColor: '#2a2a2a',
     borderRadius: 0,
   },
   actionText: {
-    color: '#007AFF',
+    color: '#fff',
     fontSize: 16,
-    fontWeight: '500' as const,
-    marginLeft: 12,
+    fontWeight: '600' as const,
+    marginLeft: 16,
+  },
+  generateVideoContent: {
+    flexDirection: 'column' as const,
+    alignItems: 'flex-start' as const,
+    marginLeft: 16,
+    flex: 1,
+  },
+  watermarkNote: {
+    fontSize: 12,
+    color: '#999',
+    marginTop: 3,
+    fontStyle: 'italic' as const,
+    fontWeight: '400' as const,
+    marginLeft: 0,
   },
 };
