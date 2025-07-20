@@ -2,7 +2,7 @@ import { createClient } from '@supabase/supabase-js';
 import { useSession, useUser } from '@clerk/clerk-expo';
 import { useMemo } from 'react';
 import { env } from './env';
-import { Database } from '../types/supabase-types';
+import { Database } from 'editia-core';
 
 /**
  * Custom hook that creates a Supabase client with Clerk session token injection
