@@ -14,81 +14,76 @@ import { API_ENDPOINTS } from '@/lib/config/api';
 import { Json } from '@/lib/types/supabase-types';
 
 export interface UseSourceVideos {
-  videos: VideoTypeWithAnalysis[];
-  loading: boolean;
-  error: string | null;
-  refreshing: boolean;
-  playingVideoId: string | null;
-  loadingVideoIds: Set<string>;
-  errorVideoIds: Set<string>;
-  visibleVideoIds: Set<string>;
-  editingVideo: {
-    id: string | null;
-    title: string;
-    description: string;
-    tags: string;
-  };
-  editingVideoId: string | null;
-  savingMetadata: boolean;
-  showSupportButton: boolean;
-  currentVideoId: string | null;
-  hasAnalysisData: boolean;
-  viewabilityConfigCallbackPairs: {
-    viewabilityConfig: ViewabilityConfig;
-    onViewableItemsChanged: (info: {
-      viewableItems: Array<{ item: VideoTypeWithAnalysis }>;
-    }) => void;
-  }[];
-  fetchVideos: () => Promise<void>;
-  onRefresh: () => Promise<void>;
-  handleUploadComplete: (data: {
-    videoStoragePath: string;
-    url: string;
-    videoDuration: number;
-  }) => Promise<string>;
-  handleUploadError: (error: Error) => void;
-  handleAnalysisComplete: (
-    data: VideoAnalysisData | null,
-    videoId: string,
-    manualEditRequired: boolean
-  ) => void;
-  rejectAnalysis: () => Promise<void>;
-  updateVideoMetadata: (metadata: {
-    title: string;
-    description: string;
-    tags: string[];
-  }) => Promise<void>;
-  handleVideoPress: (video: VideoTypeWithAnalysis) => void;
-  handlePlayToggle: (videoId: string) => void;
-  handleVideoLoadStart: (videoId: string) => void;
-  handleVideoLoad: (videoId: string) => void;
-  handleVideoError: (videoId: string) => void;
-  handleError: (
-    error: Error | string,
-    context?: Record<string, any>
-  ) => Promise<void>;
-  getPresignedUrl: (
-    fileName: string,
-    fileType: string,
-    fileSize?: number
-  ) => Promise<{
-    presignedUrl: string;
-    publicUrl: string;
-    s3FileName: string;
-  }>;
-  canUploadMore: boolean;
-  setEditingVideo: React.Dispatch<
-    React.SetStateAction<{
+ 
+  data: {
+    videos: VideoTypeWithAnalysis[];
+    loading: boolean;
+    error: string | null;
+    refreshing: boolean;
+    playingVideoId: string | null;
+    loadingVideoIds: Set<string>;
+    errorVideoIds: Set<string>;
+    visibleVideoIds: Set<string>;
+    editingVideo: {
       id: string | null;
       title: string;
       description: string;
       tags: string;
-    }>
-  >;
-  setEditingVideoId: (videoId: string | null) => void;
-  setCurrentVideoId: (videoId: string | null) => void;
-  clearError: () => void;
-  setShowSupportButton: (show: boolean) => void;
+    };
+    canUploadMore: boolean;
+    editingVideoId: string | null;
+    savingMetadata: boolean;
+    showSupportButton: boolean;
+    currentVideoId: string | null;
+    hasAnalysisData: boolean;
+    viewabilityConfigCallbackPairs: {
+      viewabilityConfig: ViewabilityConfig;
+    }[];
+  },
+  actions: {
+    fetchVideos: () => Promise<void>;
+    onRefresh: () => Promise<void>;
+    handleUploadComplete: (data: {
+      videoStoragePath: string;
+      url: string;
+      videoDuration: number;
+    }) => Promise<string>;
+    handleUploadError: (error: Error) => void;
+    handleAnalysisComplete: (
+      data: VideoAnalysisData | null,
+      videoId: string,
+      manualEditRequired: boolean
+    ) => Promise<void>;
+    rejectAnalysis: () => Promise<void>;
+    updateVideoMetadata: (metadata: {
+      title: string;
+      description: string;
+      tags: string[];
+    }) => Promise<void>;
+    handleVideoPress: (video: VideoTypeWithAnalysis) => void;
+    handlePlayToggle: (videoId: string) => void;
+    handleVideoLoadStart: (videoId: string) => void;
+    handleVideoLoad: (videoId: string) => void;
+    handleVideoError: (videoId: string) => void;
+    handleError: (error: Error | string, context?: Record<string, any>) => Promise<void>;
+    getPresignedUrl: (fileName: string, fileType: string, fileSize?: number) => Promise<{
+      presignedUrl: string;
+      publicUrl: string;
+      s3FileName: string;
+    }>;
+    canUploadMore: boolean;
+    setEditingVideo:React.Dispatch<React.SetStateAction<{
+    id: string | null;
+    title: string;
+    description: string;
+    tags: string;
+}>>;
+    setEditingVideoId: (videoId: string | null) => void;
+    setCurrentVideoId: (videoId: string | null) => void;
+    clearError: () => void;
+    setShowSupportButton: (show: boolean) => void;
+  }
+  
 }
 
 export function useSourceVideos(): UseSourceVideos {
@@ -125,7 +120,7 @@ export function useSourceVideos(): UseSourceVideos {
     ({
       viewableItems,
     }: {
-      viewableItems: Array<{ item: VideoTypeWithAnalysis }>;
+      viewableItems: { item: VideoTypeWithAnalysis }[];
     }) => {
       const visibleIds = new Set(viewableItems.map(({ item }) => item.id));
       setVisibleVideoIds(visibleIds);
@@ -456,7 +451,8 @@ export function useSourceVideos(): UseSourceVideos {
   const canUploadMore = currentPlan !== 'free' || sourceVideosRemaining > 0;
 
   return {
-    videos,
+    data:{ 
+      videos,
     loading,
     error,
     refreshing,
@@ -470,8 +466,10 @@ export function useSourceVideos(): UseSourceVideos {
     showSupportButton,
     currentVideoId,
     hasAnalysisData,
-    viewabilityConfigCallbackPairs,
-    fetchVideos,
+    canUploadMore,
+    viewabilityConfigCallbackPairs,}, 
+    
+    actions:{fetchVideos,
     onRefresh,
     handleUploadComplete,
     handleUploadError,
@@ -490,6 +488,8 @@ export function useSourceVideos(): UseSourceVideos {
     setEditingVideoId,
     setCurrentVideoId,
     clearError,
-    setShowSupportButton,
+    setShowSupportButton,},
+   
+    
   };
 }

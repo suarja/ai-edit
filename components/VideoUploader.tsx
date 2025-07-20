@@ -12,13 +12,13 @@ import { useOnDeviceVideoAnalysis } from '@/components/hooks/useOnDeviceVideoAna
 import { UseSourceVideos } from '@/components/hooks/useSourceVideos';
 
 interface VideoUploaderProps {
-  onUploadComplete: UseSourceVideos['handleUploadComplete'];
-  onUploadError: UseSourceVideos['handleUploadError'];
-  onUploadStart: UseSourceVideos['clearError'];
-  onAnalysisComplete: UseSourceVideos['handleAnalysisComplete'];
-  onAnalysisError: UseSourceVideos['handleError'];
+  onUploadComplete: UseSourceVideos['actions']['handleUploadComplete'];
+  onUploadError: UseSourceVideos['actions']['handleUploadError'];
+  onUploadStart: UseSourceVideos['actions']['clearError'];
+  onAnalysisComplete: UseSourceVideos['actions']['handleAnalysisComplete'];
+  onAnalysisError: UseSourceVideos['actions']['handleError'];
   onManualEdit: () => void;
-  getPresignedUrl: UseSourceVideos['getPresignedUrl'];
+  getPresignedUrl: UseSourceVideos['actions']['getPresignedUrl'];
 }
 
 export default function VideoUploader({
@@ -37,9 +37,7 @@ export default function VideoUploader({
   const [localState, setLocalState] = React.useState<
     'idle' | 'uploading' | 'analyzing'
   >('idle');
-  const [currentVideoId, setCurrentVideoId] = React.useState<string | null>(
-    null
-  );
+
 
   const handleSelectAndUpload = async () => {
     try {

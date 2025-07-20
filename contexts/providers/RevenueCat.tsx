@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
 import { Platform } from 'react-native';
 import Purchases, {
   LOG_LEVEL,
@@ -8,12 +8,9 @@ import Purchases, {
 import { useClerkSupabaseClient } from '@/lib/config/supabase-clerk';
 import { useGetUser } from '@/components/hooks/useGetUser';
 import { Paywall } from '@/components/Paywall';
-import {
-  Plan,
-  PlanIdentifier,
-  RevenueCatProps,
-  UserUsage,
-} from '@/lib/types/revenueCat';
+import { RevenueCatProps } from '@/lib/types/revenueCat';
+import { PlanIdentifier, UserUsage, SubscriptionPlan } from 'editia-core';
+import { sl } from 'date-fns/locale';
 
 // Use keys from your RevenueCat API Keys
 const APIKeys = {
@@ -34,7 +31,9 @@ export const RevenueCatProvider = ({ children }: any) => {
   const [hasOfferingError, setHasOfferingError] = useState(false);
   const [initAttempts, setInitAttempts] = useState(0);
   const [showPaywall, setShowPaywall] = useState(false);
-  const [plans, setPlans] = useState<Record<string, Plan> | null>(null);
+  const [plans, setPlans] = useState<Record<string, SubscriptionPlan> | null>(
+    null
+  );
   const [currentOffering, setCurrentOffering] =
     useState<PurchasesOffering | null>(null);
   const [allOfferings, setAllOfferings] = useState<any>(null);
@@ -76,13 +75,10 @@ export const RevenueCatProvider = ({ children }: any) => {
       setIsReady(true);
     } catch (error) {
       console.error('🍎 RevenueCat initialization error:', error);
-      console.log(`🔄 Attempt ${initAttempts + 1}/${maxInitAttempts + 1}`);
 
       // If we've tried enough times, proceed with fallback
       if (initAttempts >= maxInitAttempts) {
-        console.log(
-          '🚧 Using fallback mode due to RevenueCat initialization failure'
-        );
+      
         setHasOfferingError(true);
         setIsReady(true); // Still mark as ready so UI can render with fallbacks
         await loadUserUsage(); // Still load usage from database
@@ -105,9 +101,9 @@ export const RevenueCatProvider = ({ children }: any) => {
       }
 
       const plansData = data.reduce((acc, plan) => {
-        acc[plan.id] = plan;
+        acc[plan.id as PlanIdentifier] = plan as SubscriptionPlan;
         return acc;
-      }, {} as Record<string, Plan>);
+      }, {} as Record<string, SubscriptionPlan>);
       setPlans(plansData);
     } catch (error) {
       console.error('Error loading subscription plans:', error);
@@ -118,12 +114,10 @@ export const RevenueCatProvider = ({ children }: any) => {
     try {
       // Get current customer info from RevenueCat
       const customerInfo = await Purchases.getCustomerInfo();
-      console.log('Customer info:', JSON.stringify(customerInfo, null, 2));
       await updateCustomerInformation(customerInfo);
 
       // Get offerings
       const offerings = await Purchases.getOfferings();
-      console.log('Offerings:', JSON.stringify(offerings, null, 2));
       setAllOfferings(offerings);
       if (offerings.current) {
         setCurrentOffering(offerings.current);
@@ -170,15 +164,7 @@ export const RevenueCatProvider = ({ children }: any) => {
         .from('user_usage')
         .select(
           `
-          videos_generated, 
-          videos_generated_limit, 
-          source_videos_used,
-          source_videos_limit,
-          voice_clones_used,
-          voice_clones_limit,
-          account_analysis_used,
-          account_analysis_limit,
-          next_reset_date
+         *
         `
         )
         .eq('user_id', user.id)
@@ -195,7 +181,7 @@ export const RevenueCatProvider = ({ children }: any) => {
         return;
       }
 
-      setUserUsage(usage);
+      setUserUsage(usage as unknown as UserUsage);
     } catch (error) {
       console.error('Error loading user usage:', error);
     }
@@ -236,15 +222,7 @@ export const RevenueCatProvider = ({ children }: any) => {
         ])
         .select(
           `
-          videos_generated, 
-          videos_generated_limit, 
-          source_videos_used,
-          source_videos_limit,
-          voice_clones_used,
-          voice_clones_limit,
-          account_analysis_used,
-          account_analysis_limit,
-          next_reset_date
+       *
         `
         )
         .single();
@@ -254,7 +232,7 @@ export const RevenueCatProvider = ({ children }: any) => {
         return;
       }
 
-      setUserUsage(data);
+      setUserUsage(data as unknown as UserUsage);
     } catch (error) {
       console.error('Error creating usage record:', error);
     }
@@ -362,34 +340,41 @@ export const RevenueCatProvider = ({ children }: any) => {
   const refreshUsage = async () => {
     await loadUserUsage();
   };
+  // Utility functions (local to avoid React Native compatibility issues)
+  const calculateRemainingUsage = (used: number, limit: number): number => {
+    return Math.max(0, limit - used);
+  };
 
   // Calculate remaining resources
-  const videosRemaining = userUsage
-    ? Math.max(0, userUsage.videos_generated_limit - userUsage.videos_generated)
-    : 0;
+  const videosRemaining = useMemo(() => {
+    if (!userUsage) return 0;
+    return Math.max(0, userUsage.videos_generated_limit - userUsage.videos_generated)
+  }, [userUsage]);
 
-  const sourceVideosRemaining = userUsage
-    ? Math.max(
-        0,
-        (userUsage.source_videos_limit || 0) -
-          (userUsage.source_videos_used || 0)
+  const sourceVideosRemaining = useMemo(() => {
+    console.log(' 🤣User usage', !!userUsage);
+    if (!userUsage) return 0;
+    return calculateRemainingUsage(
+        userUsage.source_videos_used,
+        userUsage.source_videos_limit
       )
-    : 0;
+  }, [userUsage]);
 
-  const voiceClonesRemaining = userUsage
-    ? Math.max(
-        0,
-        (userUsage.voice_clones_limit || 0) - (userUsage.voice_clones_used || 0)
+  const voiceClonesRemaining = useMemo(() => {
+    if (!userUsage) return 0;
+    return calculateRemainingUsage(
+        userUsage.voice_clones_used,
+        userUsage.voice_clones_limit
       )
-    : 0;
+  }, [userUsage]);
 
-  const accountAnalysisRemaining = userUsage
-    ? Math.max(
-        0,
-        (userUsage.account_analysis_limit || 0) -
-          (userUsage.account_analysis_used || 0)
+  const accountAnalysisRemaining = useMemo(() => {
+    if (!userUsage) return 0;
+    return calculateRemainingUsage(
+        userUsage.account_analysis_used,
+        userUsage.account_analysis_limit
       )
-    : 0;
+  }, [userUsage]);
 
   const value: RevenueCatProps = {
     offerings: allOfferings,

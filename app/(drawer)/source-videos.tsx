@@ -22,40 +22,8 @@ import { sourceVideoStyle } from '@/lib/utils/styles/sourceVideoStyles';
 
 export default function SourceVideosScreen() {
   const {
-    videos,
-    loading,
-    error,
-    refreshing,
-    playingVideoId,
-    loadingVideoIds,
-    errorVideoIds,
-    visibleVideoIds,
-    editingVideo,
-    editingVideoId,
-    savingMetadata,
-    currentVideoId,
-    hasAnalysisData,
-    viewabilityConfigCallbackPairs,
-    fetchVideos,
-    onRefresh,
-    handleUploadComplete,
-    handleUploadError,
-    handleAnalysisComplete,
-    rejectAnalysis,
-    updateVideoMetadata,
-    handleVideoPress,
-    handlePlayToggle,
-    handleVideoLoadStart,
-    handleVideoLoad,
-    handleVideoError,
-    handleError,
-    getPresignedUrl,
-    canUploadMore,
-    setEditingVideo,
-    setEditingVideoId,
-    setCurrentVideoId,
-    clearError,
-    setShowSupportButton,
+    data,
+    actions
   } = useSourceVideos();
 
   // Use the same pattern as settings.tsx and videos.tsx
@@ -63,6 +31,8 @@ export default function SourceVideosScreen() {
 
   // Get subscription info for free tier limits
   const { currentPlan, isReady: revenueCatReady, userUsage } = useRevenueCat();
+  console.log('currentPlan', currentPlan);
+  console.log('userUsage', userUsage);
 
   React.useEffect(() => {
     if (clerkLoaded) {
@@ -70,11 +40,11 @@ export default function SourceVideosScreen() {
         router.replace('/(auth)/sign-in');
         return;
       }
-      fetchVideos();
+      actions.fetchVideos();
     }
   }, [clerkLoaded, isSignedIn]);
 
-  if (loading) {
+  if (data.loading) {
     return (
       <SafeAreaView style={sourceVideoStyle.container} edges={[]}>
         <View style={sourceVideoStyle.loadingContainer}>
@@ -96,25 +66,25 @@ export default function SourceVideosScreen() {
           </View>
         )}
 
-        {error && (
+        {data.error && (
           <ErrorDisplay
-            message={error}
+            message={data.error}
             onAcknowledge={async () => {
-              clearError();
-              setShowSupportButton(false);
-              setEditingVideo({
-                id: editingVideo.id,
+              actions.clearError();
+              actions.setShowSupportButton(false);
+              actions.setEditingVideo({
+                id: data.editingVideo.id,
                 title: '',
                 description: '',
                 tags: '',
               });
-              await fetchVideos();
+              await actions.fetchVideos();
             }}
           />
         )}
 
         {/* Free tier limit warning */}
-        {revenueCatReady && !canUploadMore && (
+        {revenueCatReady && !data.canUploadMore && (
           <View style={sourceVideoStyle.limitContainer}>
             <Crown size={20} color="#FFD700" />
             <View style={sourceVideoStyle.limitTextContainer}>
@@ -137,23 +107,23 @@ export default function SourceVideosScreen() {
             - Upload S3, puis analyse on-device
             - Après analyse (ou si ignorée), le formulaire d'édition metadata s'affiche toujours (pré-rempli si analyse OK)
           */}
-          {!editingVideo.id && canUploadMore && (
+          {!data.editingVideo.id && data.canUploadMore && (
             <VideoUploader
-              getPresignedUrl={getPresignedUrl}
-              onUploadComplete={handleUploadComplete}
-              onUploadError={handleUploadError}
-              onUploadStart={clearError}
-              onAnalysisComplete={handleAnalysisComplete}
-              onAnalysisError={handleError}
+              getPresignedUrl={actions.getPresignedUrl}
+              onUploadComplete={actions.handleUploadComplete}
+              onUploadError={actions.handleUploadError}
+              onUploadStart={actions.clearError}
+              onAnalysisComplete={actions.handleAnalysisComplete}
+              onAnalysisError={actions.handleError}
               onManualEdit={() => {
-                if (currentVideoId) {
-                  setEditingVideo({
-                    id: currentVideoId,
+                if (data.currentVideoId) {
+                  actions.setEditingVideo({
+                    id: data.currentVideoId,
                     title: '',
                     description: '',
                     tags: '',
                   });
-                  setEditingVideoId(currentVideoId);
+                  actions.setEditingVideoId(data.currentVideoId);
                 }
               }}
             />
@@ -168,14 +138,14 @@ export default function SourceVideosScreen() {
             alignItems: 'center',
             backgroundColor: 'rgba(0,0,0,0.7)',
           }}
-          visible={!!editingVideo.id}
+          visible={!!data.editingVideo.id}
           animationType="slide"
           transparent={true}
           onRequestClose={() => {
-            setEditingVideo({ id: null, title: '', description: '', tags: '' });
-            setEditingVideoId(null);
-            setCurrentVideoId(null);
-            clearError();
+            actions.setEditingVideo({ id: null, title: '', description: '', tags: '' });
+            actions.setEditingVideoId(null);
+            actions.setCurrentVideoId(null);
+            actions.clearError();
           }}
         >
           <View
@@ -195,41 +165,41 @@ export default function SourceVideosScreen() {
             >
               {/* Reuse existing style */}
               <VideoMetadataEditor
-                videoId={editingVideo.id || ''}
+                videoId={data.editingVideo.id || ''}
                 analysisData={
-                  hasAnalysisData &&
-                  typeof editingVideoId === 'string' &&
-                  videos.find((v) => v.id === editingVideoId)?.analysis_data
-                    ? videos.find((v) => v.id === editingVideoId)?.analysis_data
+                  data.hasAnalysisData &&
+                  typeof data.editingVideoId === 'string' &&
+                  data.videos.find((v) => v.id === data.editingVideoId)?.analysis_data
+                    ? data.videos.find((v) => v.id === data.editingVideoId)?.analysis_data
                     : undefined
                 }
                 onSave={async (metadata) => {
-                  setEditingVideo((prev) => ({
+                  actions.setEditingVideo((prev) => ({
                     ...prev,
                     title: metadata.title,
                     description: metadata.description,
                     tags: metadata.tags.join(', '),
                   }));
-                  await updateVideoMetadata(metadata);
+                  await actions.updateVideoMetadata(metadata);
                 }}
                 onCancel={() => {
-                  setEditingVideo({
+                  actions.setEditingVideo({
                     id: null,
                     title: '',
                     description: '',
                     tags: '',
                   });
-                  setEditingVideoId(null);
-                  setCurrentVideoId(null);
-                  clearError();
+                  actions.setEditingVideoId(null);
+                  actions.setCurrentVideoId(null);
+                  actions.clearError();
                 }}
-                isSaving={savingMetadata}
+                isSaving={data.savingMetadata}
               />
-              {hasAnalysisData && (
+              {data.hasAnalysisData && (
                 <View style={sourceVideoStyle.analysisActions}>
                   <TouchableOpacity
                     style={sourceVideoStyle.rejectButton}
-                    onPress={rejectAnalysis}
+                    onPress={actions.rejectAnalysis}
                   >
                     <Text style={sourceVideoStyle.rejectButtonText}>
                       Rejeter l&apos;analyse
@@ -248,19 +218,19 @@ export default function SourceVideosScreen() {
         <View style={sourceVideoStyle.videosList}>
           <Text style={sourceVideoStyle.sectionTitle}>Vos Vidéos</Text>
           <VideoList
-            videos={videos}
-            playingVideoId={playingVideoId}
-            loadingVideoIds={loadingVideoIds}
-            errorVideoIds={errorVideoIds}
-            visibleVideoIds={visibleVideoIds}
-            onVideoPress={handleVideoPress}
-            onPlayToggle={handlePlayToggle}
-            onLoadStart={handleVideoLoadStart}
-            onLoad={handleVideoLoad}
-            onError={handleVideoError}
-            viewabilityConfigCallbackPairs={viewabilityConfigCallbackPairs}
-            refreshing={refreshing}
-            onRefresh={onRefresh}
+            videos={data.videos}
+            playingVideoId={data.playingVideoId}
+            loadingVideoIds={data.loadingVideoIds}
+            errorVideoIds={data.errorVideoIds}
+            visibleVideoIds={data.visibleVideoIds}
+            onVideoPress={actions.handleVideoPress}
+            onPlayToggle={actions.handlePlayToggle}
+            onLoadStart={actions.handleVideoLoadStart}
+            onLoad={actions.handleVideoLoad}
+            onError={actions.handleVideoError}
+            viewabilityConfigCallbackPairs={data.viewabilityConfigCallbackPairs}
+            refreshing={data.refreshing}
+            onRefresh={actions.onRefresh}
           />
         </View>
       </View>

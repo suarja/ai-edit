@@ -1,51 +1,20 @@
 import { PurchasesOffering } from 'react-native-purchases';
-import { Database } from './supabase-types';
+import { 
+  UserUsage, 
+  PlanIdentifier, 
+  SubscriptionPlan 
+} from 'editia-core';
 
-export type UserUsage = Pick<
-  Database['public']['Tables']['user_usage']['Row'],
-  | 'videos_generated'
-  | 'videos_generated_limit'
-  | 'source_videos_used'
-  | 'source_videos_limit'
-  | 'voice_clones_used'
-  | 'voice_clones_limit'
-  | 'account_analysis_used'
-  | 'account_analysis_limit'
->;
+// Re-export types from editia-core for convenience
+export type { UserUsage, PlanIdentifier, SubscriptionPlan };
 
-export type Plan = 
-  Database['public']['Tables']['subscription_plans']['Row']
-
-// Le type du plan est maintenant une union de chaînes
-export type PlanIdentifier = 'free' | 'creator' | 'pro';
-
-// export interface RevenueCatProps {
-//   isPro: boolean;
-//   isReady: boolean;
-//   userUsage: UserUsage | null;
-//   videosRemaining: number;
-//   sourceVideosRemaining: number;
-//   voiceClonesRemaining: number;
-//   accountAnalysisRemaining: number;
-//   goPro: () => Promise<boolean>;
-//   refreshUsage: () => Promise<void>;
-//   hasOfferingError: boolean;
-//   restorePurchases: () => Promise<boolean>;
-//   currentPlan: 'free' | 'pro';
-//   dynamicVideosLimit: number; // The actual limit based on subscription status
-//   showPaywall: boolean;
-//   setShowPaywall: (show: boolean) => void;
-//   isDevMode: boolean; // Add development mode indicator
-//   plans: Record<string, Plan> | null;
-//   currentOffering: PurchasesOffering | null;
-// }
-
-
+// The Plan type is now the same as SubscriptionPlan from editia-core
+export type Plan = SubscriptionPlan;
 
 export interface RevenueCatProps {
   isReady: boolean;
   userUsage: UserUsage | null;
-  currentPlan: PlanIdentifier; // Remplacer isPro
+  currentPlan: PlanIdentifier;
   offerings: any; // Tous les offerings RevenueCat
   // Les compteurs restants sont toujours utiles
   videosRemaining: number;
