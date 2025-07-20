@@ -166,7 +166,7 @@ export default function ScriptChat() {
           ]}
         >
           {isUser ? (
-            <Text style={scriptChatStyles.messageText}>{message.content}</Text>
+            <Text selectable style={scriptChatStyles.messageText}>{message.content}</Text>
           ) : (
             <Markdown style={markdownStyles}>{message.content}</Markdown>
           )}
@@ -180,7 +180,7 @@ export default function ScriptChat() {
 
           {/* Status et timestamp */}
           <View style={scriptChatStyles.messageFooter}>
-            <Text style={scriptChatStyles.timestamp}>
+            <Text selectable style={scriptChatStyles.timestamp}>
               {new Date(message.timestamp).toLocaleTimeString([], {
                 hour: '2-digit',
                 minute: '2-digit',

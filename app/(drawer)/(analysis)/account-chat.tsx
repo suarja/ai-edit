@@ -74,8 +74,8 @@ export default function AccountChatScreen() {
             : accountChatStyles.assistantMessage,
         ]}
       >
-        <Text style={accountChatStyles.messageText}>{message.content}</Text>
-        <Text style={accountChatStyles.messageTime}>
+        <Text selectable style={accountChatStyles.messageText}>{message.content}</Text>
+        <Text selectable style={accountChatStyles.messageTime}>
           {new Date(message.created_at).toLocaleTimeString('fr-FR', {
             hour: '2-digit',
             minute: '2-digit',
