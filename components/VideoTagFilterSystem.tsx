@@ -7,6 +7,7 @@ import {
   ScrollView,
 } from 'react-native';
 import { VideoType } from '@/lib/types/video';
+import { SHARED_STYLE_COLORS, sharedStyles } from '@/lib/constants/sharedStyles';
 
 interface VideoTagFilterSystemProps {
   videos: VideoType[];
@@ -402,8 +403,8 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   videoChipSelected: {
-    backgroundColor: '#007AFF',
-    borderColor: '#007AFF',
+    backgroundColor: SHARED_STYLE_COLORS.border,
+    borderColor: SHARED_STYLE_COLORS.background,
   },
   videoChipContent: {
     flexDirection: 'row',

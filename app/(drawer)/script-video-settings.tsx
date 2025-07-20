@@ -1,4 +1,10 @@
-import React, { useEffect } from 'react';
+import React, {
+  useEffect,
+  useRef,
+  useCallback,
+  useState,
+  useMemo,
+} from 'react';
 import {
   View,
   Text,
@@ -7,9 +13,11 @@ import {
   ActivityIndicator,
   RefreshControl,
   Alert,
+  TouchableOpacity,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, useLocalSearchParams } from 'expo-router';
+import { ChevronDown, ChevronUp } from 'lucide-react-native';
 
 // Custom hooks
 import useVideoRequest from '@/app/hooks/useVideoRequest';
@@ -38,12 +46,6 @@ export default function ScriptVideoSettingsScreen() {
   const script = Array.isArray(params.script)
     ? params.script[0]
     : params.script;
-  const wordCount = Array.isArray(params.wordCount)
-    ? params.wordCount[0]
-    : params.wordCount;
-  const estimatedDuration = Array.isArray(params.estimatedDuration)
-    ? params.estimatedDuration[0]
-    : params.estimatedDuration;
 
   // RevenueCat integration
   const {
@@ -55,10 +57,11 @@ export default function ScriptVideoSettingsScreen() {
     setShowPaywall,
   } = useRevenueCat();
 
-  const { getToken } = useAuth();
-
   // Main state and actions from hooks
   const videoRequest = useVideoRequest();
+
+  // State for script preview expansion
+  const [isScriptExpanded, setIsScriptExpanded] = useState(false);
 
   // Configuration status
   const configStatus = useConfigurationStatus({
@@ -85,17 +88,52 @@ export default function ScriptVideoSettingsScreen() {
   const isFreeUserWithoutVideos =
     currentPlan === 'free' && videosRemaining === 0;
 
-  // Compute if submit button should be disabled
-  const isSubmitDisabled =
-    !userUsage ||
-    !hasBasicConditions ||
-    (isReady && userUsage && isFreeUserWithoutVideos) ||
-    !ScriptService.validateScript({
+  // Reactive script validation
+  const scriptValidation = useMemo(() => {
+    if (
+      !userUsage ||
+      !currentPlan ||
+      !script ||
+      videoRequest.selectedVideos.length === 0
+    ) {
+      return { isValid: false, warnings: [] };
+    }
+
+    return ScriptService.validateScript({
       script,
       plan: currentPlan,
       userUsage,
       videos: videoRequest.selectedVideos,
     });
+  }, [script, videoRequest.selectedVideos, userUsage, currentPlan]);
+
+  // Compute if submit button should be disabled
+  const isSubmitDisabled =
+    !userUsage || !hasBasicConditions || !scriptValidation.isValid;
+
+  const { wordCount, estimatedDuration } =
+    ScriptService.calculateScriptDuration(script);
+
+  // Reactive requirements warnings
+  const requirementsWarnings = useMemo(() => {
+    const warnings = [];
+
+    // Vérifications de base
+    if (!script) {
+      warnings.push('📝 Sélectionnez un script à générer');
+    }
+
+    if (videoRequest.selectedVideos.length === 0) {
+      warnings.push('🎬 Sélectionnez au moins une vidéo source');
+    }
+
+    // Vérifications avancées avec ScriptService
+    if (scriptValidation.warnings.length > 0) {
+      warnings.push(...scriptValidation.warnings);
+    }
+
+    return warnings;
+  }, [script, videoRequest.selectedVideos.length, scriptValidation.warnings]);
 
   // Show loading state for the entire screen only if video request data is loading
   if (videoRequest.loading) {
@@ -195,18 +233,37 @@ export default function ScriptVideoSettingsScreen() {
         <DiscreteUsageDisplay />
 
         {/* Script Preview */}
-        <View style={styles.scriptPreview}>
-          <Text style={styles.scriptPreviewTitle}>📝 Script à Générer</Text>
-          <Text style={styles.scriptContent} numberOfLines={6}>
-            {script}
-          </Text>
-          <View style={styles.scriptMeta}>
-            <Text style={styles.scriptMetaText}>
-              {wordCount} mots • ~
-              {Math.round(parseFloat(estimatedDuration || '0'))}s
-            </Text>
+        <TouchableOpacity
+          style={styles.scriptPreview}
+          onPress={() => setIsScriptExpanded(!isScriptExpanded)}
+          activeOpacity={0.8}
+        >
+          <View style={styles.scriptPreviewHeader}>
+            <Text style={styles.scriptPreviewTitle}>📝 Script à Générer</Text>
+            {isScriptExpanded ? (
+              <ChevronUp size={20} color="#007AFF" />
+            ) : (
+              <ChevronDown size={20} color="#007AFF" />
+            )}
           </View>
-        </View>
+
+          {isScriptExpanded && (
+            <>
+              <Text style={styles.scriptContent}>{script}</Text>
+              <View style={styles.scriptMeta}>
+                <Text style={styles.scriptMetaText}>
+                  {wordCount} mots • ~{Math.round(estimatedDuration)}s
+                </Text>
+              </View>
+            </>
+          )}
+
+          {!isScriptExpanded && (
+            <Text style={styles.scriptPreviewText} numberOfLines={2}>
+              {script}
+            </Text>
+          )}
+        </TouchableOpacity>
 
         {/* Video selection */}
         <VideoTagFilterSystem
@@ -254,45 +311,28 @@ export default function ScriptVideoSettingsScreen() {
           </View>
         )}
 
-        {/* Show basic conditions warning */}
-        {displayRequirementsWarning().map((warning, index) => (
-          <View key={index} style={styles.conditionsWarning}>
-            <Text style={styles.conditionsWarningText}>{warning}</Text>
+        {/* Show requirements warnings only when there are issues */}
+        {requirementsWarnings.length > 0 && (
+          <View style={styles.requirementsContainer}>
+            {requirementsWarnings.map((warning, index) => (
+              <View key={index} style={styles.conditionsWarning}>
+                <Text style={styles.conditionsWarningText}>{warning}</Text>
+              </View>
+            ))}
           </View>
-        ))}
+        )}
       </ScrollView>
 
       {/* Submit button */}
       <SubmitButton
         onSubmit={handleGenerateVideo}
         isSubmitting={videoRequest.submitting}
-        isDisabled={!!isSubmitDisabled}
+        isDisabled={isSubmitDisabled}
         showWatermarkInfo={isReady && isFreeUserWithVideos}
         onUpgradePress={() => setShowPaywall(true)}
       />
     </SafeAreaView>
   );
-
-  function displayRequirementsWarning() {
-    const warning = [];
-    if (!script) {
-      warning.push('📝 Sélectionnez un script à générer');
-    }
-
-    if (userUsage && currentPlan) {
-      const { isValid, warnings } = ScriptService.validateScript({
-        script,
-        plan: currentPlan,
-        userUsage,
-        videos: videoRequest.selectedVideos,
-      });
-      if (!isValid) {
-        warning.push(...warnings);
-      }
-    }
-
-    return warning;
-  }
 }
 
 const styles = StyleSheet.create({
@@ -324,11 +364,22 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#333',
   },
+  scriptPreviewHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
   scriptPreviewTitle: {
     fontSize: 16,
     fontWeight: '600',
     color: '#007AFF',
-    marginBottom: 12,
+  },
+  scriptPreviewText: {
+    fontSize: 14,
+    color: '#ccc',
+    lineHeight: 20,
+    fontStyle: 'italic',
   },
   scriptContent: {
     fontSize: 15,
@@ -350,31 +401,34 @@ const styles = StyleSheet.create({
     gap: 16,
   },
   quotaWarning: {
-    backgroundColor: 'rgba(255, 59, 48, 0.1)',
+    backgroundColor: 'rgba(255, 59, 48, 0.08)',
     borderWidth: 1,
-    borderColor: 'rgba(255, 59, 48, 0.3)',
-    borderRadius: 12,
-    padding: 16,
-    marginVertical: 8,
+    borderColor: 'rgba(255, 59, 48, 0.2)',
+    borderRadius: 10,
+    padding: 12,
+    marginVertical: 6,
   },
   quotaWarningText: {
     color: '#FF3B30',
-    fontSize: 14,
+    fontSize: 13,
     textAlign: 'center',
     fontWeight: '500',
   },
   conditionsWarning: {
-    backgroundColor: 'rgba(255, 149, 0, 0.1)',
+    backgroundColor: 'rgba(255, 149, 0, 0.08)',
     borderWidth: 1,
-    borderColor: 'rgba(255, 149, 0, 0.3)',
-    borderRadius: 12,
-    padding: 16,
-    marginVertical: 8,
+    borderColor: 'rgba(255, 149, 0, 0.2)',
+    borderRadius: 10,
+    padding: 12,
+    marginVertical: 6,
   },
   conditionsWarningText: {
     color: '#FF9500',
-    fontSize: 14,
+    fontSize: 13,
     textAlign: 'center',
     fontWeight: '500',
+  },
+  requirementsContainer: {
+    marginTop: 10,
   },
 });

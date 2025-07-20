@@ -23,7 +23,9 @@ export class ScriptService {
         if (!isScriptDurationValid) {
             warning.push('La durée du script est trop longue. Elle doit être inférieure à 30 secondes pour le plan gratuit, 60 secondes pour le plan créateur et 120 secondes pour le plan pro.');
         }
+        
         const totalVideosDuration = this.validateVideoDuration(videos);
+        console.log('videoDuration', totalVideosDuration, durationWithTolerance, isScriptDurationValid, totalVideosDuration < durationWithTolerance);
         if (totalVideosDuration < durationWithTolerance) {
             warning.push('La durée totale des vidéos est inférieure à la durée du script. Elle doit être supérieure à la durée du script.');
         }
@@ -32,7 +34,7 @@ export class ScriptService {
 
     static calculateScriptDuration(script: string) {
         const words = script.split(/\s+/).length;
-        const   estimatedDuration= Math.round(words * 0.9) // ~150 words per minute = 0.9 seconds per word
+        const   estimatedDuration= Math.round(words * 0.7) 
         return {
             wordCount: words,
             estimatedDuration
