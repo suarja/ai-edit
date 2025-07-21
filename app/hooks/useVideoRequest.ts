@@ -3,7 +3,14 @@ import { router } from 'expo-router';
 import { useAuth } from '@clerk/clerk-expo';
 import { useGetUser } from '@/components/hooks/useGetUser';
 import { useClerkSupabaseClient } from '@/lib/config/supabase-clerk';
-import { VideoType, CaptionConfiguration } from '@/lib/types/video.types';
+import { 
+  VideoType, 
+  CaptionConfiguration, 
+  VideoEditorialProfile,
+  Language,
+  VideoTemplateService
+} from '@/lib/types/video.types';
+import { VideoValidationService } from '@/lib/services/video/validation';
 import { CaptionConfigStorage } from '@/lib/utils/caption-config-storage';
 import { API_ENDPOINTS } from '@/lib/config/api';
 import {
@@ -14,11 +21,11 @@ import {
 import { ScriptService } from '@/lib/services/scriptService';
 import { useRevenueCat } from '@/contexts/providers/RevenueCat';
 
-// Default language
-const DEFAULT_LANGUAGE = 'fr';
+// Default language (using shared Language type)
+const DEFAULT_LANGUAGE: Language = 'fr';
 
-// Default editorial profile
-const DEFAULT_EDITORIAL_PROFILE = {
+// Default editorial profile (using shared VideoEditorialProfile type)
+const DEFAULT_EDITORIAL_PROFILE: VideoEditorialProfile = {
   persona_description:
     'Créateur de contenu professionnel axé sur une communication claire et engageante',
   tone_of_voice: 'Conversationnel et amical, tout en restant professionnel',
@@ -30,19 +37,13 @@ const DEFAULT_EDITORIAL_PROFILE = {
 // Default enhanced caption configuration
 const DEFAULT_CAPTION_CONFIG = CaptionConfigStorage.getDefault();
 
-type EditorialProfile = {
+// Database editorial profile type (for Supabase queries)
+type DatabaseEditorialProfile = {
   id: string;
   persona_description: string | null;
   tone_of_voice: string | null;
   audience: string | null;
   style_notes: string | null;
-};
-
-type CustomEditorialProfile = {
-  persona_description: string;
-  tone_of_voice: string;
-  audience: string;
-  style_notes: string;
 };
 
 export default function useVideoRequest() {
@@ -64,16 +65,15 @@ export default function useVideoRequest() {
   const [sourceVideos, setSourceVideos] = useState<VideoType[]>([]);
   const [voiceClone, setVoiceClone] = useState<VoiceConfig | null>(null);
   const [editorialProfile, setEditorialProfile] =
-    useState<EditorialProfile | null>(null);
+    useState<DatabaseEditorialProfile | null>(null);
   const [useEditorialProfile, setUseEditorialProfile] = useState(true);
   const [customEditorialProfile, setCustomEditorialProfile] =
-    useState<CustomEditorialProfile>(DEFAULT_EDITORIAL_PROFILE);
+    useState<VideoEditorialProfile>(DEFAULT_EDITORIAL_PROFILE);
   const [captionConfig, setCaptionConfig] = useState<CaptionConfiguration>(
     DEFAULT_CAPTION_CONFIG
   );
-  // Add language state with French as default
-  const [outputLanguage, setOutputLanguage] =
-    useState<string>(DEFAULT_LANGUAGE);
+  // Language state with typed Language from editia-core
+  const [outputLanguage, setOutputLanguage] = useState<Language>(DEFAULT_LANGUAGE);
 
   useEffect(() => {
     if (clerkLoaded) {
@@ -115,7 +115,7 @@ export default function useVideoRequest() {
         .single();
 
       if (profileError && profileError.code !== 'PGRST116') throw profileError;
-      setEditorialProfile(profile as unknown as EditorialProfile);
+      setEditorialProfile(profile as unknown as DatabaseEditorialProfile);
 
       // If we have an editorial profile, use it as the base for custom profile
       if (profile) {
@@ -168,15 +168,10 @@ export default function useVideoRequest() {
   };
 
   const validateRequest = () => {
+    // Legacy checks first
     if (!scriptId) {
       throw new Error(
         'Script manquant : veuillez sélectionner un script pour générer une vidéo.'
-      );
-    }
-
-    if (!prompt || typeof prompt !== 'string' || !prompt.trim()) {
-      throw new Error(
-        'Description manquante : veuillez entrer une description de la vidéo.'
       );
     }
 
@@ -188,37 +183,71 @@ export default function useVideoRequest() {
       throw new Error('Utilisateur manquant : veuillez sélectionner un utilisateur pour générer une vidéo.');
     }
 
-    const { isValid, warnings } = ScriptService.validateScript({script: prompt, plan: currentPlan, userUsage, videos: selectedVideos});
+    // Script validation using existing ScriptService
+    const { isValid, warnings } = ScriptService.validateScript({
+      script: prompt, 
+      plan: currentPlan, 
+      userUsage, 
+      videos: selectedVideos
+    });
     if (!isValid) {
       throw new Error(warnings.join('\n'));
     }
 
-    if (
-      !useEditorialProfile &&
-      !customEditorialProfile.persona_description.trim()
-    ) {
-      throw new Error(
-        'Détails éditoriaux manquants : veuillez fournir des détails sur votre style de contenu.'
-      );
+    // Prepare editorial profile for validation
+    const profileData = useEditorialProfile
+      ? convertDatabaseToVideoProfile(editorialProfile) || DEFAULT_EDITORIAL_PROFILE
+      : customEditorialProfile;
+
+    // Use VideoValidationService for comprehensive validation
+    const validationPayload = {
+      prompt,
+      systemPrompt,
+      selectedVideos,
+      editorialProfile: profileData,
+      voiceId: voiceClone?.voiceId,
+      captionConfig,
+      outputLanguage,
+    };
+
+    const validationResult = VideoValidationService.validateRequest(validationPayload);
+    if (!validationResult.success) {
+      throw new Error(validationResult.details.message);
     }
 
-    // Enhanced validation: only check if captions are enabled and missing required fields
-    if (
-      captionConfig.enabled &&
-      (!captionConfig.presetId || !captionConfig.transcriptColor)
-    ) {
-      throw new Error(
-        'Configuration des sous-titres incomplète : veuillez configurer complètement vos sous-titres ou les désactiver.'
+    // Additional template validation using VideoTemplateService
+    if (prompt && selectedVideos.length > 0) {
+      const templateValidation = VideoTemplateService.validateTemplate(
+        prompt,
+        selectedVideos,
+        captionConfig
       );
-    }
-
-    if (!outputLanguage) {
-      throw new Error(
-        'Langue de sortie manquante : veuillez sélectionner une langue pour votre vidéo.'
-      );
+      
+      if (!templateValidation.isValid) {
+        throw new Error(templateValidation.errors.join('\n'));
+      }
+      
+      // Show warnings to console (could be shown to user in future)
+      if (templateValidation.warnings.length > 0) {
+        console.warn('Template validation warnings:', templateValidation.warnings);
+      }
     }
 
     return true;
+  };
+
+  // Helper function to convert database profile to VideoEditorialProfile
+  const convertDatabaseToVideoProfile = (
+    dbProfile: DatabaseEditorialProfile | null
+  ): VideoEditorialProfile | null => {
+    if (!dbProfile) return null;
+    
+    return {
+      persona_description: dbProfile.persona_description || DEFAULT_EDITORIAL_PROFILE.persona_description,
+      tone_of_voice: dbProfile.tone_of_voice || DEFAULT_EDITORIAL_PROFILE.tone_of_voice,
+      audience: dbProfile.audience || DEFAULT_EDITORIAL_PROFILE.audience,
+      style_notes: dbProfile.style_notes || DEFAULT_EDITORIAL_PROFILE.style_notes,
+    };
   };
 
   const handleReset = () => {
