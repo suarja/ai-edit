@@ -1,8 +1,9 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Globe } from 'lucide-react-native';
+import { Language } from 'editia-core';
 
-export const SUPPORTED_LANGUAGES = [
+export const SUPPORTED_LANGUAGES: { code: Language; name: string }[]   = [
   { code: 'fr', name: 'Français' },
   { code: 'en', name: 'English' },
   { code: 'es', name: 'Español' },
@@ -11,8 +12,8 @@ export const SUPPORTED_LANGUAGES = [
 ];
 
 type LanguageSelectorProps = {
-  selectedLanguage: string;
-  onLanguageChange: (languageCode: string) => void;
+  selectedLanguage: Language;
+  onLanguageChange: (languageCode: Language) => void;
 };
 
 const LanguageSelector: React.FC<LanguageSelectorProps> = ({

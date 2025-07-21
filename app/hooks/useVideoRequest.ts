@@ -6,7 +6,6 @@ import { useClerkSupabaseClient } from '@/lib/config/supabase-clerk';
 import { 
   VideoType, 
   CaptionConfiguration, 
-  VideoEditorialProfile,
   Language,
   VideoTemplateService
 } from '@/lib/types/video.types';
@@ -20,6 +19,7 @@ import {
 } from '@/lib/services/voiceService';
 import { ScriptService } from '@/lib/services/scriptService';
 import { useRevenueCat } from '@/contexts/providers/RevenueCat';
+import { VideoEditorialProfile } from 'editia-core';
 
 // Default language (using shared Language type)
 const DEFAULT_LANGUAGE: Language = 'fr';
