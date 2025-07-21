@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { Database } from './supabase-types';
 
-// Import shared types from editia-core
+// Import shared types from editia-core React Native build
 import type {
   VideoType,
   CaptionConfiguration,
@@ -14,7 +14,7 @@ import type {
   HexColor,
   TranscriptEffect,
   EnhancedGeneratedVideoType,
-} from 'editia-core';
+} from 'editia-core/react-native';
 
 import {
   LANGUAGES,
@@ -24,7 +24,7 @@ import {
   validateCaptionConfig,
   validateVideoEditorialProfile,
   isValidVideo,
-} from 'editia-core';
+} from 'editia-core/react-native';
 
 // Re-export shared types for backward compatibility
 export type {
