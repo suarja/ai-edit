@@ -9,7 +9,7 @@ import {
   StyleSheet,
 } from 'react-native';
 import VoiceDictation from './VoiceDictation';
-import { IUploadedVideo } from '@/lib/types/video';
+import { IUploadedVideo } from '@/lib/types/video.types';
 
 export default function VideoEditForm({
   video,

@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { Clock, Tag, AlertCircle } from 'lucide-react-native';
-import { AnyVideoType } from '@/lib/types/video';
+import { AnyVideoType } from '@/lib/types/video.types';
 
 interface VideoDetailsProps {
   video: AnyVideoType | null;

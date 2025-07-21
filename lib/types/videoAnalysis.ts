@@ -1,4 +1,4 @@
-import { VideoType } from './video';
+import { VideoType } from './video.types';
 
 /**
  * Video segment with temporal information

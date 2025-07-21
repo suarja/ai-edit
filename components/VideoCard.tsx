@@ -7,7 +7,7 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { Clock, Tag, Play } from 'lucide-react-native';
-import { VideoType } from '@/lib/types/video';
+import { VideoType } from '@/lib/types/video.types';
 import { VideoThumbnail } from './VideoThumbnail';
 
 type VideoCardProps = {

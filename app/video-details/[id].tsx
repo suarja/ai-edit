@@ -18,7 +18,7 @@ import VideoDetailHeader from '@/components/VideoDetailHeader';
 import VideoDetails from '@/components/VideoDetails';
 import VideoActionButtons from '@/components/VideoActionButtons';
 import VideoEditForm from '@/components/VideoEditForm';
-import { IUploadedVideo } from '@/lib/types/video';
+import { IUploadedVideo } from '@/lib/types/video.types';
 
 export default function UploadedVideoDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();

@@ -1,6 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { CaptionConfigStorage } from '@/lib/utils/caption-config-storage';
-import { CaptionConfiguration } from '@/lib/types/video';
+import { CaptionConfiguration } from '@/lib/types/video.types';
 
 // Mock AsyncStorage
 jest.mock('@react-native-async-storage/async-storage', () => ({

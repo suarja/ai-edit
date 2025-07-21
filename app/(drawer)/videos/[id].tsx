@@ -12,7 +12,7 @@ import VideoPlayer from '@/components/VideoPlayer';
 import VideoDetails from '@/components/VideoDetails';
 import VideoActionButtons from '@/components/VideoActionButtons';
 import { API_ENDPOINTS } from '@/lib/config/api';
-import { EnhancedGeneratedVideoType } from '@/lib/types/video';
+import { EnhancedGeneratedVideoType } from '@/lib/types/video.types';
 import { useGetUser } from '@/components/hooks/useGetUser';
 import { useClerkSupabaseClient } from '@/lib/config/supabase-clerk';
 import { useAuth } from '@clerk/clerk-expo';

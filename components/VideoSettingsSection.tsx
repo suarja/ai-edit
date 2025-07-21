@@ -9,7 +9,10 @@ import {
   Modal,
 } from 'react-native';
 import { Palette, Sparkles } from 'lucide-react-native';
-import { CaptionConfiguration, TranscriptEffect } from '@/lib/types/video';
+import {
+  CaptionConfiguration,
+  TranscriptEffect,
+} from '@/lib/types/video.types';
 import { CaptionConfigStorage } from '@/lib/utils/caption-config-storage';
 
 type VideoSettingsSectionProps = {

@@ -3,7 +3,7 @@ import { router } from 'expo-router';
 import { useAuth } from '@clerk/clerk-expo';
 import { useGetUser } from '@/components/hooks/useGetUser';
 import { useClerkSupabaseClient } from '@/lib/config/supabase-clerk';
-import { VideoType, CaptionConfiguration } from '@/lib/types/video';
+import { VideoType, CaptionConfiguration } from '@/lib/types/video.types';
 import { CaptionConfigStorage } from '@/lib/utils/caption-config-storage';
 import { API_ENDPOINTS } from '@/lib/config/api';
 import {

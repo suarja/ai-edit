@@ -1,5 +1,5 @@
 import { PlanIdentifier, UserUsage } from "editia-core";
-import { VideoType } from "../types/video";
+import { VideoType } from "../types/video.types";
 
 
 export class ScriptService {

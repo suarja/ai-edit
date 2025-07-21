@@ -12,7 +12,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Save } from 'lucide-react-native';
 import VideoSettingsSection from '@/components/VideoSettingsSection';
 import SettingsHeader from '@/components/SettingsHeader';
-import { CaptionConfiguration } from '@/lib/types/video';
+import { CaptionConfiguration } from '@/lib/types/video.types';
 import { CaptionConfigStorage } from '@/lib/utils/caption-config-storage';
 import { useGetUser } from '@/components/hooks/useGetUser';
 

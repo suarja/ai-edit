@@ -1,4 +1,4 @@
-import React, { useState,  useMemo } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   View,
   Text,
@@ -6,8 +6,11 @@ import {
   TouchableOpacity,
   ScrollView,
 } from 'react-native';
-import { VideoType } from '@/lib/types/video';
-import { SHARED_STYLE_COLORS, sharedStyles } from '@/lib/constants/sharedStyles';
+import { VideoType } from '@/lib/types/video.types';
+import {
+  SHARED_STYLE_COLORS,
+  sharedStyles,
+} from '@/lib/constants/sharedStyles';
 
 interface VideoTagFilterSystemProps {
   videos: VideoType[];
@@ -124,7 +127,6 @@ export default function VideoTagFilterSystem({
       {/* Tag Filter Section */}
       {allTags.length > 0 && (
         <View style={styles.tagSection}>
-       
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
@@ -183,7 +185,6 @@ export default function VideoTagFilterSystem({
 
         {filteredVideos.length === 0 ? (
           <View style={styles.emptyState}>
-            
             {selectedTags.length === 0 && (
               <Text style={styles.emptySubtext}>
                 👆 Choisissez vos catégories ci-dessus pour filtrer les vidéos

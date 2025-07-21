@@ -3,7 +3,7 @@ import {
   CaptionConfiguration,
   isValidCaptionConfig,
   TranscriptEffect,
-} from '@/lib/types/video';
+} from '@/lib/types/video.types';
 import { VIDEO_PRESETS } from '@/lib/config/video-presets';
 
 export class CaptionConfigStorage {

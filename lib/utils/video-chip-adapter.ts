@@ -1,4 +1,4 @@
-import { VideoType } from '@/lib/types/video';
+import { VideoType } from '@/lib/types/video.types';
 import { VideoChipItem } from '@/lib/types/video-chips';
 
 /**

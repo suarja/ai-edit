@@ -4,7 +4,7 @@ import { router } from 'expo-router';
 import { Upload, Video as VideoIcon } from 'lucide-react-native';
 import { Chips } from 'react-native-material-chips';
 
-import { VideoType } from '@/lib/types/video';
+import { VideoType } from '@/lib/types/video.types';
 import { VideoChipItem, VideoChipConfig } from '@/lib/types/video-chips';
 import {
   transformVideosToChips,

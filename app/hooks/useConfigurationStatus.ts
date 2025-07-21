@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { CaptionConfiguration } from '@/lib/types/video';
+import { CaptionConfiguration } from '@/lib/types/video.types';
 import { VoiceConfig } from '@/lib/services/voiceService';
 
 // VoiceClone type definition that matches useVideoRequest
