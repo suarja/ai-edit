@@ -151,9 +151,8 @@ export default function GeneratedVideoDetailScreen() {
       }`;
 
       // Format the video to match our GeneratedVideoType with enhancements
-      const formattedVideo: EnhancedGeneratedVideoType = {
+      const formattedVideo: any = {
         id: typedVideoRequest.id as string,
-        type: 'generated',
         created_at: typedVideoRequest.created_at as string,
         render_status: typedVideoRequest.render_status,
         render_url: typedVideoRequest.render_url,
@@ -212,10 +211,7 @@ export default function GeneratedVideoDetailScreen() {
       const data = await response.json();
 
       // Update video details if status changed
-      if (
-        data.render_status !== video.render_status ||
-        data.render_url !== video.render_url
-      ) {
+      if (data.status !== video.status || data.video_url !== video.video_url) {
         setVideo((prev) => {
           if (!prev) return null;
 
@@ -229,17 +225,16 @@ export default function GeneratedVideoDetailScreen() {
           const statusText =
             statusMap[data.render_status] || data.render_status;
 
-          const description = `${statusText}${
-            prev.output_language
-              ? ` • Langue: ${prev.output_language.toUpperCase()}`
-              : ''
-          }`;
+          // const description = `${statusText}${
+          //   prev.output_language
+          //     ? ` • Langue: ${prev.output_language.toUpperCase()}`
+          //     : ''
+          // }`;
 
           return {
             ...prev,
             render_status: data.render_status,
             render_url: data.render_url,
-            description,
           };
         });
       }
@@ -257,7 +252,7 @@ export default function GeneratedVideoDetailScreen() {
   const renderThumbnail = () => {
     if (!video) return null;
 
-    if (video.render_status === 'rendering') {
+    if (video.status === 'processing') {
       return (
         <View style={styles.thumbnailContainer}>
           <View style={styles.thumbnailOverlay}>
@@ -301,7 +296,7 @@ export default function GeneratedVideoDetailScreen() {
         showsVerticalScrollIndicator={false}
       >
         <View style={styles.content}>
-          {video && video.render_status === 'done' ? (
+          {video && video.status === 'completed' ? (
             <VideoPlayer video={video} />
           ) : (
             renderThumbnail()

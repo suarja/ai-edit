@@ -16,6 +16,7 @@ import {
   AlertCircle,
   Loader,
 } from 'lucide-react-native';
+import { SHARED_STYLE_COLORS } from '@/lib/constants/sharedStyles';
 
 // Support both old VideoRequest and new DisplayVideo formats
 type VideoRequest = {
@@ -156,10 +157,7 @@ export default function GeneratedVideoCard({
         styles.container,
         {
           borderColor: statusConfig.borderColor,
-          backgroundColor:
-            video.render_status === 'done'
-              ? 'rgba(16, 185, 129, 0.02)'
-              : '#1a1a1a',
+          backgroundColor: '#1a1a1a',
         },
       ]}
       onPress={onPress}
