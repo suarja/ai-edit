@@ -1,6 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   CaptionConfiguration,
+  HexColor,
   isValidCaptionConfig,
   TranscriptEffect,
 } from '@/lib/types/video.types';
@@ -16,7 +17,7 @@ export class CaptionConfigStorage {
     enabled: true,
     presetId: 'karaoke',
     placement: 'bottom',
-    transcriptColor: '#04f827',
+    transcriptColor: '#04f827' as HexColor,
     transcriptEffect: 'karaoke',
   };
 
@@ -33,7 +34,7 @@ export class CaptionConfigStorage {
 
         // Validate the configuration
         if (isValidCaptionConfig(parsed)) {
-          return parsed;
+          return parsed as CaptionConfiguration;
         }
 
         console.warn(
@@ -57,7 +58,6 @@ export class CaptionConfigStorage {
   ): Promise<boolean> {
     try {
       const key = `${this.STORAGE_KEY_PREFIX}${userId}`;
-
       // Validate config before saving
       if (!isValidCaptionConfig(config)) {
         console.error('Invalid caption config, cannot save');
@@ -125,7 +125,7 @@ export class CaptionConfigStorage {
 
     // If it's already a valid config, return as-is
     if (isValidCaptionConfig(config)) {
-      return config;
+      return config as CaptionConfiguration;
     }
 
     // Otherwise, sanitize the config with fallbacks
@@ -195,7 +195,7 @@ export class CaptionConfigStorage {
       enabled: true,
       presetId: basePresetId,
       placement: 'bottom',
-      transcriptColor: basePreset.transcript_color as `#${string}`,
+      transcriptColor: basePreset.transcript_color as HexColor,
       transcriptEffect: basePreset.transcript_effect as TranscriptEffect,
     };
 

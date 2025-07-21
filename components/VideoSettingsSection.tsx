@@ -11,6 +11,7 @@ import {
 import { Palette, Sparkles } from 'lucide-react-native';
 import {
   CaptionConfiguration,
+  HexColor,
   TranscriptEffect,
 } from '@/lib/types/video.types';
 import { CaptionConfigStorage } from '@/lib/utils/caption-config-storage';
@@ -67,7 +68,7 @@ const VideoSettingsSection: React.FC<VideoSettingsSectionProps> = ({
       icon: '🎤',
       description: 'Vert avec progression mot par mot',
       config: {
-        transcriptColor: '#04f827' as `#${string}`,
+        transcriptColor: '#04f827' as HexColor,
         transcriptEffect: 'karaoke' as TranscriptEffect,
         placement: 'bottom' as const,
       },
@@ -78,7 +79,7 @@ const VideoSettingsSection: React.FC<VideoSettingsSectionProps> = ({
       icon: '✨',
       description: 'Jaune avec surlignage des mots',
       config: {
-        transcriptColor: '#FFFD03' as `#${string}`,
+        transcriptColor: '#FFFD03' as HexColor,
         transcriptEffect: 'highlight' as TranscriptEffect,
         placement: 'bottom' as const,
       },
@@ -89,7 +90,7 @@ const VideoSettingsSection: React.FC<VideoSettingsSectionProps> = ({
       icon: '🤍',
       description: 'Blanc avec apparition en fondu',
       config: {
-        transcriptColor: '#ffffff' as `#${string}`,
+        transcriptColor: '#ffffff' as HexColor,
         transcriptEffect: 'fade' as TranscriptEffect,
         placement: 'center' as const,
       },
@@ -103,7 +104,7 @@ const VideoSettingsSection: React.FC<VideoSettingsSectionProps> = ({
         enabled: true,
         presetId: currentConfig.presetId || 'karaoke',
         placement: currentConfig.placement || 'bottom',
-        transcriptColor: currentConfig.transcriptColor || '#04f827',
+        transcriptColor: currentConfig.transcriptColor || '#04f827' as HexColor,
         transcriptEffect: currentConfig.transcriptEffect || 'karaoke',
       };
       onCaptionConfigChange(enabledConfig);
@@ -141,7 +142,7 @@ const VideoSettingsSection: React.FC<VideoSettingsSectionProps> = ({
       ...currentConfig,
       enabled: true,
       presetId: 'custom', // Mark as custom
-      transcriptColor: color as `#${string}`,
+      transcriptColor: color as HexColor,
     });
     setShowColorPicker(false);
   };
