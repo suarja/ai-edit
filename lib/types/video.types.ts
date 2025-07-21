@@ -114,7 +114,7 @@ export function getVideoUrl(video: AnyVideoType): string | null {
     return video.upload_url;
   }
   if ('render_url' in video && video.render_url) {
-    return video.render_url;
+    return video.render_url as string;
   }
   if ('video_url' in video && video.video_url) {
     return video.video_url;
