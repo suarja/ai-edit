@@ -14,6 +14,7 @@ import { ClerkProvider, ClerkLoaded } from '@clerk/clerk-expo';
 import 'react-native-reanimated';
 import * as SecureStore from 'expo-secure-store';
 import { RevenueCatProvider } from '@/contexts/providers/RevenueCat';
+import { OnboardingOverlay } from '@/lib/onboarding';
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
@@ -194,6 +195,7 @@ export default function RootLayout() {
                   options={{ headerShown: false }}
                 />
               </Stack>
+              <OnboardingOverlay />
             </ThemeProvider>
           </RevenueCatProvider>
         </ClerkLoaded>
