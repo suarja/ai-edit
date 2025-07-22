@@ -27,7 +27,7 @@ export default function ScriptsScreen() {
   const { scripts, isLoading, error, loadScripts, deleteScript } =
     useScriptList();
   const [selectedScript, setSelectedScript] = useState<any | null>(null);
-  const { scriptConversationsRemaining, userUsage, presentPaywall } = useRevenueCat();
+  const { scriptConversationsRemaining,  presentPaywall } = useRevenueCat();
 
   const handleCreateNewScript = async () => {
     if (!scriptConversationsRemaining) {
