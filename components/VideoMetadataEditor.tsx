@@ -9,6 +9,7 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { VideoAnalysisData } from '@/lib/types/videoAnalysis';
+import VoiceDictation from './VoiceDictation';
 
 interface VideoMetadataEditorProps {
   videoId: string;
@@ -144,6 +145,10 @@ const VideoMetadataEditor: React.FC<VideoMetadataEditorProps> = ({
           numberOfLines={4}
           maxLength={500}
         />
+        <VoiceDictation
+          currentValue={description}
+          onTranscriptChange={setDescription}
+        />
         <Text style={styles.characterCount}>
           {description.length}/500 caractères
         </Text>
@@ -239,7 +244,7 @@ const VideoMetadataEditor: React.FC<VideoMetadataEditorProps> = ({
           onPress={onCancel}
           disabled={isSaving}
         >
-          <Text style={styles.cancelButtonText}>Annuler</Text>
+          <Text style={styles.cancelButtonText}>Plus tard</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
@@ -253,7 +258,7 @@ const VideoMetadataEditor: React.FC<VideoMetadataEditorProps> = ({
           {isSaving ? (
             <ActivityIndicator size="small" color="#fff" />
           ) : (
-            <Text style={styles.saveButtonText}>Sauvegarder</Text>
+            <Text style={styles.saveButtonText}>Enregistrer</Text>
           )}
         </TouchableOpacity>
       </View>

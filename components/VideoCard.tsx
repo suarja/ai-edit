@@ -1,12 +1,6 @@
 import React from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  ActivityIndicator,
-} from 'react-native';
-import { Clock, Tag, Play } from 'lucide-react-native';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { Clock, Tag } from 'lucide-react-native';
 import { VideoType } from '@/lib/types/video.types';
 import { VideoThumbnail } from './VideoThumbnail';
 
@@ -37,26 +31,47 @@ export default function VideoCard({
 }: VideoCardProps) {
   return (
     <TouchableOpacity
-      style={styles.container}
+      style={[
+        styles.container,
+        {
+          borderWidth: 1,
+          borderColor:
+            video.title === '' || video.description === ''
+              ? '#ffcccb'
+              : 'transparent',
+        },
+      ]}
       onPress={onPress}
       activeOpacity={0.7}
     >
-      <View style={styles.thumbnailContainer}>
+      <View style={[styles.thumbnailContainer]}>
         <VideoThumbnail url={video.upload_url} shouldLoad={isVisible} />
 
         <View style={styles.duration}>
           <Clock size={12} color="#fff" style={{ marginRight: 4 }} />
           <Text style={styles.durationText}>
-            {formatDuration(video.duration_seconds)}
+            {formatDuration(video.duration_seconds || 0)}
           </Text>
         </View>
       </View>
 
       <View style={styles.content}>
-        <Text style={styles.title} numberOfLines={1}>
+        <Text
+          style={[
+            styles.title,
+            { color: video.title === '' ? '#ffcccb' : '#fff' },
+          ]}
+          numberOfLines={1}
+        >
           {video.title || 'Sans titre'}
         </Text>
-        <Text style={styles.description} numberOfLines={2}>
+        <Text
+          style={[
+            styles.description,
+            { color: video.description === '' ? '#ffcccb' : '#888' },
+          ]}
+          numberOfLines={2}
+        >
           {video.description || 'Aucune description'}
         </Text>
         <View style={styles.metadata}>
@@ -73,6 +88,14 @@ export default function VideoCard({
           </View>
         </View>
       </View>
+      {(video.title === '' || video.description === '') && (
+        <View style={styles.warningContainer}>
+          <Text style={styles.warningText}>
+            Métadonnées incomplètes. Veuillez mettre à jour le titre et la
+            description pour pouvoir partager votre vidéo.
+          </Text>
+        </View>
+      )}
     </TouchableOpacity>
   );
 }
@@ -113,6 +136,21 @@ const styles = StyleSheet.create({
     bottom: 0,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  warningContainer: {
+    position: 'absolute',
+    top: 0,
+    left: 20,
+    right: 0,
+    bottom: 0,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  warningText: {
+    color: '#ff0000',
+    fontSize: 10,
+    fontWeight: '500',
+    textAlign: 'center',
   },
   playButton: {
     width: 48,

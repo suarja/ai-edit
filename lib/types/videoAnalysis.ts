@@ -1,3 +1,4 @@
+import { VideoRequestStatus } from 'editia-core';
 import { VideoType } from './video.types';
 
 /**
@@ -67,7 +68,7 @@ export interface VideoAnalysisData {
  * Extension of existing VideoType with analysis fields
  */
 export interface VideoTypeWithAnalysis extends VideoType {
-  analysis_status?: 'pending' | 'analyzing' | 'completed' | 'failed';
+  analysis_status?: VideoRequestStatus;
   analysis_data?: VideoAnalysisData;
   analysis_error?: string;
   analysis_completed_at?: string;

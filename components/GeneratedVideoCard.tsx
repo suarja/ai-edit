@@ -61,36 +61,36 @@ export default function GeneratedVideoCard({
       case 'done':
         return {
           icon: CheckCircle,
-          color: '#10b981',
-          bgColor: 'rgba(16, 185, 129, 0.1)',
-          borderColor: 'rgba(16, 185, 129, 0.3)',
+          color: '#4CD964',
+          bgColor: 'rgba(76, 217, 100, 0.08)',
+          borderColor: '#333',
           label: 'Terminé',
           description: 'Vidéo prête à regarder',
         };
       case 'rendering':
         return {
           icon: Loader,
-          color: '#f59e0b',
-          bgColor: 'rgba(245, 158, 11, 0.1)',
-          borderColor: 'rgba(245, 158, 11, 0.3)',
+          color: '#FF9500',
+          bgColor: 'rgba(255, 149, 0, 0.08)',
+          borderColor: '#333',
           label: 'En cours',
           description: 'Génération en cours...',
         };
       case 'error':
         return {
           icon: AlertCircle,
-          color: '#ef4444',
-          bgColor: 'rgba(239, 68, 68, 0.1)',
-          borderColor: 'rgba(239, 68, 68, 0.3)',
+          color: '#FF3B30',
+          bgColor: 'rgba(255, 59, 48, 0.08)',
+          borderColor: '#333',
           label: 'Erreur',
           description: 'Échec de la génération',
         };
       default:
         return {
           icon: Clock,
-          color: '#6b7280',
-          bgColor: 'rgba(107, 114, 128, 0.1)',
-          borderColor: 'rgba(107, 114, 128, 0.3)',
+          color: '#888',
+          bgColor: 'rgba(136, 136, 136, 0.08)',
+          borderColor: '#333',
           label: 'En attente',
           description: "En file d'attente",
         };
@@ -331,19 +331,19 @@ const styles = StyleSheet.create({
     right: 16,
   },
   playButton: {
-    backgroundColor: 'rgba(16, 185, 129, 0.9)',
+    backgroundColor: 'rgba(0, 122, 255, 0.9)',
     borderRadius: 20,
     width: 36,
     height: 36,
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: '#10b981',
+    shadowColor: '#000',
     shadowOffset: {
       width: 0,
-      height: 4,
+      height: 2,
     },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 8,
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 4,
   },
 });

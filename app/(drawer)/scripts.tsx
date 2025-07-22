@@ -12,10 +12,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import {
   Plus,
-  MessageCircle,
-  Clock,
   FileText,
-  MoreVertical,
 } from 'lucide-react-native';
 
 // Hooks
@@ -23,6 +20,7 @@ import { useScriptList } from '@/app/hooks/useScriptChat';
 
 // Components
 import ScriptActionsModal from '@/components/ScriptActionsModal';
+import ScriptCard from '@/components/ScriptCard';
 import { useRevenueCat } from '@/contexts/providers/RevenueCat';
 
 export default function ScriptsScreen() {
@@ -50,19 +48,6 @@ export default function ScriptsScreen() {
     });
   };
 
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('fr-FR', {
-      day: 'numeric',
-      month: 'short',
-      hour: '2-digit',
-      minute: '2-digit',
-    });
-  };
-
-  const getScriptPreview = (script: string) => {
-    return script.length > 100 ? script.substring(0, 100) + '...' : script;
-  };
 
   const handleScriptDeleted = async (scriptId?: string) => {
     if (!scriptId) return;
@@ -134,61 +119,12 @@ export default function ScriptsScreen() {
         {/* Scripts List */}
         {scripts &&
           scripts.map((script, index) => (
-            <View key={script.id} style={styles.scriptCardContainer}>
-              <TouchableOpacity
-                style={styles.scriptCard}
-                onPress={() => handleEditScript(script.id)}
-              >
-                <View style={styles.scriptHeader}>
-                  <View style={styles.scriptIcon}>
-                    <MessageCircle size={20} color="#007AFF" />
-                  </View>
-                  <View style={styles.scriptInfo}>
-                    <Text style={styles.scriptTitle} numberOfLines={1}>
-                      {script.title || 'Script sans titre'}
-                    </Text>
-                    <View style={styles.scriptMeta}>
-                      <Clock size={12} color="#888" />
-                      <Text style={styles.scriptDate}>
-                        {formatDate(script.updated_at)}
-                      </Text>
-                    </View>
-                  </View>
-                  <View style={styles.scriptStatus}>
-                    <View
-                      style={[
-                        styles.statusDot,
-                        {
-                          backgroundColor:
-                            script.status === 'validated'
-                              ? '#4CD964'
-                              : '#FF9500',
-                        },
-                      ]}
-                    />
-                  </View>
-                  <TouchableOpacity
-                    onPress={() => setSelectedScript(script)}
-                    style={styles.moreButton}
-                  >
-                    <MoreVertical size={20} color="#666" />
-                  </TouchableOpacity>
-                </View>
-
-                {script.current_script && (
-                  <Text style={styles.scriptPreview} numberOfLines={3}>
-                    {getScriptPreview(script.current_script)}
-                  </Text>
-                )}
-
-                <View style={styles.scriptFooter}>
-                  <Text style={styles.scriptStats}>
-                    {script.word_count || 0} mots •{' '}
-                    {Math.round(script.estimated_duration || 0)}s
-                  </Text>
-                </View>
-              </TouchableOpacity>
-            </View>
+            <ScriptCard
+              key={script.id}
+              script={script}
+              onPress={() => handleEditScript(script.id)}
+              onMorePress={() => setSelectedScript(script)}
+            />
           ))}
       </ScrollView>
 
@@ -317,77 +253,6 @@ const styles = StyleSheet.create({
     color: '#007AFF',
     fontSize: 16,
     fontWeight: '600',
-  },
-  scriptCard: {
-    backgroundColor: '#1a1a1a',
-    borderRadius: 16,
-    padding: 16,
-    borderWidth: 1,
-    borderColor: '#333',
-  },
-  scriptHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  scriptIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 10,
-    backgroundColor: 'rgba(0, 122, 255, 0.1)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 12,
-  },
-  scriptInfo: {
-    flex: 1,
-  },
-  scriptTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#fff',
-    marginBottom: 4,
-  },
-  scriptMeta: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-  },
-  scriptDate: {
-    fontSize: 12,
-    color: '#888',
-  },
-  scriptStatus: {
-    alignItems: 'center',
-  },
-  statusDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-  },
-  scriptPreview: {
-    fontSize: 14,
-    color: '#ccc',
-    lineHeight: 20,
-    marginBottom: 12,
-  },
-  scriptFooter: {
-    borderTopWidth: 1,
-    borderTopColor: '#333',
-    paddingTop: 8,
-  },
-  scriptStats: {
-    fontSize: 12,
-    color: '#888',
-  },
-  scriptCardContainer: {
-    position: 'relative' as const,
-    zIndex: 1,
-    marginBottom: 16,
-  },
-  moreButton: {
-    padding: 8,
-    borderRadius: 6,
   },
   floatingButton: {
     position: 'absolute',

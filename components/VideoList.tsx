@@ -2,15 +2,15 @@ import React from 'react';
 import { View, Text, FlatList, RefreshControl, StyleSheet } from 'react-native';
 import { Video as VideoIcon } from 'lucide-react-native';
 import VideoCard from './VideoCard';
-import { VideoType } from '@/lib/types/video.types';
+import { VideoTypeWithAnalysis } from '@/lib/types/videoAnalysis';
 
 interface VideoListProps {
-  videos: VideoType[];
+  videos: VideoTypeWithAnalysis[];
   playingVideoId: string | null;
   loadingVideoIds: Set<string>;
   errorVideoIds: Set<string>;
   visibleVideoIds: Set<string>;
-  onVideoPress: (video: VideoType) => void;
+  onVideoPress: (video: VideoTypeWithAnalysis) => void;
   onPlayToggle: (videoId: string) => void;
   onLoadStart: (videoId: string) => void;
   onLoad: (videoId: string) => void;
