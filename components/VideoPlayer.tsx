@@ -9,10 +9,10 @@ import {
 import { Volume2, VolumeX, FileVideo } from 'lucide-react-native';
 import { useVideoPlayer, VideoView } from 'expo-video';
 import { getVideoUrl } from '@/lib/types/video.types';
-import { EnhancedGeneratedVideoType } from 'editia-core';
+import { EnhancedGeneratedVideoType, VideoType } from 'editia-core';
 
 interface VideoPlayerProps {
-  video: EnhancedGeneratedVideoType | null;
+  video: VideoType | EnhancedGeneratedVideoType | null;
   style?: any;
   showControls?: boolean;
   onLoadStart?: () => void;

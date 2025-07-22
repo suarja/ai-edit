@@ -18,11 +18,17 @@ import VideoDetailHeader from '@/components/VideoDetailHeader';
 import VideoDetails from '@/components/VideoDetails';
 import VideoActionButtons from '@/components/VideoActionButtons';
 import VideoEditForm from '@/components/VideoEditForm';
-import { IUploadedVideo } from '@/lib/types/video.types';
+import {
+  EnhancedGeneratedVideoType,
+  IUploadedVideo,
+  UserId,
+  VideoId,
+  VideoType,
+} from '@/lib/types/video.types';
 
 export default function UploadedVideoDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
-  const [video, setVideo] = useState<IUploadedVideo | null>(null);
+  const [video, setVideo] = useState<VideoType | null>(null);
   const [loading, setLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -72,16 +78,16 @@ export default function UploadedVideoDetailScreen() {
       if (fetchError) throw fetchError;
 
       // Format as UploadedVideoType
-      const formattedVideo: IUploadedVideo = {
-        id: data.id,
+      const formattedVideo: VideoType = {
+        id: data.id as VideoId,
         title: data.title || '',
         description: data.description || '',
         tags: data.tags || [],
-        upload_url: data.upload_url,
-        duration_seconds: data.duration_seconds,
-        created_at: data.created_at,
-        storage_path: data.storage_path,
-        user_id: data.user_id,
+        upload_url: data.upload_url || '',
+        duration_seconds: data.duration_seconds || 0,
+        created_at: data.created_at || '',
+        user_id: data.user_id as UserId,
+        updated_at: data.created_at || '',
       };
 
       setVideo(formattedVideo);

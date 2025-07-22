@@ -81,10 +81,7 @@ export interface GeneratedVideo extends VideoType {
 
 // Uploaded video type for the video details page
 
-export type IUploadedVideo = Pick<
-  Database['public']['Tables']['videos']['Row'],
-  'id' | 'title' | 'description' | 'tags' | 'upload_url' | 'duration_seconds' | 'created_at' | 'storage_path' | 'user_id'
->;
+export type IUploadedVideo = VideoType;
 // Union type for any video type
 export type AnyVideoType =
   | VideoType

@@ -164,8 +164,6 @@ export default function GeneratedVideoDetailScreen() {
         output_language: script?.output_language,
       };
 
-      console.log('formattedVideo', formattedVideo);
-
       // Set the video details
       setVideo(formattedVideo);
 
