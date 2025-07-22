@@ -509,6 +509,34 @@ export const sourceVideoStyle = StyleSheet.create({
     shadowColor: COLORS.shadow.primary,
     shadowOpacity: 0.2,
   },
+  
+  // ✅ NOUVEAUX: Styles de modal cohérents
+  modalContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  
+  modalBackdrop: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: COLORS.background.overlayStrong, // rgba(0, 0, 0, 0.8)
+  },
+  
+  modalContent: {
+    width: '90%',
+    height: '70%',
+    backgroundColor: COLORS.background.primary,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: COLORS.surface.border,
+    shadowColor: COLORS.shadow.neutral,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.3,
+    shadowRadius: 16,
+    elevation: 12,
+  },
 });
 
 /**
