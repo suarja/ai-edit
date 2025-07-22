@@ -20,7 +20,7 @@ export const ONBOARDING_STEPS: StepContent[] = [
     highlight: "Valeur: 49€ - Gratuit aujourd'hui seulement",
     subtext: "Les créateurs Pro analysent leur compte chaque semaine pour rester viraux",
     showProButton: true,
-    route: '/analysis/account-insights',
+    route: '/(drawer)/(analysis)/account-insights',
   },
   {
     id: 'voice_cloning',
@@ -29,7 +29,7 @@ export const ONBOARDING_STEPS: StepContent[] = [
     highlight: "Exclusif Pro: Générez 100+ vidéos avec votre voix",
     stats: "87% des top créateurs utilisent le voice cloning",
     showProButton: true,
-    route: '/voice/clone',
+    route: '/(settings)/voice-clone',
   },
   {
     id: 'editorial_profile',
@@ -38,7 +38,7 @@ export const ONBOARDING_STEPS: StepContent[] = [
     highlight: "Scripts personnalisés = 5x plus de vues",
     example: "Ex: @fashionista → scripts mode tendance, @techguru → reviews produits viraux",
     showProButton: true,
-    route: '/profile/editorial',
+    route: '/(settings)/editorial-profile',
   },
   {
     id: 'video_upload',
@@ -47,7 +47,7 @@ export const ONBOARDING_STEPS: StepContent[] = [
     highlight: "Pro: Description automatique par IA vision",
     tip: "Les gros plans et les mouvements dynamiques performent 40% mieux",
     showProButton: true,
-    route: '/videos/upload',
+    route: '/(drawer)/source-videos',
   },
   {
     id: 'settings_tour',
@@ -57,20 +57,21 @@ export const ONBOARDING_STEPS: StepContent[] = [
     cta: "Commencez à créer maintenant →",
     showProButton: true,
     isFinal: true,
-    route: '/settings',
+    route: '/(drawer)/settings',
   }
 ];
 
 /**
  * Configuration des routes par étape
+ * Correspondance avec les vraies routes de l'app
  */
 export const STEP_ROUTES: Record<number, string | null> = {
   0: null, // Welcome - pas de navigation
-  1: '/analysis/account-insights',
-  2: '/voice/clone',
-  3: '/profile/editorial',
-  4: '/videos/upload',
-  5: '/settings',
+  1: '/(drawer)/(analysis)/account-insights', // Vraie route d'analyse
+  2: '/(settings)/voice-clone', // Page voice cloning
+  3: '/(settings)/editorial-profile', // Page profil éditorial corrigée
+  4: '/(drawer)/source-videos', // Page upload/source videos
+  5: '/(drawer)/settings', // Page settings
 };
 
 /**

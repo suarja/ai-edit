@@ -17,6 +17,7 @@ export function useOnboarding() {
   const [state, setState] = useState<OnboardingState | null>(null);
   const [isActive, setIsActive] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [showWithDelay, setShowWithDelay] = useState(false);
 
   // Initialisation - vérifie si l'onboarding doit être affiché
   useEffect(() => {
@@ -42,6 +43,11 @@ export function useOnboarding() {
           
           setState(currentState);
           setIsActive(true);
+          
+          // Délai avant d'afficher l'overlay pour laisser voir la page
+          setTimeout(() => {
+            setShowWithDelay(true);
+          }, 1200);
         }
       } catch (error) {
         console.error('Error initializing onboarding:', error);
@@ -53,7 +59,7 @@ export function useOnboarding() {
     initializeOnboarding();
   }, [user?.id]);
 
-  // Navigation vers l'étape courante
+  // Navigation vers l'étape courante avec délai
   const navigateToCurrentStep = useCallback(async () => {
     if (!state) return;
     
@@ -61,6 +67,8 @@ export function useOnboarding() {
     if (route) {
       try {
         router.push(route);
+        // Délai pour laisser la page se charger avant d'afficher l'overlay
+        await new Promise(resolve => setTimeout(resolve, 800));
       } catch (error) {
         console.error('Navigation error:', error);
       }
@@ -74,23 +82,38 @@ export function useOnboarding() {
     try {
       const newState = await OnboardingService.nextStep(user.id);
       if (newState) {
-        setState(newState);
-        
         // Si l'onboarding est terminé, le désactiver
         if (newState.hasCompletedOnboarding) {
           setIsActive(false);
-          // Optionnel: naviguer vers une page spécifique
-          // router.push('/home');
+          setState(newState);
           return;
         }
         
+        // Masquer temporairement l'overlay pour la navigation
+        setShowWithDelay(false);
+        
         // Naviguer vers la prochaine page
-        await navigateToCurrentStep();
+        const route = getStepRoute(newState.currentStep);
+        if (route) {
+          try {
+            router.push(route);
+            // Délai pour laisser la page se charger
+            await new Promise(resolve => setTimeout(resolve, 1000));
+          } catch (error) {
+            console.error('Navigation error:', error);
+          }
+        }
+        
+        // Mettre à jour l'état et réafficher l'overlay avec délai
+        setState(newState);
+        setTimeout(() => {
+          setShowWithDelay(true);
+        }, 500);
       }
     } catch (error) {
       console.error('Error advancing to next step:', error);
     }
-  }, [user?.id, state, navigateToCurrentStep]);
+  }, [user?.id, state, router]);
 
   // Quitter l'onboarding
   const quit = useCallback(async () => {
@@ -98,6 +121,7 @@ export function useOnboarding() {
     
     try {
       await OnboardingService.skipOnboarding(user.id);
+      setShowWithDelay(false);
       setIsActive(false);
       setState(null);
     } catch (error) {
@@ -122,22 +146,44 @@ export function useOnboarding() {
 
   // Redémarrer l'onboarding (depuis les settings)
   const restart = useCallback(async () => {
-    if (!user?.id) return;
+    if (!user?.id) {
+      console.log('❌ No user ID available for onboarding restart');
+      return;
+    }
+    
+    console.log('🚀 Starting onboarding restart for user:', user.id);
     
     try {
       // TODO: Détecter si l'utilisateur est Pro/Créateur
       const isPro = false;
+      console.log('🔄 Resetting onboarding state...');
       const newState = await OnboardingService.resetOnboarding(user.id, isPro);
+      console.log('✅ New onboarding state created:', newState);
       
       setState(newState);
       setIsActive(true);
       
-      // Naviguer vers le début
-      await navigateToCurrentStep();
+      // Naviguer vers la première page (account insights)
+      const route = getStepRoute(newState.currentStep);
+      console.log('🗺\ufe0f Navigating to route:', route);
+      
+      if (route) {
+        router.push(route);
+        console.log('⏰ Setting delay for overlay appearance...');
+        // Délai pour laisser la page se charger puis afficher l'overlay
+        setTimeout(() => {
+          console.log('🎯 Showing onboarding overlay now!');
+          setShowWithDelay(true);
+        }, 1200);
+      } else {
+        // Si pas de route, afficher l'overlay immédiatement
+        console.log('⚡ No route, showing overlay immediately');
+        setShowWithDelay(true);
+      }
     } catch (error) {
-      console.error('Error restarting onboarding:', error);
+      console.error('❌ Error restarting onboarding:', error);
     }
-  }, [user?.id, navigateToCurrentStep]);
+  }, [user?.id, router]);
 
   // Mettre à jour le statut Pro (appelé après upgrade)
   const updateProStatus = useCallback(async (isPro: boolean) => {
@@ -175,7 +221,7 @@ export function useOnboarding() {
   return {
     // État
     currentStep: state?.currentStep ?? 0,
-    isActive: isActive && !isLoading,
+    isActive: isActive && !isLoading && showWithDelay,
     isLoading,
     isPro: state?.isPro ?? false,
     hasCompleted: state?.hasCompletedOnboarding ?? false,

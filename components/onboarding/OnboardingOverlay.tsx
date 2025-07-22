@@ -21,11 +21,25 @@ export const OnboardingOverlay: React.FC = () => {
   const { currentStep, isActive, nextStep, quit, goToPro } = useOnboarding();
   const [showVideo, setShowVideo] = useState(false);
 
-  if (!isActive) return null;
+  // Debug logs
+  console.log('📱 OnboardingOverlay render:', {
+    currentStep,
+    isActive,
+    stepInfo: getStepContent(currentStep)?.title,
+  });
+
+  if (!isActive) {
+    console.log('❌ OnboardingOverlay not active');
+    return null;
+  }
 
   const stepInfo = getStepContent(currentStep);
-  if (!stepInfo) return null;
+  if (!stepInfo) {
+    console.log('❌ No step info found for step:', currentStep);
+    return null;
+  }
 
+  console.log('✅ OnboardingOverlay showing step:', stepInfo.title);
   const totalSteps = getTotalSteps();
 
   return (
@@ -34,11 +48,14 @@ export const OnboardingOverlay: React.FC = () => {
       <Modal 
         visible={isActive} 
         transparent 
-        animationType="fade"
+        animationType="slide" // Slide pour montrer que c'est un overlay
         presentationStyle="overFullScreen"
       >
-        {/* Overlay bloquant complet */}
-        <View style={styles.fullBlockingOverlay}>
+        {/* Overlay semi-transparent pour voir la page */}
+        <TouchableOpacity 
+          style={styles.fullBlockingOverlay}
+          activeOpacity={1} // Empêcher les clics sur le background
+        >
           {/* Card principale */}
           <View style={styles.card}>
             {/* Progress indicator */}
@@ -140,7 +157,7 @@ export const OnboardingOverlay: React.FC = () => {
               <Text style={styles.finalCta}>{stepInfo.cta}</Text>
             )}
           </View>
-        </View>
+        </TouchableOpacity>
 
         {/* Modal vidéo pour le futur */}
         {showVideo && stepInfo.videoUrl && (
@@ -181,8 +198,8 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: 'rgba(0, 0, 0, 0.92)', // Très sombre pour bloquer
-    justifyContent: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.75)', // Semi-transparent pour voir derrière
+    justifyContent: 'flex-end', // Card en bas pour voir la page
     alignItems: 'center',
     zIndex: 99999,
     width,
@@ -190,20 +207,23 @@ const styles = StyleSheet.create({
   },
   card: {
     backgroundColor: '#1a1a1a',
-    borderRadius: 24,
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    borderBottomLeftRadius: 0,
+    borderBottomRightRadius: 0,
     padding: 32,
-    width: '92%',
-    maxWidth: 420,
+    width: '100%',
+    maxHeight: '70%', // Limite la hauteur pour voir la page
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
+    borderColor: 'rgba(255, 255, 255, 0.2)',
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
-      height: 8,
+      height: -4, // Ombre vers le haut
     },
-    shadowOpacity: 0.44,
-    shadowRadius: 10.32,
-    elevation: 16,
+    shadowOpacity: 0.6,
+    shadowRadius: 12,
+    elevation: 20,
   },
   progressContainer: {
     flexDirection: 'row',
