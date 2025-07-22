@@ -8,7 +8,7 @@ import {
   Dimensions,
   StatusBar,
 } from 'react-native';
-import { useOnboarding } from '@/app/hooks/useOnboarding';
+import { useOnboardingContext } from '@/contexts/OnboardingContext';
 import { getStepContent, getTotalSteps } from '@/lib/config/onboarding-steps';
 
 const { width, height } = Dimensions.get('window');
@@ -18,20 +18,26 @@ const { width, height } = Dimensions.get('window');
  * Affiche des messages marketing optimisés pour la conversion
  */
 export const OnboardingOverlay: React.FC = () => {
-  const { currentStep, isActive, nextStep, quit, goToPro } = useOnboarding();
+  const hookData = useOnboardingContext();
+  const { currentStep, isActive, nextStep, quit, goToPro } = hookData;
   const [showVideo, setShowVideo] = useState(false);
 
-  // Debug logs
+  // Debug logs détaillés
   console.log('📱 OnboardingOverlay render:', {
     currentStep,
     isActive,
     stepInfo: getStepContent(currentStep)?.title,
   });
+  
+  console.log('📺 OnboardingOverlay FULL HOOK DATA:', hookData);
 
   if (!isActive) {
-    console.log('❌ OnboardingOverlay not active');
+    console.log('❌ OnboardingOverlay not active - isActive:', isActive);
+    console.log('🔍 Full hook data when not active:', hookData);
     return null;
   }
+  
+  console.log('✅ OnboardingOverlay IS ACTIVE - should render modal');
 
   const stepInfo = getStepContent(currentStep);
   if (!stepInfo) {

@@ -1,13 +1,15 @@
-import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import { useOnboarding } from '@/app/hooks/useOnboarding';
+import React, { useEffect } from 'react';
+import { View, Text, TouchableOpacity, StyleSheet, Alert } from 'react-native';
+import { useOnboardingContext } from '@/contexts/OnboardingContext';
 import { OnboardingService } from '@/lib/services/onboardingService';
+import { useUser } from '@clerk/clerk-expo';
 
 /**
  * Panel de debug pour l'onboarding - à utiliser en développement
  * Affiche l'état actuel et permet de forcer certaines actions
  */
 export const OnboardingDebugPanel: React.FC = () => {
+  const { user } = useUser();
   const { 
     currentStep, 
     isActive, 
@@ -17,9 +19,42 @@ export const OnboardingDebugPanel: React.FC = () => {
     quit,
     forceRefresh,
     state 
-  } = useOnboarding();
+  } = useOnboardingContext();
+
+  // Test immédiat au render
+  useEffect(() => {
+    console.log('🎆 OnboardingDebugPanel mounted');
+    console.log('👤 User:', user?.id);
+    console.log('🎯 Hook state:', { currentStep, isActive, isLoading, hasCompleted });
+  }, [user?.id, currentStep, isActive, isLoading, hasCompleted]);
 
   if (!__DEV__) return null;
+  
+  const testDirectOnboarding = async () => {
+    if (!user?.id) {
+      Alert.alert('Erreur', 'Pas d\'utilisateur connecté');
+      return;
+    }
+    
+    console.log('🧪 Test direct onboarding...');
+    try {
+      // Test direct du service
+      const newState = await OnboardingService.resetOnboarding(user.id, false);
+      console.log('🎯 État créé:', newState);
+      
+      // Vérifier que l'app devrait afficher l'onboarding
+      const shouldShow = await OnboardingService.shouldShowOnboarding(user.id);
+      console.log('🎯 Should show result:', shouldShow);
+      
+      Alert.alert('Test Service OK', 
+        `État: step ${newState.currentStep}\nShould show: ${shouldShow}\n\n` +
+        `Maintenant testez le bouton "Hook" pour voir si le hook réagit.`
+      );
+    } catch (error) {
+      console.error('❌ Erreur test:', error);
+      Alert.alert('Erreur', error.message);
+    }
+  };
 
   return (
     <View style={styles.container}>
@@ -39,17 +74,20 @@ export const OnboardingDebugPanel: React.FC = () => {
 
       <View style={styles.buttons}>
         <TouchableOpacity 
-          style={styles.button} 
-          onPress={restart}
+          style={[styles.button, styles.testButton]} 
+          onPress={testDirectOnboarding}
         >
-          <Text style={styles.buttonText}>🔄 Restart</Text>
+          <Text style={styles.buttonText}>🧪 TEST</Text>
         </TouchableOpacity>
 
         <TouchableOpacity 
           style={styles.button} 
-          onPress={quit}
+          onPress={() => {
+            console.log('🔄 Hook restart called');
+            restart();
+          }}
         >
-          <Text style={styles.buttonText}>❌ Quit</Text>
+          <Text style={styles.buttonText}>🔄 Hook</Text>
         </TouchableOpacity>
 
         <TouchableOpacity 
@@ -62,12 +100,14 @@ export const OnboardingDebugPanel: React.FC = () => {
         <TouchableOpacity 
           style={styles.button} 
           onPress={async () => {
-            console.log('🔍 Current onboarding state:', state);
-            const users = await OnboardingService.getAllOnboardingUsers();
-            console.log('👥 All onboarding users:', users);
+            if (user?.id) {
+              const currentState = await OnboardingService.getState(user.id);
+              console.log('🔍 Service state:', currentState);
+              Alert.alert('Service State', JSON.stringify(currentState, null, 2));
+            }
           }}
         >
-          <Text style={styles.buttonText}>🔍 Log</Text>
+          <Text style={styles.buttonText}>🔍 State</Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -106,6 +146,9 @@ const styles = StyleSheet.create({
     padding: 8,
     borderRadius: 4,
     flex: 1,
+  },
+  testButton: {
+    backgroundColor: 'rgba(255, 255, 0, 0.3)',
   },
   buttonText: {
     color: 'white',

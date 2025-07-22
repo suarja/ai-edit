@@ -14,6 +14,7 @@ import { ClerkProvider, ClerkLoaded } from '@clerk/clerk-expo';
 import 'react-native-reanimated';
 import * as SecureStore from 'expo-secure-store';
 import { RevenueCatProvider } from '@/contexts/providers/RevenueCat';
+import { OnboardingProvider } from '@/contexts/OnboardingContext';
 import { OnboardingOverlay } from '@/lib/onboarding';
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
@@ -162,41 +163,43 @@ export default function RootLayout() {
       <ClerkProvider tokenCache={tokenCache} publishableKey={publishableKey}>
         <ClerkLoaded>
           <RevenueCatProvider>
-            <ThemeProvider
-              value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}
-            >
-              <Stack
-                screenOptions={{
-                  animation: 'slide_from_right',
-                  animationDuration: 300,
-                }}
+            <OnboardingProvider>
+              <ThemeProvider
+                value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}
               >
-                <Stack.Screen
-                  name="(drawer)"
-                  options={{ headerShown: false }}
-                />
-                <Stack.Screen name="(auth)" options={{ headerShown: false }} />
-                <Stack.Screen
-                  name="(onboarding)"
-                  options={{ headerShown: false }}
-                />
-                <Stack.Screen
-                  name="(settings)"
-                  options={{ headerShown: false }}
-                />
-                <Stack.Screen
-                  name="video-details/[id]"
-                  options={{ headerShown: false }}
-                />
-                <Stack.Screen name="+not-found" />
-                <Stack.Screen name="index" options={{ headerShown: false }} />
-                <Stack.Screen
-                  name="script-video-settings"
-                  options={{ headerShown: false }}
-                />
-              </Stack>
-              <OnboardingOverlay />
-            </ThemeProvider>
+                <Stack
+                  screenOptions={{
+                    animation: 'slide_from_right',
+                    animationDuration: 300,
+                  }}
+                >
+                  <Stack.Screen
+                    name="(drawer)"
+                    options={{ headerShown: false }}
+                  />
+                  <Stack.Screen name="(auth)" options={{ headerShown: false }} />
+                  <Stack.Screen
+                    name="(onboarding)"
+                    options={{ headerShown: false }}
+                  />
+                  <Stack.Screen
+                    name="(settings)"
+                    options={{ headerShown: false }}
+                  />
+                  <Stack.Screen
+                    name="video-details/[id]"
+                    options={{ headerShown: false }}
+                  />
+                  <Stack.Screen name="+not-found" />
+                  <Stack.Screen name="index" options={{ headerShown: false }} />
+                  <Stack.Screen
+                    name="script-video-settings"
+                    options={{ headerShown: false }}
+                  />
+                </Stack>
+                <OnboardingOverlay />
+              </ThemeProvider>
+            </OnboardingProvider>
           </RevenueCatProvider>
         </ClerkLoaded>
       </ClerkProvider>

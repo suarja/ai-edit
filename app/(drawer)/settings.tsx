@@ -23,8 +23,9 @@ import {
   BookUser,
   HelpCircle,
 } from 'lucide-react-native';
-import { useOnboarding } from '@/app/hooks/useOnboarding';
+import { useOnboardingContext } from '@/contexts/OnboardingContext';
 import { OnboardingDebugPanel } from '@/components/onboarding/OnboardingDebugPanel';
+import { SimpleOnboardingTest } from '@/components/onboarding/SimpleOnboardingTest';
 import AdminUsageControl from '@/components/AdminUsageControl';
 import { SubscriptionManager } from '@/components/SubscriptionManager';
 import { useClerkSupabaseClient } from '@/lib/config/supabase-clerk';
@@ -49,27 +50,19 @@ export default function SettingsScreen() {
   const [searchError, setSearchError] = useState<string | null>(null);
   const { client: supabase } = useClerkSupabaseClient();
   
-  // Hook onboarding
-  const { restart, hasCompleted, isLoading: onboardingLoading } = useOnboarding();
-  const [restartingOnboarding, setRestartingOnboarding] = useState(false);
+  // Hook onboarding depuis le context
+  const { restart, hasCompleted, isLoading: onboardingLoading } = useOnboardingContext();
   
   const handleRestartOnboarding = async () => {
     console.log('🎯 Starting onboarding restart...');
     try {
-      setRestartingOnboarding(true);
       console.log('🎯 Calling restart function...');
       await restart();
       console.log('🎯 Restart completed, overlay should appear');
       
-      // Loading réduit pour feedback plus rapide
-      setTimeout(() => {
-        setRestartingOnboarding(false);
-      }, 1000);
-      
-      // L'overlay s'affichera automatiquement
+      // L'overlay s'affichera automatiquement - pas besoin de state local
     } catch (error) {
       console.error('❌ Error restarting onboarding:', error);
-      setRestartingOnboarding(false);
     }
   };
 
@@ -142,16 +135,16 @@ export default function SettingsScreen() {
           <TouchableOpacity
             style={[
               styles.settingItem,
-              (restartingOnboarding || onboardingLoading) && styles.settingItemDisabled
+              onboardingLoading && styles.settingItemDisabled
             ]}
             onPress={handleRestartOnboarding}
-            disabled={restartingOnboarding || onboardingLoading}
+            disabled={onboardingLoading}
           >
             <View style={styles.settingInfo}>
               <HelpCircle size={24} color="#fff" />
               <Text style={styles.settingText}>Refaire le tour guidé</Text>
             </View>
-            {(restartingOnboarding || onboardingLoading) && (
+            {onboardingLoading && (
               <ActivityIndicator size="small" color="#fff" />
             )}
           </TouchableOpacity>
@@ -236,6 +229,7 @@ export default function SettingsScreen() {
           </View>
         </View>
         {__DEV__ && <DebugPanel />}
+        {__DEV__ && <SimpleOnboardingTest />}
         {__DEV__ && <OnboardingDebugPanel />}
       </ScrollView>
     </SafeAreaView>

@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { useUser } from '@clerk/clerk-expo';
 import { useRouter, useSegments } from 'expo-router';
 import { OnboardingService, OnboardingState } from '@/lib/services/onboardingService';
@@ -13,11 +13,44 @@ export function useOnboarding() {
   const router = useRouter();
   const segments = useSegments();
   
-  // État local
+  // État local avec debug
   const [state, setState] = useState<OnboardingState | null>(null);
   const [isActive, setIsActive] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [showWithDelay, setShowWithDelay] = useState(false);
+  
+  // Debug: wrapper pour setState avec logs
+  const setStateWithLog = useCallback((newState: OnboardingState | null, source: string) => {
+    console.log(`🔴 setState called from: ${source}`, newState);
+    setState(newState);
+  }, []);
+  
+  const setIsActiveWithLog = useCallback((newValue: boolean, source: string) => {
+    console.log(`🟠 setIsActive called from: ${source}`, newValue);
+    setIsActive(newValue);
+  }, []);
+  
+  const setShowWithDelayWithLog = useCallback((newValue: boolean, source: string) => {
+    console.log(`🟡 setShowWithDelay called from: ${source}`, newValue);
+    setShowWithDelay(newValue);
+  }, []);
+  
+  // Utiliser useRef pour éviter les re-renders intempestifs
+  const hasInitialized = useRef(false);
+  const isManualRestart = useRef(false);
+  const restartInProgress = useRef(false);
+  
+  // Log chaque render du hook
+  console.log('🎣 useOnboarding render:', {
+    userId: user?.id?.slice(0, 8),
+    state: state ? `step ${state.currentStep}` : 'null',
+    isActive,
+    isLoading,
+    showWithDelay,
+    hasInitialized: hasInitialized.current,
+    isManualRestart: isManualRestart.current,
+    restartInProgress: restartInProgress.current
+  });
 
   // Initialisation - vérifie si l'onboarding doit être affiché
   useEffect(() => {
@@ -27,9 +60,24 @@ export function useOnboarding() {
         return;
       }
       
+      // Ne pas réinitialiser si déjà fait ou si restart manuel en cours
+      if (hasInitialized.current || restartInProgress.current) {
+        console.log('🚑 Skipping initialization - already done or restart in progress');
+        return;
+      }
+      
+      // NOUVEAU: Ne pas initialiser si l'onboarding est déjà actif (évite les reset)
+      if (isActive && state) {
+        console.log('🚑 Skipping initialization - onboarding already active');
+        return;
+      }
+      
+      console.log('🔄 Initializing onboarding for first time...');
+      
       try {
         // Vérifier si l'onboarding doit être affiché
         const shouldShow = await OnboardingService.shouldShowOnboarding(user.id);
+        console.log('🎯 Should show onboarding:', shouldShow);
         
         if (shouldShow) {
           // Récupérer l'état existant ou créer un nouveau
@@ -41,14 +89,16 @@ export function useOnboarding() {
             currentState = await OnboardingService.initOnboarding(user.id, isPro);
           }
           
-          setState(currentState);
-          setIsActive(true);
+          setStateWithLog(currentState, 'INIT-shouldShow');
+          setIsActiveWithLog(true, 'INIT-shouldShow');
           
           // Délai avant d'afficher l'overlay pour laisser voir la page
           setTimeout(() => {
-            setShowWithDelay(true);
-          }, 1000); // Réduit aussi le délai initial
+            setShowWithDelayWithLog(true, 'INIT-delay');
+          }, 1000);
         }
+        
+        hasInitialized.current = true;
       } catch (error) {
         console.error('Error initializing onboarding:', error);
       } finally {
@@ -57,7 +107,7 @@ export function useOnboarding() {
     };
     
     initializeOnboarding();
-  }, [user?.id]);
+  }, [user?.id]); // Supprimé les dépendances qui causaient les re-renders
 
   // Navigation vers l'étape courante avec délai
   const navigateToCurrentStep = useCallback(async () => {
@@ -84,13 +134,13 @@ export function useOnboarding() {
       if (newState) {
         // Si l'onboarding est terminé, le désactiver
         if (newState.hasCompletedOnboarding) {
-          setIsActive(false);
-          setState(newState);
+          setIsActiveWithLog(false, 'NEXT-completed');
+          setStateWithLog(newState, 'NEXT-completed');
           return;
         }
         
         // Masquer temporairement l'overlay pour la navigation
-        setShowWithDelay(false);
+        setShowWithDelayWithLog(false, 'NEXT-hideForNav');
         
         // Naviguer vers la prochaine page
         const route = getStepRoute(newState.currentStep);
@@ -105,9 +155,9 @@ export function useOnboarding() {
         }
         
         // Mettre à jour l'état et réafficher l'overlay avec délai
-        setState(newState);
+        setStateWithLog(newState, 'NEXT-newStep');
         setTimeout(() => {
-          setShowWithDelay(true);
+          setShowWithDelayWithLog(true, 'NEXT-showAfterNav');
         }, 500);
       }
     } catch (error) {
@@ -121,9 +171,9 @@ export function useOnboarding() {
     
     try {
       await OnboardingService.skipOnboarding(user.id);
-      setShowWithDelay(false);
-      setIsActive(false);
-      setState(null);
+      setShowWithDelayWithLog(false, 'QUIT');
+      setIsActiveWithLog(false, 'QUIT');
+      setStateWithLog(null, 'QUIT');
     } catch (error) {
       console.error('Error quitting onboarding:', error);
     }
@@ -144,53 +194,43 @@ export function useOnboarding() {
     }
   }, [user?.id, router]);
 
-  // Redémarrer l'onboarding (depuis les settings)
+  // Redémarrer l'onboarding (depuis les settings) - Version simplifiée
   const restart = useCallback(async () => {
+    console.log('🚀 RESTART CALLED!');
+    
     if (!user?.id) {
       console.log('❌ No user ID available for onboarding restart');
       return;
     }
     
-    console.log('🚀 Starting onboarding restart for user:', user.id);
-    
     try {
-      // Réinitialiser tous les états
-      setShowWithDelay(false);
-      setIsActive(false);
+      console.log('🔄 Simple restart approach...');
       
-      // TODO: Détecter si l'utilisateur est Pro/Créateur
-      const isPro = false;
-      console.log('🔄 Resetting onboarding state...');
-      const newState = await OnboardingService.resetOnboarding(user.id, isPro);
-      console.log('✅ New onboarding state created:', newState);
+      // Bloquer les useEffect pendant le restart
+      restartInProgress.current = true;
       
-      // Mettre à jour l'état immédiatement
-      setState(newState);
-      setIsActive(true);
+      // 1. Créer un nouvel état dans le service
+      const newState = await OnboardingService.resetOnboarding(user.id, false);
+      console.log('✅ Service state created:', newState);
       
-      // Naviguer vers la première page (account insights)  
-      const route = getStepRoute(newState.currentStep);
-      console.log('🗺\ufe0f Navigating to route:', route);
+      // 2. Forcer tous les états React immédiatement
+      setStateWithLog(newState, 'RESTART');
+      setIsActiveWithLog(true, 'RESTART');
+      setShowWithDelayWithLog(true, 'RESTART');
       
-      if (route) {
-        // Navigation immédiate
-        router.push(route);
-        
-        // Délai réduit pour afficher l'overlay
-        console.log('⏰ Setting short delay for overlay appearance...');
-        setTimeout(() => {
-          console.log('🎯 Showing onboarding overlay now!');
-          setShowWithDelay(true);
-        }, 800); // Réduit de 1200ms à 800ms
-      } else {
-        // Si pas de route, afficher l'overlay immédiatement
-        console.log('⚡ No route, showing overlay immediately');
-        setShowWithDelay(true);
-      }
+      console.log('💪 FORCED all states - overlay MUST show now!');
+      
+      // Débloquer après un délai
+      setTimeout(() => {
+        restartInProgress.current = false;
+        console.log('✅ Restart completed, unlocked useEffect');
+      }, 2000);
+      
     } catch (error) {
-      console.error('❌ Error restarting onboarding:', error);
+      console.error('❌ Restart error:', error);
+      restartInProgress.current = false;
     }
-  }, [user?.id, router]);
+  }, [user?.id]);
 
   // Mettre à jour le statut Pro (appelé après upgrade)
   const updateProStatus = useCallback(async (isPro: boolean) => {
@@ -199,7 +239,7 @@ export function useOnboarding() {
     try {
       const newState = await OnboardingService.updateProStatus(user.id, isPro);
       if (newState) {
-        setState(newState);
+        setStateWithLog(newState, 'UPDATE-PRO');
       }
     } catch (error) {
       console.error('Error updating pro status:', error);
@@ -213,11 +253,16 @@ export function useOnboarding() {
     console.log('🔄 Force refreshing onboarding state...');
     try {
       const currentState = await OnboardingService.getState(user.id);
+      console.log('👀 Force refresh found state:', currentState);
+      
       if (currentState && !currentState.hasCompletedOnboarding) {
-        setState(currentState);
-        setIsActive(true);
-        setShowWithDelay(true);
-        console.log('✅ Force refresh completed');
+        console.log('🔥 FORCE setting all states...');
+        setStateWithLog(currentState, 'FORCE-REFRESH');
+        setIsActiveWithLog(true, 'FORCE-REFRESH');
+        setShowWithDelayWithLog(true, 'FORCE-REFRESH');
+        console.log('✅ Force refresh completed - overlay should appear!');
+      } else {
+        console.log('❌ No valid state found or already completed');
       }
     } catch (error) {
       console.error('Error force refreshing:', error);
@@ -243,10 +288,20 @@ export function useOnboarding() {
     percentage: Math.round(((state.currentStep + 1) / getTotalSteps()) * 100)
   } : null;
 
+  // Debug: Log les valeurs individuelles qui composent isActive
+  const finalIsActive = isActive && !isLoading && showWithDelay;
+  console.log('🔍 useOnboarding return values:', {
+    isActive,
+    isLoading,
+    showWithDelay,
+    finalIsActive,
+    computation: `${isActive} && !${isLoading} && ${showWithDelay} = ${finalIsActive}`
+  });
+
   return {
     // État
     currentStep: state?.currentStep ?? 0,
-    isActive: isActive && !isLoading && showWithDelay,
+    isActive: finalIsActive,
     isLoading,
     isPro: state?.isPro ?? false,
     hasCompleted: state?.hasCompletedOnboarding ?? false,
