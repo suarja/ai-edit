@@ -13,17 +13,13 @@ import VideoUploader from '@/components/VideoUploader';
 import VideoMetadataEditor from '@/components/VideoMetadataEditor';
 import ErrorDisplay from '@/components/ErrorDisplay';
 import VideoList from '@/components/VideoList';
-
+import { sourceVideoStyle as sourceVideoStyles } from '@/lib/utils/styles/sourceVideoStyles';
 import { useSourceVideos } from '@/components/hooks/useSourceVideos';
 import { useRevenueCat } from '@/contexts/providers/RevenueCat';
 import { useGetUser } from '@/components/hooks/useGetUser';
-import { sourceVideoStyless } from '@/lib/utils/styles/sourceVideoStyless-v2';
 
 export default function SourceVideosScreen() {
-  const {
-    data,
-    actions
-  } = useSourceVideos();
+  const { data, actions } = useSourceVideos();
 
   // Use the same pattern as settings.tsx and videos.tsx
   const { clerkLoaded, isSignedIn } = useGetUser();
@@ -141,7 +137,12 @@ export default function SourceVideosScreen() {
           animationType="slide"
           transparent={true}
           onRequestClose={() => {
-            actions.setEditingVideo({ id: null, title: '', description: '', tags: '' });
+            actions.setEditingVideo({
+              id: null,
+              title: '',
+              description: '',
+              tags: '',
+            });
             actions.setEditingVideoId(null);
             actions.setCurrentVideoId(null);
             actions.clearError();
@@ -168,8 +169,10 @@ export default function SourceVideosScreen() {
                 analysisData={
                   data.hasAnalysisData &&
                   typeof data.editingVideoId === 'string' &&
-                  data.videos.find((v) => v.id === data.editingVideoId)?.analysis_data
-                    ? data.videos.find((v) => v.id === data.editingVideoId)?.analysis_data
+                  data.videos.find((v) => v.id === data.editingVideoId)
+                    ?.analysis_data
+                    ? data.videos.find((v) => v.id === data.editingVideoId)
+                        ?.analysis_data
                     : undefined
                 }
                 onSave={async (metadata) => {
