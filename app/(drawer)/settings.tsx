@@ -61,10 +61,10 @@ export default function SettingsScreen() {
       await restart();
       console.log('🎯 Restart completed, overlay should appear');
       
-      // Garder le loading un peu plus longtemps pour le feedback visuel
+      // Loading réduit pour feedback plus rapide
       setTimeout(() => {
         setRestartingOnboarding(false);
-      }, 2000);
+      }, 1000);
       
       // L'overlay s'affichera automatiquement
     } catch (error) {

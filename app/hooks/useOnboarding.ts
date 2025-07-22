@@ -47,7 +47,7 @@ export function useOnboarding() {
           // Délai avant d'afficher l'overlay pour laisser voir la page
           setTimeout(() => {
             setShowWithDelay(true);
-          }, 1200);
+          }, 1000); // Réduit aussi le délai initial
         }
       } catch (error) {
         console.error('Error initializing onboarding:', error);
@@ -154,27 +154,34 @@ export function useOnboarding() {
     console.log('🚀 Starting onboarding restart for user:', user.id);
     
     try {
+      // Réinitialiser tous les états
+      setShowWithDelay(false);
+      setIsActive(false);
+      
       // TODO: Détecter si l'utilisateur est Pro/Créateur
       const isPro = false;
       console.log('🔄 Resetting onboarding state...');
       const newState = await OnboardingService.resetOnboarding(user.id, isPro);
       console.log('✅ New onboarding state created:', newState);
       
+      // Mettre à jour l'état immédiatement
       setState(newState);
       setIsActive(true);
       
-      // Naviguer vers la première page (account insights)
+      // Naviguer vers la première page (account insights)  
       const route = getStepRoute(newState.currentStep);
       console.log('🗺\ufe0f Navigating to route:', route);
       
       if (route) {
+        // Navigation immédiate
         router.push(route);
-        console.log('⏰ Setting delay for overlay appearance...');
-        // Délai pour laisser la page se charger puis afficher l'overlay
+        
+        // Délai réduit pour afficher l'overlay
+        console.log('⏰ Setting short delay for overlay appearance...');
         setTimeout(() => {
           console.log('🎯 Showing onboarding overlay now!');
           setShowWithDelay(true);
-        }, 1200);
+        }, 800); // Réduit de 1200ms à 800ms
       } else {
         // Si pas de route, afficher l'overlay immédiatement
         console.log('⚡ No route, showing overlay immediately');
@@ -196,6 +203,24 @@ export function useOnboarding() {
       }
     } catch (error) {
       console.error('Error updating pro status:', error);
+    }
+  }, [user?.id]);
+  
+  // Force refresh de l'onboarding (pour debug)
+  const forceRefresh = useCallback(async () => {
+    if (!user?.id) return;
+    
+    console.log('🔄 Force refreshing onboarding state...');
+    try {
+      const currentState = await OnboardingService.getState(user.id);
+      if (currentState && !currentState.hasCompletedOnboarding) {
+        setState(currentState);
+        setIsActive(true);
+        setShowWithDelay(true);
+        console.log('✅ Force refresh completed');
+      }
+    } catch (error) {
+      console.error('Error force refreshing:', error);
     }
   }, [user?.id]);
 
@@ -234,6 +259,7 @@ export function useOnboarding() {
     restart,
     updateProStatus,
     getAnalytics,
+    forceRefresh, // Pour debug
     
     // Utilitaires
     state, // État complet pour debug

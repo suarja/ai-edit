@@ -15,6 +15,7 @@ export const OnboardingDebugPanel: React.FC = () => {
     hasCompleted, 
     restart, 
     quit,
+    forceRefresh,
     state 
   } = useOnboarding();
 
@@ -53,13 +54,20 @@ export const OnboardingDebugPanel: React.FC = () => {
 
         <TouchableOpacity 
           style={styles.button} 
+          onPress={forceRefresh}
+        >
+          <Text style={styles.buttonText}>🔄 Force</Text>
+        </TouchableOpacity>
+        
+        <TouchableOpacity 
+          style={styles.button} 
           onPress={async () => {
             console.log('🔍 Current onboarding state:', state);
             const users = await OnboardingService.getAllOnboardingUsers();
             console.log('👥 All onboarding users:', users);
           }}
         >
-          <Text style={styles.buttonText}>🔍 Log State</Text>
+          <Text style={styles.buttonText}>🔍 Log</Text>
         </TouchableOpacity>
       </View>
     </View>

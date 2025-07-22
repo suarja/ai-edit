@@ -80,7 +80,6 @@ interface ComprehensiveContext {
 
 export default function AccountInsightsScreen() {
   const router = useRouter();
-  const { currentPlan, presentPaywall } = useRevenueCat();
   const { getToken } = useAuth();
   const {
     analysis,
@@ -208,8 +207,6 @@ export default function AccountInsightsScreen() {
   }
 
   const { account, stats, aggregates, insights } = context;
-  console.log('account', account);
-  console.log('best_posting_time', aggregates.best_posting_time);
 
   return (
     <SafeAreaView style={accountInsightsStyles.container} edges={['top']}>
@@ -255,7 +252,7 @@ export default function AccountInsightsScreen() {
             <StatCard
               icon={<Eye size={24} color="#10b981" />}
               value={
-                aggregates.avg_views?.toLocaleString(undefined, {
+                aggregates?.avg_views?.toLocaleString(undefined, {
                   maximumFractionDigits: 0,
                 }) || 'N/A'
               }
@@ -263,15 +260,15 @@ export default function AccountInsightsScreen() {
             />
             <StatCard
               icon={<Heart size={24} color="#ef4444" />}
-              value={`${(aggregates.avg_views && aggregates.avg_likes
-                ? (aggregates.avg_likes / aggregates.avg_views) * 100
+              value={`${(aggregates?.avg_views && aggregates?.avg_likes
+                ? (aggregates?.avg_likes / aggregates?.avg_views) * 100
                 : 0
               ).toFixed(1)}%`}
               label="Taux de Likes"
             />
             <StatCard
               icon={<Video size={24} color="#f59e0b" />}
-              value={stats.videos_count?.toLocaleString() || 'N/A'}
+              value={stats?.videos_count?.toLocaleString() || 'N/A'}
               label="Vidéos"
             />
           </View>
@@ -338,7 +335,7 @@ export default function AccountInsightsScreen() {
               icon={<Clock size={20} color="#fff" />}
               label="Meilleur moment de publication"
               value={
-                parseToLocaleTime(aggregates.best_posting_time || '') || 'N/A'
+                parseToLocaleTime(aggregates?.best_posting_time || '') || 'N/A'
               }
               description="Horaire optimal pour l'engagement"
             />
@@ -346,7 +343,7 @@ export default function AccountInsightsScreen() {
               icon={<Music size={20} color="#fff" />}
               label="Musique Originale"
               value={`${(
-                (aggregates.music_usage_stats?.original_music_ratio || 0) * 100
+                (aggregates?.music_usage_stats?.original_music_ratio || 0) * 100
               ).toFixed(0)}%`}
               description="Ratio de sons originaux utilisés"
             />
@@ -354,13 +351,13 @@ export default function AccountInsightsScreen() {
         </View>
 
         {/* Hashtag Analysis */}
-        {aggregates.top_hashtags && aggregates.top_hashtags.length > 0 && (
+        {aggregates?.top_hashtags && aggregates?.top_hashtags.length > 0 && (
           <View style={accountInsightsStyles.analysisContainer}>
             <Text style={accountInsightsStyles.sectionTitle}>
               Analyse des Hashtags
             </Text>
             <View style={accountInsightsStyles.hashtagsContainer}>
-              {aggregates.top_hashtags.map((hashtag, index) => (
+              {aggregates?.top_hashtags.map((hashtag, index) => (
                 <View key={index} style={accountInsightsStyles.hashtagPill}>
                   <Hash size={16} color="#007AFF" />
                   <Text style={accountInsightsStyles.hashtagText}>
