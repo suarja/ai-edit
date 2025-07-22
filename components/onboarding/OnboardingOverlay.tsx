@@ -9,6 +9,7 @@ import {
   StatusBar,
 } from 'react-native';
 import { useOnboardingContext } from '@/contexts/OnboardingContext';
+import { useRevenueCat } from '@/contexts/providers/RevenueCat';
 import { getStepContent, getTotalSteps } from '@/lib/config/onboarding-steps';
 
 const { width, height } = Dimensions.get('window');
@@ -19,34 +20,25 @@ const { width, height } = Dimensions.get('window');
  */
 export const OnboardingOverlay: React.FC = () => {
   const hookData = useOnboardingContext();
-  const { currentStep, isActive, nextStep, quit, goToPro } = hookData;
+  const { currentStep, isActive, nextStep, quit } = hookData;
+  const { presentPaywall, showPaywall } = useRevenueCat();
   const [showVideo, setShowVideo] = useState(false);
 
-  // Debug logs détaillés
-  console.log('📱 OnboardingOverlay render:', {
-    currentStep,
-    isActive,
-    stepInfo: getStepContent(currentStep)?.title,
-  });
-  
-  console.log('📺 OnboardingOverlay FULL HOOK DATA:', hookData);
-
-  if (!isActive) {
-    console.log('❌ OnboardingOverlay not active - isActive:', isActive);
-    console.log('🔍 Full hook data when not active:', hookData);
+  // Masquer l'onboarding si le paywall est ouvert
+  if (!isActive || showPaywall) {
     return null;
   }
-  
-  console.log('✅ OnboardingOverlay IS ACTIVE - should render modal');
 
   const stepInfo = getStepContent(currentStep);
   if (!stepInfo) {
-    console.log('❌ No step info found for step:', currentStep);
     return null;
   }
 
-  console.log('✅ OnboardingOverlay showing step:', stepInfo.title);
   const totalSteps = getTotalSteps();
+  
+  const handleGoToPro = async () => {
+    await presentPaywall();
+  };
 
   return (
     <>
@@ -138,7 +130,7 @@ export const OnboardingOverlay: React.FC = () => {
               {/* Bouton Pro - contextuel */}
               {stepInfo.showProButton && (
                 <TouchableOpacity
-                  onPress={goToPro}
+                  onPress={handleGoToPro}
                   style={styles.proButton}
                   activeOpacity={0.8}
                 >
@@ -207,7 +199,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0, 0, 0, 0.4)', // Opacité réduite pour mieux voir
     justifyContent: 'flex-end', // Card en bas pour voir la page
     alignItems: 'center',
-    zIndex: 99999,
+    zIndex: 1000, // Plus bas que le paywall
     width,
     height,
   },
@@ -338,8 +330,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginTop: 8,
-    gap: 12,
+    marginTop: 16,
+    gap: 8,
+    flexWrap: 'wrap',
   },
   quitButton: {
     paddingVertical: 14,
@@ -353,11 +346,13 @@ const styles = StyleSheet.create({
   },
   proButton: {
     backgroundColor: '#FFD700',
-    paddingVertical: 16,
-    paddingHorizontal: 24,
+    paddingVertical: 18,
+    paddingHorizontal: 28,
     borderRadius: 16,
     flex: 1,
-    marginHorizontal: 4,
+    minHeight: 56,
+    justifyContent: 'center',
+    alignItems: 'center',
     shadowColor: '#FFD700',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
@@ -368,14 +363,17 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
     textAlign: 'center',
+    lineHeight: 20,
   },
   nextButton: {
     backgroundColor: '#FF0050',
-    paddingVertical: 16,
-    paddingHorizontal: 24,
+    paddingVertical: 18,
+    paddingHorizontal: 28,
     borderRadius: 16,
     flex: 1,
-    marginHorizontal: 4,
+    minHeight: 56,
+    justifyContent: 'center',
+    alignItems: 'center',
     shadowColor: '#FF0050',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.4,
@@ -386,6 +384,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
     textAlign: 'center',
+    lineHeight: 20,
   },
   finalCta: {
     fontSize: 14,

@@ -24,14 +24,11 @@ import {
   HelpCircle,
 } from 'lucide-react-native';
 import { useOnboardingContext } from '@/contexts/OnboardingContext';
-import { OnboardingDebugPanel } from '@/components/onboarding/OnboardingDebugPanel';
-import { SimpleOnboardingTest } from '@/components/onboarding/SimpleOnboardingTest';
 import AdminUsageControl from '@/components/AdminUsageControl';
 import { SubscriptionManager } from '@/components/SubscriptionManager';
 import { useClerkSupabaseClient } from '@/lib/config/supabase-clerk';
 import UserProfileManager from '@/components/UserProfileManager';
 import SupportPanel from '@/components/SupportPanel';
-import { DebugPanel } from '@/components/DebugPanel';
 import { sharedStyles } from '@/lib/constants/sharedStyles';
 
 export default function SettingsScreen() {
@@ -54,15 +51,10 @@ export default function SettingsScreen() {
   const { restart, hasCompleted, isLoading: onboardingLoading } = useOnboardingContext();
   
   const handleRestartOnboarding = async () => {
-    console.log('🎯 Starting onboarding restart...');
     try {
-      console.log('🎯 Calling restart function...');
       await restart();
-      console.log('🎯 Restart completed, overlay should appear');
-      
-      // L'overlay s'affichera automatiquement - pas besoin de state local
     } catch (error) {
-      console.error('❌ Error restarting onboarding:', error);
+      console.error('Error restarting onboarding:', error);
     }
   };
 
@@ -228,9 +220,6 @@ export default function SettingsScreen() {
               )}
           </View>
         </View>
-        {__DEV__ && <DebugPanel />}
-        {__DEV__ && <SimpleOnboardingTest />}
-        {__DEV__ && <OnboardingDebugPanel />}
       </ScrollView>
     </SafeAreaView>
   );
