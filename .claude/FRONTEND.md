@@ -1,13 +1,21 @@
-# Frontend Guidelines - EditIA Mobile
+# 🎨 Editia Mobile - Guide Frontend
 
-This file provides context for all frontend/UI development in the EditIA mobile app.
+L'application mobile Editia utilise React Native avec Expo et TypeScript. Le design system est inspiré de la **magnifique palette de couleurs de l'onboarding** pour créer une expérience visuelle cohérente et alignée avec l'identité de marque.
 
-## Quick Reference
+## 🎨 Design System v2.0 (Nouveau!)
 
-- **Design System**: `.claude/design-system.json` - Complete design tokens and patterns
-- **UI Guidelines**: `../editia-core/docs/ui-ux-guidelines-jason-suarez.md` - Comprehensive UI/UX philosophy
-- **Theme**: Dark-first design with conversational interfaces
-- **Target**: React Native (Expo) with eventual Tailwind migration
+### Palette Editia - Inspirée de l'Onboarding
+- **Rouge Editia**: `#FF0050` - Notre couleur signature
+- **Or Premium**: `#FFD700` - Fonctionnalités Pro et célébrations  
+- **Vert Succès**: `#00FF88` - États de réussite
+- **Bleu Accent**: `#007AFF` - Actions secondaires
+- **Orange Célébration**: `#FF6B35` - Confettis et animations
+
+### Références Design System
+- **Design System v2**: `.claude/design-system-v2.json` - Tokens avec palette Editia
+- **Couleurs Centralisées**: `lib/constants/colors.ts` - Système de couleurs unifié
+- **Hook de Thème**: `lib/hooks/useTheme.ts` - Accès centralisé aux styles
+- **Guide Migration**: `.claude/STYLE-MIGRATION-GUIDE.md` - Plan de migration détaillé
 
 ## Current Architecture
 

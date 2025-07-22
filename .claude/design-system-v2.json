@@ -1,0 +1,397 @@
+{
+  "metadata": {
+    "version": "2.0.0",
+    "name": "Editia Mobile Design System",
+    "description": "Enhanced design system inspired by the onboarding color palette",
+    "author": "Jason Suarez",
+    "theme": "dark-first",
+    "lastUpdated": "2025-01-22",
+    "changelog": "Added Editia brand palette from onboarding components"
+  },
+  "brandColors": {
+    "editia": {
+      "red": "#FF0050",
+      "redLight": "rgba(255, 0, 80, 0.6)",
+      "redOverlay": "rgba(255, 0, 80, 0.12)",
+      "redBorder": "rgba(255, 0, 80, 0.3)",
+      "usage": "Primary brand color - buttons, accents, progress indicators"
+    },
+    "gold": {
+      "primary": "#FFD700",
+      "overlay": "rgba(255, 215, 0, 0.2)",
+      "usage": "Premium features, Pro upgrades, celebrations"
+    },
+    "success": {
+      "green": "#00FF88",
+      "usage": "Success states, completion, positive feedback"
+    },
+    "accent": {
+      "blue": "#007AFF",
+      "usage": "Secondary actions, links, informational states"
+    },
+    "celebration": {
+      "orange": "#FF6B35",
+      "usage": "Celebration animations, confetti colors"
+    }
+  },
+  "colors": {
+    "background": {
+      "primary": "#000000",
+      "secondary": "#1a1a1a",
+      "tertiary": "#2a2a2a",
+      "overlay": "rgba(0, 0, 0, 0.4)",
+      "overlayStrong": "rgba(0, 0, 0, 0.8)",
+      "overlayLight": "rgba(0, 0, 0, 0.95)",
+      "usage": "primary: app backgrounds, secondary: cards/modals, tertiary: elevated surfaces"
+    },
+    "text": {
+      "primary": "#FFFFFF",
+      "secondary": "#E0E0E0",
+      "tertiary": "#B0B0B0",
+      "quaternary": "#909090",
+      "disabled": "#808080",
+      "muted": "#666666",
+      "usage": "Hierarchical text colors for optimal readability"
+    },
+    "interactive": {
+      "primary": "#FF0050",
+      "primaryHover": "rgba(255, 0, 80, 0.8)",
+      "primaryBackground": "rgba(255, 0, 80, 0.12)",
+      "primaryBorder": "rgba(255, 0, 80, 0.3)",
+      "secondary": "#007AFF",
+      "secondaryHover": "rgba(0, 122, 255, 0.8)",
+      "secondaryBackground": "rgba(0, 122, 255, 0.1)",
+      "premium": "#FFD700",
+      "premiumHover": "rgba(255, 215, 0, 0.8)",
+      "success": "#00FF88",
+      "warning": "#FF9500",
+      "error": "#FF3B30",
+      "usage": "Editia red as primary, system blue as secondary, gold for premium features"
+    },
+    "surface": {
+      "elevated": "#1a1a1a",
+      "border": "rgba(255, 255, 255, 0.2)",
+      "borderActive": "#FF0050",
+      "borderSecondary": "rgba(255, 255, 255, 0.1)",
+      "borderMuted": "rgba(255, 255, 255, 0.05)",
+      "divider": "#333333",
+      "usage": "Surface colors for cards, borders, and separators"
+    },
+    "status": {
+      "progress": "#FF0050",
+      "progressBackground": "rgba(255, 255, 255, 0.2)",
+      "progressCompleted": "rgba(255, 0, 80, 0.6)",
+      "success": "#00FF88",
+      "warning": "#FFD700",
+      "error": "#FF3B30",
+      "usage": "Status indicators using brand-consistent colors"
+    }
+  },
+  "gradients": {
+    "primary": {
+      "colors": ["#FF0050", "#FF6B35"],
+      "direction": "135deg",
+      "usage": "Primary brand gradient for headers, premium features"
+    },
+    "premium": {
+      "colors": ["#FFD700", "#FF6B35"],
+      "direction": "135deg", 
+      "usage": "Premium upgrade prompts, celebration elements"
+    },
+    "success": {
+      "colors": ["#00FF88", "#007AFF"],
+      "direction": "135deg",
+      "usage": "Success celebrations, completion states"
+    }
+  },
+  "shadows": {
+    "brand": {
+      "color": "#FF0050",
+      "offset": { "width": 0, "height": 4 },
+      "opacity": 0.3,
+      "radius": 8,
+      "usage": "Brand-colored shadows for primary elements"
+    },
+    "premium": {
+      "color": "#FFD700", 
+      "offset": { "width": 0, "height": 4 },
+      "opacity": 0.3,
+      "radius": 8,
+      "usage": "Gold shadows for premium elements"
+    },
+    "elevated": {
+      "color": "#000000",
+      "offset": { "width": 0, "height": -4 },
+      "opacity": 0.6,
+      "radius": 12,
+      "usage": "Standard elevation shadows"
+    },
+    "celebration": {
+      "color": "#FF0050",
+      "offset": { "width": 0, "height": 10 },
+      "opacity": 0.3,
+      "radius": 20,
+      "usage": "Celebration and success state shadows"
+    }
+  },
+  "typography": {
+    "fontFamily": "system",
+    "scales": {
+      "hero": {
+        "fontSize": 60,
+        "fontWeight": "bold",
+        "lineHeight": 68,
+        "usage": "Celebration messages, major announcements"
+      },
+      "display": {
+        "fontSize": 28,
+        "fontWeight": "bold", 
+        "lineHeight": 34,
+        "usage": "Onboarding titles, modal headers"
+      },
+      "title": {
+        "fontSize": 24,
+        "fontWeight": "700",
+        "lineHeight": 32,
+        "usage": "Screen titles, card headers"
+      },
+      "headline": {
+        "fontSize": 18,
+        "fontWeight": "600",
+        "lineHeight": 26,
+        "usage": "Section headers, important messages"
+      },
+      "body": {
+        "fontSize": 16,
+        "fontWeight": "400",
+        "lineHeight": 24,
+        "usage": "Main content, descriptions"
+      },
+      "callout": {
+        "fontSize": 14,
+        "fontWeight": "600",
+        "lineHeight": 20,
+        "usage": "Button text, active labels"
+      },
+      "caption": {
+        "fontSize": 13,
+        "fontWeight": "500",
+        "lineHeight": 18,
+        "usage": "Secondary info, metadata"
+      },
+      "micro": {
+        "fontSize": 12,
+        "fontWeight": "400",
+        "lineHeight": 16,
+        "usage": "Fine print, small labels"
+      }
+    }
+  },
+  "spacing": {
+    "scale": {
+      "xs": 4,
+      "sm": 8,
+      "md": 12,
+      "lg": 16,
+      "xl": 20,
+      "2xl": 24,
+      "3xl": 32,
+      "4xl": 40,
+      "5xl": 48
+    },
+    "semantic": {
+      "screenPadding": 20,
+      "cardPadding": 32,
+      "buttonPadding": 16,
+      "sectionGap": 24,
+      "componentGap": 16,
+      "elementGap": 12,
+      "usage": "Enhanced spacing for better visual hierarchy"
+    }
+  },
+  "borderRadius": {
+    "sm": 8,
+    "md": 12,
+    "lg": 16,
+    "xl": 24,
+    "full": 999,
+    "usage": "Larger radius for modern, friendly appearance"
+  },
+  "animations": {
+    "fast": "200ms",
+    "normal": "300ms",
+    "slow": "500ms",
+    "onboarding": "350ms",
+    "celebration": "3000ms",
+    "easing": "ease-out",
+    "usage": "Optimized timing for onboarding flow"
+  },
+  "components": {
+    "buttons": {
+      "primary": {
+        "backgroundColor": "#FF0050",
+        "textColor": "#FFFFFF",
+        "borderRadius": 16,
+        "paddingVertical": 18,
+        "paddingHorizontal": 28,
+        "minHeight": 56,
+        "fontSize": 16,
+        "fontWeight": "bold",
+        "shadowColor": "#FF0050",
+        "shadowOpacity": 0.4,
+        "shadowRadius": 8,
+        "usage": "Main action buttons using Editia red"
+      },
+      "premium": {
+        "backgroundColor": "#FFD700",
+        "textColor": "#000000",
+        "borderRadius": 16,
+        "paddingVertical": 18,
+        "paddingHorizontal": 28,
+        "minHeight": 56,
+        "fontSize": 16,
+        "fontWeight": "bold",
+        "shadowColor": "#FFD700",
+        "shadowOpacity": 0.3,
+        "shadowRadius": 8,
+        "usage": "Premium upgrade buttons"
+      },
+      "secondary": {
+        "backgroundColor": "transparent",
+        "textColor": "#808080",
+        "borderRadius": 12,
+        "paddingVertical": 14,
+        "paddingHorizontal": 20,
+        "fontSize": 15,
+        "fontWeight": "500",
+        "usage": "Secondary actions like 'Skip' or 'Later'"
+      }
+    },
+    "cards": {
+      "onboarding": {
+        "backgroundColor": "#1a1a1a",
+        "borderRadius": 24,
+        "padding": 32,
+        "borderWidth": 1,
+        "borderColor": "rgba(255, 255, 255, 0.2)",
+        "shadowColor": "#000000",
+        "shadowOffset": { "width": 0, "height": -4 },
+        "shadowOpacity": 0.6,
+        "shadowRadius": 12,
+        "usage": "Onboarding overlay cards"
+      },
+      "celebration": {
+        "backgroundColor": "#1a1a1a",
+        "borderRadius": 24,
+        "padding": 40,
+        "borderWidth": 1,
+        "borderColor": "rgba(255, 0, 80, 0.3)",
+        "shadowColor": "#FF0050",
+        "shadowOpacity": 0.3,
+        "shadowRadius": 20,
+        "usage": "Celebration and success cards"
+      },
+      "standard": {
+        "backgroundColor": "#1a1a1a",
+        "borderRadius": 16,
+        "padding": 20,
+        "borderWidth": 1,
+        "borderColor": "rgba(255, 255, 255, 0.2)",
+        "usage": "Standard app cards"
+      }
+    },
+    "overlays": {
+      "onboarding": {
+        "backgroundColor": "rgba(0, 0, 0, 0.4)",
+        "zIndex": 1000,
+        "usage": "Onboarding step overlays"
+      },
+      "celebration": {
+        "backgroundColor": "rgba(0, 0, 0, 0.8)",
+        "zIndex": 10000,
+        "usage": "Celebration and success overlays"
+      },
+      "modal": {
+        "backgroundColor": "rgba(0, 0, 0, 0.5)",
+        "zIndex": 999,
+        "usage": "Standard modal overlays"
+      }
+    },
+    "progress": {
+      "dot": {
+        "width": 8,
+        "height": 8,
+        "borderRadius": 4,
+        "backgroundColor": "rgba(255, 255, 255, 0.2)",
+        "usage": "Progress indicator dots"
+      },
+      "dotActive": {
+        "backgroundColor": "#FF0050",
+        "width": 24,
+        "shadowColor": "#FF0050",
+        "shadowOpacity": 0.6,
+        "shadowRadius": 6,
+        "usage": "Active progress dot"
+      },
+      "dotCompleted": {
+        "backgroundColor": "rgba(255, 0, 80, 0.6)",
+        "usage": "Completed progress dots"
+      }
+    },
+    "highlights": {
+      "primary": {
+        "backgroundColor": "rgba(255, 0, 80, 0.12)",
+        "borderColor": "rgba(255, 0, 80, 0.3)",
+        "textColor": "#FF0050",
+        "borderRadius": 16,
+        "padding": 20,
+        "usage": "Important highlights and callouts"
+      },
+      "tip": {
+        "backgroundColor": "rgba(255, 255, 255, 0.05)",
+        "borderColor": "rgba(255, 215, 0, 0.2)",
+        "textColor": "#FFD700",
+        "borderRadius": 12,
+        "padding": 16,
+        "usage": "Tips and helpful information"
+      }
+    }
+  },
+  "confetti": {
+    "colors": ["#FF0050", "#FFD700", "#00FF88", "#007AFF", "#FF6B35"],
+    "count": 200,
+    "explosionSpeed": 350,
+    "fallSpeed": 3000,
+    "usage": "Celebration confetti using brand colors"
+  },
+  "migration": {
+    "priority": "high",
+    "strategy": "Replace existing colors with brand-consistent palette",
+    "phases": {
+      "phase1": {
+        "description": "Update core interactive colors",
+        "files": ["sharedStyles.ts", "buttons", "primary actions"],
+        "changes": {
+          "#007AFF": "#FF0050",
+          "#10b981": "#00FF88",
+          "#f59e0b": "#FFD700"
+        }
+      },
+      "phase2": {
+        "description": "Update background and surface colors", 
+        "files": ["cards", "modals", "containers"],
+        "changes": {
+          "backgrounds": "Use new background.* tokens",
+          "borders": "Use surface.border* tokens"
+        }
+      },
+      "phase3": {
+        "description": "Update text colors for consistency",
+        "files": ["all text elements"],
+        "changes": {
+          "textColors": "Use new text.* hierarchy"
+        }
+      }
+    }
+  }
+}
