@@ -315,23 +315,23 @@ export default function useVideoRequest() {
         throw new Error('No authentication token available');
       }
 
-      // const response = await fetch(
-      //   API_ENDPOINTS.SCRIPT_GENERATE_VIDEO(scriptId!),
-      //   {
-      //     method: 'POST',
-      //     headers: {
-      //       'Content-Type': 'application/json',
-      //       Authorization: `Bearer ${clerkToken}`,
-      //     },
-      //     body: JSON.stringify(requestPayload),
-      //   }
-      // );
+      const response = await fetch(
+        API_ENDPOINTS.SCRIPT_GENERATE_VIDEO(scriptId!),
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${clerkToken}`,
+          },
+          body: JSON.stringify(requestPayload),
+        }
+      );
 
-      // const result = await response.json();
-
-      // if (!response.ok) {
-      //   throw new Error('Erreur lors de la génération de la vidéo.');
-      // }
+      const result = await response.json();
+      console.log('result', result);
+      if (!response.ok) {
+        throw new Error('Erreur lors de la génération de la vidéo.');
+      }
 
       // // Reset form after successful submission
       // handleReset();
