@@ -62,10 +62,10 @@ export function useOnboarding() {
           setState(currentState);
           setIsActive(true);
           
-          // Délai avant d'afficher l'overlay pour laisser voir la page
+          // Délai réduit pour un affichage plus rapide
           setTimeout(() => {
             setShowWithDelay(true);
-          }, 1000);
+          }, 500);
         }
         
         hasInitialized.current = true;
@@ -79,7 +79,7 @@ export function useOnboarding() {
     initializeOnboarding();
   }, [user?.id]); // Supprimé les dépendances qui causaient les re-renders
 
-  // Navigation vers l'étape courante avec délai
+  // Navigation vers l'étape courante avec délai optimisé
   const navigateToCurrentStep = useCallback(async () => {
     if (!state) return;
     
@@ -87,8 +87,8 @@ export function useOnboarding() {
     if (route) {
       try {
         router.push(route);
-        // Délai pour laisser la page se charger avant d'afficher l'overlay
-        await new Promise(resolve => setTimeout(resolve, 800));
+        // Délai réduit pour une navigation plus fluide
+        await new Promise(resolve => setTimeout(resolve, 400));
       } catch (error) {
         console.error('Navigation error:', error);
       }
@@ -118,18 +118,18 @@ export function useOnboarding() {
         if (route) {
           try {
             router.push(route);
-            // Délai pour laisser la page se charger
-            await new Promise(resolve => setTimeout(resolve, 1000));
+            // Délai optimisé pour la navigation
+            await new Promise(resolve => setTimeout(resolve, 600));
           } catch (error) {
             console.error('Navigation error:', error);
           }
         }
         
-        // Mettre à jour l'état et réafficher l'overlay avec délai
+        // Mettre à jour l'état et réafficher l'overlay plus rapidement
         setState(newState);
         setTimeout(() => {
           setShowWithDelay(true);
-        }, 500);
+        }, 350);
       }
     } catch (error) {
       console.error('Error advancing to next step:', error);
@@ -183,10 +183,10 @@ export function useOnboarding() {
       setIsActive(true);
       setShowWithDelay(true);
       
-      // Débloquer après un délai
+      // Débloquer plus rapidement
       setTimeout(() => {
         restartInProgress.current = false;
-      }, 2000);
+      }, 1000);
       
     } catch (error) {
       console.error('Error restarting onboarding:', error);

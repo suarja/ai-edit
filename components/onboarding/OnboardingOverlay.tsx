@@ -55,7 +55,7 @@ export const OnboardingOverlay: React.FC = () => {
       <Modal 
         visible={isActive} 
         transparent 
-        animationType="slide" // Slide pour montrer que c'est un overlay
+        animationType="slide" // Slide pour un comportement natif
         presentationStyle="overFullScreen"
       >
         {/* Overlay semi-transparent pour voir la page */}
@@ -237,6 +237,8 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.6,
     shadowRadius: 12,
     elevation: 20,
+    // Transition fluide pour les changements de contenu
+    transform: [{ translateY: 0 }],
   },
   progressContainer: {
     flexDirection: 'row',
