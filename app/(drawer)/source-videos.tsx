@@ -17,7 +17,7 @@ import VideoList from '@/components/VideoList';
 import { useSourceVideos } from '@/components/hooks/useSourceVideos';
 import { useRevenueCat } from '@/contexts/providers/RevenueCat';
 import { useGetUser } from '@/components/hooks/useGetUser';
-import { sourceVideoStyle } from '@/lib/utils/styles/sourceVideoStyles';
+import { sourceVideoStyless } from '@/lib/utils/styles/sourceVideoStyless-v2';
 
 export default function SourceVideosScreen() {
   const {
@@ -45,8 +45,8 @@ export default function SourceVideosScreen() {
 
   if (data.loading) {
     return (
-      <SafeAreaView style={sourceVideoStyle.container} edges={[]}>
-        <View style={sourceVideoStyle.loadingContainer}>
+      <SafeAreaView style={sourceVideoStyles.container} edges={[]}>
+        <View style={sourceVideoStyles.loadingContainer}>
           <ActivityIndicator size="large" color="#007AFF" />
         </View>
       </SafeAreaView>
@@ -54,11 +54,11 @@ export default function SourceVideosScreen() {
   }
 
   return (
-    <SafeAreaView style={sourceVideoStyle.container} edges={[]}>
-      <View style={sourceVideoStyle.content}>
+    <SafeAreaView style={sourceVideoStyles.container} edges={[]}>
+      <View style={sourceVideoStyles.content}>
         {revenueCatReady && userUsage && currentPlan === 'free' && (
-          <View style={sourceVideoStyle.planInfoContainer}>
-            <Text style={sourceVideoStyle.planInfoText}>
+          <View style={sourceVideoStyles.planInfoContainer}>
+            <Text style={sourceVideoStyles.planInfoText}>
               {userUsage.source_videos_used}/{userUsage.source_videos_limit}{' '}
               vidéos sources (Plan Gratuit)
             </Text>
@@ -84,13 +84,13 @@ export default function SourceVideosScreen() {
 
         {/* Free tier limit warning */}
         {revenueCatReady && !data.canUploadMore && (
-          <View style={sourceVideoStyle.limitContainer}>
+          <View style={sourceVideoStyles.limitContainer}>
             <Crown size={20} color="#FFD700" />
-            <View style={sourceVideoStyle.limitTextContainer}>
-              <Text style={sourceVideoStyle.limitTitle}>
+            <View style={sourceVideoStyles.limitTextContainer}>
+              <Text style={sourceVideoStyles.limitTitle}>
                 Limite de vidéos sources atteinte
               </Text>
-              <Text style={sourceVideoStyle.limitDescription}>
+              <Text style={sourceVideoStyles.limitDescription}>
                 Vous avez atteint la limite de{' '}
                 {userUsage?.source_videos_limit || 0} vidéos sources du plan
                 gratuit. Passez Pro pour uploader plus de vidéos.
@@ -99,7 +99,7 @@ export default function SourceVideosScreen() {
           </View>
         )}
 
-        <View style={sourceVideoStyle.uploadSection}>
+        <View style={sourceVideoStyles.uploadSection}>
           {/*
             Nouveau flow :
             - L'utilisateur clique sur "Uploader une vidéo" (VideoUploader)
@@ -157,7 +157,7 @@ export default function SourceVideosScreen() {
           >
             <SafeAreaView
               style={[
-                sourceVideoStyle.metadataEditorContainer,
+                sourceVideoStyles.metadataEditorContainer,
                 { width: '90%', height: '70%' },
               ]}
               edges={['top', 'bottom']}
@@ -195,16 +195,16 @@ export default function SourceVideosScreen() {
                 isSaving={data.savingMetadata}
               />
               {data.hasAnalysisData && (
-                <View style={sourceVideoStyle.analysisActions}>
+                <View style={sourceVideoStyles.analysisActions}>
                   <TouchableOpacity
-                    style={sourceVideoStyle.rejectButton}
+                    style={sourceVideoStyles.rejectButton}
                     onPress={actions.rejectAnalysis}
                   >
-                    <Text style={sourceVideoStyle.rejectButtonText}>
+                    <Text style={sourceVideoStyles.rejectButtonText}>
                       Rejeter l&apos;analyse
                     </Text>
                   </TouchableOpacity>
-                  <Text style={sourceVideoStyle.analysisHelperText}>
+                  <Text style={sourceVideoStyles.analysisHelperText}>
                     Rejeter l&apos;analyse supprimera les suggestions
                     automatiques
                   </Text>
@@ -214,8 +214,8 @@ export default function SourceVideosScreen() {
           </View>
         </Modal>
 
-        <View style={sourceVideoStyle.videosList}>
-          <Text style={sourceVideoStyle.sectionTitle}>Vos Vidéos</Text>
+        <View style={sourceVideoStyles.videosList}>
+          <Text style={sourceVideoStyles.sectionTitle}>Vos Vidéos</Text>
           <VideoList
             videos={data.videos}
             playingVideoId={data.playingVideoId}
