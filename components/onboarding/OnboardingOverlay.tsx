@@ -11,6 +11,7 @@ import {
 import { useOnboardingContext } from '@/contexts/OnboardingContext';
 import { useRevenueCat } from '@/contexts/providers/RevenueCat';
 import { getStepContent, getTotalSteps } from '@/lib/config/onboarding-steps';
+import { OnboardingCelebration } from './OnboardingCelebration';
 
 const { width, height } = Dimensions.get('window');
 
@@ -20,13 +21,21 @@ const { width, height } = Dimensions.get('window');
  */
 export const OnboardingOverlay: React.FC = () => {
   const hookData = useOnboardingContext();
-  const { currentStep, isActive, nextStep, quit } = hookData;
+  const { currentStep, isActive, nextStep, quit, showCelebration, closeCelebration } = hookData;
   const { presentPaywall, showPaywall } = useRevenueCat();
   const [showVideo, setShowVideo] = useState(false);
 
   // Masquer l'onboarding si le paywall est ouvert
   if (!isActive || showPaywall) {
-    return null;
+    return (
+      <>
+        {/* Garder la célébration même si l'onboarding est masqué */}
+        <OnboardingCelebration 
+          visible={showCelebration} 
+          onComplete={closeCelebration}
+        />
+      </>
+    );
   }
 
   const stepInfo = getStepContent(currentStep);
@@ -165,6 +174,12 @@ export const OnboardingOverlay: React.FC = () => {
           />
         )}
       </Modal>
+      
+      {/* Célébration de fin d'onboarding */}
+      <OnboardingCelebration 
+        visible={showCelebration} 
+        onComplete={closeCelebration}
+      />
     </>
   );
 };

@@ -13,11 +13,12 @@ export function useOnboarding() {
   const router = useRouter();
   const segments = useSegments();
   
-  // État local avec debug
+  // État local
   const [state, setState] = useState<OnboardingState | null>(null);
   const [isActive, setIsActive] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [showWithDelay, setShowWithDelay] = useState(false);
+  const [showCelebration, setShowCelebration] = useState(false);
   
   
   // Utiliser useRef pour éviter les re-renders intempestifs
@@ -101,8 +102,9 @@ export function useOnboarding() {
     try {
       const newState = await OnboardingService.nextStep(user.id);
       if (newState) {
-        // Si l'onboarding est terminé, le désactiver
+        // Si l'onboarding est terminé, déclencher la célébration
         if (newState.hasCompletedOnboarding) {
+          setShowCelebration(true);
           setIsActive(false);
           setState(newState);
           return;
@@ -205,6 +207,11 @@ export function useOnboarding() {
       console.error('Error updating pro status:', error);
     }
   }, [user?.id]);
+
+  // Fermer la célébration
+  const closeCelebration = useCallback(() => {
+    setShowCelebration(false);
+  }, []);
   
   // Force refresh de l'onboarding (pour debug)
   const forceRefresh = useCallback(async () => {
@@ -256,11 +263,14 @@ export function useOnboarding() {
     // Actions
     nextStep,
     quit,
-    goToPro,
     restart,
     updateProStatus,
     getAnalytics,
     forceRefresh, // Pour debug
+    closeCelebration,
+    
+    // Célébration
+    showCelebration,
     
     // Utilitaires
     state, // État complet pour debug
