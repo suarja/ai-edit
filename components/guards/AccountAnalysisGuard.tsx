@@ -16,7 +16,8 @@ import { useFeatureAccess } from '@/components/hooks/useFeatureAccess';
 import { FeatureLock } from './FeatureLock';
 import { useRevenueCat } from '@/contexts/providers/RevenueCat';
 import { Lock, BarChart3, TrendingUp, Users } from 'lucide-react-native';
-
+import { usePathname } from 'expo-router';
+import { FeatureId } from 'editia-core';
 interface AccountAnalysisGuardProps {
   children: React.ReactNode;
 }
@@ -24,8 +25,15 @@ interface AccountAnalysisGuardProps {
 const AccountAnalysisGuard: React.FC<AccountAnalysisGuardProps> = ({
   children,
 }) => {
-  const { hasAccess, isLoading: isAccessLoading } =
-    useFeatureAccess('account_analysis');
+  const pathname = usePathname();
+  let featureId: FeatureId = 'account_insights';
+  if (pathname === '/account-insights') {
+    featureId = 'account_insights';
+  } else if (pathname === '/account-conversations') {
+    featureId = 'account_chat';
+  }
+  const { hasAccess, isLoading: isAccessLoading } = useFeatureAccess(featureId);
+  console.log('account_chat', hasAccess);
   const {
     analysis,
     activeJob,
@@ -34,7 +42,7 @@ const AccountAnalysisGuard: React.FC<AccountAnalysisGuardProps> = ({
     refreshAnalysis,
   } = useAccountAnalysis();
   const { presentPaywall } = useRevenueCat();
-
+  console.log('pathname', pathname);
   const handleAnalysisStart = (job: JobType) => {
     refreshAnalysis(job);
   };

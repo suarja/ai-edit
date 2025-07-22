@@ -33,7 +33,7 @@ export default function TikTokAnalysisScreen() {
   const router = useRouter();
   const [handle, setHandle] = useState('');
   const { hasAccess, isLoading: isAccessLoading } =
-    useFeatureAccess('account_analysis');
+    useFeatureAccess('account_insights');
   const { startAnalysis, isLoading: isApiLoading } = useAccountAnalysisApi();
   const { analysis: existingAnalysis, isLoading: isAnalysisLoading } =
     useAccountAnalysis();

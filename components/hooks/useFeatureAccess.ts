@@ -1,13 +1,14 @@
 import { useState, useEffect } from 'react';
 import { useRevenueCat } from '@/contexts/providers/RevenueCat';
 import { useClerkSupabaseClient } from '@/lib/config/supabase-clerk';
+import { FeatureId } from 'editia-core';
 
 /**
  * Hook pour vérifier l'accès à une fonctionnalité spécifique
  * @param featureId Identifiant de la fonctionnalité à vérifier
  * @returns Informations sur l'accès à la fonctionnalité
  */
-export function useFeatureAccess(featureId: string): {
+export function useFeatureAccess(featureId: FeatureId): {
   hasAccess: boolean;
   isLoading: boolean;
   remainingUsage: number;
@@ -22,6 +23,7 @@ export function useFeatureAccess(featureId: string): {
   const { client: supabase } = useClerkSupabaseClient();
 
   useEffect(() => {
+    console.log("useFeatureAccess", featureId);
     const checkAccess = async () => {
       if (!isReady) return;
 
@@ -45,12 +47,13 @@ export function useFeatureAccess(featureId: string): {
         }
 
         // Accès basé sur le plan requis
+        const isFree = currentPlan === 'free';
         const requiresPro = featureData?.required_plan === 'pro';
         const requiresCreator = featureData?.required_plan === 'creator';
         const noPlanRequired = featureData?.required_plan === null;
         
         // Si aucun plan n'est requis, l'accès est automatiquement accordé
-        if (noPlanRequired) {
+        if (noPlanRequired || isFree) {
           setHasAccess(true);
           setRemainingUsage(999);
           setTotalLimit(999);
@@ -107,8 +110,8 @@ export function useFeatureAccess(featureId: string): {
               break;
             default:
               // Pour les fonctionnalités sans limite spécifique
-              remaining = currentPlan !== 'free' ? 999 : 0;
-              limit = currentPlan !== 'free' ? 999 : 0;
+              remaining = isFree ? 999 : 0;
+              limit = isFree ? 999 : 0;
           }
         }
 
@@ -116,7 +119,7 @@ export function useFeatureAccess(featureId: string): {
         // 1. La fonctionnalité est disponible pour son plan ET
         // 2. Soit il est Pro (donc pas de limite), soit il a encore des utilisations disponibles
         // Si aucun plan n'est requis, l'accès est automatiquement accordé
-        const finalAccess = noPlanRequired ? true : (hasFeatureAccess && (currentPlan !== 'free' || remaining > 0));
+        const finalAccess = noPlanRequired ? true : (hasFeatureAccess && (isFree || remaining > 0));
         setHasAccess(finalAccess);
         setRemainingUsage(remaining);
         setTotalLimit(limit);
@@ -140,7 +143,7 @@ export function useFeatureAccess(featureId: string): {
  * @param featureIds Liste des identifiants de fonctionnalités à vérifier
  * @returns Mapping des accès par fonctionnalité
  */
-export function useMultipleFeatureAccess(featureIds: string[]): {
+export function useMultipleFeatureAccess(featureIds: FeatureId[]): {
   accessMap: Record<
     string,
     { hasAccess: boolean; remainingUsage: number; totalLimit: number }

@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, TouchableOpacity, StyleSheet, Text } from 'react-native';
+import { View, TouchableOpacity, StyleSheet } from 'react-native';
 import { useRevenueCat } from '@/contexts/providers/RevenueCat';
 import { X } from 'lucide-react-native';
 import { router } from 'expo-router';

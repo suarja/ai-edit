@@ -119,7 +119,7 @@ export default function AccountInsightsScreen() {
       );
 
       const data = await response.json();
-      console.log('🔄 data:', JSON.stringify(data, null, 2));
+      // console.log('🔄 data:', JSON.stringify(data, null, 2));
 
       if (!response.ok) {
         throw new Error(data.error || 'Failed to fetch account context');
@@ -149,6 +149,20 @@ export default function AccountInsightsScreen() {
   const navigateToAccountChat = () => {
     // Navigate to the list of conversations
     router.push('/(drawer)/(analysis)/account-conversations');
+  };
+
+  const parseToLocaleTime = (timeString: string) => {
+    const timeMatch = timeString.match(/(\d{2}):(\d{2})/);
+    if (timeMatch) {
+      const [hours, minutes] = timeMatch.slice(1).map(Number);
+      const date = new Date();
+      date.setUTCHours(hours, minutes, 0, 0);
+      return date.toLocaleTimeString('fr-FR', {
+        hour: '2-digit',
+        minute: '2-digit',
+      });
+    }
+    return 'Invalid time format';
   };
 
   // Account Insights should be accessible to all users
@@ -194,6 +208,8 @@ export default function AccountInsightsScreen() {
   }
 
   const { account, stats, aggregates, insights } = context;
+  console.log('account', account);
+  console.log('best_posting_time', aggregates.best_posting_time);
 
   return (
     <SafeAreaView style={accountInsightsStyles.container} edges={['top']}>
@@ -321,7 +337,9 @@ export default function AccountInsightsScreen() {
             <MetricCard
               icon={<Clock size={20} color="#fff" />}
               label="Meilleur moment de publication"
-              value={aggregates.best_posting_time || 'N/A'}
+              value={
+                parseToLocaleTime(aggregates.best_posting_time || '') || 'N/A'
+              }
               description="Horaire optimal pour l'engagement"
             />
             <MetricCard

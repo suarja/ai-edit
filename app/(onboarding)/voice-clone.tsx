@@ -11,7 +11,6 @@ import {
   Mic,
   ChevronLeft,
   CheckCircle,
-  Lock,
   Sparkles,
   Zap,
   Users,
@@ -24,23 +23,14 @@ import { useRevenueCat } from '@/contexts/providers/RevenueCat';
 
 export default function VoiceCloneOnboardingScreen() {
   const router = useRouter();
-  const {
-    hasAccess,
-    isLoading: isAccessLoading,
-    isPro,
-    remainingUsage,
-  } = useFeatureAccess('voice_clone');
+  const { hasAccess, isLoading: isAccessLoading } =
+    useFeatureAccess('voice_clone');
   const { fetchUser } = useGetUser();
   const { presentPaywall } = useRevenueCat();
 
   const [isLoading, setIsLoading] = useState(true);
   const [existingClone, setExistingClone] = useState<any | null>(null);
   const [showLockScreen, setShowLockScreen] = useState(true);
-  const [isRecording, setIsRecording] = useState(false);
-  const [recordingTime, setRecordingTime] = useState(0);
-  const [audioUri, setAudioUri] = useState<string | null>(null);
-  const [isProcessing, setIsProcessing] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const checkExistingClone = async () => {
@@ -90,9 +80,6 @@ export default function VoiceCloneOnboardingScreen() {
           requiredPlan="creator"
           showAsDisabled={false}
           onLockPress={presentPaywall}
-          onSkip={() => setShowLockScreen(false)}
-          showSkipButton={true}
-          skipButtonText="Continuer sans voix clonée"
         >
           <View style={styles.lockContainer}>
             <Mic size={48} color="#007AFF" />
@@ -162,7 +149,7 @@ export default function VoiceCloneOnboardingScreen() {
 
           <TouchableOpacity
             style={styles.continueButton}
-            onPress={() => router.push('/(onboarding)/completion')}
+            // onPress={() => router.pus<h('/(onboarding)/completion')}
           >
             <Text style={styles.continueButtonText}>Continuer</Text>
           </TouchableOpacity>
@@ -214,7 +201,7 @@ export default function VoiceCloneOnboardingScreen() {
           onPress={handleContinueToRecording}
         >
           <Text style={styles.continueButtonText}>
-            Commencer l'enregistrement
+            Commencer l&apos;enregistrement
           </Text>
         </TouchableOpacity>
       </View>
@@ -341,5 +328,4 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     lineHeight: 22,
   },
-
 });
