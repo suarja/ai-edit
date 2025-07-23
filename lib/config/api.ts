@@ -225,7 +225,7 @@ export const API_ENDPOINTS = {
   //* Generate video from script
   SCRIPT_GENERATE_VIDEO: (scriptId: string) => {
     const config = getCurrentConfig();
-    return `${config.baseUrl}${config.scripts}/${scriptId}/generate-video`;
+    return `${config.baseUrl}${config.scripts}/generate-video/${scriptId}`;
   },
 
   //* Modify current script

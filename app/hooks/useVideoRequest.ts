@@ -74,7 +74,7 @@ export default function useVideoRequest() {
   );
   // Language state with typed Language from editia-core
   const [outputLanguage, setOutputLanguage] = useState<Language>(DEFAULT_LANGUAGE);
-
+  console.log( ' ✅ hook useVideoRequest');
   useEffect(() => {
     if (clerkLoaded) {
       if (!isSignedIn) {
@@ -168,6 +168,7 @@ export default function useVideoRequest() {
   };
 
   const validateRequest = () => {
+    console.log('validateRequest');
     // Legacy checks first
     if (!scriptId) {
       throw new Error(
@@ -182,7 +183,7 @@ export default function useVideoRequest() {
     if (!userUsage) {
       throw new Error('Utilisateur manquant : veuillez sélectionner un utilisateur pour générer une vidéo.');
     }
-
+    
     // Script validation using existing ScriptService
     const { isValid, warnings } = ScriptService.validateScript({
       script: prompt, 
@@ -190,6 +191,8 @@ export default function useVideoRequest() {
       userUsage, 
       videos: selectedVideos
     });
+    console.log('isValid', isValid);
+    console.log('warnings', warnings);
     if (!isValid) {
       throw new Error(warnings.join('\n'));
     }
@@ -209,21 +212,24 @@ export default function useVideoRequest() {
       captionConfig,
       outputLanguage,
     };
-
     const validationResult = VideoValidationService.validateRequest(validationPayload);
     if (!validationResult.success) {
+      console.log('validationResult', validationResult);
       throw new Error(validationResult.details.message);
     }
 
     // Additional template validation using VideoTemplateService
     if (prompt && selectedVideos.length > 0) {
+      console.log('validateTemplate');
       const templateValidation = VideoTemplateService.validateTemplate(
         prompt,
         selectedVideos,
         captionConfig
       );
-      
+              console.log('templateValidation', templateValidation);
+
       if (!templateValidation.isValid) {
+        console.log('templateValidation', templateValidation);
         throw new Error(templateValidation.errors.join('\n'));
       }
       
@@ -263,6 +269,7 @@ export default function useVideoRequest() {
   };
 
   const handleSubmit = async () => {
+    console.log('handleSubmit');
     try {
       validateRequest();
     } catch (validationError) {
@@ -314,7 +321,7 @@ export default function useVideoRequest() {
       if (!clerkToken) {
         throw new Error('No authentication token available');
       }
-
+      console.log('about to send request');
       const response = await fetch(
         API_ENDPOINTS.SCRIPT_GENERATE_VIDEO(scriptId!),
         {

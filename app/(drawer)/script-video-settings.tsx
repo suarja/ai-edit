@@ -23,7 +23,6 @@ import { ChevronDown, ChevronUp } from 'lucide-react-native';
 import useVideoRequest from '@/app/hooks/useVideoRequest';
 import useConfigurationStatus from '@/app/hooks/useConfigurationStatus';
 import { useRevenueCat } from '@/contexts/providers/RevenueCat';
-import { SupportService } from '@/lib/services/support/supportService';
 
 // Components
 import VideoTagFilterSystem from '@/components/VideoTagFilterSystem';
@@ -33,7 +32,6 @@ import ErrorDisplay from '@/app/components/ErrorDisplay';
 import AdvancedToggle from '@/app/components/AdvancedToggle';
 import LanguageSelector from '@/app/components/LanguageSelector';
 import { DiscreteUsageDisplay } from '@/components/DiscreteUsageDisplay';
-import { useAuth } from '@clerk/clerk-expo';
 import AnalysisHeader from '@/components/analysis/AnalysisHeader';
 import { ScriptService } from '@/lib/services/scriptService';
 

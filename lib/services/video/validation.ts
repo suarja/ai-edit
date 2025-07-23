@@ -6,11 +6,11 @@
 import {
   VideoType,
   CaptionConfiguration,
-  VideoEditorialProfile,
+  EditorialProfile,
   Language,
   LANGUAGES,
-  validateCaptionConfig,
-  validateVideoEditorialProfile,
+  isValidCaptionConfig,
+  isValidEditorialProfile,
   isValidVideo,
 } from '@/lib/types/video.types';
 
@@ -41,7 +41,7 @@ export interface VideoGenerationPayload {
   prompt: string;
   systemPrompt?: string;
   selectedVideos: VideoType[];
-  editorialProfile?: VideoEditorialProfile;
+  editorialProfile?: EditorialProfile;
   voiceId?: string;
   captionConfig?: CaptionConfiguration;
   outputLanguage: Language;
@@ -228,7 +228,7 @@ export class VideoValidationService {
 
       // Validate editorial profile if provided
       if (payload.editorialProfile) {
-        if (!validateVideoEditorialProfile(payload.editorialProfile)) {
+        if (!isValidEditorialProfile(payload.editorialProfile)) {
           return this.createValidationFailure(
             'INVALID_EDITORIAL_PROFILE',
             'editorialProfile',
@@ -239,7 +239,7 @@ export class VideoValidationService {
 
       // Validate caption config if provided
       if (payload.captionConfig) {
-        if (!validateCaptionConfig(payload.captionConfig)) {
+        if (!isValidCaptionConfig(payload.captionConfig)) {
           return this.createValidationFailure(
             'INVALID_CAPTION_CONFIG',
             'captionConfig',
