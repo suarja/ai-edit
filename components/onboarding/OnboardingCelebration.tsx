@@ -1,6 +1,5 @@
 import React, { useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, Animated } from 'react-native';
-import ConfettiCannon from 'react-native-confetti-cannon';
 
 interface OnboardingCelebrationProps {
   visible: boolean;
@@ -58,7 +57,7 @@ export const OnboardingCelebration: React.FC<OnboardingCelebrationProps> = ({
   return (
     <View style={styles.container}>
       {/* Confettis */}
-      <ConfettiCannon
+      {/* <ConfettiCannon
         count={200}
         origin={{ x: -10, y: 0 }}
         autoStart={true}
@@ -66,8 +65,8 @@ export const OnboardingCelebration: React.FC<OnboardingCelebrationProps> = ({
         explosionSpeed={350}
         fallSpeed={3000}
         colors={['#FF0050', '#FFD700', '#00FF88', '#007AFF', '#FF6B35']}
-      />
-      
+      /> */}
+
       {/* Message de célébration */}
       <Animated.View
         style={[
@@ -84,7 +83,7 @@ export const OnboardingCelebration: React.FC<OnboardingCelebrationProps> = ({
           Vous êtes maintenant prêt à créer des vidéos incroyables avec Editia !
         </Text>
         <Text style={styles.subMessage}>
-          L'aventure commence maintenant... 🚀
+          L&apos;aventure commence maintenant... 🚀
         </Text>
       </Animated.View>
     </View>
