@@ -16,6 +16,7 @@ import { EnhancedGeneratedVideoType } from '@/lib/types/video.types';
 import { useGetUser } from '@/components/hooks/useGetUser';
 import { useClerkSupabaseClient } from '@/lib/config/supabase-clerk';
 import { useAuth } from '@clerk/clerk-expo';
+import { VideoRequestStatus } from 'editia-core';
 
 // Script type for proper TypeScript support
 type ScriptData = {
@@ -164,6 +165,7 @@ export default function GeneratedVideoDetailScreen() {
         output_language: script?.output_language,
       };
 
+      console.log('formattedVideo', formattedVideo);
       // Set the video details
       setVideo(formattedVideo);
 
@@ -250,7 +252,7 @@ export default function GeneratedVideoDetailScreen() {
   const renderThumbnail = () => {
     if (!video) return null;
 
-    if (video.status === 'processing') {
+    if (video.status === 'rendering') {
       return (
         <View style={styles.thumbnailContainer}>
           <View style={styles.thumbnailOverlay}>
@@ -294,7 +296,7 @@ export default function GeneratedVideoDetailScreen() {
         showsVerticalScrollIndicator={false}
       >
         <View style={styles.content}>
-          {video && video.status === 'completed' ? (
+          {video && video.status === 'done' ? (
             <VideoPlayer video={video} />
           ) : (
             renderThumbnail()

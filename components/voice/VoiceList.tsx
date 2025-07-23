@@ -37,6 +37,8 @@ const VoiceList: React.FC<VoiceListProps> = ({
     return <View />;
   }
 
+  console.log('voices', voices);
+
   return (
     <View>
       {voices.map((voice) => (
