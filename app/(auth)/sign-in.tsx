@@ -15,6 +15,7 @@ import { useSignIn } from '@clerk/clerk-expo';
 import { Mail, Lock, ArrowRight } from 'lucide-react-native';
 import { withErrorBoundary } from '@/components/ErrorBoundary';
 import { IMAGES } from '@/lib/constants/images';
+import { SHARED_STYLE_COLORS } from '@/lib/constants/sharedStyles';
 
 function SignIn() {
   const { signIn, setActive, isLoaded } = useSignIn();
@@ -119,11 +120,11 @@ function SignIn() {
             {error && <Text style={styles.error}>{error}</Text>}
 
             <View style={styles.inputContainer}>
-              <Mail size={20} color="#888" />
+              <Mail size={20} color={SHARED_STYLE_COLORS.textTertiary} />
               <TextInput
                 style={styles.input}
                 placeholder="Email"
-                placeholderTextColor="#888"
+                placeholderTextColor={SHARED_STYLE_COLORS.textTertiary}
                 value={email}
                 onChangeText={setEmail}
                 autoCapitalize="none"
@@ -133,11 +134,11 @@ function SignIn() {
             </View>
 
             <View style={styles.inputContainer}>
-              <Lock size={20} color="#888" />
+              <Lock size={20} color={SHARED_STYLE_COLORS.textTertiary} />
               <TextInput
                 style={styles.input}
                 placeholder="Mot de passe"
-                placeholderTextColor="#888"
+                placeholderTextColor={SHARED_STYLE_COLORS.textTertiary}
                 value={password}
                 onChangeText={setPassword}
                 secureTextEntry
@@ -153,13 +154,13 @@ function SignIn() {
               disabled={loading || !isLoaded}
             >
               {loading ? (
-                <ActivityIndicator color="#fff" />
+                <ActivityIndicator color={SHARED_STYLE_COLORS.text} />
               ) : (
                 <>
                   <Text style={styles.buttonText}>
                     Connexion {!isLoaded ? '(Loading...)' : ''}
                   </Text>
-                  <ArrowRight size={20} color="#fff" />
+                  <ArrowRight size={20} color={SHARED_STYLE_COLORS.text} />
                 </>
               )}
             </TouchableOpacity>
@@ -204,7 +205,7 @@ function SignIn() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#000',
+    backgroundColor: SHARED_STYLE_COLORS.background,
   },
   scrollContainer: {
     flexGrow: 1,
@@ -227,20 +228,20 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 32,
     fontWeight: 'bold',
-    color: '#fff',
+    color: SHARED_STYLE_COLORS.text,
     textAlign: 'center',
     marginBottom: 8,
   },
   subtitle: {
     fontSize: 16,
-    color: '#fff',
+    color: SHARED_STYLE_COLORS.text,
     textAlign: 'center',
     opacity: 0.9,
     paddingHorizontal: 20,
   },
   contentContainer: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: SHARED_STYLE_COLORS.background,
     borderTopLeftRadius: 30,
     borderTopRightRadius: 30,
     marginTop: -30,
@@ -253,26 +254,26 @@ const styles = StyleSheet.create({
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#f5f5f5',
+    backgroundColor: SHARED_STYLE_COLORS.backgroundSecondary,
     borderRadius: 12,
     paddingHorizontal: 16,
     paddingVertical: 4,
     marginBottom: 16,
     borderWidth: 1,
-    borderColor: '#e0e0e0',
+    borderColor: SHARED_STYLE_COLORS.border,
   },
   input: {
     flex: 1,
     fontSize: 16,
     paddingVertical: 12,
     paddingLeft: 12,
-    color: '#333',
+    color: SHARED_STYLE_COLORS.text,
   },
   buttonContainer: {
     marginBottom: 30,
   },
   button: {
-    backgroundColor: '#007AFF',
+    backgroundColor: SHARED_STYLE_COLORS.primary,
     borderRadius: 12,
     paddingVertical: 16,
     flexDirection: 'row',
@@ -281,10 +282,10 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   buttonDisabled: {
-    backgroundColor: '#ccc',
+    backgroundColor: SHARED_STYLE_COLORS.backgroundSecondary,
   },
   buttonText: {
-    color: '#fff',
+    color: SHARED_STYLE_COLORS.text,
     fontSize: 16,
     fontWeight: '600',
     marginRight: 8,
@@ -293,7 +294,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   forgotPasswordText: {
-    color: '#007AFF',
+    color: SHARED_STYLE_COLORS.primary,
     fontSize: 14,
   },
   footer: {
@@ -303,11 +304,11 @@ const styles = StyleSheet.create({
     paddingBottom: 30,
   },
   footerText: {
-    color: '#666',
+    color: SHARED_STYLE_COLORS.textSecondary,
     fontSize: 14,
   },
   footerLink: {
-    color: '#007AFF',
+        color: SHARED_STYLE_COLORS.primary,
     fontSize: 14,
     fontWeight: '600',
     marginLeft: 4,
@@ -316,16 +317,16 @@ const styles = StyleSheet.create({
     opacity: 0.5,
   },
   error: {
-    color: '#ff4444',
+    color: SHARED_STYLE_COLORS.warning,
     fontSize: 14,
     marginBottom: 16,
     paddingHorizontal: 4,
     textAlign: 'center',
-    backgroundColor: '#fff5f5',
+    backgroundColor: SHARED_STYLE_COLORS.backgroundSecondary,
     paddingVertical: 8,
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: '#ffdddd',
+    borderColor: SHARED_STYLE_COLORS.border,
   },
 });
 

@@ -18,6 +18,7 @@ import { router } from 'expo-router';
 import { z } from 'zod';
 import { JobType } from '@/components/hooks/useAccountAnalysis';
 import AnalysisHeader from './AnalysisHeader';
+import { SHARED_STYLE_COLORS } from '@/lib/constants/sharedStyles';
 
 // Local interface for clarity, though it's simpler now
 export interface HandleValidationResult {
@@ -156,7 +157,7 @@ const StartAnalysisScreen: React.FC<StartAnalysisScreenProps> = ({
         />
         <View style={styles.content}>
           <View style={styles.header}>
-            <Icon name="logo-tiktok" size={32} color="#fff" />
+            <Icon name="logo-tiktok" size={32} color={SHARED_STYLE_COLORS.text} />
           </View>
           <Text style={styles.subtitle}>
             Lancez une analyse IA de n&apos;importe quel compte TikTok pour
@@ -175,7 +176,7 @@ const StartAnalysisScreen: React.FC<StartAnalysisScreenProps> = ({
               }
               autoCapitalize="none"
               autoCorrect={false}
-              selectionColor="#007AFF"
+              selectionColor={SHARED_STYLE_COLORS.text}
               onSubmitEditing={handleStartAnalysis}
               returnKeyType="go"
             />
@@ -204,7 +205,7 @@ const StartAnalysisScreen: React.FC<StartAnalysisScreenProps> = ({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#000',
+    backgroundColor: SHARED_STYLE_COLORS.background,
   },
   content: {
     flex: 1,
@@ -222,30 +223,30 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: 'bold',
     marginLeft: 12,
-    color: '#fff',
+    color: SHARED_STYLE_COLORS.text,
   },
   subtitle: {
     fontSize: 16,
     textAlign: 'center',
-    color: '#A0A0A0',
+    color: SHARED_STYLE_COLORS.textSecondary,
     marginBottom: 32,
     lineHeight: 22,
   },
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#1a1a1a',
+    backgroundColor: SHARED_STYLE_COLORS.backgroundSecondary,
     borderRadius: 12,
     paddingHorizontal: 16,
     marginBottom: 24,
     borderWidth: 1,
-    borderColor: '#333',
+    borderColor: SHARED_STYLE_COLORS.border,
   },
   atSymbol: {
     fontSize: 18,
     fontWeight: '600',
     marginRight: 4,
-    color: '#888',
+    color: SHARED_STYLE_COLORS.textSecondary,
   },
   input: {
     flex: 1,
@@ -255,22 +256,22 @@ const styles = StyleSheet.create({
     height: 56,
     fontSize: 18,
     fontWeight: '500',
-    color: '#fff',
+    color: SHARED_STYLE_COLORS.text,
   },
   button: {
     height: 56,
     borderRadius: 12,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#007AFF',
+    backgroundColor: SHARED_STYLE_COLORS.accent,
   },
   buttonText: {
-    color: '#fff',
+    color: SHARED_STYLE_COLORS.text,
     fontSize: 18,
     fontWeight: 'bold',
   },
   errorText: {
-    color: '#FF453A',
+    color: SHARED_STYLE_COLORS.warning,
     textAlign: 'center',
     marginTop: 16,
   },

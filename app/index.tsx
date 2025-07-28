@@ -12,6 +12,7 @@ import { useEffect, useState } from 'react';
 import { withErrorBoundary } from '@/components/ErrorBoundary';
 import { IMAGES } from '@/lib/constants/images';
 import { useClerkAuth } from '@/components/hooks/useClerkAuth';
+import { SHARED_STYLE_COLORS } from '@/lib/constants/sharedStyles';
 
 function LandingScreen() {
   const [checking, setChecking] = useState(true);
@@ -54,7 +55,7 @@ function LandingScreen() {
   if ((!isLoaded || initializing || checking) && !isSignedIn) {
     return (
       <View style={[styles.container, styles.loadingContainer]}>
-        <ActivityIndicator size="large" color="#007AFF" />
+        <ActivityIndicator size="large" color={SHARED_STYLE_COLORS.primary} />
         <Text style={styles.loadingText}>
           {!isLoaded ? 'Loading authentication...' : 'Checking user status...'}
         </Text>
@@ -80,7 +81,7 @@ function LandingScreen() {
 
       <View style={styles.content}>
         <View style={styles.featureCard}>
-          <Video size={32} color="#007AFF" />
+          <Video size={32} color={SHARED_STYLE_COLORS.primary} />
           <Text style={styles.featureTitle}>Génération Vidéo Intelligente</Text>
           <Text style={styles.featureText}>
             Transformez vos idées en vidéos professionnelles en quelques minutes
@@ -89,7 +90,7 @@ function LandingScreen() {
         </View>
 
         <TouchableOpacity style={styles.button} onPress={handleGetStarted}>
-          <Play size={24} color="#fff" />
+          <Play size={24} color={SHARED_STYLE_COLORS.text} />
           <Text style={styles.buttonText}>Commencer</Text>
         </TouchableOpacity>
       </View>
@@ -100,7 +101,7 @@ function LandingScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#000',
+    backgroundColor: SHARED_STYLE_COLORS.background,
   },
   loadingContainer: {
     justifyContent: 'center',
@@ -108,7 +109,7 @@ const styles = StyleSheet.create({
     gap: 16,
   },
   loadingText: {
-    color: '#888',
+    color: SHARED_STYLE_COLORS.textSecondary,
     fontSize: 16,
     textAlign: 'center',
   },
@@ -131,12 +132,12 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 40,
     fontWeight: 'bold',
-    color: '#fff',
+    color: SHARED_STYLE_COLORS.text,
     marginBottom: 12,
   },
   subtitle: {
     fontSize: 18,
-    color: '#888',
+    color: SHARED_STYLE_COLORS.textSecondary,
     marginBottom: 20,
   },
   content: {
@@ -145,7 +146,7 @@ const styles = StyleSheet.create({
     gap: 24,
   },
   featureCard: {
-    backgroundColor: '#1a1a1a',
+    backgroundColor: SHARED_STYLE_COLORS.backgroundSecondary,
     borderRadius: 16,
     padding: 24,
     gap: 12,
@@ -153,15 +154,15 @@ const styles = StyleSheet.create({
   featureTitle: {
     fontSize: 20,
     fontWeight: '600',
-    color: '#fff',
+    color: SHARED_STYLE_COLORS.text,
   },
   featureText: {
     fontSize: 16,
-    color: '#888',
+        color: SHARED_STYLE_COLORS.textSecondary,
     lineHeight: 24,
   },
   button: {
-    backgroundColor: '#007AFF',
+    backgroundColor: SHARED_STYLE_COLORS.primary,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
@@ -170,7 +171,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   buttonText: {
-    color: '#fff',
+      color: SHARED_STYLE_COLORS.text,
     fontSize: 18,
     fontWeight: '600',
   },

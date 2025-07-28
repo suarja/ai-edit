@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
 } from 'react-native';
 import { VideoAnalysisMessagesService } from '@/lib/services/ui/videoAnalysisMessagesService';
+import { SHARED_STYLE_COLORS } from '@/lib/constants/sharedStyles';
 
 interface VideoAnalysisProgressProps {
   onSkipAnalysis?: () => void;
@@ -45,7 +46,7 @@ const VideoAnalysisProgress: React.FC<VideoAnalysisProgressProps> = ({
       <View style={styles.statusCard}>
         <View style={styles.statusHeader}>
           <View style={styles.statusIcon}>
-            <ActivityIndicator size="small" color="#007AFF" />
+            <ActivityIndicator size="small" color={SHARED_STYLE_COLORS.primary  } />
           </View>
           <View style={styles.statusTextContainer}>
             <Text style={styles.statusTitle}>Analyse en cours...</Text>
@@ -100,16 +101,16 @@ const styles = StyleSheet.create({
 
   // Status display with modern design
   statusCard: {
-    backgroundColor: '#1a1a1a',
+    backgroundColor: SHARED_STYLE_COLORS.backgroundSecondary,
     borderRadius: 20,
     padding: 20,
-    shadowColor: '#000',
+    shadowColor: SHARED_STYLE_COLORS.border,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.04,
     shadowRadius: 8,
     elevation: 2,
     borderWidth: 1,
-    borderColor: '#333',
+    borderColor: SHARED_STYLE_COLORS.border,
   },
 
   statusHeader: {
@@ -122,7 +123,7 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: 'rgba(0, 122, 255, 0.15)',
+    backgroundColor: SHARED_STYLE_COLORS.backgroundSecondary,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 12,
@@ -135,13 +136,13 @@ const styles = StyleSheet.create({
   statusTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#ffffff',
+    color: SHARED_STYLE_COLORS.text,
     marginBottom: 4,
   },
 
   statusSubtitle: {
     fontSize: 14,
-    color: '#888888',
+    color: SHARED_STYLE_COLORS.textSecondary,
     lineHeight: 20,
   },
 
@@ -152,7 +153,7 @@ const styles = StyleSheet.create({
 
   progressBar: {
     height: 6,
-    backgroundColor: '#333',
+    backgroundColor: SHARED_STYLE_COLORS.border,
     borderRadius: 8,
     overflow: 'hidden',
     marginBottom: 8,
@@ -160,77 +161,77 @@ const styles = StyleSheet.create({
 
   progressFill: {
     height: '100%',
-    backgroundColor: '#007AFF',
+    backgroundColor: SHARED_STYLE_COLORS.accent,
     borderRadius: 8,
     width: '60%', // Indeterminate progress
   },
 
   progressText: {
     fontSize: 12,
-    color: '#888888',
+    color: SHARED_STYLE_COLORS.textSecondary,
     textAlign: 'center',
     fontWeight: '500',
   },
 
   // Waiting message with elegant design
   waitingMessageCard: {
-    backgroundColor: '#1a1a1a',
+    backgroundColor: SHARED_STYLE_COLORS.backgroundSecondary,
     borderRadius: 16,
     padding: 16,
     borderLeftWidth: 4,
-    borderLeftColor: '#007AFF',
+    borderLeftColor: SHARED_STYLE_COLORS.accent,
     borderWidth: 1,
-    borderColor: '#333',
+    borderColor: SHARED_STYLE_COLORS.border,
   },
 
   waitingMessageTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#007AFF',
+      color: SHARED_STYLE_COLORS.accent,
     marginBottom: 8,
   },
 
   waitingMessageText: {
     fontSize: 14,
-    color: '#ffffff',
+    color: SHARED_STYLE_COLORS.text,
     lineHeight: 20,
   },
 
   // Skip button
   skipButton: {
-    backgroundColor: '#1a1a1a',
+    backgroundColor: SHARED_STYLE_COLORS.backgroundSecondary,
     borderWidth: 1,
-    borderColor: '#333',
+    borderColor: SHARED_STYLE_COLORS.border,
     borderRadius: 12,
     padding: 16,
     alignItems: 'center',
   },
 
   skipButtonText: {
-    color: '#888888',
+    color: SHARED_STYLE_COLORS.textSecondary,
     fontSize: 14,
     fontWeight: '500',
   },
 
   // Info card
   infoCard: {
-    backgroundColor: '#1a1a1a',
+    backgroundColor: SHARED_STYLE_COLORS.backgroundSecondary,
     borderRadius: 16,
     padding: 16,
     borderWidth: 1,
-    borderColor: '#333',
+    borderColor: SHARED_STYLE_COLORS.border,
   },
 
   infoTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#ffffff',
+    color: SHARED_STYLE_COLORS.text,
     marginBottom: 8,
   },
 
   infoText: {
     fontSize: 14,
-    color: '#888888',
+    color: SHARED_STYLE_COLORS.textSecondary,
     lineHeight: 20,
   },
 });
