@@ -4,6 +4,7 @@ import VoiceList from './VoiceList';
 import {
   VoiceConfig,
   VoiceConfigStorage,
+  VoiceDatabase,
   VoiceService,
 } from '@/lib/services/voiceService';
 import VoiceCreateButton from './VoiceCreateButton';
@@ -28,22 +29,23 @@ export const VoiceScreen: React.FC = () => {
   const fetchVoices = async () => {
     setIsLoading(true);
     const token = await getToken();
+    let newVoices: VoiceDatabase[] = [];
     if (token) {
-      const voice = await VoiceService.getExistingVoice(token);
-      if (voice) {
-        const mappedVoices = VoiceService.voiceMapper(voice);
+      newVoices = (await VoiceService.getExistingVoice(token)) || [];
+      if (newVoices) {
+        const mappedVoices = VoiceService.voiceMapper(newVoices);
         if (mappedVoices) {
-          mappedVoices.forEach((v) => {
-            if (!voices.some((voice) => voice.voiceId === v.voiceId)) {
-              setVoices((prev) => [...prev, v]);
-            }
-          });
+          const filteredVoices = mappedVoices.filter(
+            (v) => !voices.some((voice) => voice.voiceId === v.voiceId)
+          );
+          setVoices((prev) => [...prev, ...filteredVoices]);
         }
       }
     }
     setIsLoading(false);
   };
   const handleAddClonedVoice = async (voice: VoiceConfig) => {
+    await fetchVoices();
     setVoices((prev) => {
       const exists = prev.some((v) => v.voiceId === voice.voiceId);
       const updated = exists ? prev : [...prev, voice];

@@ -11,7 +11,7 @@ const VoiceDatabaseSchema = z.object({
   status: z.string(),
 });
 
-type VoiceDatabase = z.infer<typeof VoiceDatabaseSchema>;
+export type VoiceDatabase = z.infer<typeof VoiceDatabaseSchema>;
 
 export class VoiceService {
   static async getSelectedVoice(userId: string) {
