@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import { VideoAnalysisData } from '@/lib/types/videoAnalysis';
 import VoiceDictation from './VoiceDictation';
+import { SHARED_STYLE_COLORS } from '@/lib/constants/sharedStyles';
 
 interface VideoMetadataEditorProps {
   videoId: string;
@@ -98,7 +99,7 @@ const VideoMetadataEditor: React.FC<VideoMetadataEditorProps> = ({
       <View style={styles.inputGroup}>
         <View style={styles.labelContainer}>
           <Text style={styles.label}>
-            Titre de la vidéo <Text style={{ color: '#ef4444' }}>*</Text>
+            Titre de la vidéo <Text style={{ color: SHARED_STYLE_COLORS.error }}>*</Text>
           </Text>
           {hasAnalysisData && (
             <View style={styles.aiBadge}>
@@ -109,7 +110,7 @@ const VideoMetadataEditor: React.FC<VideoMetadataEditorProps> = ({
         <TextInput
           style={[styles.input, !isTitleValid && styles.inputError]}
           placeholder="Ex: Guide complet de productivité"
-          placeholderTextColor="#666"
+          placeholderTextColor={SHARED_STYLE_COLORS.textMuted}
           value={title}
           onChangeText={setTitle}
           maxLength={100}
@@ -123,7 +124,7 @@ const VideoMetadataEditor: React.FC<VideoMetadataEditorProps> = ({
       <View style={styles.inputGroup}>
         <View style={styles.labelContainer}>
           <Text style={styles.label}>
-            Description <Text style={{ color: '#ef4444' }}>*</Text>
+            Description <Text style={{ color: SHARED_STYLE_COLORS.error }}>*</Text>
           </Text>
           {hasAnalysisData && (
             <View style={styles.aiBadge}>
@@ -138,7 +139,7 @@ const VideoMetadataEditor: React.FC<VideoMetadataEditorProps> = ({
             !isDescriptionValid && styles.inputError,
           ]}
           placeholder="Décrivez le contenu de votre vidéo..."
-          placeholderTextColor="#666"
+          placeholderTextColor={SHARED_STYLE_COLORS.textMuted}
           value={description}
           onChangeText={setDescription}
           multiline
@@ -170,7 +171,7 @@ const VideoMetadataEditor: React.FC<VideoMetadataEditorProps> = ({
         <TextInput
           style={styles.input}
           placeholder="productivité, conseils, travail, séparés par des virgules"
-          placeholderTextColor="#666"
+          placeholderTextColor={SHARED_STYLE_COLORS.textMuted}
           value={tags}
           onChangeText={setTags}
           maxLength={200}
@@ -279,13 +280,13 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 24,
     fontWeight: '700',
-    color: '#ffffff',
+    color: SHARED_STYLE_COLORS.text,
     marginBottom: 8,
   },
 
   subtitle: {
     fontSize: 16,
-    color: '#888888',
+    color: SHARED_STYLE_COLORS.textMuted,
     lineHeight: 22,
   },
 
@@ -299,7 +300,7 @@ const styles = StyleSheet.create({
   },
 
   aiIndicatorText: {
-    color: '#007AFF',
+    color: SHARED_STYLE_COLORS.primary,
     fontSize: 14,
     fontWeight: '500',
     textAlign: 'center',
@@ -318,31 +319,31 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#ffffff',
+    color: SHARED_STYLE_COLORS.text,
     marginRight: 8,
   },
 
   aiBadge: {
-    backgroundColor: '#007AFF',
+    backgroundColor: SHARED_STYLE_COLORS.primary,
     paddingHorizontal: 8,
     paddingVertical: 2,
     borderRadius: 8,
   },
 
   aiBadgeText: {
-    color: '#ffffff',
+    color: SHARED_STYLE_COLORS.text,
     fontSize: 10,
     fontWeight: '600',
   },
 
   input: {
-    backgroundColor: '#1a1a1a',
+    backgroundColor: SHARED_STYLE_COLORS.backgroundSecondary,
     borderRadius: 12,
     padding: 16,
-    color: '#ffffff',
+    color: SHARED_STYLE_COLORS.text,
     fontSize: 16,
     borderWidth: 1,
-    borderColor: '#333',
+    borderColor: SHARED_STYLE_COLORS.backgroundTertiary,
   },
 
   inputError: {
@@ -366,38 +367,38 @@ const styles = StyleSheet.create({
   },
 
   errorText: {
-    color: '#ef4444',
+    color: SHARED_STYLE_COLORS.error,
     fontSize: 14,
     marginTop: 4,
   },
 
   characterCount: {
-    color: '#888888',
+    color: SHARED_STYLE_COLORS.textMuted,
     fontSize: 12,
     textAlign: 'right',
     marginTop: 4,
   },
 
   helpText: {
-    color: '#888888',
+    color: SHARED_STYLE_COLORS.textMuted,
     fontSize: 14,
     marginTop: 4,
     lineHeight: 20,
   },
 
   analysisDetails: {
-    backgroundColor: '#1a1a1a',
+    backgroundColor: SHARED_STYLE_COLORS.backgroundSecondary,
     borderRadius: 16,
     padding: 16,
     marginBottom: 20,
     borderWidth: 1,
-    borderColor: '#333',
+    borderColor: SHARED_STYLE_COLORS.backgroundTertiary,
   },
 
   analysisTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#ffffff',
+    color: SHARED_STYLE_COLORS.text,
     marginBottom: 16,
   },
 
@@ -409,12 +410,12 @@ const styles = StyleSheet.create({
   },
 
   analysisLabel: {
-    color: '#888888',
+    color: SHARED_STYLE_COLORS.textMuted,
     fontSize: 14,
   },
 
   analysisValue: {
-    color: '#ffffff',
+    color: SHARED_STYLE_COLORS.text,
     fontSize: 14,
     fontWeight: '500',
   },
@@ -429,7 +430,7 @@ const styles = StyleSheet.create({
   segmentsTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#ffffff',
+    color: SHARED_STYLE_COLORS.text,
     marginBottom: 12,
   },
 
@@ -441,20 +442,20 @@ const styles = StyleSheet.create({
   },
 
   segmentTime: {
-    color: '#007AFF',
+    color: SHARED_STYLE_COLORS.primary,
     fontSize: 12,
     fontWeight: '600',
     marginBottom: 4,
   },
 
   segmentDescription: {
-    color: '#ffffff',
+    color: SHARED_STYLE_COLORS.text,
     fontSize: 14,
     lineHeight: 20,
   },
 
   moreSegments: {
-    color: '#888888',
+    color: SHARED_STYLE_COLORS.textMuted,
     fontSize: 14,
     textAlign: 'center',
     fontStyle: 'italic',
@@ -468,23 +469,23 @@ const styles = StyleSheet.create({
 
   cancelButton: {
     flex: 1,
-    backgroundColor: '#1a1a1a',
+    backgroundColor: SHARED_STYLE_COLORS.backgroundSecondary,
     borderWidth: 1,
-    borderColor: '#333',
+    borderColor: SHARED_STYLE_COLORS.backgroundTertiary,
     borderRadius: 12,
     padding: 16,
     alignItems: 'center',
   },
 
   cancelButtonText: {
-    color: '#888888',
+    color: SHARED_STYLE_COLORS.textMuted,
     fontSize: 16,
     fontWeight: '600',
   },
 
   saveButton: {
     flex: 1,
-    backgroundColor: '#007AFF',
+    backgroundColor: SHARED_STYLE_COLORS.primary,
     borderRadius: 12,
     padding: 16,
     alignItems: 'center',
@@ -496,7 +497,7 @@ const styles = StyleSheet.create({
   },
 
   saveButtonText: {
-    color: '#ffffff',
+    color: SHARED_STYLE_COLORS.text,
     fontSize: 16,
     fontWeight: '600',
   },

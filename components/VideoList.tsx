@@ -3,6 +3,7 @@ import { View, Text, FlatList, RefreshControl, StyleSheet } from 'react-native';
 import { Video as VideoIcon } from 'lucide-react-native';
 import VideoCard from './VideoCard';
 import { VideoTypeWithAnalysis } from '@/lib/types/videoAnalysis';
+import { SHARED_STYLE_COLORS } from '@/lib/constants/sharedStyles';
 
 interface VideoListProps {
   videos: VideoTypeWithAnalysis[];
@@ -38,7 +39,7 @@ const VideoList: React.FC<VideoListProps> = ({
   if (videos.length === 0) {
     return (
       <View style={styles.emptyState}>
-        <VideoIcon size={48} color="#555" />
+        <VideoIcon size={48} color={SHARED_STYLE_COLORS.textMuted} />
         <Text style={styles.emptyText}>Aucune vidéo uploadée</Text>
         <Text style={styles.emptySubtext}>
           Commencez par uploader votre première vidéo
@@ -74,7 +75,7 @@ const VideoList: React.FC<VideoListProps> = ({
         <RefreshControl
           refreshing={refreshing}
           onRefresh={onRefresh}
-          tintColor="#007AFF"
+          tintColor={SHARED_STYLE_COLORS.primary}
         />
       }
     />
@@ -89,13 +90,13 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   emptyText: {
-    color: '#fff',
+    color: SHARED_STYLE_COLORS.text,
     fontSize: 18,
     fontWeight: '600',
     marginBottom: 12,
   },
   emptySubtext: {
-    color: '#888',
+    color: SHARED_STYLE_COLORS.textMuted,
     fontSize: 14,
   },
 });

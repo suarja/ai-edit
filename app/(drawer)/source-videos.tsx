@@ -17,6 +17,7 @@ import { sourceVideoStyle as sourceVideoStyles } from '@/lib/utils/styles/source
 import { useSourceVideos } from '@/components/hooks/useSourceVideos';
 import { useRevenueCat } from '@/contexts/providers/RevenueCat';
 import { useGetUser } from '@/components/hooks/useGetUser';
+import { SHARED_STYLE_COLORS } from '@/lib/constants/sharedStyles';
 
 export default function SourceVideosScreen() {
   const { data, actions } = useSourceVideos();
@@ -43,7 +44,7 @@ export default function SourceVideosScreen() {
     return (
       <SafeAreaView style={sourceVideoStyles.container} edges={[]}>
         <View style={sourceVideoStyles.loadingContainer}>
-          <ActivityIndicator size="large" color="#007AFF" />
+          <ActivityIndicator size="large" color={SHARED_STYLE_COLORS.primary} />
         </View>
       </SafeAreaView>
     );
@@ -81,7 +82,7 @@ export default function SourceVideosScreen() {
         {/* Free tier limit warning */}
         {revenueCatReady && !data.canUploadMore && (
           <View style={sourceVideoStyles.limitContainer}>
-            <Crown size={20} color="#FFD700" />
+            <Crown size={20} color={SHARED_STYLE_COLORS.accent} />
             <View style={sourceVideoStyles.limitTextContainer}>
               <Text style={sourceVideoStyles.limitTitle}>
                 Limite de vidéos sources atteinte

@@ -1,9 +1,10 @@
 import { StyleSheet } from 'react-native';
+import { SHARED_STYLE_COLORS } from '@/lib/constants/sharedStyles';
 
 export const sourceVideoStyle = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#000',
+    backgroundColor: SHARED_STYLE_COLORS.background,
     height: '100%',
     display: 'flex',
     flexDirection: 'column',
@@ -12,7 +13,7 @@ export const sourceVideoStyle = StyleSheet.create({
     paddingHorizontal: 20,
     paddingBottom: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#333',
+    borderBottomColor: SHARED_STYLE_COLORS.backgroundTertiary,
   },
   loadingContainer: {
     flex: 1,
@@ -22,11 +23,11 @@ export const sourceVideoStyle = StyleSheet.create({
   title: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#fff',
+    color: SHARED_STYLE_COLORS.text,
   },
   limitText: {
     fontSize: 14,
-    color: '#888',
+    color: SHARED_STYLE_COLORS.textMuted,
     marginTop: 4,
   },
   content: {
@@ -37,18 +38,18 @@ export const sourceVideoStyle = StyleSheet.create({
     flexDirection: 'column',
   },
   planInfoContainer: {
-    backgroundColor: '#1a1a1a',
+    backgroundColor: SHARED_STYLE_COLORS.backgroundSecondary,
     padding: 12,
     borderRadius: 8,
     marginBottom: 16,
     alignItems: 'center',
   },
   planInfoText: {
-    color: '#888',
+    color: SHARED_STYLE_COLORS.textMuted,
     fontSize: 14,
   },
   errorContainer: {
-    backgroundColor: '#2D1116',
+    backgroundColor: SHARED_STYLE_COLORS.primaryOverlay,
     padding: 16,
     borderRadius: 12,
     marginBottom: 16,
@@ -60,12 +61,12 @@ export const sourceVideoStyle = StyleSheet.create({
     marginBottom: 8,
   },
   errorTitle: {
-    color: '#ef4444',
+    color: SHARED_STYLE_COLORS.error,
     fontSize: 16,
     fontWeight: '600',
   },
   errorText: {
-    color: '#ef4444',
+    color: SHARED_STYLE_COLORS.error,
     fontSize: 14,
     marginBottom: 12,
   },
@@ -75,25 +76,25 @@ export const sourceVideoStyle = StyleSheet.create({
     gap: 8,
   },
   errorButton: {
-    backgroundColor: '#ef4444',
+    backgroundColor: SHARED_STYLE_COLORS.error,
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 8,
   },
   supportButton: {
-    backgroundColor: '#1a1a1a',
+    backgroundColor: SHARED_STYLE_COLORS.backgroundSecondary,
     borderWidth: 1,
-    borderColor: '#ef4444',
+    borderColor: SHARED_STYLE_COLORS.error,
   },
   errorButtonText: {
-    color: '#fff',
+    color: SHARED_STYLE_COLORS.text,
     fontSize: 14,
     fontWeight: '500',
   },
   limitContainer: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    backgroundColor: '#2D1A00',
+    backgroundColor: SHARED_STYLE_COLORS.primaryOverlay,
     padding: 16,
     borderRadius: 12,
     marginBottom: 20,
@@ -103,13 +104,13 @@ export const sourceVideoStyle = StyleSheet.create({
     flex: 1,
   },
   limitTitle: {
-    color: '#FFD700',
+    color: SHARED_STYLE_COLORS.accent,
     fontSize: 16,
     fontWeight: '600',
     marginBottom: 4,
   },
   limitDescription: {
-    color: '#FFA500',
+    color: SHARED_STYLE_COLORS.warning,
     fontSize: 14,
     lineHeight: 20,
   },
@@ -119,7 +120,7 @@ export const sourceVideoStyle = StyleSheet.create({
   uploadDisabled: {
     width: '100%',
     height: 120,
-    backgroundColor: '#1a1a1a',
+    backgroundColor: SHARED_STYLE_COLORS.backgroundSecondary,
     borderRadius: 12,
     justifyContent: 'center',
     alignItems: 'center',
@@ -127,12 +128,12 @@ export const sourceVideoStyle = StyleSheet.create({
     gap: 8,
   },
   uploadDisabledText: {
-    color: '#888',
+    color: SHARED_STYLE_COLORS.textMuted,
     fontSize: 16,
     fontWeight: '600',
   },
   uploadDisabledSubtext: {
-    color: '#666',
+    color: SHARED_STYLE_COLORS.textMuted,
     fontSize: 14,
     textAlign: 'center',
   },
@@ -142,27 +143,27 @@ export const sourceVideoStyle = StyleSheet.create({
   formTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#fff',
+    color: SHARED_STYLE_COLORS.text,
     marginBottom: 12,
   },
   input: {
-    backgroundColor: '#1a1a1a',
+    backgroundColor: SHARED_STYLE_COLORS.backgroundSecondary,
     borderRadius: 12,
     padding: 16,
-    color: '#fff',
+    color: SHARED_STYLE_COLORS.text,
     fontSize: 16,
   },
   textArea: {
-    backgroundColor: '#1a1a1a',
+    backgroundColor: SHARED_STYLE_COLORS.backgroundSecondary,
     borderRadius: 12,
     padding: 16,
-    color: '#fff',
+    color: SHARED_STYLE_COLORS.text,
     fontSize: 16,
     textAlignVertical: 'top',
     minHeight: 100,
   },
   button: {
-    backgroundColor: '#007AFF',
+    backgroundColor: SHARED_STYLE_COLORS.primary,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
@@ -175,7 +176,7 @@ export const sourceVideoStyle = StyleSheet.create({
     opacity: 0.5,
   },
   buttonText: {
-    color: '#fff',
+    color: SHARED_STYLE_COLORS.text,
     fontSize: 16,
     fontWeight: '600',
   },
@@ -190,7 +191,7 @@ export const sourceVideoStyle = StyleSheet.create({
     padding: 12,
   },
   skipButtonText: {
-    color: '#888',
+    color: SHARED_STYLE_COLORS.textMuted,
     fontSize: 14,
   },
   videosList: {
@@ -200,7 +201,7 @@ export const sourceVideoStyle = StyleSheet.create({
   sectionTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#fff',
+    color: SHARED_STYLE_COLORS.text,
     marginBottom: 12,
   },
   emptyState: {
@@ -210,23 +211,23 @@ export const sourceVideoStyle = StyleSheet.create({
     padding: 20,
   },
   emptyText: {
-    color: '#fff',
+    color: SHARED_STYLE_COLORS.text,
     fontSize: 18,
     fontWeight: '600',
     marginBottom: 12,
   },
   emptySubtext: {
-    color: '#888',
+    color: SHARED_STYLE_COLORS.textMuted,
     fontSize: 14,
   },
   metadataEditorContainer: {
-    backgroundColor: '#1a1a1a',
+    backgroundColor: SHARED_STYLE_COLORS.backgroundSecondary,
     borderRadius: 12,
     padding: 16,
     gap: 16,
   },
   metadataTitle: {
-    color: '#fff',
+    color: SHARED_STYLE_COLORS.text,
     fontSize: 18,
     fontWeight: '600',
     marginBottom: 8,
@@ -235,29 +236,29 @@ export const sourceVideoStyle = StyleSheet.create({
     gap: 8,
   },
   metadataInputLabel: {
-    color: '#fff',
+    color: SHARED_STYLE_COLORS.text,
     fontSize: 14,
     fontWeight: '500',
   },
   metadataInput: {
-    backgroundColor: '#2a2a2a',
+    backgroundColor: SHARED_STYLE_COLORS.backgroundTertiary,
     borderRadius: 8,
     padding: 12,
-    color: '#fff',
+    color: SHARED_STYLE_COLORS.text,
     fontSize: 16,
     borderWidth: 1,
-    borderColor: '#333',
+    borderColor: SHARED_STYLE_COLORS.backgroundTertiary,
   },
   metadataTextArea: {
-    backgroundColor: '#2a2a2a',
+    backgroundColor: SHARED_STYLE_COLORS.backgroundTertiary,
     borderRadius: 8,
     padding: 12,
-    color: '#fff',
+    color: SHARED_STYLE_COLORS.text,
     fontSize: 16,
     minHeight: 100,
     textAlignVertical: 'top',
     borderWidth: 1,
-    borderColor: '#333',
+    borderColor: SHARED_STYLE_COLORS.backgroundTertiary,
   },
   metadataActions: {
     flexDirection: 'row',
@@ -266,32 +267,32 @@ export const sourceVideoStyle = StyleSheet.create({
     marginTop: 16,
   },
   cancelButton: {
-    backgroundColor: '#333',
+    backgroundColor: SHARED_STYLE_COLORS.backgroundTertiary,
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 8,
   },
   cancelButtonText: {
-    color: '#fff',
+    color: SHARED_STYLE_COLORS.text,
     fontSize: 14,
     fontWeight: '500',
   },
   saveButton: {
-    backgroundColor: '#007AFF',
+    backgroundColor: SHARED_STYLE_COLORS.primary,
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 8,
   },
   saveButtonText: {
-    color: '#fff',
+    color: SHARED_STYLE_COLORS.text,
     fontSize: 14,
     fontWeight: '600',
   },
   inputError: {
-    borderColor: '#ef4444',
+    borderColor: SHARED_STYLE_COLORS.error,
   },
   helperText: {
-    color: '#888',
+    color: SHARED_STYLE_COLORS.textMuted,
     fontSize: 12,
     marginTop: 4,
   },
@@ -299,17 +300,17 @@ export const sourceVideoStyle = StyleSheet.create({
     marginBottom: 16,
   },
   rejectButton: {
-    backgroundColor: '#ef4444',
+    backgroundColor: SHARED_STYLE_COLORS.error,
     padding: 12,
     borderRadius: 8,
   },
   rejectButtonText: {
-    color: '#fff',
+    color: SHARED_STYLE_COLORS.text,
     fontSize: 14,
     fontWeight: '600',
   },
   analysisHelperText: {
-    color: '#888',
+    color: SHARED_STYLE_COLORS.textMuted,
     fontSize: 12,
   },
 });

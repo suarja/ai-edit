@@ -10,6 +10,7 @@ import { useVideoSelector } from '@/components/hooks/useVideoSelector';
 import { useVideoUpload } from '@/components/hooks/useVideoUpload';
 import { useOnDeviceVideoAnalysis } from '@/components/hooks/useOnDeviceVideoAnalysis';
 import { UseSourceVideos } from '@/components/hooks/useSourceVideos';
+import { SHARED_STYLE_COLORS } from '@/lib/constants/sharedStyles';
 
 interface VideoUploaderProps {
   onUploadComplete: UseSourceVideos['actions']['handleUploadComplete'];
@@ -89,13 +90,13 @@ export default function VideoUploader({
       )}
       {localState === 'uploading' && (
         <View style={styles.statusContainer}>
-          <ActivityIndicator size="large" color="#007AFF" />
+          <ActivityIndicator size="large" color={SHARED_STYLE_COLORS.primary} />
           <Text style={styles.statusText}>Upload en cours... {progress}%</Text>
         </View>
       )}
       {localState === 'analyzing' && (
         <View style={styles.statusContainer}>
-          <ActivityIndicator size="large" color="#007AFF" />
+          <ActivityIndicator size="large" color={SHARED_STYLE_COLORS.primary} />
           <Text style={styles.statusText}>Analyse on-device en cours...</Text>
           <TouchableOpacity style={styles.skipButton} onPress={onManualEdit}>
             <Text style={styles.skipButtonText}>
@@ -112,7 +113,7 @@ const styles = StyleSheet.create({
   container: {
     width: '100%',
     minHeight: 120,
-    backgroundColor: '#1a1a1a',
+    backgroundColor: SHARED_STYLE_COLORS.backgroundSecondary,
     borderRadius: 12,
     justifyContent: 'center',
     alignItems: 'center',
@@ -121,14 +122,14 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   uploadButton: {
-    backgroundColor: '#007AFF',
+    backgroundColor: SHARED_STYLE_COLORS.primary,
     paddingHorizontal: 16,
     paddingVertical: 12,
     borderRadius: 8,
     alignItems: 'center',
   },
   uploadButtonText: {
-    color: '#fff',
+    color: SHARED_STYLE_COLORS.text,
     fontSize: 14,
     fontWeight: '600',
   },
@@ -137,7 +138,7 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   statusText: {
-    color: '#fff',
+    color: SHARED_STYLE_COLORS.text,
     fontSize: 16,
     fontWeight: '600',
     textAlign: 'center',
@@ -146,14 +147,14 @@ const styles = StyleSheet.create({
   skipButton: {
     backgroundColor: 'transparent',
     borderWidth: 1,
-    borderColor: '#333',
+    borderColor: SHARED_STYLE_COLORS.backgroundTertiary,
     borderRadius: 8,
     paddingHorizontal: 16,
     paddingVertical: 8,
     marginTop: 8,
   },
   skipButtonText: {
-    color: '#888',
+    color: SHARED_STYLE_COLORS.textMuted,
     fontSize: 12,
     fontWeight: '500',
   },

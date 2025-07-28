@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { CircleAlert as AlertCircle } from 'lucide-react-native';
+import { SHARED_STYLE_COLORS } from '@/lib/constants/sharedStyles';
 
 interface ErrorDisplayProps {
   message: string;
@@ -19,7 +20,7 @@ const ErrorDisplay: React.FC<ErrorDisplayProps> = ({
 }) => (
   <View style={styles.errorContainer}>
     <View style={styles.errorHeader}>
-      <AlertCircle size={20} color="#ef4444" />
+      <AlertCircle size={20} color={SHARED_STYLE_COLORS.error} />
       <Text style={styles.errorTitle}>{title}</Text>
     </View>
     <Text style={styles.errorText}>{message}</Text>
@@ -36,7 +37,7 @@ const ErrorDisplay: React.FC<ErrorDisplayProps> = ({
 
 const styles = StyleSheet.create({
   errorContainer: {
-    backgroundColor: '#2D1116',
+    backgroundColor: SHARED_STYLE_COLORS.primaryOverlay,
     padding: 16,
     borderRadius: 12,
     marginBottom: 16,
@@ -48,12 +49,12 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   errorTitle: {
-    color: '#ef4444',
+    color: SHARED_STYLE_COLORS.error,
     fontSize: 16,
     fontWeight: '600',
   },
   errorText: {
-    color: '#ef4444',
+    color: SHARED_STYLE_COLORS.error,
     fontSize: 14,
     marginBottom: 12,
   },
@@ -63,13 +64,13 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   errorButton: {
-    backgroundColor: '#ef4444',
+    backgroundColor: SHARED_STYLE_COLORS.error,
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 8,
   },
   errorButtonText: {
-    color: '#fff',
+    color: SHARED_STYLE_COLORS.text,
     fontSize: 14,
     fontWeight: '500',
   },

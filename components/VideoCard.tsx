@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Clock, Tag } from 'lucide-react-native';
 import { VideoType } from '@/lib/types/video.types';
 import { VideoThumbnail } from './VideoThumbnail';
+import { SHARED_STYLE_COLORS } from '@/lib/constants/sharedStyles';
 
 type VideoCardProps = {
   video: VideoType;
@@ -37,7 +38,7 @@ export default function VideoCard({
           borderWidth: 1,
           borderColor:
             video.title === '' || video.description === ''
-              ? '#ffcccb'
+              ? SHARED_STYLE_COLORS.error
               : 'transparent',
         },
       ]}
@@ -48,7 +49,7 @@ export default function VideoCard({
         <VideoThumbnail url={video.upload_url} shouldLoad={isVisible} />
 
         <View style={styles.duration}>
-          <Clock size={12} color="#fff" style={{ marginRight: 4 }} />
+          <Clock size={12} color={SHARED_STYLE_COLORS.text} style={{ marginRight: 4 }} />
           <Text style={styles.durationText}>
             {formatDuration(video.duration_seconds || 0)}
           </Text>
@@ -59,7 +60,7 @@ export default function VideoCard({
         <Text
           style={[
             styles.title,
-            { color: video.title === '' ? '#ffcccb' : '#fff' },
+            { color: video.title === '' ? SHARED_STYLE_COLORS.error : SHARED_STYLE_COLORS.text },
           ]}
           numberOfLines={1}
         >
@@ -68,7 +69,7 @@ export default function VideoCard({
         <Text
           style={[
             styles.description,
-            { color: video.description === '' ? '#ffcccb' : '#888' },
+            { color: video.description === '' ? SHARED_STYLE_COLORS.error : SHARED_STYLE_COLORS.textMuted },
           ]}
           numberOfLines={2}
         >
@@ -81,7 +82,7 @@ export default function VideoCard({
           <View style={styles.tags}>
             {video.tags?.slice(0, 2).map((tag, index) => (
               <View key={index} style={styles.tag}>
-                <Tag size={12} color="#888" style={{ marginRight: 4 }} />
+                <Tag size={12} color={SHARED_STYLE_COLORS.textMuted} style={{ marginRight: 4 }} />
                 <Text style={styles.tagText}>{tag}</Text>
               </View>
             ))}
@@ -118,7 +119,7 @@ function formatDate(dateString: string): string {
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: '#1a1a1a',
+    backgroundColor: SHARED_STYLE_COLORS.backgroundSecondary,
     borderRadius: 12,
     overflow: 'hidden',
     marginBottom: 16,
@@ -126,7 +127,7 @@ const styles = StyleSheet.create({
   thumbnailContainer: {
     position: 'relative',
     aspectRatio: 16 / 9,
-    backgroundColor: '#2a2a2a',
+    backgroundColor: SHARED_STYLE_COLORS.backgroundTertiary,
   },
   playButtonContainer: {
     position: 'absolute',
@@ -147,7 +148,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   warningText: {
-    color: '#ff0000',
+    color: SHARED_STYLE_COLORS.error,
     fontSize: 10,
     fontWeight: '500',
     textAlign: 'center',
@@ -175,7 +176,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   durationText: {
-    color: '#fff',
+    color: SHARED_STYLE_COLORS.text,
     fontSize: 12,
     fontWeight: '500',
   },
@@ -183,7 +184,7 @@ const styles = StyleSheet.create({
     padding: 12,
   },
   title: {
-    color: '#fff',
+    color: SHARED_STYLE_COLORS.text,
     fontSize: 16,
     fontWeight: '600',
     marginBottom: 4,
@@ -210,7 +211,7 @@ const styles = StyleSheet.create({
   tag: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#2a2a2a',
+    backgroundColor: SHARED_STYLE_COLORS.backgroundTertiary,
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 4,
