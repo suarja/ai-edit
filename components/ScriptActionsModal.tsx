@@ -19,6 +19,7 @@ import {
 import { useAuth } from '@clerk/clerk-expo';
 import { API_ENDPOINTS } from '@/lib/config/api';
 import { useRevenueCat } from '@/contexts/providers/RevenueCat';
+import { SHARED_STYLE_COLORS } from '@/lib/constants/sharedStyles';
 
 interface ScriptActionsModalProps {
   script: any | null; // Peut être ScriptListItem ou ScriptDraft
@@ -238,8 +239,8 @@ export default function ScriptActionsModal({
               onPress={handleEdit}
               disabled={actionLoading !== null}
             >
-              <Edit3 size={22} color="#10b981" />
-              <Text style={[styles.actionText, { color: '#10b981' }]}>
+              <Edit3 size={22} color={SHARED_STYLE_COLORS.success} />
+              <Text style={[styles.actionText, { color: SHARED_STYLE_COLORS.success }]}>
                 Modifier
               </Text>
             </TouchableOpacity>
@@ -251,9 +252,9 @@ export default function ScriptActionsModal({
                 onPress={handleGenerateVideo}
                 disabled={actionLoading !== null}
               >
-                <Video size={22} color="#3b82f6" />
+                <Video size={22} color={SHARED_STYLE_COLORS.secondary} />
                 <View style={styles.generateVideoContent}>
-                  <Text style={[{ fontSize: 16, fontWeight: '600' }, { color: '#3b82f6' }]}>
+                  <Text style={[{ fontSize: 16, fontWeight: '600' }, { color: SHARED_STYLE_COLORS.secondary }]}>
                     Générer Vidéo
                   </Text>
                   {currentPlan === 'free' && (
@@ -273,11 +274,11 @@ export default function ScriptActionsModal({
                 disabled={actionLoading !== null}
               >
                 {actionLoading === 'validate' ? (
-                  <ActivityIndicator size="small" color="#10b981" />
+                  <ActivityIndicator size="small" color={SHARED_STYLE_COLORS.success} />
                 ) : (
-                  <CheckCircle size={22} color="#10b981" />
+                  <CheckCircle size={22} color={SHARED_STYLE_COLORS.success} />
                 )}
-                <Text style={[styles.actionText, { color: '#10b981' }]}>
+                <Text style={[styles.actionText, { color: SHARED_STYLE_COLORS.success }]}>
                   Valider
                 </Text>
               </TouchableOpacity>
@@ -290,11 +291,11 @@ export default function ScriptActionsModal({
               disabled={actionLoading !== null}
             >
               {actionLoading === 'duplicate' ? (
-                <ActivityIndicator size="small" color="#8b5cf6" />
+                <ActivityIndicator size="small" color={SHARED_STYLE_COLORS.accent} />
               ) : (
-                <Copy size={22} color="#8b5cf6" />
+                <Copy size={22} color={SHARED_STYLE_COLORS.accent} />
               )}
-              <Text style={[styles.actionText, { color: '#8b5cf6' }]}>
+              <Text style={[styles.actionText, { color: SHARED_STYLE_COLORS.accent }]}>
                 Dupliquer
               </Text>
             </TouchableOpacity>
@@ -306,11 +307,11 @@ export default function ScriptActionsModal({
               disabled={actionLoading !== null}
             >
               {actionLoading === 'delete' ? (
-                <ActivityIndicator size="small" color="#ef4444" />
+                <ActivityIndicator size="small" color={SHARED_STYLE_COLORS.error} />
               ) : (
-                <Trash2 size={22} color="#ef4444" />
+                <Trash2 size={22} color={SHARED_STYLE_COLORS.error} />
               )}
-              <Text style={[styles.actionText, { color: '#ef4444' }]}>
+              <Text style={[styles.actionText, { color: SHARED_STYLE_COLORS.error }]}>
                 Supprimer
               </Text>
             </TouchableOpacity>
@@ -330,12 +331,12 @@ const styles = {
     padding: 20,
   },
   modal: {
-    backgroundColor: '#1a1a1a',
+    backgroundColor: SHARED_STYLE_COLORS.backgroundSecondary,
     borderRadius: 20,
     minWidth: 300,
     maxWidth: 360,
     borderWidth: 1,
-    borderColor: '#2a2a2a',
+    borderColor: SHARED_STYLE_COLORS.border,
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
@@ -351,7 +352,7 @@ const styles = {
     justifyContent: 'space-between' as const,
     padding: 24,
     borderBottomWidth: 1,
-    borderBottomColor: '#2a2a2a',
+    borderBottomColor: SHARED_STYLE_COLORS.border,
   },
   title: {
     fontSize: 18,
@@ -364,7 +365,7 @@ const styles = {
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: '#2a2a2a',
+    backgroundColor: SHARED_STYLE_COLORS.backgroundTertiary,
     justifyContent: 'center' as const,
     alignItems: 'center' as const,
   },
@@ -382,7 +383,7 @@ const styles = {
   deleteAction: {
     marginTop: 12,
     borderTopWidth: 1,
-    borderTopColor: '#2a2a2a',
+    borderTopColor: SHARED_STYLE_COLORS.border,
     borderRadius: 0,
   },
   actionText: {

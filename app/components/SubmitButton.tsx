@@ -7,6 +7,7 @@ import {
   StyleSheet,
 } from 'react-native';
 import { Send, Crown } from 'lucide-react-native';
+import { SHARED_STYLE_COLORS } from '@/lib/constants/sharedStyles';
 
 type SubmitButtonProps = {
   onSubmit: () => void;
@@ -103,14 +104,14 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   generateButton: {
-    backgroundColor: '#007AFF',
+    backgroundColor: SHARED_STYLE_COLORS.primary,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     padding: 14,
     borderRadius: 12,
     gap: 8,
-    shadowColor: '#007AFF',
+    shadowColor: SHARED_STYLE_COLORS.primary,
     shadowOffset: {
       width: 0,
       height: 2,
@@ -133,14 +134,14 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   upgradeButton: {
-    backgroundColor: '#10b981',
+    backgroundColor: SHARED_STYLE_COLORS.success,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     padding: 14,
     borderRadius: 12,
     gap: 8,
-    shadowColor: '#10b981',
+    shadowColor: SHARED_STYLE_COLORS.success,
     shadowOffset: {
       width: 0,
       height: 2,

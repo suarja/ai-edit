@@ -10,6 +10,7 @@ import {
   Clock,
   MoreVertical,
 } from 'lucide-react-native';
+import { SHARED_STYLE_COLORS } from '@/lib/constants/sharedStyles';
 
 type Script = {
   id: string;
@@ -50,12 +51,12 @@ export default function ScriptCard({
     switch (status) {
       case 'validated':
         return {
-          color: '#4CD964',
+          color: SHARED_STYLE_COLORS.success,
           bgColor: 'rgba(76, 217, 100, 0.08)',
         };
       default:
         return {
-          color: '#FF9500',
+          color: SHARED_STYLE_COLORS.warning,
           bgColor: 'rgba(255, 149, 0, 0.08)',
         };
     }
@@ -72,7 +73,7 @@ export default function ScriptCard({
       >
         <View style={styles.header}>
           <View style={styles.iconContainer}>
-            <MessageCircle size={20} color="#007AFF" />
+            <MessageCircle size={20} color={SHARED_STYLE_COLORS.primary} />
           </View>
           
           <View style={styles.headerContent}>
@@ -128,7 +129,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   card: {
-    backgroundColor: '#1a1a1a',
+    backgroundColor: SHARED_STYLE_COLORS.backgroundSecondary,
     borderRadius: 16,
     padding: 16,
     borderWidth: 1,
@@ -143,7 +144,7 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 10,
-    backgroundColor: 'rgba(0, 122, 255, 0.1)',
+    backgroundColor: SHARED_STYLE_COLORS.primaryOverlay,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 12,

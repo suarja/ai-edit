@@ -3,6 +3,7 @@ import { View, TouchableOpacity, StyleSheet } from 'react-native';
 import { useRevenueCat } from '@/contexts/providers/RevenueCat';
 import { X } from 'lucide-react-native';
 import { router } from 'expo-router';
+import { SHARED_STYLE_COLORS } from '@/lib/constants/sharedStyles';
 
 type RequiredPlan = 'creator' | 'pro';
 const planOrder: RequiredPlan[] = ['creator', 'pro'];
@@ -80,7 +81,7 @@ export const FeatureLock: React.FC<FeatureLockProps> = ({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#111',
+    backgroundColor: SHARED_STYLE_COLORS.background,
   },
   disabledContent: {
     opacity: 0.5,

@@ -1,9 +1,10 @@
 import { StyleSheet } from 'react-native';
+import { SHARED_STYLE_COLORS } from '@/lib/constants/sharedStyles';
 
 export const scriptChatStyles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#000',
+    backgroundColor: SHARED_STYLE_COLORS.background,
   },
   centeredContainer: {
     flex: 1,
@@ -12,23 +13,23 @@ export const scriptChatStyles = StyleSheet.create({
     gap: 16,
   },
   centeredText: {
-    color: '#888',
+    color: SHARED_STYLE_COLORS.textMuted,
     fontSize: 16,
     textAlign: 'center',
   },
   errorContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(255, 85, 85, 0.1)',
+    backgroundColor: SHARED_STYLE_COLORS.primaryOverlay,
     padding: 12,
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: 'rgba(255, 85, 85, 0.3)',
+    borderColor: SHARED_STYLE_COLORS.primaryBorder,
     marginBottom: 16,
     gap: 8,
   },
   errorText: {
-    color: '#ff5555',
+    color: SHARED_STYLE_COLORS.error,
     fontSize: 14,
     flex: 1,
   },
@@ -36,7 +37,7 @@ export const scriptChatStyles = StyleSheet.create({
     padding: 4,
   },
   errorDismissText: {
-    color: '#ff5555',
+    color: SHARED_STYLE_COLORS.error,
     fontSize: 12,
     fontWeight: '600',
   },
@@ -51,7 +52,7 @@ export const scriptChatStyles = StyleSheet.create({
     gap: 16,
   },
   loadingText: {
-    color: '#888',
+    color: SHARED_STYLE_COLORS.textMuted,
     fontSize: 16,
   },
   messageContainer: {
@@ -69,25 +70,25 @@ export const scriptChatStyles = StyleSheet.create({
     borderRadius: 16,
   },
   userBubble: {
-    backgroundColor: '#007AFF',
+    backgroundColor: SHARED_STYLE_COLORS.primary,
     borderBottomRightRadius: 4,
   },
   assistantBubble: {
-    backgroundColor: '#1a1a1a',
+    backgroundColor: SHARED_STYLE_COLORS.backgroundSecondary,
     borderBottomLeftRadius: 4,
     borderWidth: 1,
-    borderColor: '#333',
+    borderColor: SHARED_STYLE_COLORS.border,
   },
   messageText: {
     fontSize: 16,
     lineHeight: 22,
-    color: '#fff',
+    color: SHARED_STYLE_COLORS.text,
   },
   userText: {
-    color: '#fff',
+    color: SHARED_STYLE_COLORS.text,
   },
   assistantText: {
-    color: '#fff',
+    color: SHARED_STYLE_COLORS.text,
   },
   streamingIndicator: {
     flexDirection: 'row',
@@ -108,18 +109,18 @@ export const scriptChatStyles = StyleSheet.create({
   },
   timestamp: {
     fontSize: 11,
-    color: '#fff',
+    color: SHARED_STYLE_COLORS.text,
   },
   checkmark: {
     marginLeft: 4,
   },
   scriptPreview: {
-    backgroundColor: '#1a1a1a',
+    backgroundColor: SHARED_STYLE_COLORS.backgroundSecondary,
     borderRadius: 12,
     padding: 16,
     marginTop: 16,
     borderWidth: 1,
-    borderColor: '#333',
+    borderColor: SHARED_STYLE_COLORS.border,
   },
   scriptHeader: {
     flexDirection: 'row',
@@ -141,26 +142,26 @@ export const scriptChatStyles = StyleSheet.create({
   generateButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#007AFF',
+    backgroundColor: SHARED_STYLE_COLORS.primary,
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 16,
     gap: 4,
   },
   generateButtonText: {
-    color: '#fff',
+    color: SHARED_STYLE_COLORS.text,
     fontSize: 12,
     fontWeight: '600',
   },
   scriptContent: {
     fontSize: 15,
-    color: '#fff',
+    color: SHARED_STYLE_COLORS.text,
     lineHeight: 22,
     marginBottom: 8,
   },
   scriptMeta: {
     fontSize: 12,
-    color: '#888',
+    color: SHARED_STYLE_COLORS.textMuted,
     fontStyle: 'italic',
   },
   typingIndicator: {
@@ -178,7 +179,7 @@ export const scriptChatStyles = StyleSheet.create({
     width: 6,
     height: 6,
     borderRadius: 3,
-    backgroundColor: '#007AFF',
+    backgroundColor: SHARED_STYLE_COLORS.primary,
   },
   dot1: {
     opacity: 0.4,
@@ -191,7 +192,7 @@ export const scriptChatStyles = StyleSheet.create({
   },
   typingText: {
     fontSize: 12,
-    color: '#888',
+    color: SHARED_STYLE_COLORS.textMuted,
     fontStyle: 'italic',
   },
   inputContainer: {
@@ -205,28 +206,28 @@ export const scriptChatStyles = StyleSheet.create({
   },
   suggestionCard: {
     flex: 1,
-    backgroundColor: '#1a1a1a',
+    backgroundColor: SHARED_STYLE_COLORS.backgroundSecondary,
     borderRadius: 12,
     padding: 16,
     borderWidth: 1,
-    borderColor: '#333',
+    borderColor: SHARED_STYLE_COLORS.border,
   },
   suggestionTitle: {
-    color: '#fff',
+    color: SHARED_STYLE_COLORS.text,
     fontSize: 14,
     fontWeight: '600',
     marginBottom: 4,
   },
   suggestionSubtitle: {
-    color: '#888',
+    color: SHARED_STYLE_COLORS.textMuted,
     fontSize: 12,
     lineHeight: 16,
   },
   inputWrapper: {
-    backgroundColor: '#1a1a1a',
+    backgroundColor: SHARED_STYLE_COLORS.backgroundSecondary,
     borderRadius: 25,
     borderWidth: 1,
-    borderColor: '#333',
+    borderColor: SHARED_STYLE_COLORS.border,
     paddingLeft: 16,
     paddingRight: 8,
     paddingVertical: 4,
@@ -244,13 +245,13 @@ export const scriptChatStyles = StyleSheet.create({
     backgroundColor: 'transparent',
     paddingHorizontal: 16,
     paddingVertical: 12,
-    color: '#fff',
+    color: SHARED_STYLE_COLORS.text,
     fontSize: 16,
     maxHeight: 100,
     minHeight: 44,
   },
   sendButton: {
-    backgroundColor: '#007AFF',
+    backgroundColor: SHARED_STYLE_COLORS.primary,
     borderRadius: 20,
     width: 36,
     height: 36,
@@ -259,7 +260,7 @@ export const scriptChatStyles = StyleSheet.create({
     marginRight: 4,
   },
   sendButtonDisabled: {
-    backgroundColor: '#333',
+    backgroundColor: SHARED_STYLE_COLORS.backgroundTertiary,
   },
 
   scriptActionsRow: {
@@ -271,7 +272,7 @@ export const scriptChatStyles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: 'rgba(0, 122, 255, 0.1)',
+    backgroundColor: SHARED_STYLE_COLORS.primaryOverlay,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -279,7 +280,7 @@ export const scriptChatStyles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: '#1a1a1a',
+    backgroundColor: SHARED_STYLE_COLORS.backgroundSecondary,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -287,18 +288,18 @@ export const scriptChatStyles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: '#1a1a1a',
+    backgroundColor: SHARED_STYLE_COLORS.backgroundSecondary,
     justifyContent: 'center',
     alignItems: 'center',
     marginLeft: 8,
   },
   collapsibleScriptContainer: {
-    backgroundColor: '#181818',
+    backgroundColor: SHARED_STYLE_COLORS.backgroundSecondary,
     borderRadius: 10,
     margin: 12,
     marginBottom: 0,
     borderWidth: 1,
-    borderColor: '#333',
+    borderColor: SHARED_STYLE_COLORS.border,
     overflow: 'hidden',
   },
   collapsibleHeader: {
@@ -309,7 +310,7 @@ export const scriptChatStyles = StyleSheet.create({
     paddingVertical: 10,
   },
   collapsibleTitle: {
-    color: '#fff',
+    color: SHARED_STYLE_COLORS.text,
     fontSize: 15,
     fontWeight: '600',
     flex: 1,
@@ -319,13 +320,13 @@ export const scriptChatStyles = StyleSheet.create({
     paddingBottom: 10,
   },
   collapsibleScriptText: {
-    color: '#fff',
+    color: SHARED_STYLE_COLORS.text,
     fontSize: 15,
     lineHeight: 22,
     marginBottom: 4,
   },
   collapsibleMeta: {
-    color: '#888',
+    color: SHARED_STYLE_COLORS.textMuted,
     fontSize: 12,
     fontStyle: 'italic',
   },

@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Globe } from 'lucide-react-native';
 import { Language } from 'editia-core';
+import { SHARED_STYLE_COLORS } from '@/lib/constants/sharedStyles';
 
 export const SUPPORTED_LANGUAGES: { code: Language; name: string }[]   = [
   { code: 'fr', name: 'Français' },
@@ -76,20 +77,20 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     paddingHorizontal: 14,
     borderRadius: 16,
-    backgroundColor: '#1a1a1a',
+    backgroundColor: SHARED_STYLE_COLORS.backgroundSecondary,
     borderWidth: 1,
     borderColor: '#333',
   },
   selectedLanguage: {
-    backgroundColor: 'rgba(0, 122, 255, 0.1)',
-    borderColor: '#007AFF',
+    backgroundColor: SHARED_STYLE_COLORS.primaryOverlay,
+    borderColor: SHARED_STYLE_COLORS.primary,
   },
   languageText: {
     color: '#fff',
     fontSize: 14,
   },
   selectedLanguageText: {
-    color: '#007AFF',
+    color: SHARED_STYLE_COLORS.primary,
     fontWeight: '600',
   },
 });

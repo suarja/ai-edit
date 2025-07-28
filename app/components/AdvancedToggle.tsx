@@ -1,6 +1,7 @@
 import React from 'react';
 import { TouchableOpacity, Text, StyleSheet } from 'react-native';
 import { Settings } from 'lucide-react-native';
+import { SHARED_STYLE_COLORS } from '@/lib/constants/sharedStyles';
 
 type AdvancedToggleProps = {
   showAdvanced: boolean;
@@ -21,7 +22,7 @@ const AdvancedToggle: React.FC<AdvancedToggleProps> = ({
       ]}
       onPress={onToggle}
     >
-      <Settings size={16} color={hasIncompleteConfig ? '#FF9500' : '#007AFF'} />
+      <Settings size={16} color={hasIncompleteConfig ? SHARED_STYLE_COLORS.warning : SHARED_STYLE_COLORS.primary} />
       <Text
         style={[
           styles.advancedToggleText,
@@ -49,12 +50,12 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255, 149, 0, 0.1)',
   },
   advancedToggleText: {
-    color: '#007AFF',
+    color: SHARED_STYLE_COLORS.primary,
     fontSize: 15,
     fontWeight: '500',
   },
   advancedToggleTextWarning: {
-    color: '#FF9500',
+    color: SHARED_STYLE_COLORS.warning,
   },
 });
 

@@ -13,6 +13,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRevenueCat } from '@/contexts/providers/RevenueCat';
 import { usePaywall } from '@/components/hooks/usePaywall';
 import { paywallStyles } from '@/lib/utils/styles/paywall.styles';
+import { SHARED_STYLE_COLORS } from '@/lib/constants/sharedStyles';
 
 interface PaywallProps {
   visible: boolean;
@@ -74,7 +75,7 @@ export const Paywall: React.FC<PaywallProps> = ({
           >
             {loading ? (
               <View style={paywallStyles.loadingContainer}>
-                <ActivityIndicator size="large" color="#007AFF" />
+                <ActivityIndicator size="large" color={SHARED_STYLE_COLORS.primary} />
                 <Text style={paywallStyles.loadingText}>
                   Chargement des forfaits...
                 </Text>
@@ -84,7 +85,7 @@ export const Paywall: React.FC<PaywallProps> = ({
                 {/* Hero Section - Proposition de valeur claire */}
                 <View style={paywallStyles.heroSection}>
                   <View style={paywallStyles.iconContainer}>
-                    <Ionicons name="diamond" size={60} color="#007AFF" />
+                    <Ionicons name="diamond" size={60} color={SHARED_STYLE_COLORS.primary} />
                   </View>
                   <Text style={paywallStyles.title}>
                     Débloquez toutes les fonctionnalités
@@ -207,7 +208,7 @@ export const Paywall: React.FC<PaywallProps> = ({
                               <Ionicons
                                 name="checkmark-circle"
                                 size={20}
-                                color="#10b981"
+                                color={SHARED_STYLE_COLORS.success}
                                 style={paywallStyles.featureIcon}
                               />
                               <Text style={paywallStyles.featureText}>
@@ -235,7 +236,7 @@ export const Paywall: React.FC<PaywallProps> = ({
                               <Text style={paywallStyles.selectButtonText}>
                                 {isCurrentPlan
                                   ? 'Plan actuel'
-                                  : `S&apos;abonner à ${plan.title}`}
+                                  : `S'abonner à ${plan.title}`}
                               </Text>
                             )}
                           </TouchableOpacity>

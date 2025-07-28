@@ -11,6 +11,7 @@ import {
 } from 'lucide-react-native';
 import { VIDEO_PRESETS } from '@/lib/config/video-presets';
 import { CaptionConfiguration } from '@/lib/types/video.types';
+import { SHARED_STYLE_COLORS } from '@/lib/constants/sharedStyles';
 
 type ConfigurationCardsProps = {
   voiceConfigured: boolean;
@@ -53,7 +54,7 @@ const ConfigurationCards: React.FC<ConfigurationCardsProps> = ({
         onPress={navigateToVoice}
       >
         <View style={styles.configCardIcon}>
-          <Mic size={24} color={voiceConfigured ? '#4CD964' : '#FF9500'} />
+          <Mic size={24} color={voiceConfigured ? SHARED_STYLE_COLORS.success : SHARED_STYLE_COLORS.warning} />
         </View>
         <View style={styles.configCardContent}>
           <Text style={styles.configCardTitle}>Voix Personnalisée</Text>
@@ -65,9 +66,9 @@ const ConfigurationCards: React.FC<ConfigurationCardsProps> = ({
         </View>
         <View style={styles.configCardAction}>
           {voiceConfigured ? (
-            <CheckCircle2 size={20} color="#4CD964" />
+            <CheckCircle2 size={20} color={SHARED_STYLE_COLORS.success} />
           ) : (
-            <AlertCircle size={20} color="#FF9500" />
+            <AlertCircle size={20} color={SHARED_STYLE_COLORS.warning} />
           )}
           <ArrowRight size={16} color="#888" />
         </View>
@@ -82,7 +83,7 @@ const ConfigurationCards: React.FC<ConfigurationCardsProps> = ({
         onPress={navigateToEditorial}
       >
         <View style={styles.configCardIcon}>
-          <User size={24} color={editorialConfigured ? '#4CD964' : '#FF9500'} />
+          <User size={24} color={editorialConfigured ? SHARED_STYLE_COLORS.success : SHARED_STYLE_COLORS.warning} />
         </View>
         <View style={styles.configCardContent}>
           <Text style={styles.configCardTitle}>Profil Éditorial</Text>
@@ -94,9 +95,9 @@ const ConfigurationCards: React.FC<ConfigurationCardsProps> = ({
         </View>
         <View style={styles.configCardAction}>
           {editorialConfigured ? (
-            <CheckCircle2 size={20} color="#4CD964" />
+            <CheckCircle2 size={20} color={SHARED_STYLE_COLORS.success} />
           ) : (
-            <AlertCircle size={20} color="#FF9500" />
+            <AlertCircle size={20} color={SHARED_STYLE_COLORS.warning} />
           )}
           <ArrowRight size={16} color="#888" />
         </View>
@@ -113,7 +114,7 @@ const ConfigurationCards: React.FC<ConfigurationCardsProps> = ({
         <View style={styles.configCardIcon}>
           <MessageSquare
             size={24}
-            color={captionConfigured ? '#4CD964' : '#FF9500'}
+            color={captionConfigured ? SHARED_STYLE_COLORS.success : SHARED_STYLE_COLORS.warning}
           />
         </View>
         <View style={styles.configCardContent}>
@@ -129,9 +130,9 @@ const ConfigurationCards: React.FC<ConfigurationCardsProps> = ({
         </View>
         <View style={styles.configCardAction}>
           {captionConfigured ? (
-            <CheckCircle2 size={20} color="#4CD964" />
+            <CheckCircle2 size={20} color={SHARED_STYLE_COLORS.success} />
           ) : (
-            <AlertCircle size={20} color="#FF9500" />
+            <AlertCircle size={20} color={SHARED_STYLE_COLORS.warning} />
           )}
           <ArrowRight size={16} color="#888" />
         </View>
@@ -154,7 +155,7 @@ const styles = StyleSheet.create({
     lineHeight: 22,
   },
   configCard: {
-    backgroundColor: '#1a1a1a',
+    backgroundColor: SHARED_STYLE_COLORS.backgroundSecondary,
     borderRadius: 16,
     padding: 16,
     marginBottom: 12,
@@ -164,7 +165,7 @@ const styles = StyleSheet.create({
     borderColor: '#333',
   },
   configCardWarning: {
-    borderColor: '#FF9500',
+    borderColor: SHARED_STYLE_COLORS.warning,
     backgroundColor: 'rgba(26, 26, 26, 0.8)',
   },
   configCardIcon: {

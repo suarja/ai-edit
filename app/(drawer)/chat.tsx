@@ -32,6 +32,7 @@ import AnalysisHeader from '@/components/analysis/AnalysisHeader';
 import VoiceDictation from '@/components/VoiceDictation';
 import { markdownStyles } from '@/lib/utils/styles/accountChat.styles';
 import { scriptChatStyles } from '@/lib/utils/styles/scriptChat.styles';
+import { SHARED_STYLE_COLORS } from '@/lib/constants/sharedStyles';
 /**
  * 🎯 SCRIPT CHAT AVEC VRAIE API ET PROFIL ÉDITORIAL
  *
@@ -174,7 +175,7 @@ export default function ScriptChat() {
           {/* Indicateur de streaming */}
           {message.metadata?.isStreaming && (
             <View style={scriptChatStyles.streamingIndicator}>
-              <ActivityIndicator size="small" color="#007AFF" />
+              <ActivityIndicator size="small" color={SHARED_STYLE_COLORS.primary} />
             </View>
           )}
 
@@ -189,7 +190,7 @@ export default function ScriptChat() {
             {isUser && (
               <CheckCircle2
                 size={12}
-                color="#4CD964"
+                color={SHARED_STYLE_COLORS.success}
                 style={scriptChatStyles.checkmark}
               />
             )}
@@ -217,7 +218,7 @@ export default function ScriptChat() {
       >
         <View
           style={{
-            backgroundColor: '#181818',
+            backgroundColor: SHARED_STYLE_COLORS.backgroundSecondary,
             borderRadius: 12,
             padding: 20,
             width: '90%',
@@ -251,7 +252,7 @@ export default function ScriptChat() {
             maxLength={5000}
           />
           {modifyScriptError && (
-            <Text style={{ color: '#ff5555', marginBottom: 8 }}>
+            <Text style={{ color: SHARED_STYLE_COLORS.error, marginBottom: 8 }}>
               {modifyScriptError}
             </Text>
           )}
@@ -273,7 +274,7 @@ export default function ScriptChat() {
               onPress={handleSaveEdit}
               disabled={isModifyingScript || editedScript.trim().length === 0}
               style={{
-                backgroundColor: '#007AFF',
+                backgroundColor: SHARED_STYLE_COLORS.primary,
                 borderRadius: 8,
                 paddingVertical: 8,
                 paddingHorizontal: 16,
@@ -327,7 +328,7 @@ export default function ScriptChat() {
         {/* Error display */}
         {error && (
           <View style={scriptChatStyles.errorContainer}>
-            <AlertCircle size={16} color="#ff5555" />
+            <AlertCircle size={16} color={SHARED_STYLE_COLORS.error} />
             <Text style={scriptChatStyles.errorText}>{error}</Text>
             <TouchableOpacity
               onPress={clearError}
@@ -345,7 +346,7 @@ export default function ScriptChat() {
         >
           {isLoading && messages.length === 0 ? (
             <View style={scriptChatStyles.loadingContainer}>
-              <ActivityIndicator size="large" color="#007AFF" />
+              <ActivityIndicator size="large" color={SHARED_STYLE_COLORS.primary} />
               <Text style={scriptChatStyles.loadingText}>
                 Chargement du script...
               </Text>
@@ -415,7 +416,7 @@ export default function ScriptChat() {
                       maxLength={5000}
                     />
                     {modifyScriptError && (
-                      <Text style={{ color: '#ff5555', marginBottom: 8 }}>
+                      <Text style={{ color: SHARED_STYLE_COLORS.error, marginBottom: 8 }}>
                         {modifyScriptError}
                       </Text>
                     )}
@@ -437,7 +438,7 @@ export default function ScriptChat() {
                           isModifyingScript || editedScript.trim().length === 0
                         }
                         style={{
-                          backgroundColor: '#007AFF',
+                          backgroundColor: SHARED_STYLE_COLORS.primary,
                           borderRadius: 8,
                           paddingVertical: 8,
                           paddingHorizontal: 16,

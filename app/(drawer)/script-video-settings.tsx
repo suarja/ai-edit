@@ -28,6 +28,7 @@ import LanguageSelector from '@/app/components/LanguageSelector';
 import { DiscreteUsageDisplay } from '@/components/DiscreteUsageDisplay';
 import AnalysisHeader from '@/components/analysis/AnalysisHeader';
 import { ScriptService } from '@/lib/services/scriptService';
+import { SHARED_STYLE_COLORS } from '@/lib/constants/sharedStyles';
 
 export default function ScriptVideoSettingsScreen() {
   // Get script parameters from navigation
@@ -132,7 +133,7 @@ export default function ScriptVideoSettingsScreen() {
     return (
       <SafeAreaView style={styles.container} edges={[]}>
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#007AFF" />
+          <ActivityIndicator size="large" color={SHARED_STYLE_COLORS.primary} />
           <Text style={styles.loadingText}>Chargement...</Text>
         </View>
       </SafeAreaView>
@@ -214,7 +215,7 @@ export default function ScriptVideoSettingsScreen() {
           <RefreshControl
             refreshing={videoRequest.refreshing}
             onRefresh={handleRefresh}
-            tintColor="#007AFF"
+            tintColor={SHARED_STYLE_COLORS.primary}
           />
         }
       >
@@ -233,9 +234,9 @@ export default function ScriptVideoSettingsScreen() {
           <View style={styles.scriptPreviewHeader}>
             <Text style={styles.scriptPreviewTitle}>📝 Script à Générer</Text>
             {isScriptExpanded ? (
-              <ChevronUp size={20} color="#007AFF" />
+              <ChevronUp size={20} color={SHARED_STYLE_COLORS.primary} />
             ) : (
-              <ChevronDown size={20} color="#007AFF" />
+              <ChevronDown size={20} color={SHARED_STYLE_COLORS.primary} />
             )}
           </View>
 
@@ -349,7 +350,7 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   scriptPreview: {
-    backgroundColor: '#1a1a1a',
+    backgroundColor: SHARED_STYLE_COLORS.backgroundSecondary,
     borderRadius: 16,
     padding: 16,
     marginBottom: 20,
@@ -365,7 +366,7 @@ const styles = StyleSheet.create({
   scriptPreviewTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#007AFF',
+    color: SHARED_STYLE_COLORS.primary,
   },
   scriptPreviewText: {
     fontSize: 14,
@@ -393,15 +394,15 @@ const styles = StyleSheet.create({
     gap: 16,
   },
   quotaWarning: {
-    backgroundColor: 'rgba(255, 59, 48, 0.08)',
+    backgroundColor: SHARED_STYLE_COLORS.primaryOverlay,
     borderWidth: 1,
-    borderColor: 'rgba(255, 59, 48, 0.2)',
+    borderColor: SHARED_STYLE_COLORS.primaryBorder,
     borderRadius: 10,
     padding: 12,
     marginVertical: 6,
   },
   quotaWarningText: {
-    color: '#FF3B30',
+    color: SHARED_STYLE_COLORS.error,
     fontSize: 13,
     textAlign: 'center',
     fontWeight: '500',
@@ -415,7 +416,7 @@ const styles = StyleSheet.create({
     marginVertical: 6,
   },
   conditionsWarningText: {
-    color: '#FF9500',
+    color: SHARED_STYLE_COLORS.warning,
     fontSize: 13,
     textAlign: 'center',
     fontWeight: '500',

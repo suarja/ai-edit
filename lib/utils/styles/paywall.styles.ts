@@ -1,13 +1,14 @@
 import { StyleSheet } from 'react-native';
+import { SHARED_STYLE_COLORS } from '@/lib/constants/sharedStyles';
 
 export const paywallStyles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#000',
+    backgroundColor: SHARED_STYLE_COLORS.background,
   },
   background: {
     flex: 1,
-    backgroundColor: '#000',
+    backgroundColor: SHARED_STYLE_COLORS.background,
     paddingTop: 0,
   },
   header: {
@@ -32,7 +33,7 @@ export const paywallStyles = StyleSheet.create({
     alignItems: 'center',
   },
   loadingText: {
-    color: '#fff',
+    color: SHARED_STYLE_COLORS.text,
     fontSize: 16,
     marginTop: 16,
   },
@@ -46,13 +47,13 @@ export const paywallStyles = StyleSheet.create({
   title: {
     fontSize: 28,
     fontWeight: 'bold',
-    color: '#fff',
+    color: SHARED_STYLE_COLORS.text,
     textAlign: 'center',
     marginBottom: 8,
   },
   subtitle: {
     fontSize: 16,
-    color: '#888',
+    color: SHARED_STYLE_COLORS.textMuted,
     textAlign: 'center',
     lineHeight: 22,
   },
@@ -62,13 +63,13 @@ export const paywallStyles = StyleSheet.create({
   billingLabel: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#fff',
+    color: SHARED_STYLE_COLORS.text,
     textAlign: 'center',
     marginBottom: 12,
   },
   billingToggle: {
     flexDirection: 'row',
-    backgroundColor: '#1a1a1a',
+    backgroundColor: SHARED_STYLE_COLORS.backgroundSecondary,
     borderRadius: 12,
     padding: 4,
   },
@@ -81,21 +82,21 @@ export const paywallStyles = StyleSheet.create({
     position: 'relative',
   },
   toggleOptionActive: {
-    backgroundColor: '#007AFF',
+    backgroundColor: SHARED_STYLE_COLORS.primary,
   },
   toggleText: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#888',
+    color: SHARED_STYLE_COLORS.textMuted,
   },
   toggleTextActive: {
-    color: '#fff',
+    color: SHARED_STYLE_COLORS.text,
   },
   savingsBadge: {
     position: 'absolute',
     top: -8,
     right: -8,
-    backgroundColor: '#10b981',
+    backgroundColor: SHARED_STYLE_COLORS.accent,
     borderRadius: 10,
     paddingHorizontal: 6,
     paddingVertical: 2,
@@ -103,35 +104,35 @@ export const paywallStyles = StyleSheet.create({
   savingsText: {
     fontSize: 10,
     fontWeight: 'bold',
-    color: 'white',
+    color: SHARED_STYLE_COLORS.backgroundSecondary,
   },
   plansContainer: {
     marginBottom: 30,
   },
   planCard: {
-    backgroundColor: '#1a1a1a',
+    backgroundColor: SHARED_STYLE_COLORS.backgroundSecondary,
     borderRadius: 16,
     padding: 20,
     marginBottom: 16,
     position: 'relative',
     borderWidth: 1,
-    borderColor: '#333',
+    borderColor: SHARED_STYLE_COLORS.border,
   },
   featuredPlan: {
-    backgroundColor: '#1a1a1a',
+    backgroundColor: SHARED_STYLE_COLORS.backgroundSecondary,
     borderWidth: 2,
-    borderColor: '#007AFF',
+    borderColor: SHARED_STYLE_COLORS.primary,
   },
   currentPlan: {
-    backgroundColor: 'rgba(0, 122, 255, 0.1)',
+    backgroundColor: SHARED_STYLE_COLORS.primaryOverlay,
     borderWidth: 2,
-    borderColor: '#007AFF',
+    borderColor: SHARED_STYLE_COLORS.primary,
   },
   featuredBadge: {
     position: 'absolute',
     top: -12,
     left: 20,
-    backgroundColor: '#007AFF',
+    backgroundColor: SHARED_STYLE_COLORS.primary,
     borderRadius: 12,
     paddingHorizontal: 12,
     paddingVertical: 4,
@@ -139,13 +140,13 @@ export const paywallStyles = StyleSheet.create({
   featuredText: {
     fontSize: 12,
     fontWeight: 'bold',
-    color: 'white',
+    color: SHARED_STYLE_COLORS.text,
   },
   currentPlanBadge: {
     position: 'absolute',
     top: -12,
     right: 20,
-    backgroundColor: '#10b981',
+    backgroundColor: SHARED_STYLE_COLORS.accent,
     borderRadius: 12,
     paddingHorizontal: 12,
     paddingVertical: 4,
@@ -153,18 +154,18 @@ export const paywallStyles = StyleSheet.create({
   currentPlanText: {
     fontSize: 12,
     fontWeight: 'bold',
-    color: 'white',
+    color: SHARED_STYLE_COLORS.backgroundSecondary,
   },
   planTitle: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#fff',
+    color: SHARED_STYLE_COLORS.text,
     marginBottom: 8,
   },
   planPrice: {
     fontSize: 32,
     fontWeight: 'bold',
-    color: '#fff',
+    color: SHARED_STYLE_COLORS.text,
     marginBottom: 4,
   },
   priceContainer: {
@@ -172,12 +173,12 @@ export const paywallStyles = StyleSheet.create({
   },
   periodText: {
     fontSize: 14,
-    color: '#888',
+    color: SHARED_STYLE_COLORS.textMuted,
     marginBottom: 4,
   },
   pricePerMonth: {
     fontSize: 12,
-    color: '#888',
+    color: SHARED_STYLE_COLORS.textMuted,
     fontStyle: 'italic',
   },
   featuresList: {
@@ -194,35 +195,35 @@ export const paywallStyles = StyleSheet.create({
   featureText: {
     flex: 1,
     fontSize: 16,
-    color: '#fff',
+    color: SHARED_STYLE_COLORS.text,
     lineHeight: 22,
   },
   selectButton: {
-    backgroundColor: '#007AFF',
+    backgroundColor: SHARED_STYLE_COLORS.primary,
     borderRadius: 12,
     paddingVertical: 16,
     alignItems: 'center',
   },
   currentPlanButton: {
-    backgroundColor: 'rgba(0, 122, 255, 0.3)',
+    backgroundColor: SHARED_STYLE_COLORS.primaryOverlay,
   },
   selectButtonText: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#fff',
+    color: SHARED_STYLE_COLORS.text,
   },
   freeButton: {
-    backgroundColor: '#1a1a1a',
+    backgroundColor: SHARED_STYLE_COLORS.backgroundSecondary,
     borderRadius: 12,
     paddingVertical: 16,
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#333',
+    borderColor: SHARED_STYLE_COLORS.border,
   },
   freeButtonText: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#fff',
+    color: SHARED_STYLE_COLORS.text,
   },
   restoreButton: {
     alignItems: 'center',
@@ -231,12 +232,12 @@ export const paywallStyles = StyleSheet.create({
   },
   restoreButtonText: {
     fontSize: 16,
-    color: '#888',
+    color: SHARED_STYLE_COLORS.textMuted,
     textDecorationLine: 'underline',
   },
   termsText: {
     fontSize: 12,
-    color: '#666',
+    color: SHARED_STYLE_COLORS.textMuted,
     textAlign: 'center',
     lineHeight: 16,
     marginBottom: 20,
@@ -254,12 +255,12 @@ export const paywallStyles = StyleSheet.create({
   },
   policyLinkText: {
     fontSize: 12,
-    color: '#007AFF',
+    color: SHARED_STYLE_COLORS.primary,
     textDecorationLine: 'underline',
   },
   policySeparator: {
     fontSize: 12,
-    color: '#888',
+    color: SHARED_STYLE_COLORS.textMuted,
     marginHorizontal: 8,
   },
 }); 

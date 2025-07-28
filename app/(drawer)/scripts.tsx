@@ -14,6 +14,7 @@ import {
   Plus,
   FileText,
 } from 'lucide-react-native';
+import { SHARED_STYLE_COLORS } from '@/lib/constants/sharedStyles';
 
 // Hooks
 import { useScriptList } from '@/app/hooks/useScriptChat';
@@ -71,7 +72,7 @@ export default function ScriptsScreen() {
     return (
       <SafeAreaView style={styles.container} edges={[]}>
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#007AFF" />
+          <ActivityIndicator size="large" color={SHARED_STYLE_COLORS.primary} />
           <Text style={styles.loadingText}>Chargement des scripts...</Text>
         </View>
       </SafeAreaView>
@@ -88,7 +89,7 @@ export default function ScriptsScreen() {
           <RefreshControl
             refreshing={isLoading}
             onRefresh={() => loadScripts()}
-            tintColor="#007AFF"
+            tintColor={SHARED_STYLE_COLORS.primary}
           />
         }
       >
@@ -110,7 +111,7 @@ export default function ScriptsScreen() {
               style={styles.emptyButton}
               onPress={handleCreateNewScript}
             >
-              <Plus size={20} color="#007AFF" />
+              <Plus size={20} color={SHARED_STYLE_COLORS.primary} />
               <Text style={styles.emptyButtonText}>Créer un script</Text>
             </TouchableOpacity>
           </View>
@@ -185,7 +186,7 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   createButton: {
-    backgroundColor: '#007AFF',
+    backgroundColor: SHARED_STYLE_COLORS.primary,
     borderRadius: 12,
     width: 48,
     height: 48,
@@ -207,15 +208,15 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   errorContainer: {
-    backgroundColor: 'rgba(255, 59, 48, 0.1)',
+    backgroundColor: SHARED_STYLE_COLORS.primaryOverlay,
     borderWidth: 1,
-    borderColor: 'rgba(255, 59, 48, 0.3)',
+    borderColor: SHARED_STYLE_COLORS.primaryBorder,
     borderRadius: 12,
     padding: 16,
     marginBottom: 16,
   },
   errorText: {
-    color: '#FF3B30',
+    color: SHARED_STYLE_COLORS.error,
     fontSize: 14,
     textAlign: 'center',
   },
@@ -241,16 +242,16 @@ const styles = StyleSheet.create({
   emptyButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(0, 122, 255, 0.1)',
+    backgroundColor: SHARED_STYLE_COLORS.primaryOverlay,
     borderWidth: 1,
-    borderColor: '#007AFF',
+    borderColor: SHARED_STYLE_COLORS.primary,
     borderRadius: 12,
     paddingHorizontal: 20,
     paddingVertical: 12,
     gap: 8,
   },
   emptyButtonText: {
-    color: '#007AFF',
+    color: SHARED_STYLE_COLORS.primary,
     fontSize: 16,
     fontWeight: '600',
   },
@@ -258,7 +259,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     bottom: 30,
     right: 20,
-    backgroundColor: '#007AFF',
+    backgroundColor: SHARED_STYLE_COLORS.primary,
     width: 56,
     height: 56,
     borderRadius: 28,
