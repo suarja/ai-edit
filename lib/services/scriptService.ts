@@ -1,5 +1,6 @@
 import { PlanIdentifier, UserUsage } from "editia-core";
 import { VideoType } from "../types/video.types";
+import { VIDEO_DURATION_FACTOR } from "../constants/video";
 
 
 export class ScriptService {
@@ -34,7 +35,7 @@ export class ScriptService {
 
     static calculateScriptDuration(script: string) {
         const words = script.split(/\s+/).length;
-        const   estimatedDuration= Math.round(words * 0.7) 
+        const   estimatedDuration= Math.round(words * VIDEO_DURATION_FACTOR) 
         return {
             wordCount: words,
             estimatedDuration

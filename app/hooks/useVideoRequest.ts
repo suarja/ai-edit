@@ -213,7 +213,7 @@ export default function useVideoRequest() {
     };
     const validationResult = VideoValidationService.validateRequest(validationPayload);
     if (!validationResult.success) {
-      console.log('validationResult', validationResult);
+      console.log('validationResult', validationResult.details);
       throw new Error(validationResult.details.message);
     }
 
@@ -315,29 +315,31 @@ export default function useVideoRequest() {
         outputLanguage: outputLanguage,
       };
 
+      console.log('voiceClone', voiceClone, 'requestPayload.voiceId', requestPayload.voiceId);
+
       // Get Clerk token for API authentication
       const clerkToken = await getToken();
       if (!clerkToken) {
         throw new Error('No authentication token available');
       }
       console.log('about to send request');
-      const response = await fetch(
-        API_ENDPOINTS.SCRIPT_GENERATE_VIDEO(scriptId!),
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${clerkToken}`,
-          },
-          body: JSON.stringify(requestPayload),
-        }
-      );
+      // const response = await fetch(
+      //   API_ENDPOINTS.SCRIPT_GENERATE_VIDEO(scriptId!),
+      //   {
+      //     method: 'POST',
+      //     headers: {
+      //       'Content-Type': 'application/json',
+      //       Authorization: `Bearer ${clerkToken}`,
+      //     },
+      //     body: JSON.stringify(requestPayload),
+      //   }
+      // );
 
-      const result = await response.json();
-      console.log('result', result);
-      if (!response.ok) {
-        throw new Error('Erreur lors de la génération de la vidéo.');
-      }
+      // const result = await response.json();
+      // console.log('result', result);
+      // if (!response.ok) {
+      //   throw new Error('Erreur lors de la génération de la vidéo.');
+      // }
 
       // // Reset form after successful submission
       // handleReset();

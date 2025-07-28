@@ -1,5 +1,6 @@
 import OpenAI from 'openai';
 import { createOpenAIClient, MODEL } from '../config/openai';
+import { VIDEO_DURATION_FACTOR } from '../constants/video';
 
 export class ScriptGenerator {
   private openai: OpenAI;
@@ -130,7 +131,7 @@ Return only the final script without any additional context or formatting.`,
 
         // Validate script length
         const wordCount = script.split(/\s+/).length;
-        const estimatedDuration = wordCount * 0.4; // Rough estimate: 0.4 seconds per word
+        const estimatedDuration = wordCount * VIDEO_DURATION_FACTOR; 
 
         if (estimatedDuration < 30 || estimatedDuration > 60) {
           console.warn(

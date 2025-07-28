@@ -209,8 +209,7 @@ export default function ScriptActionsModal({
 
   const isValidated = script.status === 'validated';
   const hasScript = script.current_script?.trim().length > 0;
-  const videosLeft = !!videosRemaining;
-  const videoWithWatermark = currentPlan === 'free' ? true : false;
+
 
   return (
     <Modal

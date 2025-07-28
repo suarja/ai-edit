@@ -85,7 +85,7 @@ export default function VideoSelectionCard({
           </View>
         )}
 
-        {video.duration_seconds > 0 && (
+        {video.duration_seconds && video.duration_seconds > 0 && (
           <View style={styles.durationBadge}>
             <Text style={styles.durationBadgeText}>
               {formatDuration(video.duration_seconds)}
@@ -103,7 +103,7 @@ export default function VideoSelectionCard({
           <View style={styles.metaItem}>
             <Clock size={12} color="#888" />
             <Text style={styles.metaText}>
-              {formatDuration(video.duration_seconds)}
+              {formatDuration(video.duration_seconds || 0)}
             </Text>
           </View>
 

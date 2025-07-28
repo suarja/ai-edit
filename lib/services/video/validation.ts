@@ -13,6 +13,7 @@ import {
   isValidEditorialProfile,
   isValidVideo,
 } from '@/lib/types/video.types';
+import { VideoTypeSchema } from 'editia-core';
 
 // Error codes for validation failures
 export type ValidationErrorCode =
@@ -208,11 +209,17 @@ export class VideoValidationService {
       // Validate each video
       for (let i = 0; i < payload.selectedVideos.length; i++) {
         const video = payload.selectedVideos[i];
-        if (!isValidVideo(video)) {
+        const videoValidation = VideoTypeSchema.omit({
+    
+          analysis_status: true,
+        }).safeParse(video);
+        if (!videoValidation.success) {
+          console.log('video', video);
+          console.log('videoValidation', videoValidation.error.errors);
           return this.createValidationFailure(
             'INVALID_VIDEO',
             `selectedVideos[${i}]`,
-            `Video at index ${i} is invalid`
+            videoValidation.error.errors.map((error) => error.message).join(', ')
           );
         }
       }
