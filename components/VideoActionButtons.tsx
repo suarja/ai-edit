@@ -23,7 +23,7 @@ import * as FileSystem from 'expo-file-system';
 import * as Sharing from 'expo-sharing';
 import * as MediaLibrary from 'expo-media-library';
 import { AnyVideoType, getVideoUrl } from '@/lib/types/video.types';
-import { SHARED_STYLE_COLORS } from '@/lib/constants/sharedStyles';
+import { SHARED_STYLE_COLORS, sharedStyles } from '@/lib/constants/sharedStyles';
 
 interface VideoActionButtonsProps {
   video: AnyVideoType | null;
@@ -212,7 +212,7 @@ export default function VideoActionButtons({
           style={[styles.primaryButton, styles.downloadingButton]}
           disabled
         >
-          <Loader size={20} color="#fff" />
+          <Loader size={18} color={SHARED_STYLE_COLORS.text} />
           <Text style={styles.primaryButtonText}>
             {downloadProgress > 0
               ? `Téléchargement ${downloadProgress}%`
@@ -224,7 +224,7 @@ export default function VideoActionButtons({
 
     return (
       <TouchableOpacity style={styles.primaryButton} onPress={handleDownload}>
-        <Download size={20} color="#fff" />
+        <Download size={18} color={SHARED_STYLE_COLORS.text} />
         <Text style={styles.primaryButtonText}>Télécharger</Text>
       </TouchableOpacity>
     );
@@ -237,7 +237,7 @@ export default function VideoActionButtons({
           style={[styles.secondaryButton, styles.sharingButton]}
           disabled
         >
-          <Loader size={20} color={SHARED_STYLE_COLORS.primary} />
+          <Loader size={18} color={SHARED_STYLE_COLORS.textSecondary} />
           <Text style={styles.secondaryButtonText}>Partage...</Text>
         </TouchableOpacity>
       );
@@ -245,7 +245,7 @@ export default function VideoActionButtons({
 
     return (
       <TouchableOpacity style={styles.secondaryButton} onPress={handleShare}>
-        <ShareIcon size={20} color={SHARED_STYLE_COLORS.primary} />
+        <ShareIcon size={18} color={SHARED_STYLE_COLORS.textSecondary} />
         <Text style={styles.secondaryButtonText}>Partager</Text>
       </TouchableOpacity>
     );
@@ -264,21 +264,21 @@ export default function VideoActionButtons({
           style={styles.secondaryButton}
           onPress={handleCopyLink}
         >
-          <ExternalLink size={20} color={SHARED_STYLE_COLORS.primary} />
+          <ExternalLink size={18} color={SHARED_STYLE_COLORS.textSecondary} />
           <Text style={styles.secondaryButtonText}>Copier le lien</Text>
         </TouchableOpacity>
       )}
 
       {showEdit && onEdit && (
         <TouchableOpacity style={styles.secondaryButton} onPress={onEdit}>
-          <Edit3 size={20} color={SHARED_STYLE_COLORS.primary} />
+          <Edit3 size={18} color={SHARED_STYLE_COLORS.textSecondary} />
           <Text style={styles.secondaryButtonText}>Modifier</Text>
         </TouchableOpacity>
       )}
 
       {showDelete && onDelete && (
         <TouchableOpacity style={styles.dangerButton} onPress={onDelete}>
-          <Trash size={20} color="#fff" />
+          <Trash size={18} color={SHARED_STYLE_COLORS.error} />
           <Text style={styles.dangerButtonText}>Supprimer</Text>
         </TouchableOpacity>
       )}
@@ -289,66 +289,80 @@ export default function VideoActionButtons({
 const styles = StyleSheet.create({
   rowContainer: {
     flexDirection: 'row',
-    justifyContent: 'space-around',
+    justifyContent: 'center',
     alignItems: 'center',
     flexWrap: 'wrap',
-    gap: 10,
-    paddingHorizontal: 16,
+    gap: 8,
+    paddingHorizontal: 20,
+    paddingVertical: 16,
   },
   columnContainer: {
     padding: 20,
     gap: 12,
   },
+  // Subtle primary button (download)
   primaryButton: {
-    backgroundColor: SHARED_STYLE_COLORS.primary,
+    backgroundColor: SHARED_STYLE_COLORS.backgroundSecondary,
+    borderWidth: 1,
+    borderColor: SHARED_STYLE_COLORS.border,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    padding: 16,
-    borderRadius: 12,
-    gap: 8,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    borderRadius: 8,
+    gap: 6,
+    minWidth: 100,
   },
   primaryButtonText: {
     color: SHARED_STYLE_COLORS.text,
-    fontSize: 16,
-    fontWeight: '600',
+    fontSize: 14,
+    fontWeight: '500',
   },
   downloadingButton: {
-    backgroundColor: SHARED_STYLE_COLORS.secondary,
-    opacity: 0.8,
+    backgroundColor: SHARED_STYLE_COLORS.backgroundTertiary,
+    borderColor: SHARED_STYLE_COLORS.secondary,
   },
+  // Subtle secondary buttons
   secondaryButton: {
-    backgroundColor: 'transparent',
+    backgroundColor: SHARED_STYLE_COLORS.backgroundSecondary,
     borderWidth: 1,
-    borderColor: SHARED_STYLE_COLORS.primary,
+    borderColor: SHARED_STYLE_COLORS.border,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    padding: 16,
-    borderRadius: 12,
-    gap: 8,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    borderRadius: 8,
+    gap: 6,
+    minWidth: 100,
   },
   secondaryButtonText: {
-    color: SHARED_STYLE_COLORS.primary,
-    fontSize: 16,
-    fontWeight: '600',
+    color: SHARED_STYLE_COLORS.textSecondary,
+    fontSize: 14,
+    fontWeight: '500',
   },
   sharingButton: {
+    backgroundColor: SHARED_STYLE_COLORS.backgroundTertiary,
     borderColor: SHARED_STYLE_COLORS.secondary,
-    opacity: 0.8,
   },
+  // Subtle danger button
   dangerButton: {
-    backgroundColor: SHARED_STYLE_COLORS.error,
+    backgroundColor: SHARED_STYLE_COLORS.backgroundSecondary,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 59, 48, 0.3)',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    padding: 16,
-    borderRadius: 12,
-    gap: 8,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    borderRadius: 8,
+    gap: 6,
+    minWidth: 100,
   },
   dangerButtonText: {
-    color: SHARED_STYLE_COLORS.text,
-    fontSize: 16,
-    fontWeight: '600',
+    color: SHARED_STYLE_COLORS.error,
+    fontSize: 14,
+    fontWeight: '500',
   },
 });

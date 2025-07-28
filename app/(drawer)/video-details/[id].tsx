@@ -5,6 +5,7 @@ import {
   ScrollView,
   ActivityIndicator,
   Alert,
+  Text,
 } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -14,17 +15,11 @@ import { API_ENDPOINTS, API_HEADERS } from '@/lib/config/api';
 import { useAuth } from '@clerk/clerk-expo';
 
 import VideoPlayer from '@/components/VideoPlayer';
-import VideoDetailHeader from '@/components/VideoDetailHeader';
 import VideoDetails from '@/components/VideoDetails';
 import VideoActionButtons from '@/components/VideoActionButtons';
 import VideoEditForm from '@/components/VideoEditForm';
-import {
-  EnhancedGeneratedVideoType,
-  IUploadedVideo,
-  UserId,
-  VideoId,
-  VideoType,
-} from '@/lib/types/video.types';
+import AnalysisHeader from '@/components/analysis/AnalysisHeader';
+import { UserId, VideoId, VideoType } from '@/lib/types/video.types';
 import { SHARED_STYLE_COLORS } from '@/lib/constants/sharedStyles';
 
 export default function UploadedVideoDetailScreen() {
@@ -200,9 +195,14 @@ export default function UploadedVideoDetailScreen() {
   if (loading) {
     return (
       <SafeAreaView style={styles.container} edges={['top']}>
-        <VideoDetailHeader title="Video Details" />
+        <AnalysisHeader
+          title="Détails de la vidéo"
+          showBackButton
+          onBack={() => router.back()}
+        />
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={SHARED_STYLE_COLORS.primary} />
+          <Text style={styles.loadingText}>Chargement des détails...</Text>
         </View>
       </SafeAreaView>
     );
@@ -211,7 +211,11 @@ export default function UploadedVideoDetailScreen() {
   if (isEditing && video) {
     return (
       <SafeAreaView style={styles.container} edges={['top']}>
-        <VideoDetailHeader title="Edit Video" />
+        <AnalysisHeader
+          title="Modifier la vidéo"
+          showBackButton
+          onBack={handleCancelEdit}
+        />
         <VideoEditForm
           video={video}
           onSave={handleSave}
@@ -223,21 +227,31 @@ export default function UploadedVideoDetailScreen() {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      <VideoDetailHeader title="Video Details" />
+      <AnalysisHeader
+        title="Détails de la vidéo"
+        showBackButton
+        onBack={() => router.back()}
+      />
 
-      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        <VideoPlayer video={video} />
-        <VideoDetails video={video} error={error} />
+      <ScrollView
+        style={styles.scrollContainer}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
+        <View style={styles.content}>
+          <VideoPlayer video={video} />
+          <VideoDetails video={video} error={error} />
 
-        <VideoActionButtons
-          video={video}
-          layout="column"
-          showEdit={true}
-          showDelete={true}
-          showCopyLink={false}
-          onEdit={handleEdit}
-          onDelete={handleDelete}
-        />
+          <VideoActionButtons
+            video={video}
+            layout="row"
+            showEdit={true}
+            showDelete={true}
+            showCopyLink={true}
+            onEdit={handleEdit}
+            onDelete={handleDelete}
+          />
+        </View>
       </ScrollView>
     </SafeAreaView>
   );
@@ -246,15 +260,28 @@ export default function UploadedVideoDetailScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#000',
+    backgroundColor: SHARED_STYLE_COLORS.background,
+  },
+  scrollContainer: {
+    flex: 1,
+  },
+  scrollContent: {
+    flexGrow: 1,
+    paddingBottom: 20,
   },
   content: {
     flex: 1,
+    gap: 20,
   },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    gap: 16,
+  },
+  loadingText: {
+    color: SHARED_STYLE_COLORS.textMuted,
+    fontSize: 16,
   },
   editFormScroll: {
     flex: 1,
@@ -264,70 +291,6 @@ const styles = StyleSheet.create({
     padding: 20,
     gap: 20,
   },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#fff',
-    marginBottom: 8,
-  },
-  inputGroup: {
-    gap: 8,
-  },
-  inputLabel: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '500',
-  },
-  input: {
-    backgroundColor: '#1a1a1a',
-    borderRadius: 12,
-    padding: 16,
-    color: '#fff',
-    fontSize: 16,
-    borderWidth: 1,
-    borderColor: '#333',
-  },
-  textArea: {
-    backgroundColor: '#1a1a1a',
-    borderRadius: 12,
-    padding: 16,
-    color: '#fff',
-    fontSize: 16,
-    borderWidth: 1,
-    borderColor: '#333',
-    textAlignVertical: 'top',
-    minHeight: 100,
-  },
-  editActions: {
-    flexDirection: 'row',
-    justifyContent: 'flex-end',
-    gap: 12,
-    marginTop: 20,
-  },
-  cancelButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 12,
-    gap: 6,
-  },
-  cancelButtonText: {
-    color: '#888',
-    fontSize: 14,
-  },
-  saveButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: SHARED_STYLE_COLORS.primary,
-    padding: 12,
-    borderRadius: 8,
-    gap: 6,
-  },
-  saveButtonText: {
-    color: '#fff',
-    fontSize: 14,
-    fontWeight: '600',
-  },
-  buttonDisabled: {
-    opacity: 0.5,
-  },
+  // Remove unused styles since we're using VideoEditForm component
+  // which has its own styles
 });

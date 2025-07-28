@@ -350,7 +350,7 @@ export function useSourceVideos(): UseSourceVideos {
   const handleVideoPress = (video: VideoTypeWithAnalysis) => {
     clearError();
     setPlayingVideoId(null);
-    router.push(`/video-details/${video.id}`);
+    router.push(`/(drawer)/video-details/${video.id}`);
   };
 
   const handlePlayToggle = (videoId: string) => {

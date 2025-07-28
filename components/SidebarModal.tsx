@@ -115,20 +115,20 @@ export default function SidebarModal({ visible, onClose }: SidebarModalProps) {
         },
       ],
     },
-    {
-      id: 'legacy',
-      name: 'Autres Actions',
-      icon: Plus,
-      isExpanded: false,
-      items: [
-        {
-          id: 'create-video-legacy',
-          name: 'Créer une vidéo (Legacy)',
-          route: '/request-video',
-          description: 'Ancienne interface de création',
-        },
-      ],
-    },
+    // {
+    //   id: 'legacy',
+    //   name: 'Autres Actions',
+    //   icon: Plus,
+    //   isExpanded: false,
+    //   items: [
+    //     {
+    //       id: 'create-video-legacy',
+    //       name: 'Créer une vidéo (Legacy)',
+    //       route: '/request-video',
+    //       description: 'Ancienne interface de création',
+    //     },
+    //   ],
+    // },
   ]);
 
   const [standaloneItems] = useState([]);
@@ -223,7 +223,12 @@ export default function SidebarModal({ visible, onClose }: SidebarModalProps) {
           <View style={styles.folderItemIcon}>
             <Plus size={16} color={SHARED_STYLE_COLORS.primary} />
           </View>
-          <Text style={[styles.addButtonText, { color: SHARED_STYLE_COLORS.primary }]}>
+          <Text
+            style={[
+              styles.addButtonText,
+              { color: SHARED_STYLE_COLORS.primary },
+            ]}
+          >
             {folder.id === 'account-analysis'
               ? 'Chat TikTok'
               : folder.id === 'scripts'

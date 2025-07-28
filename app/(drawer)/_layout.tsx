@@ -92,6 +92,13 @@ function DrawerLayoutContent() {
           }}
         />
         <Tabs.Screen
+          name="video-details/[id]"
+          options={{
+            title: 'Détails Vidéo',
+            headerShown: false,
+          }}
+        />
+        <Tabs.Screen
           name="videos/[id]"
           options={{
             title: 'Détails Vidéo',

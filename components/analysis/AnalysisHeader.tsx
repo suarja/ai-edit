@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { router } from 'expo-router';
 import DrawerToggle from '../DrawerToggle';
 import { ArrowLeft } from 'lucide-react-native';
+import { SHARED_STYLE_COLORS } from '@/lib/constants/sharedStyles';
 
 interface AnalysisHeaderProps {
   title: string;
@@ -20,7 +21,7 @@ export default function AnalysisHeader({
   const backButton = () => {
     return (
       <TouchableOpacity onPress={handleBack}>
-        <ArrowLeft size={24} color="#fff" />
+        <ArrowLeft size={24} color={SHARED_STYLE_COLORS.text} />
       </TouchableOpacity>
     );
   };
@@ -43,7 +44,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 16,
     paddingVertical: 12,
-    backgroundColor: '#000',
+    marginBottom: 12,
+    backgroundColor: SHARED_STYLE_COLORS.background,
   },
   backButton: {
     padding: 4,
@@ -53,7 +55,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   headerTitle: {
-    color: '#fff',
+    color: SHARED_STYLE_COLORS.text,
     fontSize: 18,
     fontWeight: 'bold',
     textAlign: 'center',
