@@ -15,6 +15,7 @@ import SettingsHeader from '@/components/SettingsHeader';
 import { CaptionConfiguration } from '@/lib/types/video.types';
 import { CaptionConfigStorage } from '@/lib/utils/caption-config-storage';
 import { useGetUser } from '@/components/hooks/useGetUser';
+import { SHARED_STYLE_COLORS } from '@/lib/constants/sharedStyles';
 
 export default function VideoSettingsScreen() {
   const [captionConfig, setCaptionConfig] =
@@ -111,7 +112,7 @@ export default function VideoSettingsScreen() {
       <SafeAreaView style={styles.container} edges={['top']}>
         <SettingsHeader title="Configuration Vidéo" />
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#007AFF" />
+          <ActivityIndicator size="large" color={SHARED_STYLE_COLORS.primary} />
           <Text style={styles.loadingText}>Chargement...</Text>
         </View>
       </SafeAreaView>
@@ -123,7 +124,7 @@ export default function VideoSettingsScreen() {
       <SettingsHeader
         title="Configuration Vidéo"
         rightButton={{
-          icon: <Save size={20} color="#fff" />,
+          icon: <Save size={20} color={SHARED_STYLE_COLORS.text} />,
           onPress: handleSave,
           disabled: !canSave,
           loading: saving,
@@ -142,7 +143,7 @@ export default function VideoSettingsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#000',
+    backgroundColor: SHARED_STYLE_COLORS.background,
   },
   loadingContainer: {
     flex: 1,
@@ -151,7 +152,7 @@ const styles = StyleSheet.create({
     gap: 16,
   },
   loadingText: {
-    color: '#888',
+    color: SHARED_STYLE_COLORS.textMuted,
     fontSize: 16,
   },
   content: {

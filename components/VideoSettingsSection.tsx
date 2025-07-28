@@ -15,6 +15,7 @@ import {
   TranscriptEffect,
 } from '@/lib/types/video.types';
 import { CaptionConfigStorage } from '@/lib/utils/caption-config-storage';
+import { SHARED_STYLE_COLORS } from '@/lib/constants/sharedStyles';
 
 type VideoSettingsSectionProps = {
   captionConfig: CaptionConfiguration | null;
@@ -173,11 +174,11 @@ const VideoSettingsSection: React.FC<VideoSettingsSectionProps> = ({
       case 'karaoke':
         return (
           <View style={styles.previewContainer}>
-            <Text style={[styles.previewText, { color: '#888' }]}>
+            <Text style={[styles.previewText, { color: SHARED_STYLE_COLORS.textMuted }]}>
               CRÉER UNE{' '}
             </Text>
             <Text style={[styles.previewText, { color }]}>VIDÉO </Text>
-            <Text style={[styles.previewText, { color: '#888' }]}>
+            <Text style={[styles.previewText, { color: SHARED_STYLE_COLORS.textMuted }]}>
               PARFAITE
             </Text>
           </View>
@@ -264,9 +265,9 @@ const VideoSettingsSection: React.FC<VideoSettingsSectionProps> = ({
           <Switch
             value={currentConfig.enabled}
             onValueChange={handleToggleChange}
-            trackColor={{ false: '#333', true: '#007AFF' }}
-            thumbColor={currentConfig.enabled ? '#fff' : '#888'}
-            ios_backgroundColor="#333"
+            trackColor={{ false: SHARED_STYLE_COLORS.backgroundTertiary, true: SHARED_STYLE_COLORS.primary }}
+            thumbColor={currentConfig.enabled ? SHARED_STYLE_COLORS.text : SHARED_STYLE_COLORS.textMuted}
+            ios_backgroundColor={SHARED_STYLE_COLORS.backgroundTertiary}
           />
         </View>
       </View>
@@ -303,7 +304,7 @@ const VideoSettingsSection: React.FC<VideoSettingsSectionProps> = ({
               {/* Custom indicator */}
               {isCustomConfig && (
                 <View style={[styles.quickPresetCard, styles.customPresetCard]}>
-                  <Sparkles size={20} color="#007AFF" />
+                  <Sparkles size={20} color={SHARED_STYLE_COLORS.primary} />
                   <Text style={styles.presetName}>Personnalisé</Text>
                   <Text style={styles.presetDescription}>
                     Configuration sur mesure
@@ -381,7 +382,7 @@ const VideoSettingsSection: React.FC<VideoSettingsSectionProps> = ({
                 <Text style={styles.colorButtonText}>
                   {currentConfig.transcriptColor || '#04f827'}
                 </Text>
-                <Palette size={16} color="#888" />
+                <Palette size={16} color={SHARED_STYLE_COLORS.textMuted} />
               </TouchableOpacity>
             </View>
 
@@ -469,12 +470,12 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 20,
     fontWeight: '700',
-    color: '#fff',
+    color: SHARED_STYLE_COLORS.text,
     marginBottom: 6,
   },
   sectionDescription: {
     fontSize: 15,
-    color: '#888',
+    color: SHARED_STYLE_COLORS.textMuted,
     lineHeight: 22,
   },
   configContent: {
@@ -486,7 +487,7 @@ const styles = StyleSheet.create({
   sectionLabel: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#fff',
+    color: SHARED_STYLE_COLORS.text,
   },
 
   // Quick Presets
@@ -495,7 +496,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 4,
   },
   quickPresetCard: {
-    backgroundColor: '#1a1a1a',
+    backgroundColor: SHARED_STYLE_COLORS.backgroundSecondary,
     borderRadius: 12,
     padding: 16,
     width: 140,
@@ -505,12 +506,12 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   selectedQuickPreset: {
-    borderColor: '#007AFF',
-    backgroundColor: 'rgba(0, 122, 255, 0.1)',
+    borderColor: SHARED_STYLE_COLORS.primary,
+    backgroundColor: SHARED_STYLE_COLORS.primaryOverlay,
   },
   customPresetCard: {
-    borderColor: '#007AFF',
-    backgroundColor: 'rgba(0, 122, 255, 0.1)',
+    borderColor: SHARED_STYLE_COLORS.primary,
+    backgroundColor: SHARED_STYLE_COLORS.primaryOverlay,
   },
   presetIcon: {
     fontSize: 24,
@@ -518,19 +519,19 @@ const styles = StyleSheet.create({
   presetName: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#fff',
+    color: SHARED_STYLE_COLORS.text,
     textAlign: 'center',
   },
   presetDescription: {
     fontSize: 11,
-    color: '#888',
+    color: SHARED_STYLE_COLORS.textMuted,
     textAlign: 'center',
     lineHeight: 14,
   },
 
   // Preview
   previewBox: {
-    backgroundColor: '#1a1a1a',
+    backgroundColor: SHARED_STYLE_COLORS.backgroundSecondary,
     borderRadius: 12,
     padding: 20,
     alignItems: 'center',
@@ -546,7 +547,7 @@ const styles = StyleSheet.create({
   previewText: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#fff',
+    color: SHARED_STYLE_COLORS.text,
   },
 
   // Controls
@@ -556,7 +557,7 @@ const styles = StyleSheet.create({
   controlLabel: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#fff',
+    color: SHARED_STYLE_COLORS.text,
   },
 
   // Effect Buttons
@@ -566,28 +567,28 @@ const styles = StyleSheet.create({
     paddingHorizontal: 4,
   },
   effectButton: {
-    backgroundColor: '#1a1a1a',
+    backgroundColor: SHARED_STYLE_COLORS.backgroundSecondary,
     borderRadius: 8,
     padding: 12,
     minWidth: 100,
     borderWidth: 1,
-    borderColor: '#333',
+    borderColor: SHARED_STYLE_COLORS.backgroundTertiary,
   },
   selectedEffectButton: {
-    backgroundColor: '#007AFF',
-    borderColor: '#007AFF',
+    backgroundColor: SHARED_STYLE_COLORS.primary,
+    borderColor: SHARED_STYLE_COLORS.primary,
   },
   effectButtonText: {
-    color: '#fff',
+    color: SHARED_STYLE_COLORS.text,
     fontSize: 12,
     fontWeight: '600',
     textAlign: 'center',
   },
   selectedEffectButtonText: {
-    color: '#fff',
+    color: SHARED_STYLE_COLORS.text,
   },
   effectDescription: {
-    color: '#888',
+    color: SHARED_STYLE_COLORS.textMuted,
     fontSize: 10,
     textAlign: 'center',
     marginTop: 2,
@@ -600,22 +601,22 @@ const styles = StyleSheet.create({
   colorButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#1a1a1a',
+    backgroundColor: SHARED_STYLE_COLORS.backgroundSecondary,
     borderRadius: 8,
     padding: 12,
     gap: 12,
     borderWidth: 1,
-    borderColor: '#333',
+    borderColor: SHARED_STYLE_COLORS.backgroundTertiary,
   },
   colorPreview: {
     width: 24,
     height: 24,
     borderRadius: 12,
     borderWidth: 2,
-    borderColor: '#555',
+    borderColor: SHARED_STYLE_COLORS.border,
   },
   colorButtonText: {
-    color: '#fff',
+    color: SHARED_STYLE_COLORS.text,
     fontSize: 14,
     flex: 1,
   },
@@ -627,24 +628,24 @@ const styles = StyleSheet.create({
   },
   positionButton: {
     flex: 1,
-    backgroundColor: '#1a1a1a',
+    backgroundColor: SHARED_STYLE_COLORS.backgroundSecondary,
     borderRadius: 8,
     padding: 12,
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#333',
+    borderColor: SHARED_STYLE_COLORS.backgroundTertiary,
   },
   selectedPositionButton: {
-    backgroundColor: '#007AFF',
-    borderColor: '#007AFF',
+    backgroundColor: SHARED_STYLE_COLORS.primary,
+    borderColor: SHARED_STYLE_COLORS.primary,
   },
   positionButtonText: {
-    color: '#fff',
+    color: SHARED_STYLE_COLORS.text,
     fontSize: 12,
     fontWeight: '500',
   },
   selectedPositionButtonText: {
-    color: '#fff',
+    color: SHARED_STYLE_COLORS.text,
     fontWeight: '600',
   },
 
@@ -656,7 +657,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   colorPickerModal: {
-    backgroundColor: '#1a1a1a',
+    backgroundColor: SHARED_STYLE_COLORS.backgroundSecondary,
     borderRadius: 16,
     padding: 24,
     margin: 20,
@@ -665,7 +666,7 @@ const styles = StyleSheet.create({
   colorPickerTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#fff',
+    color: SHARED_STYLE_COLORS.text,
     textAlign: 'center',
     marginBottom: 20,
   },
@@ -680,10 +681,10 @@ const styles = StyleSheet.create({
     height: 40,
     borderRadius: 20,
     borderWidth: 2,
-    borderColor: '#333',
+    borderColor: SHARED_STYLE_COLORS.backgroundTertiary,
   },
   selectedColorOption: {
-    borderColor: '#007AFF',
+    borderColor: SHARED_STYLE_COLORS.primary,
     borderWidth: 3,
   },
 });

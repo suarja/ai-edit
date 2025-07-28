@@ -7,6 +7,7 @@ import {
   ActivityIndicator,
   StyleSheet,
 } from 'react-native';
+import { SHARED_STYLE_COLORS } from '@/lib/constants/sharedStyles';
 
 function formatDuration(ms: number) {
   const totalSeconds = Math.floor(ms / 1000);
@@ -54,7 +55,7 @@ export const VoiceRecordingModal = ({
           ) : voiceRecording.state.isProcessing ? (
             // Uploading state
             <>
-              <ActivityIndicator size="large" color="#007AFF" />
+              <ActivityIndicator size="large" color={SHARED_STYLE_COLORS.primary} />
               <Text style={styles.sectionLabel}>
                 Enregistrement en cours de traitement…
               </Text>
@@ -69,7 +70,7 @@ export const VoiceRecordingModal = ({
               <TouchableOpacity
                 style={[
                   styles.actionButtonLarge,
-                  { backgroundColor: '#ef4444', marginTop: 24 },
+                  { backgroundColor: SHARED_STYLE_COLORS.error, marginTop: 24 },
                 ]}
                 onPress={voiceRecording.actions.stopRecording}
                 disabled={!voiceRecording.status.canStop}
@@ -109,7 +110,7 @@ export const VoiceRecordingModal = ({
                 <TouchableOpacity
                   style={[
                     styles.actionButtonSmall,
-                    { backgroundColor: '#10b981' },
+                    { backgroundColor: SHARED_STYLE_COLORS.success },
                   ]}
                   onPress={voiceRecording.actions.submitRecording}
                   disabled={!voiceRecording.status.canSubmit}
@@ -125,7 +126,7 @@ export const VoiceRecordingModal = ({
               <TouchableOpacity
                 style={[
                   styles.actionButtonLarge,
-                  { backgroundColor: '#007AFF', marginTop: 24 },
+                  { backgroundColor: SHARED_STYLE_COLORS.primary, marginTop: 24 },
                 ]}
                 onPress={voiceRecording.actions.startRecording}
                 disabled={!voiceRecording.status.canStart}
@@ -148,24 +149,24 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0,0,0,0.7)',
   },
   recorderModal: {
-    backgroundColor: '#18181b',
+    backgroundColor: SHARED_STYLE_COLORS.backgroundSecondary,
     borderRadius: 18,
     padding: 24,
     alignItems: 'center',
-    shadowColor: '#000',
+    shadowColor: SHARED_STYLE_COLORS.background,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.2,
     shadowRadius: 10,
     elevation: 5,
   },
   errorText: {
-    color: '#ef4444',
+    color: SHARED_STYLE_COLORS.error,
     fontSize: 14,
     textAlign: 'center',
     marginBottom: 12,
   },
   sectionLabel: {
-    color: '#fff',
+    color: SHARED_STYLE_COLORS.text,
     fontSize: 15,
     fontWeight: '600',
     marginTop: 8,
@@ -173,39 +174,39 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
   },
   timerText: {
-    color: '#fff',
+    color: SHARED_STYLE_COLORS.text,
     fontSize: 48,
     fontWeight: 'bold',
     marginTop: 16,
     marginBottom: 24,
   },
   actionButtonLarge: {
-    backgroundColor: '#007AFF',
+    backgroundColor: SHARED_STYLE_COLORS.primary,
     borderRadius: 12,
     padding: 18,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#000',
+    shadowColor: SHARED_STYLE_COLORS.background,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.15,
     shadowRadius: 8,
     elevation: 3,
   },
   actionButtonSmall: {
-    backgroundColor: '#007AFF',
+    backgroundColor: SHARED_STYLE_COLORS.primary,
     borderRadius: 32,
     padding: 18,
     marginHorizontal: 8,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#000',
+    shadowColor: SHARED_STYLE_COLORS.background,
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 2,
   },
   buttonText: {
-    color: '#fff',
+    color: SHARED_STYLE_COLORS.text,
     fontSize: 16,
     fontWeight: '600',
   },

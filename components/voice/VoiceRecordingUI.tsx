@@ -13,6 +13,7 @@ import { useVoiceRecording } from '@/components/hooks/useVoiceRecording';
 import { useVoices } from './hooks/useVoices';
 import { VoiceRecordingModal } from './VoiceRecordingModal';
 import { VoiceConfig } from '@/lib/services/voiceService';
+import { SHARED_STYLE_COLORS } from '@/lib/constants/sharedStyles';
 
 const ACCEPTED_FORMATS_LABEL =
   'AAC, AIFF, OGG, MP3, OPUS, WAV, FLAC, M4A, WEBM';
@@ -77,7 +78,7 @@ export const VoiceRecordingUI: React.FC<{
           value={name}
           onChangeText={voicesActions.setName}
           placeholder="Entrez le nom de la voix"
-          placeholderTextColor="#666"
+          placeholderTextColor={SHARED_STYLE_COLORS.textMuted}
         />
       </View>
 
@@ -106,13 +107,13 @@ export const VoiceRecordingUI: React.FC<{
                   onPress={() => voicesActions.playSound(item.uri, index)}
                   style={styles.roundButton}
                 >
-                  <Play size={18} color="#fff" />
+                  <Play size={18} color={SHARED_STYLE_COLORS.text} />
                 </TouchableOpacity>
                 <TouchableOpacity
                   onPress={() => voicesActions.deleteRecording(index)}
                   style={[styles.roundButton, styles.deleteButton]}
                 >
-                  <Trash size={18} color="#fff" />
+                  <Trash size={18} color={SHARED_STYLE_COLORS.text} />
                 </TouchableOpacity>
               </View>
             </View>
@@ -135,7 +136,7 @@ export const VoiceRecordingUI: React.FC<{
             onPress={handleStartRecording}
             disabled={recordings.length >= MAX_RECORDINGS}
           >
-            <Mic size={20} color="#fff" />
+            <Mic size={20} color={SHARED_STYLE_COLORS.text} />
           </TouchableOpacity>
           <TouchableOpacity
             style={[
@@ -145,7 +146,7 @@ export const VoiceRecordingUI: React.FC<{
             onPress={voicesActions.pickAudio}
             disabled={recordings.length >= MAX_RECORDINGS}
           >
-            <Upload size={20} color="#fff" />
+            <Upload size={20} color={SHARED_STYLE_COLORS.text} />
           </TouchableOpacity>
         </View>
         <Text style={styles.formatsLabel}>
@@ -162,7 +163,7 @@ export const VoiceRecordingUI: React.FC<{
         onPress={voicesActions.handleSubmit}
         disabled={!name.trim() || recordings.length === 0 || isSubmitting}
       >
-        <Send size={20} color="#fff" />
+        <Send size={20} color={SHARED_STYLE_COLORS.text} />
         <Text style={styles.buttonText}>
           {isSubmitting ? 'Envoi...' : 'Soumettre'}
         </Text>
@@ -191,7 +192,7 @@ export const VoiceRecordingUI: React.FC<{
 
 const styles = StyleSheet.create({
   bg: {
-    backgroundColor: '#000',
+    backgroundColor: SHARED_STYLE_COLORS.background,
   },
   scrollContent: {
     alignItems: 'stretch',
@@ -199,48 +200,48 @@ const styles = StyleSheet.create({
     paddingBottom: 32,
   },
   card: {
-    backgroundColor: '#18181b',
+    backgroundColor: SHARED_STYLE_COLORS.backgroundSecondary,
     borderRadius: 18,
     padding: 16,
     marginHorizontal: 16,
     marginTop: 12,
-    shadowColor: '#000',
+    shadowColor: SHARED_STYLE_COLORS.background,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.15,
     shadowRadius: 8,
     elevation: 3,
   },
   cardActions: {
-    backgroundColor: '#18181b',
+    backgroundColor: SHARED_STYLE_COLORS.backgroundSecondary,
     borderRadius: 18,
     padding: 16,
     marginHorizontal: 16,
     marginTop: 12,
     alignItems: 'center',
-    shadowColor: '#000',
+    shadowColor: SHARED_STYLE_COLORS.background,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.15,
     shadowRadius: 8,
     elevation: 3,
   },
   label: {
-    color: '#fff',
+    color: SHARED_STYLE_COLORS.text,
     fontSize: 16,
     fontWeight: '600',
     marginBottom: 4,
   },
   input: {
-    backgroundColor: '#18181b',
+    backgroundColor: SHARED_STYLE_COLORS.backgroundSecondary,
     borderRadius: 8,
     padding: 12,
-    color: '#fff',
+    color: SHARED_STYLE_COLORS.text,
     fontSize: 16,
     marginBottom: 8,
     borderWidth: 1,
-    borderColor: '#23232a',
+    borderColor: SHARED_STYLE_COLORS.border,
   },
   sectionLabel: {
-    color: '#fff',
+    color: SHARED_STYLE_COLORS.text,
     fontSize: 15,
     fontWeight: '600',
     marginTop: 8,
@@ -248,27 +249,27 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-start',
   },
   instructionText: {
-    color: '#888',
+    color: SHARED_STYLE_COLORS.textMuted,
     fontSize: 14,
     marginBottom: 2,
     marginLeft: 2,
   },
   recordingMiniCard: {
-    backgroundColor: '#23232a',
+    backgroundColor: SHARED_STYLE_COLORS.backgroundTertiary,
     borderRadius: 12,
     padding: 12,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     marginBottom: 8,
-    shadowColor: '#000',
+    shadowColor: SHARED_STYLE_COLORS.background,
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 2,
   },
   recordingName: {
-    color: '#fff',
+    color: SHARED_STYLE_COLORS.text,
     fontSize: 15,
     flex: 1,
   },
@@ -277,7 +278,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   roundButton: {
-    backgroundColor: '#007AFF',
+    backgroundColor: SHARED_STYLE_COLORS.primary,
     borderRadius: 50,
     padding: 10,
     marginLeft: 4,
@@ -285,10 +286,10 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   deleteButton: {
-    backgroundColor: '#ef4444',
+    backgroundColor: SHARED_STYLE_COLORS.error,
   },
   emptyText: {
-    color: '#888',
+    color: SHARED_STYLE_COLORS.textMuted,
     fontSize: 14,
     textAlign: 'center',
     marginVertical: 8,
@@ -301,32 +302,32 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   actionButtonSmall: {
-    backgroundColor: '#007AFF',
+    backgroundColor: SHARED_STYLE_COLORS.primary,
     borderRadius: 32,
     padding: 18,
     marginHorizontal: 8,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#000',
+    shadowColor: SHARED_STYLE_COLORS.background,
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 2,
   },
   actionButtonLarge: {
-    backgroundColor: '#007AFF',
+    backgroundColor: SHARED_STYLE_COLORS.primary,
     borderRadius: 12,
     padding: 18,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#000',
+    shadowColor: SHARED_STYLE_COLORS.background,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.15,
     shadowRadius: 8,
     elevation: 3,
   },
   submitButton: {
-    backgroundColor: '#10b981',
+    backgroundColor: SHARED_STYLE_COLORS.success,
     borderRadius: 12,
     padding: 18,
     alignItems: 'center',
@@ -336,7 +337,7 @@ const styles = StyleSheet.create({
     marginHorizontal: 16,
     marginTop: 24,
     marginBottom: 12,
-    shadowColor: '#000',
+    shadowColor: SHARED_STYLE_COLORS.background,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.15,
     shadowRadius: 8,
@@ -346,37 +347,37 @@ const styles = StyleSheet.create({
     opacity: 0.5,
   },
   buttonText: {
-    color: '#fff',
+    color: SHARED_STYLE_COLORS.text,
     fontSize: 16,
     fontWeight: '600',
   },
   formatsLabel: {
-    color: '#888',
+    color: SHARED_STYLE_COLORS.textMuted,
     fontSize: 13,
     marginTop: 8,
     marginBottom: 0,
     alignSelf: 'flex-start',
   },
   feedbackCard: {
-    backgroundColor: '#23232a',
+    backgroundColor: SHARED_STYLE_COLORS.backgroundTertiary,
     borderRadius: 12,
     padding: 14,
     marginHorizontal: 16,
     marginTop: 16,
     alignItems: 'center',
-    shadowColor: '#000',
+    shadowColor: SHARED_STYLE_COLORS.background,
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 2,
   },
   errorText: {
-    color: '#ef4444',
+    color: SHARED_STYLE_COLORS.error,
     fontSize: 14,
     textAlign: 'center',
   },
   successText: {
-    color: '#10b981',
+    color: SHARED_STYLE_COLORS.success,
     fontSize: 14,
     textAlign: 'center',
   },
@@ -387,18 +388,18 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0,0,0,0.7)',
   },
   recorderModal: {
-    backgroundColor: '#18181b',
+    backgroundColor: SHARED_STYLE_COLORS.backgroundSecondary,
     borderRadius: 18,
     padding: 24,
     alignItems: 'center',
-    shadowColor: '#000',
+    shadowColor: SHARED_STYLE_COLORS.background,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.2,
     shadowRadius: 10,
     elevation: 5,
   },
   timerText: {
-    color: '#fff',
+    color: SHARED_STYLE_COLORS.text,
     fontSize: 48,
     fontWeight: 'bold',
     marginTop: 16,

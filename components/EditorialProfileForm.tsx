@@ -12,6 +12,7 @@ import {
 import { User, MessageCircle, Users, FileText } from 'lucide-react-native';
 import VoiceDictation from './VoiceDictation';
 import { EditorialProfile } from './hooks/useEditorialProfile';
+import { SHARED_STYLE_COLORS } from '@/lib/constants/sharedStyles';
 
 type EditorialProfileFormProps = {
   profile: EditorialProfile;
@@ -166,7 +167,7 @@ export default function EditorialProfileForm({
                 multiline
                 numberOfLines={currentFieldConfig?.numberOfLines || 6}
                 placeholder={currentFieldConfig?.placeholder}
-                placeholderTextColor="#666"
+                placeholderTextColor={SHARED_STYLE_COLORS.textMuted}
                 value={editingValue}
                 onChangeText={setEditingValue}
                 maxLength={currentFieldConfig?.maxLength}
@@ -197,7 +198,7 @@ export default function EditorialProfileForm({
               >
                 {modalSaving ? (
                   <View style={styles.loadingContainer}>
-                    <ActivityIndicator size="small" color="#fff" />
+                    <ActivityIndicator size="small" color={SHARED_STYLE_COLORS.text} />
                     <Text
                       style={[
                         styles.modalButtonText,
@@ -233,18 +234,18 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   modalContent: {
-    backgroundColor: '#18181b',
+    backgroundColor: SHARED_STYLE_COLORS.backgroundSecondary,
     borderRadius: 18,
     width: '100%',
     maxWidth: 400,
     maxHeight: '80%',
-    shadowColor: '#000',
+    shadowColor: SHARED_STYLE_COLORS.background,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.25,
     shadowRadius: 12,
     elevation: 8,
     borderWidth: 1,
-    borderColor: '#23232a',
+    borderColor: SHARED_STYLE_COLORS.border,
   },
   scrollContent: {
     flexGrow: 1,
@@ -256,12 +257,12 @@ const styles = StyleSheet.create({
   modalTitle: {
     fontSize: 20,
     fontWeight: '700',
-    color: '#fff',
+    color: SHARED_STYLE_COLORS.text,
     marginBottom: 6,
   },
   fieldDescription: {
     fontSize: 14,
-    color: '#888',
+    color: SHARED_STYLE_COLORS.textMuted,
     lineHeight: 20,
   },
   modalBody: {
@@ -269,14 +270,14 @@ const styles = StyleSheet.create({
     paddingBottom: 20,
   },
   modalTextInput: {
-    backgroundColor: '#23232a',
+    backgroundColor: SHARED_STYLE_COLORS.backgroundTertiary,
     borderRadius: 12,
     padding: 16,
-    color: '#fff',
+    color: SHARED_STYLE_COLORS.text,
     fontSize: 15,
     textAlignVertical: 'top',
     borderWidth: 1,
-    borderColor: '#333',
+    borderColor: SHARED_STYLE_COLORS.backgroundTertiary,
     lineHeight: 22,
     minHeight: 120,
   },
@@ -296,23 +297,23 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     paddingHorizontal: 20,
     borderRadius: 12,
-    backgroundColor: '#23232a',
+    backgroundColor: SHARED_STYLE_COLORS.backgroundTertiary,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
-    borderColor: '#333',
+    borderColor: SHARED_STYLE_COLORS.backgroundTertiary,
   },
   modalButtonText: {
-    color: '#fff',
+    color: SHARED_STYLE_COLORS.text,
     fontWeight: '600',
     fontSize: 15,
   },
   modalButtonSave: {
-    backgroundColor: '#007AFF',
-    borderColor: '#007AFF',
+    backgroundColor: SHARED_STYLE_COLORS.primary,
+    borderColor: SHARED_STYLE_COLORS.primary,
   },
   modalButtonSaveText: {
-    color: '#fff',
+    color: SHARED_STYLE_COLORS.text,
   },
   loadingContainer: {
     flexDirection: 'row',

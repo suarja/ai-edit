@@ -8,6 +8,7 @@ import {
 } from 'react-native';
 import { router } from 'expo-router';
 import { ArrowLeft } from 'lucide-react-native';
+import { SHARED_STYLE_COLORS } from '@/lib/constants/sharedStyles';
 
 interface SettingsHeaderProps {
   title: string;
@@ -36,7 +37,7 @@ export default function SettingsHeader({
   return (
     <View style={styles.header}>
       <TouchableOpacity style={styles.backButton} onPress={handleBack}>
-        <ArrowLeft size={24} color="#007AFF" />
+        <ArrowLeft size={24} color={SHARED_STYLE_COLORS.primary} />
       </TouchableOpacity>
       <Text style={styles.title}>{title}</Text>
       {rightButton ? (
@@ -50,7 +51,7 @@ export default function SettingsHeader({
           disabled={rightButton.disabled || rightButton.loading}
         >
           {rightButton.loading ? (
-            <ActivityIndicator size="small" color="#fff" />
+            <ActivityIndicator size="small" color={SHARED_STYLE_COLORS.text} />
           ) : (
             rightButton.icon
           )}
@@ -77,13 +78,13 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#fff',
+    color: SHARED_STYLE_COLORS.text,
     flex: 1,
     textAlign: 'center',
     marginHorizontal: 16,
   },
   rightButton: {
-    backgroundColor: '#007AFF',
+    backgroundColor: SHARED_STYLE_COLORS.primary,
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 8,
@@ -92,7 +93,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   rightButtonDisabled: {
-    backgroundColor: 'rgba(0, 122, 255, 0.5)',
+    backgroundColor: SHARED_STYLE_COLORS.primaryLight,
   },
   rightButtonPlaceholder: {
     width: 44,

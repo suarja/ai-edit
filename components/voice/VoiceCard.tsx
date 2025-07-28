@@ -1,6 +1,7 @@
 import React from 'react';
 import { TouchableOpacity, Text, StyleSheet, View, Switch } from 'react-native';
 import { VoiceConfig } from './VoiceScreen';
+import { SHARED_STYLE_COLORS } from '@/lib/constants/sharedStyles';
 
 type VoiceCardProps = {
   voice: VoiceConfig;
@@ -16,8 +17,8 @@ const VoiceCard: React.FC<VoiceCardProps> = ({ voice, selected, onSelect }) => {
         <Switch
           value={selected}
           onValueChange={onSelect}
-          trackColor={{ false: '#333', true: '#007AFF' }}
-          thumbColor={selected ? '#fff' : '#888'}
+          trackColor={{ false: SHARED_STYLE_COLORS.backgroundTertiary, true: SHARED_STYLE_COLORS.primary }}
+          thumbColor={selected ? SHARED_STYLE_COLORS.text : SHARED_STYLE_COLORS.textMuted}
         />
       </View>
       {voice.description && (
@@ -38,7 +39,7 @@ const styles = StyleSheet.create({
     borderColor: 'transparent',
   },
   selected: {
-    borderColor: '#007AFF',
+    borderColor: SHARED_STYLE_COLORS.primary,
   },
   headerRow: {
     flexDirection: 'row',

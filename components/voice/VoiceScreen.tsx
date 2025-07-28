@@ -10,6 +10,7 @@ import VoiceCreateButton from './VoiceCreateButton';
 import { useGetUser } from '../hooks/useGetUser';
 import { useAuth } from '@clerk/clerk-expo';
 import { VoiceRecordingUI } from './VoiceRecordingUI';
+import { SHARED_STYLE_COLORS } from '@/lib/constants/sharedStyles';
 
 export const VoiceScreen: React.FC = () => {
   const [step, setStep] = useState<'list' | 'record'>('list');
@@ -70,7 +71,7 @@ export const VoiceScreen: React.FC = () => {
         <View
           style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}
         >
-          <ActivityIndicator size="small" color="#0000ff" />
+          <ActivityIndicator size="small" color={SHARED_STYLE_COLORS.primary} />
         </View>
       ) : (
         <>

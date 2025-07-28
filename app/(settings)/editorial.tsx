@@ -21,6 +21,7 @@ import {
   useEditorialProfile,
   EditorialProfile,
 } from '@/components/hooks/useEditorialProfile';
+import { SHARED_STYLE_COLORS } from '@/lib/constants/sharedStyles';
 
 const FIELD_CONFIGS = [
   {
@@ -66,7 +67,7 @@ export default function EditorialScreen() {
       <SafeAreaView style={styles.container} edges={['top']}>
         <SettingsHeader title="Profil Éditorial" />
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#007AFF" />
+          <ActivityIndicator size="large" color={SHARED_STYLE_COLORS.primary} />
         </View>
       </SafeAreaView>
     );
@@ -131,7 +132,7 @@ export default function EditorialScreen() {
                       isFilled && styles.fieldIconFilled,
                     ]}
                   >
-                    <Icon size={20} color={isFilled ? '#fff' : '#666'} />
+                    <Icon size={20} color={isFilled ? SHARED_STYLE_COLORS.text : SHARED_STYLE_COLORS.textMuted} />
                   </View>
                 </View>
                 <View style={styles.cardContent}>
@@ -143,7 +144,7 @@ export default function EditorialScreen() {
                     {value ? (
                       value
                     ) : (
-                      <Text style={{ color: '#666', fontStyle: 'italic' }}>
+                      <Text style={{ color: SHARED_STYLE_COLORS.textMuted, fontStyle: 'italic' }}>
                         Cliquez pour ajouter...
                       </Text>
                     )}
@@ -151,9 +152,9 @@ export default function EditorialScreen() {
                 </View>
                 <View style={styles.cardAction}>
                   {isSaving ? (
-                    <ActivityIndicator size="small" color="#007AFF" />
+                    <ActivityIndicator size="small" color={SHARED_STYLE_COLORS.primary} />
                   ) : (
-                    <Edit3 size={16} color="#666" />
+                    <Edit3 size={16} color={SHARED_STYLE_COLORS.textMuted} />
                   )}
                 </View>
               </View>
@@ -180,7 +181,7 @@ export default function EditorialScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#000',
+    backgroundColor: SHARED_STYLE_COLORS.background,
   },
   loadingContainer: {
     flex: 1,
@@ -192,7 +193,7 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   card: {
-    backgroundColor: '#18181b',
+    backgroundColor: SHARED_STYLE_COLORS.backgroundSecondary,
     borderRadius: 18,
     padding: 16,
     marginBottom: 12,
@@ -202,10 +203,10 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 3,
     borderWidth: 1,
-    borderColor: '#23232a',
+    borderColor: SHARED_STYLE_COLORS.border,
   },
   compactCard: {
-    backgroundColor: '#18181b',
+    backgroundColor: SHARED_STYLE_COLORS.backgroundSecondary,
     borderRadius: 18,
     padding: 16,
     marginBottom: 12,
@@ -215,17 +216,17 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 3,
     borderWidth: 1,
-    borderColor: '#23232a',
+    borderColor: SHARED_STYLE_COLORS.border,
   },
   compactTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#fff',
+    color: SHARED_STYLE_COLORS.text,
     marginBottom: 2,
   },
   compactText: {
     fontSize: 13,
-    color: '#888',
+    color: SHARED_STYLE_COLORS.textMuted,
     lineHeight: 20,
   },
   progressRow: {
@@ -239,21 +240,21 @@ const styles = StyleSheet.create({
   },
   completionBar: {
     height: 8,
-    backgroundColor: '#23232a',
+    backgroundColor: SHARED_STYLE_COLORS.backgroundTertiary,
     borderRadius: 4,
     overflow: 'hidden',
   },
   completionFill: {
     height: '100%',
-    backgroundColor: '#007AFF',
+    backgroundColor: SHARED_STYLE_COLORS.primary,
     borderRadius: 4,
   },
   completionFillComplete: {
-    backgroundColor: '#10b981',
+    backgroundColor: SHARED_STYLE_COLORS.success,
   },
   completionText: {
     fontSize: 14,
-    color: '#888',
+    color: SHARED_STYLE_COLORS.textMuted,
     fontWeight: '500',
   },
   cardHeader: {
@@ -265,7 +266,7 @@ const styles = StyleSheet.create({
     flexShrink: 0,
   },
   fieldIcon: {
-    backgroundColor: '#23232a',
+    backgroundColor: SHARED_STYLE_COLORS.backgroundTertiary,
     borderRadius: 12,
     width: 44,
     height: 44,
@@ -273,7 +274,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   fieldIconFilled: {
-    backgroundColor: '#007AFF',
+    backgroundColor: SHARED_STYLE_COLORS.primary,
   },
   cardContent: {
     flex: 1,
@@ -281,17 +282,17 @@ const styles = StyleSheet.create({
   cardTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#fff',
+    color: SHARED_STYLE_COLORS.text,
     marginBottom: 2,
   },
   cardDescription: {
     fontSize: 13,
-    color: '#888',
+    color: SHARED_STYLE_COLORS.textMuted,
     marginBottom: 6,
   },
   cardValue: {
     fontSize: 14,
-    color: '#ccc',
+    color: SHARED_STYLE_COLORS.textSecondary,
     lineHeight: 20,
   },
   cardAction: {
@@ -300,12 +301,12 @@ const styles = StyleSheet.create({
   sectionLabel: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#fff',
+    color: SHARED_STYLE_COLORS.text,
     marginBottom: 8,
   },
   instructionText: {
     fontSize: 15,
-    color: '#888',
+    color: SHARED_STYLE_COLORS.textMuted,
     lineHeight: 22,
   },
 });
