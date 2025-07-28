@@ -17,7 +17,7 @@ export const ONBOARDING_STEPS: StepContent[] = [
     id: 'account_analysis',
     title: "Votre Analyse TikTok Offerte 🎁",
     message: "Découvrez ce qui fonctionne vraiment sur votre compte. Vos meilleures vidéos, votre audience, vos tendances.",
-    highlight: "Valeur: 49€ - Gratuit aujourd'hui seulement",
+    highlight: "Valeur: 49€ - 29,99€ aujourd'hui seulement",
     subtext: "Les créateurs Pro analysent leur compte chaque semaine pour rester viraux",
     showProButton: true,
     route: '/(drawer)/(analysis)/account-insights',

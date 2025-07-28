@@ -143,7 +143,7 @@ export const OnboardingOverlay: React.FC = () => {
                   style={styles.proButton}
                   activeOpacity={0.8}
                 >
-                  <Text style={styles.proText}>👑 Devenir Pro</Text>
+                  <Text style={styles.proText}>👑 Pro</Text>
                 </TouchableOpacity>
               )}
 
@@ -154,7 +154,7 @@ export const OnboardingOverlay: React.FC = () => {
                 activeOpacity={0.8}
               >
                 <Text style={styles.nextText}>
-                  {stepInfo.isFinal ? 'Commencer 🚀' : 'Continuer →'}
+                  {stepInfo.isFinal ? 'Commencer' : 'Suivant'}
                 </Text>
               </TouchableOpacity>
             </View>
@@ -251,7 +251,6 @@ const styles = StyleSheet.create({
     height: 8,
     borderRadius: 4,
     backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    transition: 'all 0.3s ease',
   },
   progressDotActive: {
     backgroundColor: '#FF0050', // Editia red
@@ -358,7 +357,7 @@ const styles = StyleSheet.create({
   },
   quitText: {
     color: '#808080',
-    fontSize: 15,
+    fontSize: 12,
     fontWeight: '500',
   },
   proButton: {
@@ -398,7 +397,7 @@ const styles = StyleSheet.create({
   },
   nextText: {
     color: '#FFFFFF',
-    fontSize: 16,
+    fontSize: 12,
     fontWeight: 'bold',
     textAlign: 'center',
     lineHeight: 20,
