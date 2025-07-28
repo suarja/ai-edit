@@ -22,7 +22,7 @@ const AdvancedToggle: React.FC<AdvancedToggleProps> = ({
       ]}
       onPress={onToggle}
     >
-      <Settings size={16} color={hasIncompleteConfig ? SHARED_STYLE_COLORS.warning : SHARED_STYLE_COLORS.primary} />
+      <Settings size={16} color={hasIncompleteConfig ? SHARED_STYLE_COLORS.warning : SHARED_STYLE_COLORS.text} />
       <Text
         style={[
           styles.advancedToggleText,
@@ -50,7 +50,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255, 149, 0, 0.1)',
   },
   advancedToggleText: {
-    color: SHARED_STYLE_COLORS.primary,
+    color: SHARED_STYLE_COLORS.text,
     fontSize: 15,
     fontWeight: '500',
   },

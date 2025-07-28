@@ -219,7 +219,11 @@ export default function ScriptVideoSettingsScreen() {
           />
         }
       >
-        <AnalysisHeader title="Configuration Vidéo" showBackButton />
+        <AnalysisHeader
+          title="Configuration Vidéo"
+          showBackButton
+          onBack={() => router.push('/(drawer)/scripts')}
+        />
         <ErrorDisplay error={videoRequest.error} />
 
         {/* Discrete Usage Display */}
@@ -234,9 +238,9 @@ export default function ScriptVideoSettingsScreen() {
           <View style={styles.scriptPreviewHeader}>
             <Text style={styles.scriptPreviewTitle}>📝 Script à Générer</Text>
             {isScriptExpanded ? (
-              <ChevronUp size={20} color={SHARED_STYLE_COLORS.primary} />
+              <ChevronUp size={20} color={SHARED_STYLE_COLORS.text} />
             ) : (
-              <ChevronDown size={20} color={SHARED_STYLE_COLORS.primary} />
+              <ChevronDown size={20} color={SHARED_STYLE_COLORS.text} />
             )}
           </View>
 
@@ -366,7 +370,7 @@ const styles = StyleSheet.create({
   scriptPreviewTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: SHARED_STYLE_COLORS.primary,
+    color: SHARED_STYLE_COLORS.text,
   },
   scriptPreviewText: {
     fontSize: 14,

@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Crown, AlertTriangle } from 'lucide-react-native';
 import { useRevenueCat } from '@/contexts/providers/RevenueCat';
+import { SHARED_STYLE_COLORS } from '@/lib/constants/sharedStyles';
 
 interface DiscreteUsageDisplayProps {
   onUpgradePress?: () => void;
@@ -45,9 +46,9 @@ export const DiscreteUsageDisplay: React.FC<DiscreteUsageDisplayProps> = ({
           <>
             <View style={styles.iconContainer}>
               {isAtLimit ? (
-                <AlertTriangle size={14} color="#ef4444" />
+                <AlertTriangle size={14} color={SHARED_STYLE_COLORS.warning} />
               ) : (
-                <Crown size={14} color="#007AFF" />
+                <Crown size={14} color={SHARED_STYLE_COLORS.accent} />
               )}
             </View>
             <Text style={styles.usageText}>
@@ -94,12 +95,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: '#1a1a1a',
+    backgroundColor: SHARED_STYLE_COLORS.backgroundSecondary,
     borderRadius: 8,
     padding: 8,
     marginBottom: 12,
     borderWidth: 1,
-    borderColor: '#333',
+    borderColor: SHARED_STYLE_COLORS.border,
   },
   content: {
     flexDirection: 'row',
@@ -110,22 +111,22 @@ const styles = StyleSheet.create({
     marginRight: 6,
   },
   usageText: {
-    color: '#fff',
+    color: SHARED_STYLE_COLORS.text,
     fontSize: 13,
     fontWeight: '500',
   },
   upgradeButton: {
-    backgroundColor: '#007AFF',
+    backgroundColor: SHARED_STYLE_COLORS.accent,
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 12,
     marginLeft: 8,
   },
   upgradeButtonUrgent: {
-    backgroundColor: '#ef4444',
+    backgroundColor: SHARED_STYLE_COLORS.warning,
   },
   upgradeButtonText: {
-    color: '#fff',
+    color: SHARED_STYLE_COLORS.text,
     fontSize: 11,
     fontWeight: '600',
   },

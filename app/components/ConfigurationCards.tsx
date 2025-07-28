@@ -145,7 +145,7 @@ const styles = StyleSheet.create({
   configSectionTitle: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#fff',
+    color: SHARED_STYLE_COLORS.text,
     marginBottom: 6,
   },
   configSectionDescription: {
@@ -183,7 +183,7 @@ const styles = StyleSheet.create({
   configCardTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#fff',
+    color: SHARED_STYLE_COLORS.text,
     marginBottom: 4,
   },
   configCardDescription: {

@@ -51,7 +51,7 @@ const SubmitButton: React.FC<SubmitButtonProps> = ({
             style={styles.upgradeButton}
             onPress={onUpgradePress}
           >
-            <Crown size={18} color="#fff" />
+            <Crown size={18} color={SHARED_STYLE_COLORS.background} />
             <Text style={styles.upgradeButtonText}>Pro</Text>
           </TouchableOpacity>
         </View>
@@ -134,7 +134,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   upgradeButton: {
-    backgroundColor: SHARED_STYLE_COLORS.success,
+    backgroundColor: SHARED_STYLE_COLORS.accent,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
@@ -152,7 +152,7 @@ const styles = StyleSheet.create({
     minWidth: 80,
   },
   upgradeButtonText: {
-    color: '#fff',
+    color: SHARED_STYLE_COLORS.background,
     fontSize: 16,
     fontWeight: '600',
   },
