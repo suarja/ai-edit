@@ -16,8 +16,9 @@ import { EnhancedGeneratedVideoType } from '@/lib/types/video.types';
 import { useGetUser } from '@/components/hooks/useGetUser';
 import { useClerkSupabaseClient } from '@/lib/config/supabase-clerk';
 import { useAuth } from '@clerk/clerk-expo';
-import { VideoRequestStatus } from 'editia-core';
 import { SHARED_STYLE_COLORS } from '@/lib/constants/sharedStyles';
+import AnalysisHeader from '@/components/analysis/AnalysisHeader';
+import { ScriptId, VideoRequestStatus } from 'editia-core';
 
 // Script type for proper TypeScript support
 type ScriptData = {
@@ -34,6 +35,7 @@ type VideoRequestWithScript = {
   created_at: string;
   script_id: string;
   scriptData: ScriptData;
+  render_duration: number;
 };
 
 export default function GeneratedVideoDetailScreen() {
@@ -81,7 +83,8 @@ export default function GeneratedVideoDetailScreen() {
           render_status,
           render_url,
           created_at,
-          script_id
+          script_id,
+          render_duration
           `
         )
         .eq('id', id)
@@ -153,17 +156,16 @@ export default function GeneratedVideoDetailScreen() {
       }`;
 
       // Format the video to match our GeneratedVideoType with enhancements
-      const formattedVideo: any = {
+      const formattedVideo: EnhancedGeneratedVideoType = {
         id: typedVideoRequest.id as string,
         created_at: typedVideoRequest.created_at as string,
-        render_status: typedVideoRequest.render_status,
-        render_url: typedVideoRequest.render_url,
-        script: script,
+        render_status: typedVideoRequest.render_status as VideoRequestStatus,
+        render_url: typedVideoRequest.render_url as string,
+        script_id: typedVideoRequest.script_id as ScriptId,
         title,
         description,
         prompt: script?.current_script,
-        script_content: script?.current_script,
-        output_language: script?.output_language,
+        duration_seconds: typedVideoRequest.render_duration as number,
       };
 
       console.log('formattedVideo', formattedVideo);
@@ -212,25 +214,12 @@ export default function GeneratedVideoDetailScreen() {
       const data = await response.json();
 
       // Update video details if status changed
-      if (data.status !== video.status || data.video_url !== video.video_url) {
-        setVideo((prev) => {
+      if (
+        data.render_status !== video.render_status ||
+        data.render_url !== video.render_url
+      ) {
+        setVideo((prev: any) => {
           if (!prev) return null;
-
-          // Update status description when status changes
-          const statusMap: Record<string, string> = {
-            queued: "En file d'attente",
-            rendering: 'En cours de génération',
-            done: 'Vidéo prête',
-            error: 'Erreur de génération',
-          };
-          const statusText =
-            statusMap[data.render_status] || data.render_status;
-
-          // const description = `${statusText}${
-          //   prev.output_language
-          //     ? ` • Langue: ${prev.output_language.toUpperCase()}`
-          //     : ''
-          // }`;
 
           return {
             ...prev,
@@ -253,11 +242,14 @@ export default function GeneratedVideoDetailScreen() {
   const renderThumbnail = () => {
     if (!video) return null;
 
-    if (video.status === 'rendering') {
+    if (video.render_status === 'rendering') {
       return (
         <View style={styles.thumbnailContainer}>
           <View style={styles.thumbnailOverlay}>
-            <ActivityIndicator size="large" color={SHARED_STYLE_COLORS.primary} />
+            <ActivityIndicator
+              size="large"
+              color={SHARED_STYLE_COLORS.primary}
+            />
             <Text style={styles.processingText}>
               Votre vidéo est en cours de traitement. Cela peut prendre quelques
               minutes.
@@ -290,14 +282,19 @@ export default function GeneratedVideoDetailScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.container} edges={[]}>
+    <SafeAreaView style={styles.container} edges={['top']}>
+      <AnalysisHeader
+        title="Détails de la vidéo"
+        showBackButton
+        onBack={() => router.push('/(drawer)/videos')}
+      />
       <ScrollView
         style={styles.scrollContainer}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
         <View style={styles.content}>
-          {video && video.status === 'done' ? (
+          {video && video.render_status === 'done' ? (
             <VideoPlayer video={video} />
           ) : (
             renderThumbnail()

@@ -33,7 +33,9 @@ export default function VideoPlayer({
   const [hasError, setHasError] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
-  const videoUrl = video ? getVideoUrl(video) : null;
+  const videoUrl = video ? getVideoUrl(video) : null
+
+  console.log('videoUrl', videoUrl);
 
   const player = useVideoPlayer(
     videoUrl ? { uri: videoUrl } : null,

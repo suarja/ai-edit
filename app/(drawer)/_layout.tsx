@@ -95,6 +95,7 @@ function DrawerLayoutContent() {
           name="videos/[id]"
           options={{
             title: 'Détails Vidéo',
+            headerShown: false,
           }}
         />
         <Tabs.Screen
