@@ -29,7 +29,7 @@ import { SubscriptionManager } from '@/components/SubscriptionManager';
 import { useClerkSupabaseClient } from '@/lib/config/supabase-clerk';
 import UserProfileManager from '@/components/UserProfileManager';
 import SupportPanel from '@/components/SupportPanel';
-import { sharedStyles } from '@/lib/constants/sharedStyles';
+import { sharedStyles, SHARED_STYLE_COLORS } from '@/lib/constants/sharedStyles';
 
 export default function SettingsScreen() {
   // ... (existing state and logic remains the same)
@@ -85,7 +85,7 @@ export default function SettingsScreen() {
           <RefreshControl
             refreshing={refreshing}
             onRefresh={onRefresh}
-            tintColor="#007AFF"
+            tintColor={SHARED_STYLE_COLORS.primary}
           />
         }
       >
@@ -98,7 +98,7 @@ export default function SettingsScreen() {
             onPress={() => router.push('/(settings)/voice-clone')}
           >
             <View style={styles.settingInfo}>
-              <Mic size={24} color="#fff" />
+              <Mic size={24} color={SHARED_STYLE_COLORS.text} />
               <Text style={styles.settingText}>Clone Vocal</Text>
             </View>
           </TouchableOpacity>
@@ -107,7 +107,7 @@ export default function SettingsScreen() {
             onPress={() => router.push('/(settings)/editorial')}
           >
             <View style={styles.settingInfo}>
-              <Edit3 size={24} color="#fff" />
+              <Edit3 size={24} color={SHARED_STYLE_COLORS.text} />
               <Text style={styles.settingText}>Profil Éditorial</Text>
             </View>
           </TouchableOpacity>
@@ -116,7 +116,7 @@ export default function SettingsScreen() {
             onPress={() => router.push('/(settings)/video-settings')}
           >
             <View style={styles.settingInfo}>
-              <Play size={24} color="#fff" />
+              <Play size={24} color={SHARED_STYLE_COLORS.text} />
               <Text style={styles.settingText}>Configuration Vidéo</Text>
             </View>
           </TouchableOpacity>
@@ -133,11 +133,11 @@ export default function SettingsScreen() {
             disabled={onboardingLoading}
           >
             <View style={styles.settingInfo}>
-              <HelpCircle size={24} color="#fff" />
+              <HelpCircle size={24} color={SHARED_STYLE_COLORS.text} />
               <Text style={styles.settingText}>Refaire le tour guidé</Text>
             </View>
             {onboardingLoading && (
-              <ActivityIndicator size="small" color="#fff" />
+              <ActivityIndicator size="small" color={SHARED_STYLE_COLORS.text} />
             )}
           </TouchableOpacity>
         </View>
@@ -149,7 +149,7 @@ export default function SettingsScreen() {
             onPress={() => openURL('https://editia.app/privacy-policy')}
           >
             <View style={styles.settingInfo}>
-              <Shield size={24} color="#fff" />
+              <Shield size={24} color={SHARED_STYLE_COLORS.text} />
               <Text style={styles.settingText}>Privacy Policy</Text>
             </View>
           </TouchableOpacity>
@@ -158,7 +158,7 @@ export default function SettingsScreen() {
             onPress={() => openURL('https://editia.app/terms-of-service')}
           >
             <View style={styles.settingInfo}>
-              <FileText size={24} color="#fff" />
+              <FileText size={24} color={SHARED_STYLE_COLORS.text} />
               <Text style={styles.settingText}>Terms of Service</Text>
             </View>
           </TouchableOpacity>
@@ -167,7 +167,7 @@ export default function SettingsScreen() {
             onPress={() => openURL('https://editia.app/payment-policy')}
           >
             <View style={styles.settingInfo}>
-              <BookUser size={24} color="#fff" />
+              <BookUser size={24} color={SHARED_STYLE_COLORS.text} />
               <Text style={styles.settingText}>Payment Policy</Text>
             </View>
           </TouchableOpacity>
@@ -186,7 +186,7 @@ export default function SettingsScreen() {
                 value={searchUserId}
                 onChangeText={setSearchUserId}
                 placeholder="ID Utilisateur"
-                placeholderTextColor="#666"
+                placeholderTextColor={SHARED_STYLE_COLORS.textMuted}
               />
               <TouchableOpacity
                 style={[
@@ -197,15 +197,15 @@ export default function SettingsScreen() {
                 disabled={searchLoading}
               >
                 {searchLoading ? (
-                  <ActivityIndicator size="small" color="#fff" />
+                  <ActivityIndicator size="small" color={SHARED_STYLE_COLORS.text} />
                 ) : (
-                  <Search size={20} color="#fff" />
+                  <Search size={20} color={SHARED_STYLE_COLORS.text} />
                 )}
               </TouchableOpacity>
             </View>
             {searchError && (
               <View style={styles.searchErrorContainer}>
-                <AlertCircle size={16} color="#ef4444" />
+                <AlertCircle size={16} color={SHARED_STYLE_COLORS.error} />
                 <Text style={styles.searchErrorText}>{searchError}</Text>
               </View>
             )}
@@ -229,7 +229,7 @@ export default function SettingsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#000',
+    backgroundColor: SHARED_STYLE_COLORS.background,
   },
   content: {
     flex: 1,
@@ -241,7 +241,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#888',
+    color: SHARED_STYLE_COLORS.textTertiary,
     marginBottom: 12,
     textTransform: 'uppercase',
   },
@@ -260,11 +260,11 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   settingText: {
-    color: '#fff',
+    color: SHARED_STYLE_COLORS.text,
     fontSize: 16,
   },
   adminContainer: {
-    backgroundColor: '#4b5563',
+    backgroundColor: SHARED_STYLE_COLORS.backgroundSecondary,
     borderRadius: 12,
     padding: 16,
     marginBottom: 8,
@@ -272,7 +272,7 @@ const styles = StyleSheet.create({
   adminTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#fff',
+    color: SHARED_STYLE_COLORS.text,
     marginBottom: 16,
   },
   searchContainer: {
@@ -282,14 +282,14 @@ const styles = StyleSheet.create({
   },
   searchInput: {
     flex: 1,
-    backgroundColor: '#374151',
+    backgroundColor: SHARED_STYLE_COLORS.backgroundTertiary,
     borderRadius: 8,
     paddingHorizontal: 12,
-    color: '#fff',
+    color: SHARED_STYLE_COLORS.text,
     height: 44,
   },
   searchButton: {
-    backgroundColor: '#007AFF',
+    backgroundColor: SHARED_STYLE_COLORS.primary,
     width: 44,
     height: 44,
     borderRadius: 8,
@@ -302,14 +302,14 @@ const styles = StyleSheet.create({
   searchErrorContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#2D1116',
+    backgroundColor: SHARED_STYLE_COLORS.primaryOverlay,
     padding: 12,
     borderRadius: 8,
     marginBottom: 12,
     gap: 8,
   },
   searchErrorText: {
-    color: '#ef4444',
+    color: SHARED_STYLE_COLORS.error,
     fontSize: 14,
     flex: 1,
   },

@@ -12,6 +12,7 @@ import { User, Shield } from 'lucide-react-native';
 import { router } from 'expo-router';
 import { useGetUser } from './hooks/useGetUser';
 import { useClerkSupabaseClient } from '@/lib/config/supabase-clerk';
+import { SHARED_STYLE_COLORS } from '@/lib/constants/sharedStyles';
 
 type AdminUsageControlProps = {
   userId: string;
@@ -106,14 +107,14 @@ export default function AdminUsageControl({
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Shield size={20} color="#FF9500" />
+        <Shield size={20} color={SHARED_STYLE_COLORS.warning} />
         <Text style={styles.title}>Admin: Contrôle d&apos;Utilisation</Text>
       </View>
 
       <View style={styles.infoContainer}>
         <View style={styles.infoRow}>
           <View style={styles.infoLabel}>
-            <User size={16} color="#999" />
+            <User size={16} color={SHARED_STYLE_COLORS.textTertiary} />
             <Text style={styles.labelText}>ID Utilisateur:</Text>
           </View>
           <Text style={styles.userId}>{userId}</Text>
@@ -134,7 +135,7 @@ export default function AdminUsageControl({
           keyboardType="number-pad"
           returnKeyType="done"
           placeholder="5"
-          placeholderTextColor="#666"
+          placeholderTextColor={SHARED_STYLE_COLORS.textMuted}
         />
       </View>
 
@@ -144,7 +145,7 @@ export default function AdminUsageControl({
         disabled={loading}
       >
         {loading ? (
-          <ActivityIndicator size="small" color="#fff" />
+          <ActivityIndicator size="small" color={SHARED_STYLE_COLORS.text} />
         ) : (
           <Text style={styles.updateButtonText}>Mettre à jour la limite</Text>
         )}
@@ -155,12 +156,12 @@ export default function AdminUsageControl({
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: '#1A1A1A',
+    backgroundColor: SHARED_STYLE_COLORS.backgroundSecondary,
     borderRadius: 12,
     padding: 16,
     marginVertical: 8,
     borderWidth: 1,
-    borderColor: '#333',
+    borderColor: SHARED_STYLE_COLORS.backgroundTertiary,
   },
   header: {
     flexDirection: 'row',
@@ -171,10 +172,10 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#FF9500',
+    color: SHARED_STYLE_COLORS.warning,
   },
   infoContainer: {
-    backgroundColor: '#222',
+    backgroundColor: SHARED_STYLE_COLORS.backgroundTertiary,
     borderRadius: 8,
     padding: 12,
     marginBottom: 16,
@@ -192,17 +193,17 @@ const styles = StyleSheet.create({
   },
   labelText: {
     fontSize: 14,
-    color: '#999',
+    color: SHARED_STYLE_COLORS.textTertiary,
   },
   userId: {
     fontSize: 12,
-    color: '#888',
+    color: SHARED_STYLE_COLORS.textMuted,
     flex: 1,
     textAlign: 'right',
   },
   currentLimit: {
     fontSize: 16,
-    color: '#FFF',
+    color: SHARED_STYLE_COLORS.text,
     fontWeight: '500',
   },
   inputContainer: {
@@ -210,19 +211,19 @@ const styles = StyleSheet.create({
   },
   inputLabel: {
     fontSize: 14,
-    color: '#FFF',
+    color: SHARED_STYLE_COLORS.text,
     marginBottom: 8,
   },
   input: {
     height: 44,
-    backgroundColor: '#333',
+    backgroundColor: SHARED_STYLE_COLORS.backgroundTertiary,
     borderRadius: 8,
     paddingHorizontal: 12,
-    color: '#FFF',
+    color: SHARED_STYLE_COLORS.text,
     fontSize: 16,
   },
   updateButton: {
-    backgroundColor: '#FF9500',
+    backgroundColor: SHARED_STYLE_COLORS.warning,
     borderRadius: 8,
     height: 44,
     alignItems: 'center',
@@ -232,7 +233,7 @@ const styles = StyleSheet.create({
     opacity: 0.7,
   },
   updateButtonText: {
-    color: '#FFF',
+    color: SHARED_STYLE_COLORS.text,
     fontSize: 16,
     fontWeight: '600',
   },

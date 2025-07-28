@@ -10,7 +10,7 @@ import {
   UIManager,
 } from 'react-native';
 import { AlertCircle, Mic, Bug, ChevronDown } from 'lucide-react-native';
-import { sharedStyles } from '@/lib/constants/sharedStyles';
+import { sharedStyles, SHARED_STYLE_COLORS } from '@/lib/constants/sharedStyles';
 
 if (
   Platform.OS === 'android' &&
@@ -32,7 +32,7 @@ type Props = {
 const defaultContacts: SupportContact[] = [
   {
     label: 'Email',
-    icon: <AlertCircle size={24} color="#fff" />,
+    icon: <AlertCircle size={24} color={SHARED_STYLE_COLORS.text} />,
     onPress: () => Linking.openURL('mailto:jason.h.suarez@gmail.com'),
   },
   {
@@ -66,7 +66,7 @@ const SupportPanel: React.FC<Props> = ({ contacts = defaultContacts }) => {
         <Text style={styles.sectionTitle}>Support</Text>
         <ChevronDown
           size={24}
-          color="#888"
+          color={SHARED_STYLE_COLORS.textMuted}
           style={{ transform: [{ rotate: isCollapsed ? '0deg' : '180deg' }] }}
         />
       </TouchableOpacity>
@@ -96,7 +96,7 @@ const SupportPanel: React.FC<Props> = ({ contacts = defaultContacts }) => {
 const styles = StyleSheet.create({
   section: {
     backgroundColor: sharedStyles.sectionContainer.backgroundColor,
-    color: '#fff',
+    color: SHARED_STYLE_COLORS.text,
     borderRadius: 12,
     padding: 16,
     marginBottom: 24,
@@ -109,7 +109,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#fff',
+    color: SHARED_STYLE_COLORS.text,
     textTransform: 'uppercase',
   },
   contentContainer: {
@@ -117,7 +117,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   contactHeader: {
-    color: '#fff',
+    color: SHARED_STYLE_COLORS.text,
     fontSize: 15,
     fontWeight: '500',
     marginBottom: 8,
@@ -138,7 +138,7 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   settingText: {
-    color: '#fff',
+    color: SHARED_STYLE_COLORS.text,
     fontSize: 16,
   },
 });

@@ -9,7 +9,7 @@ import {
 } from 'react-native';
 import { Crown, Zap, RotateCcw, BarChart3 } from 'lucide-react-native';
 import { useRevenueCat } from '@/contexts/providers/RevenueCat';
-import { sharedStyles } from '@/lib/constants/sharedStyles';
+import { sharedStyles, SHARED_STYLE_COLORS } from '@/lib/constants/sharedStyles';
 
 interface SubscriptionManagerProps {
   style?: any;
@@ -39,11 +39,11 @@ export const SubscriptionManager: React.FC<SubscriptionManagerProps> = ({
     return (
       <View style={[styles.container, style]}>
         <View style={styles.header}>
-          <Crown size={24} color="#007AFF" />
+          <Crown size={24} color={SHARED_STYLE_COLORS.primary} />
           <Text style={styles.title}>Abonnement</Text>
         </View>
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="small" color="#007AFF" />
+          <ActivityIndicator size="small" color={SHARED_STYLE_COLORS.primary} />
           <Text style={styles.loadingText}>Chargement...</Text>
         </View>
       </View>
@@ -119,7 +119,7 @@ export const SubscriptionManager: React.FC<SubscriptionManagerProps> = ({
         return (
           <View style={[styles.container, styles.proContainer, style]}>
             <View style={styles.header}>
-              <Crown size={24} color="#FFD700" />
+              <Crown size={24} color={SHARED_STYLE_COLORS.accent} />
               <Text style={styles.title}>Plan Pro</Text>
             </View>
             <View style={styles.planInfo}>
@@ -130,7 +130,7 @@ export const SubscriptionManager: React.FC<SubscriptionManagerProps> = ({
             </View>
             <View style={styles.usageSection}>
               <View style={styles.usageHeader}>
-                <BarChart3 size={20} color="#007AFF" />
+                <BarChart3 size={20} color={SHARED_STYLE_COLORS.primary} />
                 <Text style={styles.usageTitle}>Utilisation ce mois</Text>
               </View>
               <View style={styles.usageStats}>
@@ -146,10 +146,10 @@ export const SubscriptionManager: React.FC<SubscriptionManagerProps> = ({
               disabled={isRestoring}
             >
               {isRestoring ? (
-                <ActivityIndicator size="small" color="#888" />
+                <ActivityIndicator size="small" color={SHARED_STYLE_COLORS.textMuted} />
               ) : (
                 <>
-                  <RotateCcw size={16} color="#888" />
+                  <RotateCcw size={16} color={SHARED_STYLE_COLORS.textMuted} />
                   <Text style={styles.restoreButtonText}>
                     Restaurer les achats
                   </Text>
@@ -163,7 +163,7 @@ export const SubscriptionManager: React.FC<SubscriptionManagerProps> = ({
         return (
           <View style={[styles.container, style]}>
             <View style={styles.header}>
-              <Crown size={24} color="#007AFF" />
+              <Crown size={24} color={SHARED_STYLE_COLORS.primary} />
               <Text style={styles.title}>Plan Créateur</Text>
             </View>
             <View style={styles.planInfo}>
@@ -173,7 +173,7 @@ export const SubscriptionManager: React.FC<SubscriptionManagerProps> = ({
             </View>
             <View style={styles.usageSection}>
               <View style={styles.usageHeader}>
-                <BarChart3 size={20} color="#007AFF" />
+                <BarChart3 size={20} color={SHARED_STYLE_COLORS.primary} />
                 <Text style={styles.usageTitle}>Utilisation ce mois</Text>
               </View>
               <View style={styles.usageBar}>
@@ -188,7 +188,7 @@ export const SubscriptionManager: React.FC<SubscriptionManagerProps> = ({
                         100
                       )}%`,
                       backgroundColor:
-                        videosRemaining <= 3 ? '#f59e0b' : '#4CAF50',
+                        videosRemaining <= 3 ? SHARED_STYLE_COLORS.warning : SHARED_STYLE_COLORS.success,
                     },
                   ]}
                 />
@@ -209,10 +209,10 @@ export const SubscriptionManager: React.FC<SubscriptionManagerProps> = ({
               disabled={isUpgrading}
             >
               {isUpgrading ? (
-                <ActivityIndicator size="small" color="#fff" />
+                <ActivityIndicator size="small" color={SHARED_STYLE_COLORS.text} />
               ) : (
                 <>
-                  <Zap size={16} color="#fff" />
+                  <Zap size={16} color={SHARED_STYLE_COLORS.text} />
                   <Text style={styles.upgradeButtonText}>
                     Passer Pro pour l'illimité
                   </Text>
@@ -225,10 +225,10 @@ export const SubscriptionManager: React.FC<SubscriptionManagerProps> = ({
               disabled={isRestoring}
             >
               {isRestoring ? (
-                <ActivityIndicator size="small" color="#888" />
+                <ActivityIndicator size="small" color={SHARED_STYLE_COLORS.textMuted} />
               ) : (
                 <>
-                  <RotateCcw size={16} color="#888" />
+                  <RotateCcw size={16} color={SHARED_STYLE_COLORS.textMuted} />
                   <Text style={styles.restoreButtonText}>
                     Restaurer les achats
                   </Text>
@@ -243,7 +243,7 @@ export const SubscriptionManager: React.FC<SubscriptionManagerProps> = ({
         return (
           <View style={[styles.container, style]}>
             <View style={styles.header}>
-              <Crown size={24} color="#007AFF" />
+              <Crown size={24} color={SHARED_STYLE_COLORS.primary} />
               <Text style={styles.title}>Plan Découverte</Text>
             </View>
             <View style={styles.planInfo}>
@@ -253,7 +253,7 @@ export const SubscriptionManager: React.FC<SubscriptionManagerProps> = ({
             </View>
             <View style={styles.usageSection}>
               <View style={styles.usageHeader}>
-                <BarChart3 size={20} color="#007AFF" />
+                <BarChart3 size={20} color={SHARED_STYLE_COLORS.primary} />
                 <Text style={styles.usageTitle}>Utilisation ce mois</Text>
               </View>
               <View style={styles.usageBar}>
@@ -268,7 +268,7 @@ export const SubscriptionManager: React.FC<SubscriptionManagerProps> = ({
                         100
                       )}%`,
                       backgroundColor:
-                        videosRemaining === 0 ? '#ef4444' : '#007AFF',
+                        videosRemaining === 0 ? SHARED_STYLE_COLORS.error : SHARED_STYLE_COLORS.primary,
                     },
                   ]}
                 />
@@ -299,10 +299,10 @@ export const SubscriptionManager: React.FC<SubscriptionManagerProps> = ({
               disabled={isUpgrading}
             >
               {isUpgrading ? (
-                <ActivityIndicator size="small" color="#fff" />
+                <ActivityIndicator size="small" color={SHARED_STYLE_COLORS.text} />
               ) : (
                 <>
-                  <Zap size={16} color="#fff" />
+                  <Zap size={16} color={SHARED_STYLE_COLORS.text} />
                   <Text style={styles.upgradeButtonText}>
                     Débloquer 15 vidéos/mois avec le plan Créateur
                   </Text>
@@ -315,10 +315,10 @@ export const SubscriptionManager: React.FC<SubscriptionManagerProps> = ({
               disabled={isRestoring}
             >
               {isRestoring ? (
-                <ActivityIndicator size="small" color="#888" />
+                <ActivityIndicator size="small" color={SHARED_STYLE_COLORS.textMuted} />
               ) : (
                 <>
-                  <RotateCcw size={16} color="#888" />
+                  <RotateCcw size={16} color={SHARED_STYLE_COLORS.textMuted} />
                   <Text style={styles.restoreButtonText}>
                     Restaurer les achats
                   </Text>
@@ -341,9 +341,9 @@ const styles = StyleSheet.create({
     marginVertical: 8,
   },
   proContainer: {
-    backgroundColor: 'rgba(255, 215, 0, 0.05)',
+    backgroundColor: SHARED_STYLE_COLORS.primaryOverlay,
     borderWidth: 1,
-    borderColor: 'rgba(255, 215, 0, 0.2)',
+    borderColor: SHARED_STYLE_COLORS.primaryBorder,
   },
   header: {
     flexDirection: 'row',
@@ -352,7 +352,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   title: {
-    color: '#fff',
+    color: SHARED_STYLE_COLORS.text,
     fontSize: 18,
     fontWeight: '600',
   },
@@ -363,14 +363,14 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
   },
   loadingText: {
-    color: '#888',
+    color: SHARED_STYLE_COLORS.textMuted,
     fontSize: 14,
   },
   planInfo: {
     marginBottom: 20,
   },
   planDescription: {
-    color: '#fff',
+    color: SHARED_STYLE_COLORS.text,
     fontSize: 16,
     lineHeight: 22,
   },
@@ -384,13 +384,13 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   usageTitle: {
-    color: '#fff',
+    color: SHARED_STYLE_COLORS.text,
     fontSize: 16,
     fontWeight: '500',
   },
   usageBar: {
     height: 6,
-    backgroundColor: '#333',
+    backgroundColor: SHARED_STYLE_COLORS.backgroundTertiary,
     borderRadius: 3,
     overflow: 'hidden',
     marginBottom: 12,
@@ -405,26 +405,26 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   usageText: {
-    color: '#fff',
+    color: SHARED_STYLE_COLORS.text,
     fontSize: 14,
   },
   usageRemaining: {
-    color: '#888',
+    color: SHARED_STYLE_COLORS.textMuted,
     fontSize: 14,
     fontWeight: '600',
   },
   usageWarning: {
-    color: '#ef4444',
+    color: SHARED_STYLE_COLORS.error,
   },
   limitReachedText: {
-    color: '#ef4444',
+    color: SHARED_STYLE_COLORS.error,
     fontSize: 12,
     textAlign: 'center',
     marginTop: 8,
     fontStyle: 'italic',
   },
   upgradeButton: {
-    backgroundColor: '#007AFF',
+    backgroundColor: SHARED_STYLE_COLORS.primary,
     borderRadius: 12,
     paddingVertical: 14,
     paddingHorizontal: 16,
@@ -435,14 +435,14 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   upgradeButtonText: {
-    color: '#fff',
+    color: SHARED_STYLE_COLORS.text,
     fontSize: 14,
     fontWeight: '600',
   },
   restoreButton: {
     backgroundColor: 'transparent',
     borderWidth: 1,
-    borderColor: '#333',
+    borderColor: SHARED_STYLE_COLORS.backgroundTertiary,
     borderRadius: 8,
     paddingVertical: 10,
     paddingHorizontal: 12,
@@ -452,7 +452,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   restoreButtonText: {
-    color: '#888',
+    color: SHARED_STYLE_COLORS.textMuted,
     fontSize: 12,
   },
 });

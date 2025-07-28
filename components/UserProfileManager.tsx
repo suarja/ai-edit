@@ -67,7 +67,7 @@ const UserProfileManager: React.FC = () => {
         <SafeAreaView style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <TouchableOpacity style={styles.closeButton} onPress={handleClose}>
-              <X size={24} color="#9ca3af" />
+              <X size={24} color={SHARED_STYLE_COLORS.textSecondary} />
             </TouchableOpacity>
             <View style={styles.avatarEditContainer}>
               <Image
@@ -77,7 +77,7 @@ const UserProfileManager: React.FC = () => {
                 style={styles.profileImageLarge}
               />
               <TouchableOpacity style={styles.cameraIcon}>
-                <Camera size={20} color="#fff" />
+                <Camera size={20} color={SHARED_STYLE_COLORS.text} />
               </TouchableOpacity>
             </View>
             <Text style={styles.inputLabel}>Full Name</Text>
@@ -88,7 +88,7 @@ const UserProfileManager: React.FC = () => {
                 setEditProfile((prev) => ({ ...prev, full_name: text }))
               }
               placeholder="Enter your name"
-              placeholderTextColor="#6b7280"
+              placeholderTextColor={SHARED_STYLE_COLORS.textMuted}
             />
             <Text style={styles.inputLabel}>Avatar URL</Text>
             <TextInput
@@ -98,7 +98,7 @@ const UserProfileManager: React.FC = () => {
                 setEditProfile((prev) => ({ ...prev, avatar_url: text }))
               }
               placeholder="Image URL for your avatar"
-              placeholderTextColor="#6b7280"
+              placeholderTextColor={SHARED_STYLE_COLORS.textMuted}
             />
             {editError && (
               <View style={styles.errorContainer}>
@@ -114,9 +114,9 @@ const UserProfileManager: React.FC = () => {
               disabled={updating || editLoading}
             >
               {updating || editLoading ? (
-                <ActivityIndicator color="#fff" />
+                <ActivityIndicator color={SHARED_STYLE_COLORS.text} />
               ) : (
-                <Check size={20} color="#fff" />
+                <Check size={20} color={SHARED_STYLE_COLORS.text} />
               )}
               <Text style={styles.saveButtonText}>Save Changes</Text>
             </TouchableOpacity>
@@ -126,7 +126,7 @@ const UserProfileManager: React.FC = () => {
                 onPress={handleLogout}
                 disabled={loading}
               >
-                <LogOut size={20} color="#9ca3af" />
+                <LogOut size={20} color={SHARED_STYLE_COLORS.textSecondary} />
                 <Text style={styles.logoutButtonText}>Logout</Text>
               </TouchableOpacity>
               <TouchableOpacity
@@ -138,7 +138,7 @@ const UserProfileManager: React.FC = () => {
                 disabled={deleting}
               >
                 {deleting ? (
-                  <ActivityIndicator color="#ef4444" />
+                  <ActivityIndicator color={SHARED_STYLE_COLORS.error} />
                 ) : (
                   <Text style={styles.deleteButtonText}>Delete Account</Text>
                 )}
@@ -177,18 +177,18 @@ const styles = StyleSheet.create({
     height: 60,
     borderRadius: 30,
     borderWidth: 2,
-    borderColor: '#4b5563',
+    borderColor: SHARED_STYLE_COLORS.border,
   },
   profileInfo: {
     flex: 1,
   },
   profileName: {
-    color: '#f9fafb',
+    color: SHARED_STYLE_COLORS.text,
     fontSize: 18,
     fontWeight: '600',
   },
   profileEmail: {
-    color: '#9ca3af',
+    color: SHARED_STYLE_COLORS.textSecondary,
     fontSize: 14,
   },
   modalOverlay: {
@@ -215,45 +215,45 @@ const styles = StyleSheet.create({
     height: 100,
     borderRadius: 50,
     borderWidth: 3,
-    borderColor: '#4b5563',
+    borderColor: SHARED_STYLE_COLORS.border,
   },
   cameraIcon: {
     position: 'absolute',
     bottom: 0,
     right: 0,
-    backgroundColor: '#10b981',
+    backgroundColor: SHARED_STYLE_COLORS.primary,
     padding: 8,
     borderRadius: 20,
   },
   inputLabel: {
-    color: '#d1d5db',
+    color: SHARED_STYLE_COLORS.textSecondary,
     fontSize: 14,
     alignSelf: 'flex-start',
     marginBottom: 8,
     fontWeight: '500',
   },
   nameInput: {
-    color: '#f9fafb',
+    color: SHARED_STYLE_COLORS.text,
     fontSize: 16,
-    backgroundColor: '#374151',
+    backgroundColor: SHARED_STYLE_COLORS.backgroundTertiary,
     borderRadius: 8,
     padding: 12,
     marginBottom: 16,
     width: '100%',
     borderWidth: 1,
-    borderColor: '#4b5563',
+    borderColor: SHARED_STYLE_COLORS.border,
   },
   errorContainer: {
-    backgroundColor: '#3f1212',
+    backgroundColor: SHARED_STYLE_COLORS.primaryOverlay,
     padding: 12,
     borderRadius: 8,
     marginBottom: 16,
     width: '100%',
     borderWidth: 1,
-    borderColor: '#ef4444',
+    borderColor: SHARED_STYLE_COLORS.error,
   },
   errorText: {
-    color: '#f87171',
+    color: SHARED_STYLE_COLORS.error,
     fontSize: 14,
     textAlign: 'center',
   },
@@ -265,7 +265,7 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   saveButton: {
-    backgroundColor: '#10b981',
+    backgroundColor: SHARED_STYLE_COLORS.primary,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
@@ -279,14 +279,14 @@ const styles = StyleSheet.create({
     opacity: 0.6,
   },
   saveButtonText: {
-    color: '#fff',
+    color: SHARED_STYLE_COLORS.text,
     fontSize: 16,
     fontWeight: '600',
   },
   logoutButton: {
     backgroundColor: 'transparent',
     borderWidth: 1,
-    borderColor: '#4b5563',
+    borderColor: SHARED_STYLE_COLORS.border,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
@@ -296,14 +296,14 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   logoutButtonText: {
-    color: '#9ca3af',
+    color: SHARED_STYLE_COLORS.textSecondary,
     fontSize: 16,
     fontWeight: '500',
   },
   deleteButton: {
     backgroundColor: 'transparent',
     borderWidth: 1,
-    borderColor: '#ef4444',
+    borderColor: SHARED_STYLE_COLORS.error,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',

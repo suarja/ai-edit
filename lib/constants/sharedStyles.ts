@@ -1,17 +1,24 @@
 import { StyleSheet } from 'react-native';
 
 export const SHARED_STYLE_COLORS = {
-  background: '#9ca3af', // Dark blue-gray
-  backgroundSecondary: '#1a1a1a', // Lighter blue-gray
-  primary: '#10b981', // Emerald green
-  secondary: '#3b82f6', // Blue
-  accent: '#f59e0b', // Amber
-  text: '#f9fafb', // Almost white
-  textSecondary: '#9ca3af', // Lighter gray
-  border: '#374151', // Gray
-  error: '#ef4444', // Red
-  warning: '#f59e0b', // Amber
-  success: '#10b981', // Emerald green
+  background: '#000000', // Pure black
+  backgroundSecondary: '#1a1a1a', // Elevated surface
+  backgroundTertiary: '#2a2a2a', // Tertiary surface
+  primary: '#FF0050', // Editia red
+  primaryLight: 'rgba(255, 0, 80, 0.6)',
+  primaryOverlay: 'rgba(255, 0, 80, 0.12)',
+  primaryBorder: 'rgba(255, 0, 80, 0.3)',
+  secondary: '#007AFF', // System blue
+  accent: '#FFD700', // Gold for premium
+  text: '#FFFFFF', // Pure white
+  textSecondary: '#E0E0E0', // Secondary text
+  textTertiary: '#B0B0B0', // Tertiary text
+  textMuted: '#666666', // Muted text
+  border: 'rgba(255, 255, 255, 0.2)', // Light border
+  borderMuted: 'rgba(255, 255, 255, 0.05)', // Very light border
+  error: '#FF3B30', // System red
+  warning: '#FF9500', // System orange
+  success: '#00FF88', // Bright green
 };
 
 export const sharedStyles = StyleSheet.create({
