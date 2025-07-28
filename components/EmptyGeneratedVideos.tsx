@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Film, Sparkles, Plus } from 'lucide-react-native';
+import { SHARED_STYLE_COLORS } from '@/lib/constants/sharedStyles';
 
 type EmptyGeneratedVideosProps = {
   onCreateVideo: () => void;
@@ -13,10 +14,10 @@ export default function EmptyGeneratedVideos({
     <View style={styles.container}>
       <View style={styles.iconContainer}>
         <View style={styles.iconBackground}>
-          <Film size={48} color="#007AFF" />
+          <Film size={48} color={SHARED_STYLE_COLORS.primary} />
         </View>
         <View style={styles.sparkleIcon}>
-          <Sparkles size={20} color="#f59e0b" />
+          <Sparkles size={20} color={SHARED_STYLE_COLORS.primary} />
         </View>
       </View>
 
@@ -46,7 +47,7 @@ export default function EmptyGeneratedVideos({
       </View>
 
       <TouchableOpacity style={styles.createButton} onPress={onCreateVideo}>
-        <Plus size={20} color="#fff" />
+          <Plus size={20} color={SHARED_STYLE_COLORS.background} />
         <Text style={styles.createButtonText}>Créer ma première vidéo</Text>
       </TouchableOpacity>
     </View>
@@ -67,27 +68,27 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   iconBackground: {
-    backgroundColor: 'rgba(0, 122, 255, 0.1)',
+    backgroundColor: SHARED_STYLE_COLORS.primaryOverlay,
     borderRadius: 40,
     width: 80,
     height: 80,
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 2,
-    borderColor: 'rgba(0, 122, 255, 0.2)',
+        borderColor: SHARED_STYLE_COLORS.primaryBorder,
   },
   sparkleIcon: {
     position: 'absolute',
     top: -8,
     right: -8,
-    backgroundColor: 'rgba(245, 158, 11, 0.1)',
+    backgroundColor: SHARED_STYLE_COLORS.primaryOverlay,
     borderRadius: 16,
     width: 32,
     height: 32,
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 2,
-    borderColor: 'rgba(245, 158, 11, 0.3)',
+      borderColor: SHARED_STYLE_COLORS.primaryBorder,
   },
   content: {
     alignItems: 'center',
@@ -96,12 +97,12 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 24,
     fontWeight: '700',
-    color: '#fff',
+    color: SHARED_STYLE_COLORS.text,
     textAlign: 'center',
   },
   description: {
     fontSize: 16,
-    color: '#888',
+    color: SHARED_STYLE_COLORS.text,
     textAlign: 'center',
     lineHeight: 24,
     maxWidth: 320,
@@ -120,15 +121,15 @@ const styles = StyleSheet.create({
     width: 6,
     height: 6,
     borderRadius: 3,
-    backgroundColor: '#007AFF',
+    backgroundColor: SHARED_STYLE_COLORS.primary,
   },
   featureText: {
     fontSize: 15,
-    color: '#ccc',
+    color: SHARED_STYLE_COLORS.text,
     fontWeight: '500',
   },
   createButton: {
-    backgroundColor: '#007AFF',
+    backgroundColor: SHARED_STYLE_COLORS.primary,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
@@ -136,7 +137,7 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     borderRadius: 16,
     gap: 8,
-    shadowColor: '#007AFF',
+    shadowColor: SHARED_STYLE_COLORS.primary,
     shadowOffset: {
       width: 0,
       height: 4,
@@ -147,7 +148,7 @@ const styles = StyleSheet.create({
     minWidth: 200,
   },
   createButtonText: {
-    color: '#fff',
+    color: SHARED_STYLE_COLORS.text,
     fontSize: 16,
     fontWeight: '600',
   },

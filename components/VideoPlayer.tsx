@@ -10,6 +10,7 @@ import { Volume2, VolumeX, FileVideo } from 'lucide-react-native';
 import { useVideoPlayer, VideoView } from 'expo-video';
 import { getVideoUrl } from '@/lib/types/video.types';
 import { EnhancedGeneratedVideoType, VideoType } from 'editia-core';
+import { SHARED_STYLE_COLORS } from '@/lib/constants/sharedStyles';
 
 interface VideoPlayerProps {
   video: VideoType | EnhancedGeneratedVideoType | null;
@@ -75,7 +76,7 @@ export default function VideoPlayer({
       <View style={[styles.container, style]}>
         <View style={styles.videoContainer}>
           <View style={styles.videoFallback}>
-            <FileVideo size={48} color="#007AFF" />
+            <FileVideo size={48} color={SHARED_STYLE_COLORS.primary} />
             <Text style={styles.fallbackTitle}>Aucune vidéo disponible</Text>
           </View>
         </View>
@@ -115,7 +116,7 @@ export default function VideoPlayer({
       <View style={styles.videoContainer}>
         {isLoading && (
           <View style={styles.loadingOverlay}>
-            <ActivityIndicator size="large" color="#007AFF" />
+            <ActivityIndicator size="large" color={SHARED_STYLE_COLORS.primary} />
             <Text style={styles.loadingText}>Chargement de la vidéo...</Text>
           </View>
         )}
@@ -184,7 +185,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   retryButton: {
-    backgroundColor: '#007AFF',
+    backgroundColor: SHARED_STYLE_COLORS.primary,
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 8,

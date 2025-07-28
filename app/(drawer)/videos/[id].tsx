@@ -17,6 +17,7 @@ import { useGetUser } from '@/components/hooks/useGetUser';
 import { useClerkSupabaseClient } from '@/lib/config/supabase-clerk';
 import { useAuth } from '@clerk/clerk-expo';
 import { VideoRequestStatus } from 'editia-core';
+import { SHARED_STYLE_COLORS } from '@/lib/constants/sharedStyles';
 
 // Script type for proper TypeScript support
 type ScriptData = {
@@ -256,7 +257,7 @@ export default function GeneratedVideoDetailScreen() {
       return (
         <View style={styles.thumbnailContainer}>
           <View style={styles.thumbnailOverlay}>
-            <ActivityIndicator size="large" color="#007AFF" />
+            <ActivityIndicator size="large" color={SHARED_STYLE_COLORS.primary} />
             <Text style={styles.processingText}>
               Votre vidéo est en cours de traitement. Cela peut prendre quelques
               minutes.
@@ -281,7 +282,7 @@ export default function GeneratedVideoDetailScreen() {
     return (
       <SafeAreaView style={styles.container} edges={[]}>
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#007AFF" />
+          <ActivityIndicator size="large" color={SHARED_STYLE_COLORS.primary} />
           <Text style={styles.loadingText}>Chargement des détails...</Text>
         </View>
       </SafeAreaView>
@@ -314,7 +315,7 @@ export default function GeneratedVideoDetailScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#000',
+    backgroundColor: SHARED_STYLE_COLORS.background,
   },
   scrollContainer: {
     flex: 1,
@@ -334,13 +335,13 @@ const styles = StyleSheet.create({
     gap: 16,
   },
   loadingText: {
-    color: '#888',
+    color: SHARED_STYLE_COLORS.text,
     fontSize: 16,
   },
   thumbnailContainer: {
     width: '100%',
     height: 240,
-    backgroundColor: '#1a1a1a',
+    backgroundColor: SHARED_STYLE_COLORS.backgroundSecondary,
     position: 'relative',
     justifyContent: 'center',
     alignItems: 'center',
@@ -350,20 +351,20 @@ const styles = StyleSheet.create({
     position: 'absolute',
     width: '100%',
     height: '100%',
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    backgroundColor: SHARED_STYLE_COLORS.backgroundSecondary,
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: 20,
   },
   processingText: {
-    color: '#fff',
+    color: SHARED_STYLE_COLORS.text,
     fontSize: 16,
     fontWeight: 'bold',
     marginTop: 20,
     textAlign: 'center',
   },
   promptText: {
-    color: '#888',
+    color: SHARED_STYLE_COLORS.text,
     fontSize: 14,
     marginTop: 12,
     textAlign: 'center',

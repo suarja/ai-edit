@@ -19,6 +19,7 @@ import GeneratedVideoCard from '@/components/GeneratedVideoCard';
 import EmptyGeneratedVideos from '@/components/EmptyGeneratedVideos';
 import { API_ENDPOINTS } from '@/lib/config/api';
 import { useAuth } from '@clerk/clerk-expo';
+import { SHARED_STYLE_COLORS } from '@/lib/constants/sharedStyles';
 
 type VideoRequest = {
   id: string;
@@ -304,7 +305,7 @@ export default function GeneratedVideosScreen() {
     return (
       <SafeAreaView style={styles.container} edges={[]}>
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#007AFF" />
+          <ActivityIndicator size="large" color={SHARED_STYLE_COLORS.primary} />
           <Text style={styles.loadingText}>Chargement des vidéos...</Text>
         </View>
       </SafeAreaView>
@@ -315,7 +316,7 @@ export default function GeneratedVideosScreen() {
     <SafeAreaView style={styles.container} edges={[]}>
       {error && (
         <View style={styles.errorContainer}>
-          <AlertCircle size={20} color="#ef4444" />
+            <AlertCircle size={20} color={SHARED_STYLE_COLORS.error} />
           <Text style={styles.errorText}>{error}</Text>
         </View>
       )}
@@ -332,9 +333,9 @@ export default function GeneratedVideosScreen() {
             <RefreshControl
               refreshing={refreshing}
               onRefresh={onRefresh}
-              tintColor="#007AFF"
+              tintColor={SHARED_STYLE_COLORS.primary}
               title="Actualisation..."
-              titleColor="#888"
+              titleColor={SHARED_STYLE_COLORS.text}
             />
           }
           renderItem={({ item }) => (
@@ -353,7 +354,7 @@ export default function GeneratedVideosScreen() {
         style={styles.floatingButton}
         onPress={handleCreateVideo}
       >
-        <Plus size={24} color="#fff" />
+        <Plus size={24} color={SHARED_STYLE_COLORS.text} />
       </TouchableOpacity>
     </SafeAreaView>
   );
@@ -362,7 +363,7 @@ export default function GeneratedVideosScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#000',
+    backgroundColor: SHARED_STYLE_COLORS.background,
   },
   loadingContainer: {
     flex: 1,
@@ -371,13 +372,13 @@ const styles = StyleSheet.create({
     gap: 16,
   },
   loadingText: {
-    color: '#888',
+    color: SHARED_STYLE_COLORS.text,
     fontSize: 16,
   },
   errorContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#2D1116',
+    backgroundColor: SHARED_STYLE_COLORS.backgroundSecondary,
     padding: 16,
     borderRadius: 12,
     marginHorizontal: 20,
@@ -385,7 +386,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   errorText: {
-    color: '#ef4444',
+    color: SHARED_STYLE_COLORS.error,
     fontSize: 14,
     flex: 1,
   },
@@ -396,13 +397,13 @@ const styles = StyleSheet.create({
     position: 'absolute',
     bottom: 30,
     right: 20,
-    backgroundColor: '#007AFF',
+    backgroundColor: SHARED_STYLE_COLORS.primary,
     width: 56,
     height: 56,
     borderRadius: 28,
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: '#000',
+    shadowColor: SHARED_STYLE_COLORS.backgroundSecondary,
     shadowOffset: {
       width: 0,
       height: 2,

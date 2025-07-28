@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import VoiceDictation from './VoiceDictation';
 import { IUploadedVideo } from '@/lib/types/video.types';
+import { SHARED_STYLE_COLORS } from '@/lib/constants/sharedStyles';
 
 export default function VideoEditForm({
   video,
@@ -46,7 +47,7 @@ export default function VideoEditForm({
           <TextInput
             style={styles.input}
             placeholder="Video title"
-            placeholderTextColor="#666"
+            placeholderTextColor={SHARED_STYLE_COLORS.textMuted}
             value={form.title}
             onChangeText={(text) =>
               setForm((prev) => ({ ...prev, title: text }))
@@ -60,7 +61,7 @@ export default function VideoEditForm({
             <TextInput
               style={styles.textArea}
               placeholder="Video description"
-              placeholderTextColor="#666"
+              placeholderTextColor={SHARED_STYLE_COLORS.textMuted}
               multiline
               numberOfLines={4}
               value={form.description}
@@ -80,7 +81,7 @@ export default function VideoEditForm({
           <TextInput
             style={styles.input}
             placeholder="Tags separated by commas"
-            placeholderTextColor="#666"
+            placeholderTextColor={SHARED_STYLE_COLORS.textMuted}
             value={form.tags}
             onChangeText={(text) =>
               setForm((prev) => ({ ...prev, tags: text }))
@@ -90,7 +91,7 @@ export default function VideoEditForm({
 
         <View style={styles.editActions}>
           <TouchableOpacity style={styles.cancelButton} onPress={onCancel}>
-            <X size={16} color="#888" />
+            <X size={16} color={SHARED_STYLE_COLORS.textMuted} />
             <Text style={styles.cancelButtonText}>Cancel</Text>
           </TouchableOpacity>
 
@@ -110,7 +111,7 @@ export default function VideoEditForm({
             }}
             disabled={!isValid}
           >
-            <Check size={16} color="#fff" />
+            <Check size={16} color={SHARED_STYLE_COLORS.text} />
             <Text style={styles.saveButtonText}>Save</Text>
           </TouchableOpacity>
         </View>
@@ -122,7 +123,7 @@ export default function VideoEditForm({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#000',
+    backgroundColor: SHARED_STYLE_COLORS.background,
   },
   content: {
     flex: 1,
@@ -143,38 +144,38 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#fff',
+    color: SHARED_STYLE_COLORS.text,
     marginBottom: 8,
   },
   inputGroup: {
     gap: 8,
   },
   inputLabel: {
-    color: '#fff',
+    color: SHARED_STYLE_COLORS.text,
     fontSize: 16,
     fontWeight: '500',
   },
   input: {
-    backgroundColor: '#1a1a1a',
+    backgroundColor: SHARED_STYLE_COLORS.backgroundSecondary,
     borderRadius: 12,
     padding: 16,
-    color: '#fff',
+    color: SHARED_STYLE_COLORS.text,
     fontSize: 16,
     borderWidth: 1,
-    borderColor: '#333',
+    borderColor: SHARED_STYLE_COLORS.border,
   },
   textAreaContainer: {
     position: 'relative',
   },
   textArea: {
-    backgroundColor: '#1a1a1a',
+    backgroundColor: SHARED_STYLE_COLORS.backgroundSecondary,
     borderRadius: 12,
     padding: 16,
     paddingRight: 48, // Make space for the icon
-    color: '#fff',
+    color: SHARED_STYLE_COLORS.text,
     fontSize: 16,
     borderWidth: 1,
-    borderColor: '#333',
+    borderColor: SHARED_STYLE_COLORS.border,
     textAlignVertical: 'top',
     minHeight: 100,
   },
@@ -196,19 +197,19 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   cancelButtonText: {
-    color: '#888',
+    color: SHARED_STYLE_COLORS.textMuted,
     fontSize: 14,
   },
   saveButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#007AFF',
+    backgroundColor: SHARED_STYLE_COLORS.primary,
     padding: 12,
     borderRadius: 8,
     gap: 6,
   },
   saveButtonText: {
-    color: '#fff',
+    color: SHARED_STYLE_COLORS.text,
     fontSize: 14,
     fontWeight: '600',
   },

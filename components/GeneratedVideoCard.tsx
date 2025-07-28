@@ -61,7 +61,7 @@ export default function GeneratedVideoCard({
       case 'done':
         return {
           icon: CheckCircle,
-          color: '#4CD964',
+          color: SHARED_STYLE_COLORS.success,
           bgColor: 'rgba(76, 217, 100, 0.08)',
           borderColor: '#333',
           label: 'Terminé',
@@ -70,7 +70,7 @@ export default function GeneratedVideoCard({
       case 'rendering':
         return {
           icon: Loader,
-          color: '#FF9500',
+          color: SHARED_STYLE_COLORS.primary,
           bgColor: 'rgba(255, 149, 0, 0.08)',
           borderColor: '#333',
           label: 'En cours',
@@ -79,7 +79,7 @@ export default function GeneratedVideoCard({
       case 'error':
         return {
           icon: AlertCircle,
-          color: '#FF3B30',
+          color: SHARED_STYLE_COLORS.primary,
           bgColor: 'rgba(255, 59, 48, 0.08)',
           borderColor: '#333',
           label: 'Erreur',
@@ -88,7 +88,7 @@ export default function GeneratedVideoCard({
       default:
         return {
           icon: Clock,
-          color: '#888',
+          color: SHARED_STYLE_COLORS.text,
           bgColor: 'rgba(136, 136, 136, 0.08)',
           borderColor: '#333',
           label: 'En attente',
@@ -157,7 +157,7 @@ export default function GeneratedVideoCard({
         styles.container,
         {
           borderColor: statusConfig.borderColor,
-          backgroundColor: '#1a1a1a',
+          backgroundColor: SHARED_STYLE_COLORS.backgroundSecondary,
         },
       ]}
       onPress={onPress}
@@ -165,7 +165,7 @@ export default function GeneratedVideoCard({
     >
       <View style={styles.header}>
         <View style={styles.iconContainer}>
-          <Film size={24} color="#007AFF" />
+          <Film size={24} color={SHARED_STYLE_COLORS.primary} />
         </View>
 
         <View style={styles.headerContent}>
@@ -191,7 +191,7 @@ export default function GeneratedVideoCard({
               onPress={onMoreOptions}
               hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
             >
-              <MoreVertical size={16} color="#888" />
+              <MoreVertical size={16} color={SHARED_STYLE_COLORS.text} />
             </TouchableOpacity>
           </View>
 
@@ -206,13 +206,13 @@ export default function GeneratedVideoCard({
 
         <View style={styles.metadata}>
           <View style={styles.dateContainer}>
-            <Clock size={12} color="#888" />
+            <Clock size={12} color={SHARED_STYLE_COLORS.text} />
             <Text style={styles.dateText}>{formatDate(video.created_at)}</Text>
           </View>
 
           {video.render_status === 'done' && video.render_url && (
             <TouchableOpacity style={styles.actionButton} onPress={onDownload}>
-              <Download size={14} color="#007AFF" />
+              <Download size={14} color={SHARED_STYLE_COLORS.background} />
               <Text style={styles.actionButtonText}>Télécharger</Text>
             </TouchableOpacity>
           )}
@@ -222,7 +222,11 @@ export default function GeneratedVideoCard({
       {video.render_status === 'done' && (
         <View style={styles.playOverlay}>
           <View style={styles.playButton}>
-            <Play size={16} color="#fff" fill="#fff" />
+            <Play
+              size={16}
+              color={SHARED_STYLE_COLORS.text}
+              fill={SHARED_STYLE_COLORS.text}
+            />
           </View>
         </View>
       )}
@@ -232,12 +236,12 @@ export default function GeneratedVideoCard({
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: '#1a1a1a',
+    backgroundColor: SHARED_STYLE_COLORS.backgroundSecondary,
     borderRadius: 16,
     padding: 20,
     marginBottom: 16,
     borderWidth: 1,
-    borderColor: '#333',
+    borderColor: SHARED_STYLE_COLORS.primaryBorder,
     position: 'relative',
     overflow: 'hidden',
   },
@@ -248,7 +252,7 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   iconContainer: {
-    backgroundColor: 'rgba(0, 122, 255, 0.1)',
+    backgroundColor: SHARED_STYLE_COLORS.primaryOverlay,
     borderRadius: 12,
     width: 48,
     height: 48,
@@ -279,7 +283,7 @@ const styles = StyleSheet.create({
   },
   statusDescription: {
     fontSize: 13,
-    color: '#888',
+    color: SHARED_STYLE_COLORS.text,
     fontWeight: '500',
   },
   moreButton: {
@@ -290,7 +294,7 @@ const styles = StyleSheet.create({
   },
   prompt: {
     fontSize: 15,
-    color: '#fff',
+    color: SHARED_STYLE_COLORS.text,
     lineHeight: 22,
     fontWeight: '500',
   },
@@ -306,15 +310,15 @@ const styles = StyleSheet.create({
   },
   dateText: {
     fontSize: 12,
-    color: '#888',
+    color: SHARED_STYLE_COLORS.text,
     fontWeight: '500',
   },
   actionButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(0, 122, 255, 0.1)',
+    backgroundColor: SHARED_STYLE_COLORS.accent,
     borderWidth: 1,
-    borderColor: 'rgba(0, 122, 255, 0.3)',
+    borderColor: SHARED_STYLE_COLORS.accent,
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 8,
@@ -322,7 +326,7 @@ const styles = StyleSheet.create({
   },
   actionButtonText: {
     fontSize: 12,
-    color: '#007AFF',
+    color: SHARED_STYLE_COLORS.background,
     fontWeight: '600',
   },
   playOverlay: {
@@ -331,13 +335,13 @@ const styles = StyleSheet.create({
     right: 16,
   },
   playButton: {
-    backgroundColor: 'rgba(0, 122, 255, 0.9)',
+    backgroundColor: SHARED_STYLE_COLORS.primary,
     borderRadius: 20,
     width: 36,
     height: 36,
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: '#000',
+    shadowColor: SHARED_STYLE_COLORS.backgroundSecondary,
     shadowOffset: {
       width: 0,
       height: 2,

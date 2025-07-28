@@ -22,6 +22,7 @@ import {
   X,
   BarChart3,
 } from 'lucide-react-native';
+import { SHARED_STYLE_COLORS } from '@/lib/constants/sharedStyles';
 
 interface SidebarModalProps {
   visible: boolean;
@@ -220,9 +221,9 @@ export default function SidebarModal({ visible, onClose }: SidebarModalProps) {
           }}
         >
           <View style={styles.folderItemIcon}>
-            <Plus size={16} color="#007AFF" />
+            <Plus size={16} color={SHARED_STYLE_COLORS.primary} />
           </View>
-          <Text style={[styles.addButtonText, { color: '#007AFF' }]}>
+          <Text style={[styles.addButtonText, { color: SHARED_STYLE_COLORS.primary }]}>
             {folder.id === 'account-analysis'
               ? 'Chat TikTok'
               : folder.id === 'scripts'

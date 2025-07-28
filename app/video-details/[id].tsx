@@ -25,6 +25,7 @@ import {
   VideoId,
   VideoType,
 } from '@/lib/types/video.types';
+import { SHARED_STYLE_COLORS } from '@/lib/constants/sharedStyles';
 
 export default function UploadedVideoDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -201,7 +202,7 @@ export default function UploadedVideoDetailScreen() {
       <SafeAreaView style={styles.container} edges={['top']}>
         <VideoDetailHeader title="Video Details" />
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#007AFF" />
+          <ActivityIndicator size="large" color={SHARED_STYLE_COLORS.primary} />
         </View>
       </SafeAreaView>
     );
@@ -316,7 +317,7 @@ const styles = StyleSheet.create({
   saveButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#007AFF',
+    backgroundColor: SHARED_STYLE_COLORS.primary,
     padding: 12,
     borderRadius: 8,
     gap: 6,

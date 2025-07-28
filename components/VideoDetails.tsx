@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { Clock, Tag, AlertCircle } from 'lucide-react-native';
 import { AnyVideoType } from '@/lib/types/video.types';
+import { SHARED_STYLE_COLORS } from '@/lib/constants/sharedStyles';
 
 interface VideoDetailsProps {
   video: AnyVideoType | null;
@@ -19,26 +20,26 @@ export default function VideoDetails({ video, error }: VideoDetailsProps) {
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'done':
-        return '#4ADE80';
+        return SHARED_STYLE_COLORS.success;
       case 'rendering':
-        return '#F59E0B';
+        return SHARED_STYLE_COLORS.warning;
       case 'error':
-        return '#EF4444';
+        return SHARED_STYLE_COLORS.error;
       default:
-        return '#888';
+        return SHARED_STYLE_COLORS.textMuted;
     }
   };
 
   const getStatusBgColor = (status: string) => {
     switch (status) {
       case 'done':
-        return '#0A2F1E';
+        return SHARED_STYLE_COLORS.successOverlay;
       case 'rendering':
-        return '#2E1F05';
+        return SHARED_STYLE_COLORS.warningOverlay;
       case 'error':
-        return '#2D1116';
+        return SHARED_STYLE_COLORS.errorOverlay;
       default:
-        return '#1a1a1a';
+        return SHARED_STYLE_COLORS.backgroundSecondary;
     }
   };
 
@@ -46,7 +47,7 @@ export default function VideoDetails({ video, error }: VideoDetailsProps) {
   if (error) {
     return (
       <View style={styles.errorContainer}>
-        <AlertCircle size={20} color="#ef4444" />
+        <AlertCircle size={20} color={SHARED_STYLE_COLORS.error} />
         <Text style={styles.errorText}>{error}</Text>
       </View>
     );
@@ -94,7 +95,7 @@ export default function VideoDetails({ video, error }: VideoDetailsProps) {
       <View style={styles.metaInfo}>
         {/* Duration */}
         <View style={styles.metaItem}>
-          <Clock size={16} color="#888" />
+          <Clock size={16} color={SHARED_STYLE_COLORS.textMuted} />
           <Text style={styles.metaText}>
             {formatDuration(
               video.duration_seconds ||
@@ -116,7 +117,7 @@ export default function VideoDetails({ video, error }: VideoDetailsProps) {
       {'tags' in video && video.tags && video.tags.length > 0 && (
         <View style={styles.tagsSection}>
           <View style={styles.tagHeader}>
-            <Tag size={16} color="#888" />
+            <Tag size={16} color={SHARED_STYLE_COLORS.textMuted} />
             <Text style={styles.sectionTitle}>Tags</Text>
           </View>
           <View style={styles.tagsContainer}>
@@ -135,7 +136,7 @@ export default function VideoDetails({ video, error }: VideoDetailsProps) {
         'render_error' in video &&
         video.render_error && (
           <View style={styles.errorBox}>
-            <AlertCircle size={24} color="#EF4444" />
+            <AlertCircle size={24} color={SHARED_STYLE_COLORS.error} />
             <Text style={styles.errorMessageText}>
               {video.render_error ||
                 'An error occurred during video processing'}
@@ -169,12 +170,12 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#fff',
+    color: SHARED_STYLE_COLORS.text,
     lineHeight: 30,
   },
   description: {
     fontSize: 16,
-    color: '#ccc',
+    color: SHARED_STYLE_COLORS.textSecondary,
     lineHeight: 22,
   },
   metaInfo: {
@@ -186,11 +187,11 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   metaLabel: {
-    color: '#888',
+    color: SHARED_STYLE_COLORS.textMuted,
     fontSize: 14,
   },
   metaText: {
-    color: '#ccc',
+    color: SHARED_STYLE_COLORS.textSecondary,
     fontSize: 14,
   },
   statusContainer: {
@@ -208,7 +209,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   dateText: {
-    color: '#888',
+    color: SHARED_STYLE_COLORS.textMuted,
     fontSize: 14,
   },
   tagsSection: {
@@ -222,7 +223,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#fff',
+    color: SHARED_STYLE_COLORS.text,
   },
   tagsContainer: {
     flexDirection: 'row',
@@ -230,39 +231,39 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   tagChip: {
-    backgroundColor: '#333',
+    backgroundColor: SHARED_STYLE_COLORS.backgroundTertiary,
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 16,
   },
   tagChipText: {
-    color: '#fff',
+    color: SHARED_STYLE_COLORS.text,
     fontSize: 12,
   },
   errorContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#2D1116',
+    backgroundColor: SHARED_STYLE_COLORS.errorOverlay,
     padding: 16,
     borderRadius: 12,
     margin: 16,
     gap: 8,
   },
   errorText: {
-    color: '#ef4444',
+    color: SHARED_STYLE_COLORS.error,
     fontSize: 14,
     flex: 1,
   },
   errorBox: {
     flexDirection: 'row',
-    backgroundColor: '#2D1116',
+    backgroundColor: SHARED_STYLE_COLORS.errorOverlay,
     padding: 16,
     borderRadius: 12,
     gap: 12,
     alignItems: 'center',
   },
   errorMessageText: {
-    color: '#ef4444',
+    color: SHARED_STYLE_COLORS.error,
     fontSize: 14,
     flex: 1,
   },
@@ -270,12 +271,12 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   scriptContainer: {
-    backgroundColor: '#1a1a1a',
+    backgroundColor: SHARED_STYLE_COLORS.backgroundSecondary,
     padding: 16,
     borderRadius: 12,
   },
   scriptText: {
-    color: '#fff',
+    color: SHARED_STYLE_COLORS.text,
     fontSize: 14,
     lineHeight: 20,
   },
