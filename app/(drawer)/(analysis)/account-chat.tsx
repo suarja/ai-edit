@@ -29,6 +29,7 @@ import { FeatureLock } from '@/components/guards/FeatureLock';
 import VoiceDictation from '@/components/VoiceDictation';
 import { accountChatStyles } from '@/lib/utils/styles/accountChat.styles';
 import { useLocalSearchParams } from 'expo-router';
+import { SHARED_STYLE_COLORS } from '@/lib/constants/sharedStyles';
 
 export default function AccountChatScreen() {
   const { currentPlan, presentPaywall } = useRevenueCat();
@@ -107,7 +108,7 @@ export default function AccountChatScreen() {
       <SafeAreaView style={accountChatStyles.container} edges={['top']}>
         <FeatureLock requiredPlan="creator" onLockPress={presentPaywall}>
           <View style={accountChatStyles.lockContainer}>
-            <Lock size={48} color="#007AFF" />
+            <Lock size={48} color={SHARED_STYLE_COLORS.primary} />
             <Text style={accountChatStyles.lockTitle}>Chat TikTok Pro</Text>
             <Text style={accountChatStyles.lockDescription}>
               Analysez votre compte TikTok et discutez avec notre IA experte
@@ -117,25 +118,25 @@ export default function AccountChatScreen() {
 
             <View style={accountChatStyles.featuresPreview}>
               <View style={accountChatStyles.featureItem}>
-                <MessageCircle size={20} color="#10b981" />
+                <MessageCircle size={20} color={SHARED_STYLE_COLORS.success} />
                 <Text style={accountChatStyles.featureText}>
                   Chat intelligent avec votre expert IA
                 </Text>
               </View>
               <View style={accountChatStyles.featureItem}>
-                <Sparkles size={20} color="#3b82f6" />
+                <Sparkles size={20} color={SHARED_STYLE_COLORS.secondary} />
                 <Text style={accountChatStyles.featureText}>
                   Recommandations personnalisées en temps réel
                 </Text>
               </View>
               <View style={accountChatStyles.featureItem}>
-                <Zap size={20} color="#f59e0b" />
+                <Zap size={20} color={SHARED_STYLE_COLORS.warning} />
                 <Text style={accountChatStyles.featureText}>
                   Stratégies d&apos;engagement optimisées
                 </Text>
               </View>
               <View style={accountChatStyles.featureItem}>
-                <Users size={20} color="#8b5cf6" />
+                <Users size={20} color={SHARED_STYLE_COLORS.accent} />
                 <Text style={accountChatStyles.featureText}>
                   Analyse des tendances de votre niche
                 </Text>
@@ -186,7 +187,7 @@ export default function AccountChatScreen() {
           {/* Welcome message */}
           {messages.length === 0 && !isLoading && (
             <View style={accountChatStyles.welcomeMessage}>
-              <TrendingUp size={24} color="#007AFF" />
+              <TrendingUp size={24} color={SHARED_STYLE_COLORS.primary} />
               <Text style={accountChatStyles.welcomeText}>
                 {existingAnalysis
                   ? `👋 Salut ! Je connais votre compte @${existingAnalysis.tiktok_handle} et peux vous donner des conseils personnalisés basés sur votre analyse TikTok.`
@@ -197,14 +198,14 @@ export default function AccountChatScreen() {
 
           {isLoading && (
             <View style={accountChatStyles.loadingMessagesContainer}>
-              <ActivityIndicator size="small" color="#007AFF" />
+              <ActivityIndicator size="small" color={SHARED_STYLE_COLORS.primary} />
             </View>
           )}
 
           {/* Error display */}
           {error && (
             <View style={accountChatStyles.errorContainer}>
-              <AlertCircle size={16} color="#ff5555" />
+              <AlertCircle size={16} color={SHARED_STYLE_COLORS.error} />
               <Text style={accountChatStyles.errorText}>{error}</Text>
               <TouchableOpacity
                 onPress={clearError}
@@ -221,7 +222,7 @@ export default function AccountChatScreen() {
           {/* Loading/Streaming indicator */}
           {(isLoading || isStreaming) && (
             <View style={accountChatStyles.typingContainer}>
-              <ActivityIndicator size="small" color="#007AFF" />
+              <ActivityIndicator size="small" color={SHARED_STYLE_COLORS.primary} />
               <Text style={accountChatStyles.typingText}>
                 {isStreaming ? 'EditIA écrit...' : 'EditIA réfléchit...'}
               </Text>

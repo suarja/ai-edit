@@ -1,9 +1,10 @@
 import { StyleSheet } from 'react-native';
+import { SHARED_STYLE_COLORS } from '@/lib/constants/sharedStyles';
 
 export const accountInsightsStyles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#000',
+    backgroundColor: SHARED_STYLE_COLORS.background,
   },
   scrollView: {
     flex: 1,
@@ -15,7 +16,7 @@ export const accountInsightsStyles = StyleSheet.create({
     gap: 16,
   },
   loadingText: {
-    color: '#666',
+    color: SHARED_STYLE_COLORS.textMuted,
     fontSize: 16,
   },
   // Profile Header
@@ -25,13 +26,13 @@ export const accountInsightsStyles = StyleSheet.create({
     justifyContent: 'center',
     padding: 20,
     gap: 16,
-    backgroundColor: '#000',
+    backgroundColor: SHARED_STYLE_COLORS.background,
   },
   profilePicPlaceholder: {
     width: 64,
     height: 64,
     borderRadius: 32,
-    backgroundColor: '#333',
+    backgroundColor: SHARED_STYLE_COLORS.backgroundTertiary,
   },
   profilePic: {
     width: 64,
@@ -39,12 +40,12 @@ export const accountInsightsStyles = StyleSheet.create({
     borderRadius: 32,
   },
   profileHandle: {
-    color: '#fff',
+    color: SHARED_STYLE_COLORS.text,
     fontSize: 20,
     fontWeight: 'bold',
   },
   profileUsername: {
-    color: '#888',
+    color: SHARED_STYLE_COLORS.textMuted,
     fontSize: 14,
   },
   profileInfo: {
@@ -55,7 +56,7 @@ export const accountInsightsStyles = StyleSheet.create({
   sectionTitle: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#fff',
+    color: SHARED_STYLE_COLORS.text,
     marginBottom: 16,
   },
   // Stats Grid
@@ -68,7 +69,7 @@ export const accountInsightsStyles = StyleSheet.create({
     margin: -6, // To counteract card margins
   },
   statCard: {
-    backgroundColor: '#1a1a1a',
+    backgroundColor: SHARED_STYLE_COLORS.backgroundSecondary,
     borderRadius: 12,
     padding: 16,
     alignItems: 'center',
@@ -80,11 +81,11 @@ export const accountInsightsStyles = StyleSheet.create({
   statValue: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#fff',
+    color: SHARED_STYLE_COLORS.text,
   },
   statLabel: {
     fontSize: 12,
-    color: '#666',
+    color: SHARED_STYLE_COLORS.textMuted,
     textAlign: 'center',
   },
   // Aggregates
@@ -101,14 +102,14 @@ export const accountInsightsStyles = StyleSheet.create({
   chatButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(0, 122, 255, 0.1)',
+    backgroundColor: SHARED_STYLE_COLORS.primaryOverlay,
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 20,
     gap: 6,
   },
   chatButtonText: {
-    color: '#007AFF',
+    color: SHARED_STYLE_COLORS.primary,
     fontSize: 14,
     fontWeight: '600',
   },
@@ -116,7 +117,7 @@ export const accountInsightsStyles = StyleSheet.create({
     marginTop: 16,
   },
   recommendationCard: {
-    backgroundColor: '#1a1a1a',
+    backgroundColor: SHARED_STYLE_COLORS.backgroundSecondary,
     borderRadius: 16,
     padding: 20,
     gap: 16,
@@ -124,14 +125,14 @@ export const accountInsightsStyles = StyleSheet.create({
   analysisSubtitle: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#007AFF',
+    color: SHARED_STYLE_COLORS.primary,
     marginBottom: 4,
   },
   recommendation: {
     paddingLeft: 8,
   },
   recommendationText: {
-    color: '#fff',
+    color: SHARED_STYLE_COLORS.text,
     fontSize: 14,
     lineHeight: 20,
   },
@@ -140,7 +141,7 @@ export const accountInsightsStyles = StyleSheet.create({
     gap: 12,
   },
   metricCard: {
-    backgroundColor: '#1a1a1a',
+    backgroundColor: SHARED_STYLE_COLORS.backgroundSecondary,
     borderRadius: 16,
     padding: 20,
   },
@@ -158,18 +159,18 @@ export const accountInsightsStyles = StyleSheet.create({
   metricLabel: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#fff',
+    color: SHARED_STYLE_COLORS.text,
     flex: 1,
   },
   metricValue: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#fff',
+    color: SHARED_STYLE_COLORS.text,
     marginBottom: 8,
   },
   metricDescription: {
     fontSize: 14,
-    color: '#666',
+    color: SHARED_STYLE_COLORS.textMuted,
   },
   // Hashtags
   hashtagsContainer: {
@@ -180,14 +181,14 @@ export const accountInsightsStyles = StyleSheet.create({
   hashtagPill: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(0, 122, 255, 0.1)',
+    backgroundColor: SHARED_STYLE_COLORS.primaryOverlay,
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderRadius: 20,
     gap: 6,
   },
   hashtagText: {
-    color: '#007AFF',
+    color: SHARED_STYLE_COLORS.primary,
     fontSize: 14,
     fontWeight: '500',
   },
@@ -201,14 +202,14 @@ export const accountInsightsStyles = StyleSheet.create({
   emptyStateTitle: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#fff',
+    color: SHARED_STYLE_COLORS.text,
     marginTop: 16,
     marginBottom: 8,
     textAlign: 'center',
   },
   emptyStateDescription: {
     fontSize: 16,
-    color: '#888',
+    color: SHARED_STYLE_COLORS.textMuted,
     textAlign: 'center',
     lineHeight: 22,
     marginBottom: 24,
@@ -224,11 +225,11 @@ export const accountInsightsStyles = StyleSheet.create({
   paywallTitle: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#fff',
+    color: SHARED_STYLE_COLORS.text,
     marginTop: 12,
   },
   paywallDescription: {
-    color: '#fff',
+    color: SHARED_STYLE_COLORS.text,
     fontSize: 16,
     marginBottom: 20,
     lineHeight: 22,
@@ -244,15 +245,15 @@ export const accountInsightsStyles = StyleSheet.create({
   checkmark: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#4CAF50',
+    color: SHARED_STYLE_COLORS.success,
     marginRight: 12,
   },
   featureText: {
-    color: '#fff',
+    color: SHARED_STYLE_COLORS.text,
     fontSize: 16,
   },
   upgradeButton: {
-    backgroundColor: '#FFD700',
+    backgroundColor: SHARED_STYLE_COLORS.accent,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
@@ -262,12 +263,12 @@ export const accountInsightsStyles = StyleSheet.create({
     marginBottom: 16,
   },
   upgradeButtonText: {
-    color: '#000',
+    color: SHARED_STYLE_COLORS.background,
     fontSize: 16,
     fontWeight: '600',
   },
   paywallFooter: {
-    color: '#888',
+    color: SHARED_STYLE_COLORS.textMuted,
     fontSize: 14,
     textAlign: 'center',
     fontStyle: 'italic',

@@ -1,10 +1,11 @@
 import { StyleSheet } from 'react-native';
+import { SHARED_STYLE_COLORS } from '@/lib/constants/sharedStyles';
 
 
 export const accountConversationsStyles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#000',
+    backgroundColor: SHARED_STYLE_COLORS.background,
   },
   scrollView: {
     flex: 1,
@@ -28,11 +29,11 @@ export const accountConversationsStyles = StyleSheet.create({
   paywallTitle: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#fff',
+    color: SHARED_STYLE_COLORS.text,
     marginTop: 12,
   },
   paywallDescription: {
-    color: '#fff',
+    color: SHARED_STYLE_COLORS.text,
     fontSize: 16,
     marginBottom: 20,
     lineHeight: 22,
@@ -50,15 +51,15 @@ export const accountConversationsStyles = StyleSheet.create({
   checkmark: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#4CAF50',
+    color: SHARED_STYLE_COLORS.success,
     marginRight: 12,
   },
   featureText: {
-    color: '#fff',
+    color: SHARED_STYLE_COLORS.text,
     fontSize: 16,
   },
   upgradeButton: {
-    backgroundColor: '#FFD700',
+    backgroundColor: SHARED_STYLE_COLORS.accent,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
@@ -69,12 +70,12 @@ export const accountConversationsStyles = StyleSheet.create({
     alignSelf: 'stretch',
   },
   upgradeButtonText: {
-    color: '#000',
+    color: SHARED_STYLE_COLORS.background,
     fontSize: 16,
     fontWeight: '600',
   },
   paywallFooter: {
-    color: '#888',
+    color: SHARED_STYLE_COLORS.textMuted,
     fontSize: 14,
     textAlign: 'center',
     fontStyle: 'italic',
@@ -88,19 +89,19 @@ export const accountConversationsStyles = StyleSheet.create({
     gap: 16,
   },
   loadingText: {
-    color: '#666',
+    color: SHARED_STYLE_COLORS.textMuted,
     fontSize: 16,
   },
   errorContainer: {
-    backgroundColor: 'rgba(255, 59, 48, 0.1)',
+    backgroundColor: SHARED_STYLE_COLORS.primaryOverlay,
     borderWidth: 1,
-    borderColor: 'rgba(255, 59, 48, 0.3)',
+    borderColor: SHARED_STYLE_COLORS.primaryBorder,
     borderRadius: 12,
     padding: 16,
     marginBottom: 16,
   },
   errorText: {
-    color: '#FF3B30',
+    color: SHARED_STYLE_COLORS.error,
     fontSize: 14,
     textAlign: 'center',
   },
@@ -115,12 +116,12 @@ export const accountConversationsStyles = StyleSheet.create({
   emptyTitle: {
     fontSize: 20,
     fontWeight: '600',
-    color: '#fff',
+    color: SHARED_STYLE_COLORS.text,
     marginTop: 16,
   },
   emptyDescription: {
     fontSize: 16,
-    color: '#888',
+    color: SHARED_STYLE_COLORS.textMuted,
     textAlign: 'center',
     marginTop: 8,
     marginBottom: 24,
@@ -128,27 +129,27 @@ export const accountConversationsStyles = StyleSheet.create({
   emptyButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(0, 122, 255, 0.1)',
+    backgroundColor: SHARED_STYLE_COLORS.primaryOverlay,
     borderWidth: 1,
-    borderColor: '#007AFF',
+    borderColor: SHARED_STYLE_COLORS.primary,
     borderRadius: 12,
     paddingHorizontal: 20,
     paddingVertical: 12,
     gap: 8,
   },
   emptyButtonText: {
-    color: '#007AFF',
+    color: SHARED_STYLE_COLORS.primary,
     fontSize: 16,
     fontWeight: '600',
   },
 
   // Conversation Cards
   conversationCard: {
-    backgroundColor: '#1a1a1a',
+    backgroundColor: SHARED_STYLE_COLORS.backgroundSecondary,
     borderRadius: 16,
     padding: 16,
     borderWidth: 1,
-    borderColor: '#333',
+    borderColor: SHARED_STYLE_COLORS.border,
     marginBottom: 12,
   },
   conversationHeader: {
@@ -160,7 +161,7 @@ export const accountConversationsStyles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 10,
-    backgroundColor: 'rgba(0, 122, 255, 0.1)',
+    backgroundColor: SHARED_STYLE_COLORS.primaryOverlay,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 12,
@@ -171,12 +172,12 @@ export const accountConversationsStyles = StyleSheet.create({
   conversationTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#fff',
+    color: SHARED_STYLE_COLORS.text,
     marginBottom: 4,
   },
   conversationPreview: {
     fontSize: 14,
-    color: '#888',
+    color: SHARED_STYLE_COLORS.textMuted,
     lineHeight: 20,
   },
   conversationMeta: {
@@ -185,16 +186,16 @@ export const accountConversationsStyles = StyleSheet.create({
   },
   conversationTime: {
     fontSize: 12,
-    color: '#666',
+    color: SHARED_STYLE_COLORS.textMuted,
   },
   messageCount: {
     fontSize: 11,
-    color: '#666',
+    color: SHARED_STYLE_COLORS.textMuted,
   },
   contextBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(0, 122, 255, 0.1)',
+    backgroundColor: SHARED_STYLE_COLORS.primaryOverlay,
     borderRadius: 8,
     paddingHorizontal: 8,
     paddingVertical: 4,
@@ -203,7 +204,7 @@ export const accountConversationsStyles = StyleSheet.create({
   },
   contextText: {
     fontSize: 12,
-    color: '#007AFF',
+    color: SHARED_STYLE_COLORS.primary,
     fontWeight: '500',
   },
 
@@ -212,7 +213,7 @@ export const accountConversationsStyles = StyleSheet.create({
     position: 'absolute',
     bottom: 30,
     right: 20,
-    backgroundColor: '#007AFF',
+    backgroundColor: SHARED_STYLE_COLORS.primary,
     width: 56,
     height: 56,
     borderRadius: 28,

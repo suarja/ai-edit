@@ -18,6 +18,7 @@ import { useRevenueCat } from '@/contexts/providers/RevenueCat';
 import { Lock, BarChart3, TrendingUp, Users } from 'lucide-react-native';
 import { usePathname } from 'expo-router';
 import { FeatureId } from 'editia-core';
+import { SHARED_STYLE_COLORS } from '@/lib/constants/sharedStyles';
 interface AccountAnalysisGuardProps {
   children: React.ReactNode;
 }
@@ -76,7 +77,7 @@ const AccountAnalysisGuard: React.FC<AccountAnalysisGuardProps> = ({
     return (
       <FeatureLock requiredPlan="creator" onLockPress={presentPaywall}>
         <View style={styles.lockContainer}>
-          <Lock size={48} color="#007AFF" />
+          <Lock size={48} color={SHARED_STYLE_COLORS.primary} />
           <Text style={styles.lockTitle}>Analyse de Compte Approfondie</Text>
           <Text style={styles.lockDescription}>
             Obtenez une analyse complète de n&apos;importe quel compte TikTok,
@@ -86,15 +87,15 @@ const AccountAnalysisGuard: React.FC<AccountAnalysisGuardProps> = ({
 
           <View style={styles.featuresPreview}>
             <View style={styles.featureItem}>
-              <BarChart3 size={20} color="#10b981" />
+              <BarChart3 size={20} color={SHARED_STYLE_COLORS.success} />
               <Text style={styles.featureText}>Analyses détaillées</Text>
             </View>
             <View style={styles.featureItem}>
-              <TrendingUp size={20} color="#3b82f6" />
+              <TrendingUp size={20} color={SHARED_STYLE_COLORS.secondary} />
               <Text style={styles.featureText}>Stratégies virales</Text>
             </View>
             <View style={styles.featureItem}>
-              <Users size={20} color="#f59e0b" />
+              <Users size={20} color={SHARED_STYLE_COLORS.warning} />
               <Text style={styles.featureText}>
                 Recommandations personnalisées
               </Text>
@@ -169,7 +170,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   upgradeButton: {
-    backgroundColor: '#007AFF',
+    backgroundColor: SHARED_STYLE_COLORS.primary,
     paddingVertical: 16,
     paddingHorizontal: 32,
     borderRadius: 12,

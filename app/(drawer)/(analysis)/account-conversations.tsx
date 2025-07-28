@@ -22,6 +22,7 @@ import { API_ENDPOINTS } from '@/lib/config/api';
 import AnalysisHeader from '@/components/analysis/AnalysisHeader';
 import { accountConversationsStyles } from '@/lib/utils/styles/accountConversations.styles';
 import { FeatureLock } from '@/components/guards/FeatureLock';
+import { SHARED_STYLE_COLORS } from '@/lib/constants/sharedStyles';
 
 interface Conversation {
   id: string;
@@ -158,7 +159,7 @@ export default function AccountConversationsScreen() {
             onBack={() => router.back()}
           />
           <View style={accountConversationsStyles.loadingContainer}>
-            <MessageCircle size={64} color="#007AFF" />
+            <MessageCircle size={64} color={SHARED_STYLE_COLORS.primary} />
             <Text style={accountConversationsStyles.emptyTitle}>
               Conversations Pro
             </Text>
@@ -168,7 +169,7 @@ export default function AccountConversationsScreen() {
             </Text>
             <TouchableOpacity
               style={{
-                backgroundColor: '#007AFF',
+                backgroundColor: SHARED_STYLE_COLORS.primary,
                 paddingVertical: 16,
                 paddingHorizontal: 32,
                 borderRadius: 12,
@@ -200,7 +201,7 @@ export default function AccountConversationsScreen() {
         edges={['top']}
       >
         <View style={accountConversationsStyles.loadingContainer}>
-          <ActivityIndicator size="large" color="#007AFF" />
+          <ActivityIndicator size="large" color={SHARED_STYLE_COLORS.primary} />
           <Text style={accountConversationsStyles.loadingText}>
             Chargement des conversations...
           </Text>
@@ -219,7 +220,7 @@ export default function AccountConversationsScreen() {
           <RefreshControl
             refreshing={refreshing}
             onRefresh={handleRefresh}
-            tintColor="#007AFF"
+            tintColor={SHARED_STYLE_COLORS.primary}
           />
         }
       >
@@ -243,7 +244,7 @@ export default function AccountConversationsScreen() {
               style={accountConversationsStyles.emptyButton}
               onPress={handleCreateNewConversation}
             >
-              <Plus size={20} color="#007AFF" />
+              <Plus size={20} color={SHARED_STYLE_COLORS.primary} />
               <Text style={accountConversationsStyles.emptyButtonText}>
                 Nouvelle conversation
               </Text>
@@ -261,9 +262,9 @@ export default function AccountConversationsScreen() {
             <View style={accountConversationsStyles.conversationHeader}>
               <View style={accountConversationsStyles.conversationIcon}>
                 {conversation.context?.tiktok_handle ? (
-                  <TrendingUp size={20} color="#007AFF" />
+                  <TrendingUp size={20} color={SHARED_STYLE_COLORS.primary} />
                 ) : (
-                  <MessageCircle size={20} color="#007AFF" />
+                  <MessageCircle size={20} color={SHARED_STYLE_COLORS.primary} />
                 )}
               </View>
 
@@ -296,7 +297,7 @@ export default function AccountConversationsScreen() {
 
             {conversation.context?.tiktok_handle && (
               <View style={accountConversationsStyles.contextBadge}>
-                <Users size={12} color="#007AFF" />
+                <Users size={12} color={SHARED_STYLE_COLORS.primary} />
                 <Text style={accountConversationsStyles.contextText}>
                   @{conversation.context.tiktok_handle}
                 </Text>

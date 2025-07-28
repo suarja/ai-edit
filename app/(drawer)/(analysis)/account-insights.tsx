@@ -28,6 +28,7 @@ import { API_ENDPOINTS } from '@/lib/config/api';
 import { useAccountAnalysis } from '@/components/hooks/useAccountAnalysis';
 import AnalysisHeader from '@/components/analysis/AnalysisHeader';
 import { accountInsightsStyles } from '@/lib/utils/styles/accountInsights.styles';
+import { SHARED_STYLE_COLORS } from '@/lib/constants/sharedStyles';
 
 // Updated types to match the new comprehensive context
 interface AccountData {
@@ -172,7 +173,7 @@ export default function AccountInsightsScreen() {
     return (
       <SafeAreaView style={accountInsightsStyles.container} edges={[]}>
         <View style={accountInsightsStyles.loadingContainer}>
-          <ActivityIndicator size="large" color="#007AFF" />
+          <ActivityIndicator size="large" color={SHARED_STYLE_COLORS.primary} />
           <Text style={accountInsightsStyles.loadingText}>
             Chargement de vos insights...
           </Text>
@@ -245,12 +246,12 @@ export default function AccountInsightsScreen() {
           </Text>
           <View style={accountInsightsStyles.statsGrid}>
             <StatCard
-              icon={<Users size={24} color="#007AFF" />}
+              icon={<Users size={24} color={SHARED_STYLE_COLORS.primary} />}
               value={stats.followers_count?.toLocaleString() || 'N/A'}
               label="Abonnés"
             />
             <StatCard
-              icon={<Eye size={24} color="#10b981" />}
+              icon={<Eye size={24} color={SHARED_STYLE_COLORS.success} />}
               value={
                 aggregates?.avg_views?.toLocaleString(undefined, {
                   maximumFractionDigits: 0,
@@ -259,7 +260,7 @@ export default function AccountInsightsScreen() {
               label="Vues moy."
             />
             <StatCard
-              icon={<Heart size={24} color="#ef4444" />}
+              icon={<Heart size={24} color={SHARED_STYLE_COLORS.error} />}
               value={`${(aggregates?.avg_views && aggregates?.avg_likes
                 ? (aggregates?.avg_likes / aggregates?.avg_views) * 100
                 : 0
@@ -267,7 +268,7 @@ export default function AccountInsightsScreen() {
               label="Taux de Likes"
             />
             <StatCard
-              icon={<Video size={24} color="#f59e0b" />}
+              icon={<Video size={24} color={SHARED_STYLE_COLORS.warning} />}
               value={stats?.videos_count?.toLocaleString() || 'N/A'}
               label="Vidéos"
             />
@@ -284,7 +285,7 @@ export default function AccountInsightsScreen() {
               style={accountInsightsStyles.chatButton}
               onPress={navigateToAccountChat}
             >
-              <MessageCircle size={20} color="#007AFF" />
+              <MessageCircle size={20} color={SHARED_STYLE_COLORS.primary} />
               <Text style={accountInsightsStyles.chatButtonText}>Chat IA</Text>
             </TouchableOpacity>
           </View>
@@ -359,7 +360,7 @@ export default function AccountInsightsScreen() {
             <View style={accountInsightsStyles.hashtagsContainer}>
               {aggregates?.top_hashtags.map((hashtag, index) => (
                 <View key={index} style={accountInsightsStyles.hashtagPill}>
-                  <Hash size={16} color="#007AFF" />
+                  <Hash size={16} color={SHARED_STYLE_COLORS.primary} />
                   <Text style={accountInsightsStyles.hashtagText}>
                     {hashtag}
                   </Text>
