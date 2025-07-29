@@ -17,7 +17,7 @@ Ce guide détaille la migration des styles de l'application mobile Editia vers l
 const EDITIA_COLORS = {
   // Couleur principale - Rouge Editia
   red: '#FF0050',
-  redLight: 'rgba(255, 0, 80, 0.6)',
+  redLight: 'hsla(341, 100.00%, 50.00%, 0.60)',
   redOverlay: 'rgba(255, 0, 80, 0.12)',
   redBorder: 'rgba(255, 0, 80, 0.3)',
   
