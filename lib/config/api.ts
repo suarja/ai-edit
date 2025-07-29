@@ -160,48 +160,69 @@ export const API_ENDPOINTS = {
   },
 
   /**
-   * @deprecated
-   * Not used anymore but in the legacy create video page
+   * @deprecated - Not used anymore, replaced by script-based video generation
+   * Legacy endpoint from initial video generation implementation
    */
   VIDEO_GENERATE: () => {
     const config = getCurrentConfig();
     return config.baseUrl + config.videoGenerate;
   },
 
-  //* Video status endpoints
+  /**
+   * ACTIVELY USED ✅ - Video status tracking
+   * Used in: app/(drawer)/videos.tsx
+   * Purpose: Check video generation/processing status
+   * Backend: server-primary/routes/api/videos.ts
+   */
   VIDEO_STATUS: (videoId: string) => {
     const config = getCurrentConfig();
     return `${config.baseUrl}${config.videoStatus}/${videoId}`;
   },
 
-  //* File upload
+  /**
+   * ACTIVELY USED ✅ - Source video upload
+   * Used in: components/hooks/useSourceVideos.ts
+   * Purpose: Upload source videos to S3 storage
+   * Backend: server-primary/routes/api/s3Upload.ts
+   */
   S3_UPLOAD: () => {
     const config = getCurrentConfig();
     return config.baseUrl + config.s3Upload;
   },
 
-  //* Video analysis
+  /**
+   * NOT USED ❌ - Video analysis endpoint
+   * No usage found in mobile app
+   * Backend: server-primary/routes/api/videoAnalysis.ts
+   * TODO: Verify if this should be removed
+   */
   VIDEO_ANALYSIS: () => {
     const config = getCurrentConfig();
     return config.baseUrl + '/api/video-analysis';
   },
 
-  //* Video deletion
+  /**
+   * ACTIVELY USED ✅ - Video deletion
+   * Used in: app/(drawer)/video-details/[id].tsx
+   * Purpose: Delete videos from system
+   * Backend: server-primary/routes/api/videoDelete.ts
+   */
   VIDEO_DELETE: () => {
     const config = getCurrentConfig();
     return config.baseUrl + '/api/videos';
   },
 
   /**
-   * @deprecated
+   * @deprecated - Legacy prompt enhancement
    * Not used anymore but in the legacy create video page
+   * Replaced by script-based generation flow
    */
   PROMPTS_ENHANCE: () => {
     const config = getCurrentConfig();
     return config.baseUrl + config.promptsEnhance;
   },
   /**
-   * @deprecated
+   * @deprecated - Legacy system prompt enhancement
    * Not used anymore but in the legacy create video page
    */
   PROMPTS_ENHANCE_SYSTEM: () => {
@@ -209,7 +230,7 @@ export const API_ENDPOINTS = {
     return config.baseUrl + config.promptsEnhanceSystem;
   },
   /**
-   * @deprecated
+   * @deprecated - Legacy system prompt generation
    * Not used anymore but in the legacy create video page
    */
   PROMPTS_GENERATE_SYSTEM: () => {
@@ -217,51 +238,89 @@ export const API_ENDPOINTS = {
     return config.baseUrl + config.promptsGenerateSystem;
   },
 
-  //* Script chat endpoints
+  /**
+   * ACTIVELY USED ✅ - Script management
+   * Used in: app/hooks/useScriptChat.ts, components/ScriptActionsModal.tsx, ScriptListActions.tsx
+   * Purpose: CRUD operations for video scripts
+   * Backend: server-primary/routes/api/scripts.ts
+   */
   SCRIPTS: () => {
     const config = getCurrentConfig();
     return config.baseUrl + config.scripts;
   },
-  //* Generate video from script
+  
+  /**
+   * COMMENTED OUT IN CODE ⚠️ - Script-based video generation
+   * Defined but commented out in: app/hooks/useVideoRequest.ts
+   * Purpose: Generate video from script (main flow)
+   * Backend: server-primary/routes/api/scripts.ts - generateVideoFromScriptHandler
+   * TODO: Verify why this is commented out
+   */
   SCRIPT_GENERATE_VIDEO: (scriptId: string) => {
     const config = getCurrentConfig();
     return `${config.baseUrl}${config.scripts}/generate-video/${scriptId}`;
   },
 
-  //* Modify current script
+  /**
+   * ACTIVELY USED ✅ - Script modification with AI
+   * Used in: app/hooks/useScriptChat.ts
+   * Purpose: Modify existing scripts with AI assistance
+   * Backend: server-primary/routes/api/scripts.ts - modifyCurrentScriptHandler
+   */
   SCRIPTS_MODIFY_CURRENT_SCRIPT: (scriptId: string) => {
     const config = getCurrentConfig();
     return `${config.baseUrl}${config.scriptsModifyCurrentScript}/${scriptId}`;
   },
 
   /**
-   * @deprecated
-   * Not used anymore since moved to dedicated server
+   * @deprecated - Webhook endpoint moved to dedicated server
+   * Not used by mobile app (webhooks are server-to-server)
+   * Backend: server-primary/routes/api/webhooks.ts still exists
    */
   WEBHOOKS_CREATOMATE: () => {
     const config = getCurrentConfig();
     return config.baseUrl + config.webhooksCreatomate;
   },
 
-  //* Voice Clone (Node.js server)
+  /**
+   * ACTIVELY USED ✅ - Voice cloning operations
+   * Used in: lib/services/voiceService.ts
+   * Purpose: Voice cloning and sample management
+   * Backend: server-primary/routes/api/voiceClone.ts
+   */
   VOICE_CLONE: () => {
     const config = getCurrentConfig();
     return config.baseUrl + config.voiceClone;
   },
 
-  //* User voices (Node.js server)
+  /**
+   * ACTIVELY USED ✅ - User voice library
+   * Used in: lib/services/voiceService.ts
+   * Purpose: Retrieve user's cloned voices
+   * Backend: server-primary/routes/api/voiceClone.ts
+   */
   USER_VOICES: () => {
     const config = getCurrentConfig();
     return config.baseUrl + config.userVoices;
   },
 
-  //* Onboarding (Node.js server)
+  /**
+   * ACTIVELY USED ✅ - User onboarding
+   * Used in: lib/services/voiceRecordingService.ts
+   * Purpose: Process onboarding data including voice samples
+   * Backend: server-primary/routes/api/onboarding.ts
+   */
   ONBOARDING: () => {
     const config = getCurrentConfig();
     return config.baseUrl + config.onboarding;
   },
 
-  //* TikTok Analysis endpoints
+  /**
+   * ACTIVELY USED ✅ - TikTok analysis initiation
+   * Used in: components/analysis/StartAnalysisScreen.tsx
+   * Purpose: Start TikTok account analysis
+   * Backend: server-analyzer/routes/accountAnalysis.ts - startAnalysis
+   */
   TIKTOK_ANALYSIS_START: () => {
     const config = getCurrentConfig();
     return (
@@ -269,29 +328,42 @@ export const API_ENDPOINTS = {
     );
   },
 
-  //* TikTok Analysis status
+  /**
+   * ACTIVELY USED ✅ - TikTok analysis status check
+   * Used in: components/analysis/AnalysisInProgressScreen.tsx
+   * Purpose: Check analysis job status
+   * Backend: server-analyzer/routes/accountAnalysis.ts - getAnalysisStatus
+   */
   TIKTOK_ANALYSIS_STATUS: (runId: string) => {
     const config = getCurrentConfig();
     return `${config.tiktokAnalyzer.baseUrl}${config.tiktokAnalyzer.accountAnalysisStatus}/${runId}`;
   },
+  
   /**
-   * @deprecated
-   * Not used anymore
+   * @deprecated - Not used in mobile app
+   * Backend endpoint exists but marked as TODO: remove
+   * Backend: server-analyzer/routes/accountAnalysis.ts - getAnalysisStatusResult
    */
   TIKTOK_ANALYSIS_RESULT: (runId: string) => {
     const config = getCurrentConfig();
     return `${config.tiktokAnalyzer.baseUrl}${config.tiktokAnalyzer.accountAnalysisResult}/${runId}`;
   },
 
-  //* TikTok Account context
+  /**
+   * ACTIVELY USED ✅ - TikTok account insights
+   * Used in: app/(drawer)/(analysis)/account-insights.tsx
+   * Purpose: Retrieve analyzed account context and insights
+   * Backend: server-analyzer/routes/accountContextRoutes.ts
+   */
   TIKTOK_ACCOUNT_CONTEXT: (accountId: string) => {
     const config = getCurrentConfig();
     return `${config.tiktokAnalyzer.baseUrl}/api/account-context/${accountId}`;
   },
 
   /**
-   * @deprecated
-   * Not used anymore
+   * @deprecated - Chat endpoint not used
+   * Replaced by conversation-based approach
+   * Backend: server-analyzer/routes/accountAnalysis.ts - analysisChat
    */
   TIKTOK_ANALYSIS_CHAT: () => {
     const config = getCurrentConfig();
@@ -300,7 +372,12 @@ export const API_ENDPOINTS = {
     );
   },
 
-  //* TikTok Analysis existing
+  /**
+   * ACTIVELY USED ✅ - Check existing analyses
+   * Used in: components/hooks/useAccountAnalysis.ts
+   * Purpose: Check for existing completed analyses
+   * Backend: server-analyzer/routes/accountAnalysis.ts - getExistingAnalysis
+   */
   TIKTOK_ANALYSIS_EXISTING: () => {
     const config = getCurrentConfig();
     return (
@@ -308,37 +385,53 @@ export const API_ENDPOINTS = {
       config.tiktokAnalyzer.accountAnalysisExisting
     );
   },
+  
   /**
-   * @deprecated
-   * Not used anymore
+   * @deprecated - Duplicate of TIKTOK_ANALYSIS_VALIDATE
+   * Backend marked as TODO: remove this route
+   * Backend: server-analyzer/routes/accountAnalysis.ts - validateHandle
    */
   TIKTOK_HANDLE_VALIDATE: () => {
     const config = getCurrentConfig();
     return config.tiktokAnalyzer.baseUrl + config.tiktokAnalyzer.handleValidate;
   },
 
-  //* TikTok Conversations
+  /**
+   * ACTIVELY USED ✅ - TikTok conversations list
+   * Used in: app/(drawer)/(analysis)/account-conversations.tsx
+   * Purpose: Retrieve AI-generated conversations for an account
+   * Backend: server-analyzer/routes/accountAnalysis.ts - getAnalysisConversations
+   */
   TIKTOK_CONVERSATIONS: () => {
     const config = getCurrentConfig();
     return `${config.tiktokAnalyzer.baseUrl}/api/account-analysis/conversations`;
   },
 
-  //* TikTok Conversation messages
+  /**
+   * ACTIVELY USED ✅ - TikTok conversation details
+   * Used in: components/hooks/useTikTokChatSimple.ts
+   * Purpose: Retrieve messages for a specific conversation
+   * Backend: server-analyzer/routes/accountAnalysis.ts - getConversationMessages
+   */
   TIKTOK_CONVERSATION_MESSAGES: (conversationId: string) => {
     const config = getCurrentConfig();
     return `${config.tiktokAnalyzer.baseUrl}/api/account-analysis/conversations/${conversationId}/messages`;
   },
 
   /**
-   * @deprecated
-   * Not used anymore
-   */ SUPABASE_CREATE_VOICE_CLONE: () => {
+   * @deprecated - Legacy Supabase function
+   * Replaced by Node.js voice clone endpoints
+   * No longer used in mobile app
+   */
+  SUPABASE_CREATE_VOICE_CLONE: () => {
     const config = getCurrentConfig();
     return config.supabase.baseUrl + config.supabase.functions.createVoiceClone;
   },
+  
   /**
-   * @deprecated
-   * Not used anymore
+   * @deprecated - Legacy Supabase function
+   * Replaced by Node.js onboarding endpoint
+   * No longer used in mobile app
    */
   SUPABASE_PROCESS_ONBOARDING: () => {
     const config = getCurrentConfig();
@@ -347,25 +440,47 @@ export const API_ENDPOINTS = {
     );
   },
 
-  //* New TikTok Analysis endpoints
+  /**
+   * ACTIVELY USED ✅ - TikTok handle validation
+   * Used in: components/analysis/StartAnalysisScreen.tsx
+   * Purpose: Validate TikTok handle before analysis
+   * Backend: server-analyzer/routes/accountAnalysis.ts - validateHandle
+   * Note: Duplicate of TIKTOK_HANDLE_VALIDATE (which is deprecated)
+   */
   TIKTOK_ANALYSIS_VALIDATE: () => {
     const config = getCurrentConfig();
     return config.tiktokAnalyzer.baseUrl + config.tiktokAnalyzer.handleValidate;
   },
 
-  //* TikTok Analysis active job
+  /**
+   * ACTIVELY USED ✅ - Active job check
+   * Used in: components/hooks/useAccountAnalysis.ts
+   * Purpose: Check for active/running analysis jobs
+   * Backend: server-analyzer/routes/accountAnalysis.ts - getAnalysisActiveJob
+   * TODO: Fix URL path - missing /api prefix
+   */
   TIKTOK_ANALYSIS_ACTIVE_JOB: () => {
     const config = getCurrentConfig();
-    return `${config.tiktokAnalyzer.baseUrl}/account-analysis/active-job`;
+    return `${config.tiktokAnalyzer.baseUrl}/api/account-analysis/active-job`;
   },
 
-  //* Support
+  /**
+   * ACTIVELY USED ✅ - Support/issue reporting
+   * Used in: lib/services/support/supportService.ts
+   * Purpose: Report issues and send support requests
+   * Backend: server-primary/routes/api/support.ts
+   */
   SUPPORT_REPORT_ISSUE: () => {
     const config = getCurrentConfig();
     return config.baseUrl + config.support + '/report-issue';
   },
 
-  //* User management
+  /**
+   * ACTIVELY USED ✅ - User account deletion
+   * Used in: components/hooks/useUserProfileManager.ts
+   * Purpose: Delete user account and data
+   * Backend: server-primary/routes/api/userManagement.ts
+   */
   DELETE_USER: () => {
     const config = getCurrentConfig();
     return config.baseUrl + config.userManagement + '/delete-user';
