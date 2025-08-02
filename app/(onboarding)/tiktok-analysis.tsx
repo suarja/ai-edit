@@ -20,7 +20,6 @@ import { useOnboarding } from '@/components/providers/OnboardingProvider';
 import { useFeatureAccess } from '@/components/hooks/useFeatureAccess';
 import { useAccountAnalysisApi } from '@/components/hooks/useAccountAnalysisApi';
 import { useAccountAnalysis } from '@/components/hooks/useAccountAnalysis';
-import { FeatureLock } from '@/components/guards/FeatureLock';
 import { useRevenueCat } from '@/contexts/providers/RevenueCat';
 
 /**
@@ -78,7 +77,6 @@ export default function TikTokAnalysisScreen() {
 
   if (!hasAccess) {
     return (
-      <FeatureLock requiredPlan="creator" onLockPress={presentPaywall}>
         <SafeAreaView style={styles.container} edges={['top']}>
           <View style={styles.header}>
             <TouchableOpacity
@@ -107,9 +105,8 @@ export default function TikTokAnalysisScreen() {
                 Débloquer avec le Plan Créateur
               </Text>
             </TouchableOpacity>
-          </View>
-        </SafeAreaView>
-      </FeatureLock>
+        </View>
+      </SafeAreaView>
     );
   }
 

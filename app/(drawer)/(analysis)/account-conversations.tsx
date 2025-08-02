@@ -149,7 +149,7 @@ export default function AccountConversationsScreen() {
   // Show paywall for non-pro users
   if (currentPlan === 'free') {
     return (
-      <FeatureLock requiredPlan="pro" onLockPress={presentPaywall}>
+      <FeatureLock requiredPlan="creator" onLockPress={presentPaywall}>
         <SafeAreaView
           style={accountConversationsStyles.container}
           edges={['top']}

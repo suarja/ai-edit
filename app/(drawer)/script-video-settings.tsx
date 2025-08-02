@@ -208,6 +208,11 @@ export default function ScriptVideoSettingsScreen() {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
+            <AnalysisHeader
+          title="Configuration Vidéo"
+          showBackButton
+          onBack={() => router.push('/(drawer)/scripts')}
+        />
       <ScrollView
         style={styles.content}
         showsVerticalScrollIndicator={false}
@@ -219,11 +224,7 @@ export default function ScriptVideoSettingsScreen() {
           />
         }
       >
-        <AnalysisHeader
-          title="Configuration Vidéo"
-          showBackButton
-          onBack={() => router.push('/(drawer)/scripts')}
-        />
+  
         <ErrorDisplay error={videoRequest.error} />
 
         {/* Discrete Usage Display */}
@@ -351,7 +352,7 @@ const styles = StyleSheet.create({
 
   content: {
     flex: 1,
-    padding: 20,
+    paddingHorizontal: 20,
   },
   scriptPreview: {
     backgroundColor: SHARED_STYLE_COLORS.backgroundSecondary,

@@ -87,8 +87,11 @@ const styles = StyleSheet.create({
     opacity: 0.5,
   },
   closeButton: {
+    backgroundColor: SHARED_STYLE_COLORS.backgroundSecondary,
+    borderRadius: 100,
+    padding: 10,
     position: 'absolute',
-    top: 60,
+    top: 10,
     right: 20,
     zIndex: 1,
   },

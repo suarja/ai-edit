@@ -230,7 +230,7 @@ export default function UploadedVideoDetailScreen() {
       <AnalysisHeader
         title="Détails de la vidéo"
         showBackButton
-        onBack={() => router.back()}
+        onBack={() => router.push('/(drawer)/source-videos')}
       />
 
       <ScrollView
