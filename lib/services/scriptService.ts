@@ -34,7 +34,7 @@ export class ScriptService {
     }
 
     static calculateScriptDuration(script: string) {
-        const words = script.split(/\s+/).length;
+        const words = script.split(" ").length;
         const   estimatedDuration= Math.round(words * VIDEO_DURATION_FACTOR) 
         return {
             wordCount: words,

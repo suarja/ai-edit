@@ -11,6 +11,7 @@ import {
   MoreVertical,
 } from 'lucide-react-native';
 import { SHARED_STYLE_COLORS } from '@/lib/constants/sharedStyles';
+import { ScriptService } from '@/lib/services/scriptService';
 
 type Script = {
   id: string;
@@ -63,7 +64,8 @@ export default function ScriptCard({
   };
 
   const statusConfig = getStatusConfig(script.status);
-
+  const { wordCount, estimatedDuration } =
+    ScriptService.calculateScriptDuration(script.current_script || '');
   return (
     <View style={styles.container}>
       <TouchableOpacity
@@ -116,7 +118,7 @@ export default function ScriptCard({
 
         <View style={styles.footer}>
           <Text style={styles.stats}>
-            {script.word_count || 0} mots • {Math.round(script.estimated_duration || 0)}s
+              {wordCount} mots • {estimatedDuration}s
           </Text>
         </View>
       </TouchableOpacity>
