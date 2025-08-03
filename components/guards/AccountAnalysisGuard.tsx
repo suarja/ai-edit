@@ -151,8 +151,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     padding: 24,
+    paddingTop: 60, // Add space for the X button
     gap: 20,
-    backgroundColor: '#111',
+    backgroundColor: 'transparent', // Let FeatureLock handle the background
   },
   lockTitle: {
     fontSize: 24,

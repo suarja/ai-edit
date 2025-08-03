@@ -91,8 +91,9 @@ const styles = StyleSheet.create({
     borderRadius: 100,
     padding: 10,
     position: 'absolute',
-    top: 10,
+    top: 50, // Adjusted for SafeAreaView
     right: 20,
-    zIndex: 1,
+    zIndex: 9999,
+    elevation: 10, // For Android shadow/layering
   },
 });
