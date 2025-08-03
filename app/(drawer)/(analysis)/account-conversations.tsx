@@ -21,7 +21,7 @@ import { useRevenueCat } from '@/contexts/providers/RevenueCat';
 import { API_ENDPOINTS } from '@/lib/config/api';
 import AnalysisHeader from '@/components/analysis/AnalysisHeader';
 import { accountConversationsStyles } from '@/lib/utils/styles/accountConversations.styles';
-import { FeatureLock } from '@/components/guards/FeatureLock';
+import { StandardFeatureLock } from '@/components/guards/StandardFeatureLock';
 import { SHARED_STYLE_COLORS } from '@/lib/constants/sharedStyles';
 
 interface Conversation {
@@ -149,48 +149,27 @@ export default function AccountConversationsScreen() {
   // Show paywall for non-pro users
   if (currentPlan === 'free') {
     return (
-      <FeatureLock requiredPlan="creator" onLockPress={presentPaywall}>
-        <SafeAreaView
-          style={accountConversationsStyles.container}
-          edges={['top']}
-        >
-          <AnalysisHeader
-            title={'Conversations'}
-            onBack={() => router.back()}
-          />
-          <View style={accountConversationsStyles.loadingContainer}>
-            <MessageCircle size={64} color={SHARED_STYLE_COLORS.primary} />
-            <Text style={accountConversationsStyles.emptyTitle}>
-              Conversations Pro
-            </Text>
-            <Text style={accountConversationsStyles.emptyDescription}>
-              Accédez à vos conversations IA personnalisées et obtenez des
-              conseils stratégiques pour votre compte TikTok.
-            </Text>
-            <TouchableOpacity
-              style={{
-                backgroundColor: SHARED_STYLE_COLORS.primary,
-                paddingVertical: 16,
-                paddingHorizontal: 32,
-                borderRadius: 12,
-                marginTop: 20,
-                alignItems: 'center',
-              }}
-              onPress={presentPaywall}
-            >
-              <Text
-                style={{
-                  color: '#fff',
-                  fontSize: 16,
-                  fontWeight: '600',
-                }}
-              >
-                Débloquer avec le Plan Pro
-              </Text>
-            </TouchableOpacity>
-          </View>
-        </SafeAreaView>
-      </FeatureLock>
+      <StandardFeatureLock
+        featureIcon={<MessageCircle color={SHARED_STYLE_COLORS.primary} />}
+        featureTitle="Conversations IA Premium"
+        featureDescription="Accédez à vos conversations IA personnalisées et obtenez des conseils stratégiques pour votre compte TikTok."
+        features={[
+          {
+            icon: <MessageCircle color={SHARED_STYLE_COLORS.primary} />,
+            text: "Conversations illimitées avec l'IA",
+          },
+          {
+            icon: <TrendingUp color={SHARED_STYLE_COLORS.success} />,
+            text: "Conseils stratégiques personnalisés",
+          },
+          {
+            icon: <Users color={SHARED_STYLE_COLORS.warning} />,
+            text: "Analyse approfondie de votre contenu",
+          },
+        ]}
+        requiredPlan="creator"
+        showCloseButton={false}
+      />
     );
   }
 

@@ -17,9 +17,9 @@ import {
 } from 'lucide-react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFeatureAccess } from '@/components/hooks/useFeatureAccess';
-import { FeatureLock } from '@/components/guards/FeatureLock';
+import { StandardFeatureLock } from '@/components/guards/StandardFeatureLock';
+import { SHARED_STYLE_COLORS } from '@/lib/constants/sharedStyles';
 import { useGetUser } from '@/components/hooks/useGetUser';
-import { useRevenueCat } from '@/contexts/providers/RevenueCat';
 
 export default function VoiceCloneOnboardingScreen() {
   const router = useRouter();
@@ -75,52 +75,30 @@ export default function VoiceCloneOnboardingScreen() {
   // Si l'utilisateur n'a pas accès, afficher le lock
   if (!hasAccess && showLockScreen) {
     return (
-      <SafeAreaView style={styles.container} edges={['top']}>
-        <FeatureLock
-          requiredPlan="creator"
-          showAsDisabled={false}
-          onLockPress={presentPaywall}
-        >
-          <View style={styles.lockContainer}>
-            <Mic size={48} color="#007AFF" />
-            <Text style={styles.lockTitle}>Clonage de Voix IA</Text>
-            <Text style={styles.lockDescription}>
-              Créez votre voix clonée personnalisée pour des vidéos authentiques
-              et engageantes.
-            </Text>
-
-            <View style={styles.featuresPreview}>
-              <View style={styles.featureItem}>
-                <Mic size={20} color="#10b981" />
-                <Text style={styles.featureText}>
-                  Voix clonée en 30 secondes
-                </Text>
-              </View>
-              <View style={styles.featureItem}>
-                <Sparkles size={20} color="#3b82f6" />
-                <Text style={styles.featureText}>Qualité professionnelle</Text>
-              </View>
-              <View style={styles.featureItem}>
-                <Zap size={20} color="#f59e0b" />
-                <Text style={styles.featureText}>Vidéos authentiques</Text>
-              </View>
-              <View style={styles.featureItem}>
-                <Users size={20} color="#8b5cf6" />
-                <Text style={styles.featureText}>Engagement amélioré</Text>
-              </View>
-            </View>
-
-            <TouchableOpacity
-              style={styles.upgradeButton}
-              onPress={presentPaywall}
-            >
-              <Text style={styles.upgradeButtonText}>
-                Débloquer avec le Plan Créateur
-              </Text>
-            </TouchableOpacity>
-          </View>
-        </FeatureLock>
-      </SafeAreaView>
+      <StandardFeatureLock
+        featureIcon={<Mic color={SHARED_STYLE_COLORS.primary} />}
+        featureTitle="Clonage de Voix IA"
+        featureDescription="Créez votre voix clonée personnalisée pour des vidéos authentiques et engageantes."
+        features={[
+          {
+            icon: <Mic color="#10b981" />,
+            text: "Voix clonée en 30 secondes",
+          },
+          {
+            icon: <Sparkles color="#3b82f6" />,
+            text: "Qualité professionnelle",
+          },
+          {
+            icon: <Zap color="#f59e0b" />,
+            text: "Vidéos authentiques",
+          },
+          {
+            icon: <Users color="#8b5cf6" />,
+            text: "Engagement amélioré",
+          },
+        ]}
+        requiredPlan="creator"
+      />
     );
   }
 
