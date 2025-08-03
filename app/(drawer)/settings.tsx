@@ -9,6 +9,8 @@ import {
   TextInput,
   RefreshControl,
   Linking,
+  Platform,
+  UIManager,
 } from 'react-native';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -18,34 +20,31 @@ import {
   Mic,
   CreditCard as Edit3,
   AlertCircle,
-  FileText,
-  Shield,
-  BookUser,
   HelpCircle,
 } from 'lucide-react-native';
 import { useOnboardingContext } from '@/contexts/OnboardingContext';
 import AdminUsageControl from '@/components/AdminUsageControl';
 import { SubscriptionManager } from '@/components/SubscriptionManager';
-import { useClerkSupabaseClient } from '@/lib/config/supabase-clerk';
 import UserProfileManager from '@/components/UserProfileManager';
 import SupportPanel from '@/components/SupportPanel';
+import UpdatesPanel from '@/components/UpdatesPanel';
+import LegalPanel from '@/components/LegalPanel';
 import { sharedStyles, SHARED_STYLE_COLORS } from '@/lib/constants/sharedStyles';
 
+if (
+  Platform.OS === 'android' &&
+  UIManager.setLayoutAnimationEnabledExperimental
+) {
+  UIManager.setLayoutAnimationEnabledExperimental(true);
+}
+
 export default function SettingsScreen() {
-  // ... (existing state and logic remains the same)
   const [refreshing, setRefreshing] = useState(false);
-  const [userUsage, setUserUsage] = useState<any>(null);
-  const [usageLoading, setUsageLoading] = useState(true);
-  const [usageError, setUsageError] = useState<string | null>(null);
-  const [testingPrompt, setTestingPrompt] = useState('');
-  const [testingStatus, setTestingStatus] = useState(null);
-  const [testingError, setTestingError] = useState(null);
-  const [testingLoading, setTestingLoading] = useState(false);
   const [searchUserId, setSearchUserId] = useState('');
   const [searchLoading, setSearchLoading] = useState(false);
   const [foundUserUsage, setFoundUserUsage] = useState<any>(null);
   const [searchError, setSearchError] = useState<string | null>(null);
-  const { client: supabase } = useClerkSupabaseClient();
+  
   
   // Hook onboarding depuis le context
   const { restart, hasCompleted, isLoading: onboardingLoading } = useOnboardingContext();
@@ -58,9 +57,6 @@ export default function SettingsScreen() {
     }
   };
 
-  const fetchUserUsage = async () => {
-    // ...
-  };
 
   const onRefresh = useCallback(async () => {
     // ...
@@ -75,6 +71,7 @@ export default function SettingsScreen() {
       console.error('Failed to open URL:', err)
     );
   };
+
 
   return (
     <SafeAreaView style={styles.container} edges={[]}>
@@ -127,53 +124,27 @@ export default function SettingsScreen() {
           <TouchableOpacity
             style={[
               styles.settingItem,
+              { marginBottom: 8 },
               onboardingLoading && styles.settingItemDisabled
             ]}
             onPress={handleRestartOnboarding}
             disabled={onboardingLoading}
           >
             <View style={styles.settingInfo}>
-              <HelpCircle size={24} color={SHARED_STYLE_COLORS.text} />
-              <Text style={styles.settingText}>Refaire le tour guidé</Text>
+              <Text style={[styles.settingText, { fontWeight: '600' }]}>REFAIRE LE TOUR GUIDÉ</Text>
             </View>
             {onboardingLoading && (
               <ActivityIndicator size="small" color={SHARED_STYLE_COLORS.text} />
             )}
           </TouchableOpacity>
+          <UpdatesPanel />
+
+<LegalPanel />
+
+<SupportPanel />
         </View>
 
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Legal</Text>
-          <TouchableOpacity
-            style={styles.settingItem}
-            onPress={() => openURL('https://editia.app/privacy-policy')}
-          >
-            <View style={styles.settingInfo}>
-              <Shield size={24} color={SHARED_STYLE_COLORS.text} />
-              <Text style={styles.settingText}>Privacy Policy</Text>
-            </View>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.settingItem}
-            onPress={() => openURL('https://editia.app/terms-of-service')}
-          >
-            <View style={styles.settingInfo}>
-              <FileText size={24} color={SHARED_STYLE_COLORS.text} />
-              <Text style={styles.settingText}>Terms of Service</Text>
-            </View>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.settingItem}
-            onPress={() => openURL('https://editia.app/payment-policy')}
-          >
-            <View style={styles.settingInfo}>
-              <BookUser size={24} color={SHARED_STYLE_COLORS.text} />
-              <Text style={styles.settingText}>Payment Policy</Text>
-            </View>
-          </TouchableOpacity>
-        </View>
-
-        <SupportPanel />
+       
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Administration</Text>
           <View style={styles.adminContainer}>
@@ -236,7 +207,7 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   section: {
-    marginBottom: 24,
+    marginBottom: 12,
   },
   sectionTitle: {
     fontSize: 16,
@@ -315,5 +286,16 @@ const styles = StyleSheet.create({
   },
   settingItemDisabled: {
     opacity: 0.6,
+  },
+  // Shared collapsible item style
+  collapsibleSettingItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: sharedStyles.container.backgroundColor,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 12,
+    marginBottom: 8,
   },
 });

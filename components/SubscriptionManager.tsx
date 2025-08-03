@@ -338,7 +338,7 @@ const styles = StyleSheet.create({
     backgroundColor: sharedStyles.sectionContainer.backgroundColor,
     borderRadius: 16,
     padding: 20,
-    marginVertical: 8,
+    marginBottom: 12,
   },
   proContainer: {
     backgroundColor: SHARED_STYLE_COLORS.primaryOverlay,

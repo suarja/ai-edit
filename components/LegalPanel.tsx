@@ -9,7 +9,12 @@ import {
   Platform,
   UIManager,
 } from 'react-native';
-import { AlertCircle, Mic, Bug, ChevronDown } from 'lucide-react-native';
+import {
+  ChevronDown,
+  Shield,
+  FileText,
+  BookUser,
+} from 'lucide-react-native';
 import { sharedStyles, SHARED_STYLE_COLORS } from '@/lib/constants/sharedStyles';
 
 if (
@@ -19,71 +24,73 @@ if (
   UIManager.setLayoutAnimationEnabledExperimental(true);
 }
 
-export type SupportContact = {
+export type LegalItem = {
   label: string;
   icon: React.ReactNode;
-  onPress: () => void;
+  url: string;
 };
 
 type Props = {
-  contacts?: SupportContact[];
+  legalItems?: LegalItem[];
 };
 
-const defaultContacts: SupportContact[] = [
+const defaultLegalItems: LegalItem[] = [
   {
-    label: 'Email',
-    icon: <AlertCircle size={24} color={SHARED_STYLE_COLORS.text} />,
-    onPress: () => Linking.openURL('mailto:jason.h.suarez@gmail.com'),
+    label: 'Privacy Policy',
+    icon: <Shield size={24} color={SHARED_STYLE_COLORS.text} />,
+    url: 'https://editia.app/privacy-policy',
   },
   {
-    label: 'WhatsApp',
-    icon: <Mic size={24} color="#25D366" />,
-    onPress: () => Linking.openURL('https://wa.me/33660789132'),
+    label: 'Terms of Service',
+    icon: <FileText size={24} color={SHARED_STYLE_COLORS.text} />,
+    url: 'https://editia.app/terms-of-service',
   },
   {
-    label: 'Discord : Rejoindre le serveur',
-    icon: <Bug size={24} color="#7289da" />,
-    onPress: () => Linking.openURL('https://discord.gg/xNzaCV9cPb'),
-  },
-  {
-    label: 'Telegram',
-    icon: <AlertCircle size={24} color="#229ED9" />,
-    onPress: () => Linking.openURL('https://t.me/editia_support_bot'),
+    label: 'Payment Policy',
+    icon: <BookUser size={24} color={SHARED_STYLE_COLORS.text} />,
+    url: 'https://editia.app/payment-policy',
   },
 ];
 
-const SupportPanel: React.FC<Props> = ({ contacts = defaultContacts }) => {
-  const [isCollapsed, setIsCollapsed] = useState(true);
+const LegalPanel: React.FC<Props> = ({ legalItems = defaultLegalItems }) => {
+  const [isExpanded, setIsExpanded] = useState(false);
 
-  const toggleCollapse = () => {
+  const toggleSection = () => {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-    setIsCollapsed(!isCollapsed);
+    setIsExpanded(!isExpanded);
+  };
+
+  const openURL = (url: string) => {
+    Linking.openURL(url).catch((err) =>
+      console.error('Failed to open URL:', err)
+    );
   };
 
   return (
     <View style={styles.section}>
-      <TouchableOpacity onPress={toggleCollapse} style={styles.header}>
-        <Text style={styles.sectionTitle}>Support</Text>
+      <TouchableOpacity
+        style={styles.header}
+        onPress={toggleSection}
+      >
+        <Text style={styles.sectionTitle}>Legal</Text>
         <ChevronDown
           size={24}
           color={SHARED_STYLE_COLORS.textMuted}
-          style={{ transform: [{ rotate: isCollapsed ? '0deg' : '180deg' }] }}
+          style={{ transform: [{ rotate: isExpanded ? '180deg' : '0deg' }] }}
         />
       </TouchableOpacity>
-      {!isCollapsed && (
+      
+      {isExpanded && (
         <View style={styles.contentContainer}>
-          <Text style={styles.contactHeader}>
-            Contactez l&apos;équipe via votre canal préféré :
-          </Text>
-          {contacts.map((contact, idx) => (
+          {legalItems.map((item, index) => (
             <TouchableOpacity
-              key={contact.label + idx}
+              key={item.label + index}
               style={styles.settingItem}
-              onPress={contact.onPress}
+              onPress={() => openURL(item.url)}
             >
               <View style={styles.settingInfo}>
-                {contact.icon}
-                <Text style={styles.settingText}>{contact.label}</Text>
+                {item.icon}
+                <Text style={styles.settingText}>{item.label}</Text>
               </View>
             </TouchableOpacity>
           ))}
@@ -116,12 +123,6 @@ const styles = StyleSheet.create({
     paddingTop: 16,
     gap: 8,
   },
-  contactHeader: {
-    color: SHARED_STYLE_COLORS.text,
-    fontSize: 15,
-    fontWeight: '500',
-    marginBottom: 8,
-  },
   settingItem: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -143,4 +144,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default SupportPanel;
+export default LegalPanel;

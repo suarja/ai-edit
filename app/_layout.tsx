@@ -7,6 +7,7 @@ import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect, useState, useRef } from 'react';
 import { useColorScheme as useSystemColorScheme, Alert } from 'react-native';
+import * as Updates from 'expo-updates';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { logEnvironmentStatus, validateEnvironment } from '@/lib/config/env';
 
@@ -130,6 +131,21 @@ export default function RootLayout() {
               'The app is missing required configuration. Please contact support.',
               [{ text: 'OK' }]
             );
+          }
+        }
+
+        // Check for updates automatically on app start (only in production)
+        if (!__DEV__) {
+          try {
+            const update = await Updates.checkForUpdateAsync();
+            if (update.isAvailable) {
+              console.log('Update available, downloading...');
+              await Updates.fetchUpdateAsync();
+              // The update will be applied on next app restart
+              // We don't auto-reload to avoid interrupting the user
+            }
+          } catch (error) {
+            console.error('Error checking for updates:', error);
           }
         }
 
