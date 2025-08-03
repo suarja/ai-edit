@@ -53,7 +53,7 @@ export function useFeatureAccess(featureId: FeatureId): {
         const noPlanRequired = featureData?.required_plan === null;
         
         // Si aucun plan n'est requis, l'accès est automatiquement accordé
-        if (noPlanRequired || isFree) {
+        if (noPlanRequired) {
           setHasAccess(true);
           setRemainingUsage(999);
           setTotalLimit(999);
@@ -117,9 +117,8 @@ export function useFeatureAccess(featureId: FeatureId): {
 
         // L'utilisateur a accès si:
         // 1. La fonctionnalité est disponible pour son plan ET
-        // 2. Soit il est Pro (donc pas de limite), soit il a encore des utilisations disponibles
-        // Si aucun plan n'est requis, l'accès est automatiquement accordé
-        const finalAccess = noPlanRequired ? true : (hasFeatureAccess && (isFree || remaining > 0));
+        // 2. Soit il a un plan payant (pas de limite stricte), soit il a encore des utilisations disponibles
+        const finalAccess = hasFeatureAccess && (currentPlan !== 'free' || remaining > 0);
         setHasAccess(finalAccess);
         setRemainingUsage(remaining);
         setTotalLimit(limit);
@@ -275,7 +274,7 @@ export function useMultipleFeatureAccess(featureIds: FeatureId[]): {
           }
 
           newAccessMap[featureId] = {
-            hasAccess: noPlanRequired ? true : (hasFeatureAccess && (currentPlan !== 'free' || remaining > 0)),
+            hasAccess: hasFeatureAccess && (currentPlan !== 'free' || remaining > 0),
             remainingUsage: remaining,
             totalLimit: limit,
           };

@@ -22,7 +22,6 @@ import {
   Video,
   Hash,
 } from 'lucide-react-native';
-import { useRevenueCat } from '@/contexts/providers/RevenueCat';
 import { useAuth } from '@clerk/clerk-expo';
 import { API_ENDPOINTS } from '@/lib/config/api';
 import { useAccountAnalysis } from '@/components/hooks/useAccountAnalysis';

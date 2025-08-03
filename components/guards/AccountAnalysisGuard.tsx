@@ -34,7 +34,6 @@ const AccountAnalysisGuard: React.FC<AccountAnalysisGuardProps> = ({
     featureId = 'account_chat';
   }
   const { hasAccess, isLoading: isAccessLoading } = useFeatureAccess(featureId);
-  console.log('account_chat', hasAccess);
   const {
     analysis,
     activeJob,
@@ -42,7 +41,18 @@ const AccountAnalysisGuard: React.FC<AccountAnalysisGuardProps> = ({
     error,
     refreshAnalysis,
   } = useAccountAnalysis();
-  const { presentPaywall } = useRevenueCat();
+  const { presentPaywall, currentPlan, isReady } = useRevenueCat();
+  
+  // Enhanced debugging for production issues
+  console.log('🔍 AccountAnalysisGuard Debug:', {
+    pathname,
+    featureId,
+    hasAccess,
+    isAccessLoading,
+    currentPlan,
+    isReady,
+    environment: __DEV__ ? 'development' : 'production'
+  });
   console.log('pathname', pathname);
   const handleAnalysisStart = (job: JobType) => {
     refreshAnalysis(job);
