@@ -29,17 +29,6 @@ interface EnvConfig {
   AWS_SECRET_ACCESS_KEY?: string;
 }
 
-// Default values for critical configuration
-// These are used as fallbacks when environment variables are missing in production
-// NOTE: In a real production app, consider using EAS environment variables or a more secure approach
-const DEFAULT_CONFIG = {
-  SUPABASE_URL: 'https://dmljncjaomvhdichnuxm.supabase.co',
-  SUPABASE_ANON_KEY:
-    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRtbGpuY2phb212aGRpY2hudXhtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDgxODcyOTgsImV4cCI6MjA2Mzc2MzI5OH0.cnyouJA--VhckmQBbyQQv-PaRoiCeNM-_QJQ2aTwSNo',
-  ENVIRONMENT: 'production' as const,
-  SERVER_URL: 'https://nodejs-production-a774.up.railway.app',
-  IS_TESTFLIGHT: true,
-};
 
 /**
  * Get environment variable with optional fallback
@@ -159,21 +148,13 @@ export const getRequiredEnvVar = (key: string): string => {
 
   if (value === undefined) {
     const errorMessage = `Required environment variable missing: ${key}`;
+    console.error(errorMessage);
+    
     if (__DEV__) {
-      console.error(errorMessage);
       throw new Error(errorMessage);
     } else {
-      // In production, log error but don't crash
-      console.error(errorMessage);
-
-      // Use fallback values for critical configuration
-      if (key === 'EXPO_PUBLIC_SUPABASE_URL') {
-        return DEFAULT_CONFIG.SUPABASE_URL;
-      } else if (key === 'EXPO_PUBLIC_SUPABASE_ANON_KEY') {
-        return DEFAULT_CONFIG.SUPABASE_ANON_KEY;
-      }
-
-      // For other variables, use a generic placeholder
+      // In production, return a placeholder to prevent crashes
+      // EAS should inject all required variables at build time
       return `missing_${key.toLowerCase().replace(/[^a-z0-9]/g, '_')}`;
     }
   }
@@ -229,12 +210,7 @@ export const validateEnvironment = (): {
       isSet = !!process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY;
     }
 
-    // Don't report errors for variables we have fallbacks for
-    if (
-      !isSet &&
-      varName !== 'EXPO_PUBLIC_SUPABASE_URL' &&
-      varName !== 'EXPO_PUBLIC_SUPABASE_ANON_KEY'
-    ) {
+    if (!isSet) {
       errors.push(`Missing required environment variable: ${varName}`);
     }
   }
@@ -300,13 +276,13 @@ export const logEnvironmentStatus = (): void => {
     if (process.env.EXPO_PUBLIC_SUPABASE_URL) {
       console.log('  Using Supabase URL from environment variables');
     } else {
-      console.log('  Using DEFAULT Supabase URL fallback');
+      console.log('  ⚠️ Supabase URL missing from environment variables');
     }
 
     if (process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY) {
       console.log('  Using Supabase Anon Key from environment variables');
     } else {
-      console.log('  Using DEFAULT Supabase Anon Key fallback');
+      console.log('  ⚠️ Supabase Anon Key missing from environment variables');
     }
 
     // Validate environment
