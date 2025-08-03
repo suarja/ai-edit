@@ -242,8 +242,8 @@ export const env: EnvConfig = {
   ENVIRONMENT: getEnvVar('EXPO_PUBLIC_ENVIRONMENT', 'development') as any,
 
   // Server URL with fallback
-  SERVER_URL: getEnvVar('EXPO_PUBLIC_SERVER_URL', 'http://localhost:8081'),
-  TIKTOK_ANALYZER_URL: getEnvVar('EXPO_PUBLIC_TIKTOK_ANALYZER_URL'),
+  SERVER_URL: getRequiredEnvVar('EXPO_PUBLIC_SERVER_URL'),
+  TIKTOK_ANALYZER_URL: getRequiredEnvVar('EXPO_PUBLIC_TIKTOK_ANALYZER_URL'),
 
   // Optional API keys
   OPENAI_API_KEY: getEnvVar('OPENAI_API_KEY'),
