@@ -113,7 +113,7 @@ const API_CONFIGS = {
     userManagement: '/api/user-management',
     // TikTok Analyzer endpoints
     tiktokAnalyzer: {
-      baseUrl: env.TIKTOK_ANALYZER_URL ,
+      baseUrl: env.TIKTOK_ANALYZER_URL || env.SERVER_URL,
       accountAnalysis: '/api/account-analysis',
       accountAnalysisStatus: '/api/account-analysis/status',
       accountAnalysisResult: '/api/account-analysis/result',

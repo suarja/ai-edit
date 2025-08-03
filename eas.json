@@ -26,7 +26,10 @@
       "ios": {
         "resourceClass": "m-medium"
       },
-     
+      "env": {
+        "EXPO_PUBLIC_IS_TESTFLIGHT": "true",
+        "EXPO_PUBLIC_ENVIRONMENT": "preview"
+      },
       "channel": "preview"
     },
     "production": {
@@ -34,7 +37,10 @@
       "ios": {
         "resourceClass": "m-medium"
       },
-     
+      "env": {
+        "EXPO_PUBLIC_IS_TESTFLIGHT": "true",
+        "EXPO_PUBLIC_ENVIRONMENT": "production"
+      },
       "channel": "production"
     }
   },
