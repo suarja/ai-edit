@@ -5,6 +5,8 @@
  * between the legacy EAS functions and the new Node.js server.
  */
 
+import { env } from '@/lib/config/env';
+
 export const API_ENVIRONMENTS = {
   DEVELOPMENT: 'development',
   PRODUCTION: 'production',
@@ -46,7 +48,7 @@ const API_CONFIGS = {
 
     // Supabase functions (still needed for some features)
     supabase: {
-      baseUrl: process.env.EXPO_PUBLIC_SUPABASE_URL!,
+      baseUrl: env.SUPABASE_URL,
       functions: {
         createVoiceClone: '/functions/v1/create-voice-clone',
         processOnboarding: '/functions/v1/process-onboarding',
@@ -84,7 +86,7 @@ const API_CONFIGS = {
 
     // Supabase functions (still needed for some features)
     supabase: {
-      baseUrl: process.env.EXPO_PUBLIC_SUPABASE_URL!,
+      baseUrl: env.SUPABASE_URL,
       functions: {
         createVoiceClone: '/functions/v1/create-voice-clone',
         processOnboarding: '/functions/v1/process-onboarding',
@@ -94,9 +96,7 @@ const API_CONFIGS = {
 
   [API_ENVIRONMENTS.PRODUCTION]: {
     // Production Node.js server
-    baseUrl:
-      process.env.EXPO_PUBLIC_SERVER_URL ||
-      'https://your-production-server.com',
+    baseUrl: env.SERVER_URL,
     videoGenerate: '/api/videos/generate',
     videoStatus: '/api/videos/status',
     s3Upload: '/api/s3-upload',
@@ -113,9 +113,7 @@ const API_CONFIGS = {
     userManagement: '/api/user-management',
     // TikTok Analyzer endpoints
     tiktokAnalyzer: {
-      baseUrl:
-        process.env.EXPO_PUBLIC_TIKTOK_ANALYZER_URL ||
-        'https://your-tiktok-analyzer-production-url.com',
+      baseUrl: env.TIKTOK_ANALYZER_URL || env.SERVER_URL,
       accountAnalysis: '/api/account-analysis',
       accountAnalysisStatus: '/api/account-analysis/status',
       accountAnalysisResult: '/api/account-analysis/result',
@@ -126,7 +124,7 @@ const API_CONFIGS = {
 
     // Supabase functions (still needed for some features)
     supabase: {
-      baseUrl: process.env.EXPO_PUBLIC_SUPABASE_URL!,
+      baseUrl: env.SUPABASE_URL,
       functions: {
         createVoiceClone: '/functions/v1/create-voice-clone',
         processOnboarding: '/functions/v1/process-onboarding',
@@ -144,7 +142,7 @@ const API_CONFIGS = {
  * - API_ENVIRONMENTS.PRODUCTION: Use production Node.js server
  */
 export const CURRENT_API_ENVIRONMENT: ApiEnvironment =
-  process.env.NODE_ENV === 'production'
+  env.ENVIRONMENT === 'production' || env.ENVIRONMENT === 'preview'
     ? API_ENVIRONMENTS.PRODUCTION
     : API_ENVIRONMENTS.LOCAL_SERVER; // Using local server for development
 
@@ -497,7 +495,7 @@ export const API_HEADERS = {
 
   SUPABASE_AUTH: {
     'Content-Type': 'application/json',
-    Authorization: `Bearer ${process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY}`,
+    Authorization: `Bearer ${env.SUPABASE_ANON_KEY}`,
   },
 
   // For server endpoints that require user authentication (legacy Supabase)
@@ -513,7 +511,7 @@ export const API_HEADERS = {
   }),
 
   CREATOMATE_AUTH: {
-    Authorization: `Bearer ${process.env.CREATOMATE_API_KEY}`,
+    Authorization: `Bearer ${env.CREATOMATE_API_KEY}`,
   },
 };
 

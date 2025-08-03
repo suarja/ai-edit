@@ -233,7 +233,6 @@ const styles = StyleSheet.create({
   updateSuccessContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#E8F5E8',
     padding: 12,
     borderRadius: 8,
     marginTop: 12,

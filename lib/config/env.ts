@@ -17,6 +17,7 @@ interface EnvConfig {
 
   // API endpoints
   SERVER_URL: string;
+  TIKTOK_ANALYZER_URL?: string;
 
   // External APIs (optional in some environments)
   OPENAI_API_KEY?: string;
@@ -60,6 +61,9 @@ export const getEnvVar = (key: string, fallback?: string): string => {
       break;
     case 'EXPO_PUBLIC_SERVER_URL':
       value = process.env.EXPO_PUBLIC_SERVER_URL;
+      break;
+    case 'EXPO_PUBLIC_TIKTOK_ANALYZER_URL':
+      value = process.env.EXPO_PUBLIC_TIKTOK_ANALYZER_URL;
       break;
     case 'OPENAI_API_KEY':
       value = process.env.OPENAI_API_KEY;
@@ -123,6 +127,9 @@ export const getRequiredEnvVar = (key: string): string => {
       break;
     case 'EXPO_PUBLIC_SERVER_URL':
       value = process.env.EXPO_PUBLIC_SERVER_URL;
+      break;
+    case 'EXPO_PUBLIC_TIKTOK_ANALYZER_URL':
+      value = process.env.EXPO_PUBLIC_TIKTOK_ANALYZER_URL;
       break;
     case 'OPENAI_API_KEY':
       value = process.env.OPENAI_API_KEY;
@@ -236,6 +243,7 @@ export const env: EnvConfig = {
 
   // Server URL with fallback
   SERVER_URL: getEnvVar('EXPO_PUBLIC_SERVER_URL', 'http://localhost:8081'),
+  TIKTOK_ANALYZER_URL: getEnvVar('EXPO_PUBLIC_TIKTOK_ANALYZER_URL'),
 
   // Optional API keys
   OPENAI_API_KEY: getEnvVar('OPENAI_API_KEY'),
