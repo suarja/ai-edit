@@ -78,7 +78,7 @@ export const StandardFeatureLock: React.FC<StandardFeatureLockProps> = ({
         <View style={styles.innerContent}>
           {/* Feature Icon */}
           <View style={styles.iconContainer}>
-            {React.cloneElement(featureIcon, { size: 48 })}
+              {React.cloneElement(featureIcon)}
           </View>
 
           {/* Title */}
@@ -91,7 +91,7 @@ export const StandardFeatureLock: React.FC<StandardFeatureLockProps> = ({
           <View style={styles.featuresContainer}>
             {features.map((feature, index) => (
               <View key={index} style={styles.featureItem}>
-                {React.cloneElement(feature.icon, { size: 20 })}
+                {React.cloneElement(feature.icon)}
                 <Text style={styles.featureText}>{feature.text}</Text>
               </View>
             ))}
@@ -109,7 +109,7 @@ export const StandardFeatureLock: React.FC<StandardFeatureLockProps> = ({
           </TouchableOpacity>
         </View>
       </ScrollView>
-    </View>
+    </SafeAreaView>
   );
 };
 

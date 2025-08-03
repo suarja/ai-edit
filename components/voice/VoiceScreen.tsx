@@ -12,6 +12,10 @@ import { useGetUser } from '../hooks/useGetUser';
 import { useAuth } from '@clerk/clerk-expo';
 import { VoiceRecordingUI } from './VoiceRecordingUI';
 import { SHARED_STYLE_COLORS } from '@/lib/constants/sharedStyles';
+import { useFeatureAccess } from '../hooks/useFeatureAccess';
+import { useRevenueCat } from '@/contexts/providers/RevenueCat';
+import { StandardFeatureLock } from '../guards/StandardFeatureLock';
+import { Mic, Sparkles, Zap, Users } from 'lucide-react-native';
 
 export const VoiceScreen: React.FC = () => {
   const [step, setStep] = useState<'list' | 'record'>('list');
@@ -22,15 +26,19 @@ export const VoiceScreen: React.FC = () => {
   );
   const { getToken } = useAuth();
   const { fetchUser } = useGetUser();
+  const { hasAccess: hasVoiceCloneAccess } = useFeatureAccess('voice_clone');
+  const { presentPaywall } = useRevenueCat();
 
   useEffect(() => {
     fetchVoices();
-  }, []);
+  }, [hasVoiceCloneAccess]);
   const fetchVoices = async () => {
     setIsLoading(true);
     const token = await getToken();
     let newVoices: VoiceDatabase[] = [];
-    if (token) {
+    
+    // Only fetch cloned voices if user has voice clone access
+    if (token && hasVoiceCloneAccess) {
       newVoices = (await VoiceService.getExistingVoice(token)) || [];
       if (newVoices) {
         const mappedVoices = VoiceService.voiceMapper(newVoices);
@@ -67,6 +75,14 @@ export const VoiceScreen: React.FC = () => {
     await VoiceConfigStorage.save(userId, voiceConfig);
   };
 
+  const handleCreateVoice = () => {
+    if (hasVoiceCloneAccess) {
+      setStep('record');
+    } else {
+      presentPaywall();
+    }
+  };
+
   return (
     <View>
       {isLoading ? (
@@ -84,16 +100,52 @@ export const VoiceScreen: React.FC = () => {
                 selectedVoiceId={selectedVoiceId}
                 onSelect={handleSelectVoice}
               />
-              <VoiceCreateButton onCreate={() => setStep('record')} />
+              <VoiceCreateButton 
+                onCreate={handleCreateVoice} 
+                hasAccess={hasVoiceCloneAccess}
+              />
             </>
           )}
         </>
       )}
       {step === 'record' && (
-        <View>
-          <VoiceRecordingUI handleUpdateVoices={handleAddClonedVoice} />
-          <Button title="Annuler" onPress={() => setStep('list')} />
-        </View>
+        <>
+          {hasVoiceCloneAccess ? (
+            <View>
+              <VoiceRecordingUI handleUpdateVoices={handleAddClonedVoice} />
+              <Button title="Annuler" onPress={() => setStep('list')} />
+            </View>
+          ) : (
+            <StandardFeatureLock
+              featureIcon={<Mic color={SHARED_STYLE_COLORS.primary} />}
+              featureTitle="Clonage de Voix IA"
+              featureDescription="Créez votre voix clonée personnalisée pour des vidéos authentiques et engageantes."
+              features={[
+                {
+                  icon: <Mic color="#10b981" />,
+                  text: "Voix clonée en 30 secondes",
+                },
+                {
+                  icon: <Sparkles color="#3b82f6" />,
+                  text: "Qualité professionnelle",
+                },
+                {
+                  icon: <Zap color="#f59e0b" />,
+                  text: "Vidéos authentiques",
+                },
+                {
+                  icon: <Users color="#8b5cf6" />,
+                  text: "Engagement amélioré",
+                },
+              ]}
+              requiredPlan="creator"
+              onUnlock={() => {
+                presentPaywall();
+                setStep('list');
+              }}
+            />
+          )}
+        </>
       )}
     </View>
   );
