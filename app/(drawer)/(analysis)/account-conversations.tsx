@@ -72,8 +72,8 @@ export default function AccountConversationsScreen() {
   };
 
   const handleCreateNewConversation = () => {
-    // Navigate to chat without conversationId (new conversation)
-    router.push('/(drawer)/(analysis)/account-chat');
+    // Navigate to chat with new=true parameter to force new conversation
+    router.push('/(drawer)/(analysis)/account-chat?new=true');
   };
 
   const handleOpenConversation = (conversation: Conversation) => {

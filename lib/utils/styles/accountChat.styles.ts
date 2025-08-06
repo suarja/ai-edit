@@ -72,6 +72,12 @@ export const accountChatStyles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     padding: 16,
+    gap: 12,
+  },
+  loadingText: {
+    color: DS_COLORS.text.secondary,
+    fontSize: 16,
+    textAlign: 'center',
   },
   errorContainer: {
     flexDirection: 'row',

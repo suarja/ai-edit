@@ -55,8 +55,8 @@ export function useTikTokChatSimple(
 
   // State
   const [messages, setMessages] = useState<ChatMessage[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [isLoadingMessages, setIsLoadingMessages] = useState(false);
+  const [isLoading, setIsLoading] = useState(false); // For sending messages
+  const [isLoadingMessages, setIsLoadingMessages] = useState(false); // For loading existing conversation
 
   const [isStreaming, setIsStreaming] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -99,10 +99,12 @@ export function useTikTokChatSimple(
 
       if (effectiveConversationId) {
         console.log('📂 Loading new conversation:', effectiveConversationId);
+        setIsLoadingMessages(true); // Show loading before starting to load
         loadConversationMessages(effectiveConversationId);
       } else {
         // This is a new chat, no messages to load.
         setLoadedConversationId(undefined);
+        setIsLoadingMessages(false); // No loading for new chat
         console.log('🆕 Starting new conversation');
       }
     } else {
@@ -118,7 +120,7 @@ export function useTikTokChatSimple(
       try {
         console.log('📥 Loading conversation messages:', convId);
         const token = await getToken();
-        setIsLoadingMessages(true);
+        // Loading state is already set by the caller
         const response = await fetch(
           API_ENDPOINTS.TIKTOK_CONVERSATION_MESSAGES(convId),
           {

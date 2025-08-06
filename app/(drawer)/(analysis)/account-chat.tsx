@@ -34,15 +34,17 @@ import { SHARED_STYLE_COLORS } from '@/lib/constants/sharedStyles';
 
 export default function AccountChatScreen() {
   const { currentPlan, presentPaywall } = useRevenueCat();
-  const { analysis, isLoading, error } = useAnalysisContext();
+  const { analysis, isLoading, error, setCurrentConversation } = useAnalysisContext();
   
   // Get conversation ID and title from route params FIRST
   const params = useLocalSearchParams<{
     conversationId?: string;
     chatTitle?: string;
+    new?: string; // NEW: parameter to force new chat
   }>();
   
-  const conversationId = params.conversationId;
+  const isNewChat = params.new === 'true';
+  const conversationId = isNewChat ? undefined : params.conversationId; // Force undefined for new chat
   const chatTitle = params.chatTitle;
   
   console.log('🔍 account-chat params:', params);
@@ -56,6 +58,7 @@ export default function AccountChatScreen() {
     isLoading: isStreaming,
     error: chatError,
     clearError,
+    isLoadingMessages, // Add this missing property
   } = useTikTokChatSimple({
     conversationId,
     conversationTitle: chatTitle,
@@ -67,6 +70,17 @@ export default function AccountChatScreen() {
 
   // Get existing analysis for context
   const existingAnalysis = analysis;
+
+  // Clean up URL and context when starting new chat
+  useEffect(() => {
+    if (isNewChat) {
+      console.log('🆕 account-chat: Starting new chat, cleaning URL and context');
+      // Clear any existing conversation from context
+      setCurrentConversation(null);
+      // Clean up URL by removing the new parameter
+      router.replace('/(drawer)/(analysis)/account-chat');
+    }
+  }, [isNewChat, setCurrentConversation]);
 
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
@@ -198,7 +212,7 @@ export default function AccountChatScreen() {
       >
         {/* Header with reset button for testing */}
         <AnalysisHeader
-          title={chatTitle || 'Nouveau Chat'}
+          title={isNewChat ? 'Nouveau Chat' : (chatTitle || 'Chat TikTok')}
           showBackButton={true}
           onBack={() => {
             if (router.canGoBack()) {
@@ -215,8 +229,18 @@ export default function AccountChatScreen() {
           style={accountChatStyles.messagesContainer}
           showsVerticalScrollIndicator={false}
         >
+          {/* Loading indicator for initial conversation load */}
+          {isLoadingMessages && messages.length === 0 && (
+            <View style={accountChatStyles.loadingMessagesContainer}>
+              <ActivityIndicator size="large" color={SHARED_STYLE_COLORS.primary} />
+              <Text style={accountChatStyles.loadingText}>
+                Chargement de la conversation...
+              </Text>
+            </View>
+          )}
+
           {/* Welcome message */}
-          {messages.length === 0 && !isLoading && (
+          {messages.length === 0 && !isLoadingMessages && !isLoading && (
             <View style={accountChatStyles.welcomeMessage}>
               <TrendingUp size={24} color={SHARED_STYLE_COLORS.primary} />
               <Text style={accountChatStyles.welcomeText}>
@@ -226,12 +250,6 @@ export default function AccountChatScreen() {
               </Text>
             </View>
           )}
-
-          {/* {isLoading && (
-            <View style={accountChatStyles.loadingMessagesContainer}>
-              <ActivityIndicator size="small" color={SHARED_STYLE_COLORS.primary} />
-            </View>
-          )} */}
 
           {/* Error display */}
           {error && (
@@ -263,8 +281,8 @@ export default function AccountChatScreen() {
 
         {/* Input Section (simplified like chat.tsx) */}
         <View style={accountChatStyles.inputContainer}>
-          {/* Suggestions for first message */}
-          {messages.length === 0 && (
+          {/* Suggestions for first message - only show for new chats or empty existing chats */}
+          {messages.length === 0 && !isLoadingMessages && (
             <View style={accountChatStyles.suggestionsContainer}>
               {existingAnalysis ? (
                 <>
