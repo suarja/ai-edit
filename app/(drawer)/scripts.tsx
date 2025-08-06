@@ -93,6 +93,15 @@ export default function ScriptsScreen() {
           />
         }
       >
+{/*         Debug Info
+        <View style={styles.debugContainer}>
+          <Text style={styles.debugText}>🔧 DEBUG INFO:</Text>
+          <Text style={styles.debugText}>Environment: {env.ENVIRONMENT}</Text>
+          <Text style={styles.debugText}>API Env: {CURRENT_API_ENVIRONMENT}</Text>
+          <Text style={styles.debugText}>Server URL: {env.SERVER_URL}</Text>
+          <Text style={styles.debugText}>Scripts URL: {API_ENDPOINTS.SCRIPTS()}</Text>
+        </View> */}
+
         {error && (
           <View style={styles.errorContainer}>
             <Text style={styles.errorText}>❌ {error}</Text>
@@ -273,5 +282,19 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 6,
     elevation: 8,
+  },
+  debugContainer: {
+    backgroundColor: '#1a1a1a',
+    borderWidth: 1,
+    borderColor: '#333',
+    borderRadius: 8,
+    padding: 12,
+    marginBottom: 16,
+  },
+  debugText: {
+    color: '#888',
+    fontSize: 12,
+    fontFamily: 'monospace',
+    marginBottom: 2,
   },
 });

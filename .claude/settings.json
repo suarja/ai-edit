@@ -51,7 +51,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "afplay /Users/swarecito/App/2025/editia/.claude/song/finish.mp3"
+            "command": "afplay /Users/suarja/App/2025/editia/mobile/.claude/song/finish.mp3"
           }
     
         ]
@@ -63,7 +63,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "afplay /Users/swarecito/App/2025/editia/.claude/song/need-human.mp3"
+            "command": "afplay /Users/suarja/App/2025/editia/mobile/.claude/song/need-human.mp3"
           }
         ]
       }
