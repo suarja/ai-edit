@@ -79,31 +79,31 @@ const AccountAnalysisGuard: React.FC<AccountAnalysisGuardProps> = ({
     );
   }
 
-  // 🆕 If user doesn't have access, show the lock screen.
-  if (!hasAccess) {
-    return (
-      <StandardFeatureLock
-        featureIcon={<Lock color={SHARED_STYLE_COLORS.primary} />}
-        featureTitle="Analyse de Compte Approfondie"
-        featureDescription="Obtenez une analyse complète de n'importe quel compte TikTok, identifiez les stratégies virales et recevez des recommandations personnalisées."
-        features={[
-          {
-            icon: <BarChart3 color={SHARED_STYLE_COLORS.success} />,
-            text: "Analyses détaillées",
-          },
-          {
-            icon: <TrendingUp color={SHARED_STYLE_COLORS.secondary} />,
-            text: "Stratégies virales",
-          },
-          {
-            icon: <Users color={SHARED_STYLE_COLORS.warning} />,
-            text: "Recommandations personnalisées",
-          },
-        ]}
-        requiredPlan="creator"
-      />
-    );
-  }
+  // // 🆕 If user doesn't have access, show the lock screen.
+  // if (!hasAccess) {
+  //   return (
+  //     <StandardFeatureLock
+  //       featureIcon={<Lock color={SHARED_STYLE_COLORS.primary} />}
+  //       featureTitle="Analyse de Compte Approfondie"
+  //       featureDescription="Obtenez une analyse complète de n'importe quel compte TikTok, identifiez les stratégies virales et recevez des recommandations personnalisées."
+  //       features={[
+  //         {
+  //           icon: <BarChart3 color={SHARED_STYLE_COLORS.success} />,
+  //           text: "Analyses détaillées",
+  //         },
+  //         {
+  //           icon: <TrendingUp color={SHARED_STYLE_COLORS.secondary} />,
+  //           text: "Stratégies virales",
+  //         },
+  //         {
+  //           icon: <Users color={SHARED_STYLE_COLORS.warning} />,
+  //           text: "Recommandations personnalisées",
+  //         },
+  //       ]}
+  //       requiredPlan="creator"
+  //     />
+  //   );
+  // }
 
   // If there is an active job, show the progress screen
   if (activeJob) {
@@ -116,8 +116,8 @@ const AccountAnalysisGuard: React.FC<AccountAnalysisGuardProps> = ({
     );
   }
 
-  // If there's no analysis, show the start screen
-  if (!analysis) {
+  // If there's no analysis, show the start screen (but not for chat/conversations routes)
+  if (!analysis && pathname !== '/account-conversations' && pathname !== '/account-chat') {
     return <StartAnalysisScreen onAnalysisStart={handleAnalysisStart} />;
   }
 

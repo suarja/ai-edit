@@ -14,15 +14,16 @@ import {
   MessageCircle,
   TrendingUp,
   Users,
-  ChevronRight,
 } from 'lucide-react-native';
 import { useAuth } from '@clerk/clerk-expo';
 import { useRevenueCat } from '@/contexts/providers/RevenueCat';
+import { useAnalysisContext } from '@/contexts/AnalysisContext';
 import { API_ENDPOINTS } from '@/lib/config/api';
 import AnalysisHeader from '@/components/analysis/AnalysisHeader';
 import { accountConversationsStyles } from '@/lib/utils/styles/accountConversations.styles';
 import { StandardFeatureLock } from '@/components/guards/StandardFeatureLock';
 import { SHARED_STYLE_COLORS } from '@/lib/constants/sharedStyles';
+import ConversationCard from '@/components/conversation/ConversationCard';
 
 interface Conversation {
   id: string;
@@ -42,138 +43,76 @@ interface Conversation {
 }
 
 export default function AccountConversationsScreen() {
-  const { getToken } = useAuth();
   const { currentPlan, presentPaywall } = useRevenueCat();
-  const [conversations, setConversations] = useState<Conversation[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { 
+    conversations, 
+    isConversationsLoading, 
+    loadConversations,
+    setCurrentConversation 
+  } = useAnalysisContext();
+  
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (currentPlan !== 'free') {
+    if (conversations.length === 0 && !isConversationsLoading) {
       loadConversations();
     }
-  }, [currentPlan]);
-
-  const loadConversations = async () => {
-    try {
-      const token = await getToken();
-      const response = await fetch(API_ENDPOINTS.TIKTOK_CONVERSATIONS(), {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-
-      const data = await response.json();
-      if (data.success) {
-        setConversations(data.data || []);
-        setError(null);
-      } else {
-        setError(data.error || 'Failed to load conversations');
-      }
-    } catch (err) {
-      console.error('Error loading conversations:', err);
-      setError('Failed to load conversations');
-    } finally {
-      setLoading(false);
-    }
-  };
+  }, [conversations.length, isConversationsLoading, loadConversations]);
 
   const handleRefresh = async () => {
     setRefreshing(true);
-    await loadConversations();
-    setRefreshing(false);
+    try {
+      await loadConversations();
+    } catch (err) {
+      setError('Failed to refresh conversations');
+    } finally {
+      setRefreshing(false);
+    }
   };
 
   const handleCreateNewConversation = () => {
     // Navigate to chat without conversationId (new conversation)
-    router.push({
-      pathname: '/(drawer)/(analysis)/account-chat',
-      params: {}, // Explicitly clear any previous params
-    });
+    router.push('/(drawer)/(analysis)/account-chat');
   };
 
   const handleOpenConversation = (conversation: Conversation) => {
-    // Navigate to chat with conversationId (existing conversation)
-    router.push({
-      pathname: '/(drawer)/(analysis)/account-chat',
-      params: {
-        conversationId: conversation.id,
-        conversationTitle: getConversationTitle(conversation),
-      },
-    });
+    // Définir la conversation actuelle dans le contexte
+    setCurrentConversation(conversation.id);
+    // Naviguer vers le chat
+    const title = conversation.title || (conversation.context?.tiktok_handle ? `Chat @${conversation.context.tiktok_handle}` : 'Chat TikTok');
+    router.push(`/(drawer)/(analysis)/account-chat?conversationId=${conversation.id}&chatTitle=${encodeURIComponent(title)}`);
   };
 
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    const now = new Date();
-    const diffInHours = (now.getTime() - date.getTime()) / (1000 * 60 * 60);
-
-    if (diffInHours < 24) {
-      return date.toLocaleTimeString('fr-FR', {
-        hour: '2-digit',
-        minute: '2-digit',
-      });
-    } else if (diffInHours < 7 * 24) {
-      return date.toLocaleDateString('fr-FR', {
-        weekday: 'short',
-        hour: '2-digit',
-        minute: '2-digit',
-      });
-    } else {
-      return date.toLocaleDateString('fr-FR', {
-        day: 'numeric',
-        month: 'short',
-        hour: '2-digit',
-        minute: '2-digit',
-      });
-    }
-  };
-
-  const getConversationTitle = (conversation: Conversation) => {
-    if (conversation.title) return conversation.title;
-    if (conversation.context?.tiktok_handle) {
-      return `Chat @${conversation.context.tiktok_handle}`;
-    }
-    return 'Chat TikTok';
-  };
-
-  const getLastMessagePreview = (conversation: Conversation) => {
-    if (!conversation.last_message) return 'Nouvelle conversation';
-
-    const { content, role } = conversation.last_message;
-    const prefix = role === 'user' ? 'Vous: ' : 'IA: ';
-    const preview =
-      content.length > 60 ? content.substring(0, 60) + '...' : content;
-    return prefix + preview;
-  };
 
   // Show paywall for non-pro users
-  if (currentPlan === 'free') {
-    return (
-      <StandardFeatureLock
-        featureIcon={<MessageCircle color={SHARED_STYLE_COLORS.primary} />}
-        featureTitle="Conversations IA Premium"
-        featureDescription="Accédez à vos conversations IA personnalisées et obtenez des conseils stratégiques pour votre compte TikTok."
-        features={[
-          {
-            icon: <MessageCircle color={SHARED_STYLE_COLORS.primary} />,
-            text: "Conversations illimitées avec l'IA",
-          },
-          {
-            icon: <TrendingUp color={SHARED_STYLE_COLORS.success} />,
-            text: "Conseils stratégiques personnalisés",
-          },
-          {
-            icon: <Users color={SHARED_STYLE_COLORS.warning} />,
-            text: "Analyse approfondie de votre contenu",
-          },
-        ]}
-        requiredPlan="creator"
-        showCloseButton={false}
-      />
-    );
-  }
+  // if (currentPlan === 'free') {
+  //   return (
+  //     <StandardFeatureLock
+  //       featureIcon={<MessageCircle color={SHARED_STYLE_COLORS.primary} />}
+  //       featureTitle="Conversations IA Premium"
+  //       featureDescription="Accédez à vos conversations IA personnalisées et obtenez des conseils stratégiques pour votre compte TikTok."
+  //       features={[
+  //         {
+  //           icon: <MessageCircle color={SHARED_STYLE_COLORS.primary} />,
+  //           text: "Conversations illimitées avec l'IA",
+  //         },
+  //         {
+  //           icon: <TrendingUp color={SHARED_STYLE_COLORS.success} />,
+  //           text: "Conseils stratégiques personnalisés",
+  //         },
+  //         {
+  //           icon: <Users color={SHARED_STYLE_COLORS.warning} />,
+  //           text: "Analyse approfondie de votre contenu",
+  //         },
+  //       ]}
+  //       requiredPlan="creator"
+  //       showCloseButton={true}
+  //     />
+  //   );
+  // }
 
-  if (loading) {
+  if (isConversationsLoading) {
     return (
       <SafeAreaView
         style={accountConversationsStyles.container}
@@ -210,7 +149,7 @@ export default function AccountConversationsScreen() {
         )}
 
         {/* Empty State */}
-        {!loading && conversations.length === 0 && (
+        {!isConversationsLoading && conversations.length === 0 && (
           <View style={accountConversationsStyles.emptyState}>
             <MessageCircle size={64} color="#666" />
             <Text style={accountConversationsStyles.emptyTitle}>
@@ -232,58 +171,15 @@ export default function AccountConversationsScreen() {
         )}
 
         {/* Conversations List */}
-        {conversations.map((conversation) => (
-          <TouchableOpacity
-            key={conversation.id}
-            style={accountConversationsStyles.conversationCard}
-            onPress={() => handleOpenConversation(conversation)}
-          >
-            <View style={accountConversationsStyles.conversationHeader}>
-              <View style={accountConversationsStyles.conversationIcon}>
-                {conversation.context?.tiktok_handle ? (
-                  <TrendingUp size={20} color={SHARED_STYLE_COLORS.primary} />
-                ) : (
-                  <MessageCircle size={20} color={SHARED_STYLE_COLORS.primary} />
-                )}
-              </View>
-
-              <View style={accountConversationsStyles.conversationInfo}>
-                <Text
-                  style={accountConversationsStyles.conversationTitle}
-                  numberOfLines={1}
-                >
-                  {getConversationTitle(conversation)}
-                </Text>
-                <Text
-                  style={accountConversationsStyles.conversationPreview}
-                  numberOfLines={2}
-                >
-                  {getLastMessagePreview(conversation)}
-                </Text>
-              </View>
-
-              <View style={accountConversationsStyles.conversationMeta}>
-                <Text style={accountConversationsStyles.conversationTime}>
-                  {formatDate(conversation.updated_at)}
-                </Text>
-                <Text style={accountConversationsStyles.messageCount}>
-                  {conversation.message_count} message
-                  {conversation.message_count !== 1 ? 's' : ''}
-                </Text>
-                <ChevronRight size={16} color="#666" />
-              </View>
-            </View>
-
-            {conversation.context?.tiktok_handle && (
-              <View style={accountConversationsStyles.contextBadge}>
-                <Users size={12} color={SHARED_STYLE_COLORS.primary} />
-                <Text style={accountConversationsStyles.contextText}>
-                  @{conversation.context.tiktok_handle}
-                </Text>
-              </View>
-            )}
-          </TouchableOpacity>
-        ))}
+        <View style={accountConversationsStyles.conversationsList}>
+          {conversations.map((conversation) => (
+            <ConversationCard
+              key={conversation.id}
+              conversation={conversation}
+              onPress={() => handleOpenConversation(conversation)}
+            />
+          ))}
+        </View>
       </ScrollView>
 
       {/* Floating Action Button */}

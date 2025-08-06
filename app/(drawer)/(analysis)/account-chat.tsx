@@ -21,35 +21,49 @@ import {
   Zap,
   Users,
 } from 'lucide-react-native';
+import Markdown from 'react-native-markdown-display';
 import { useRevenueCat } from '@/contexts/providers/RevenueCat';
-import { useAccountAnalysis } from '@/components/hooks/useAccountAnalysis';
+import { useAnalysisContext } from '@/contexts/AnalysisContext';
 import { useTikTokChatSimple } from '@/components/hooks/useTikTokChatSimple';
 import AnalysisHeader from '@/components/analysis/AnalysisHeader';
 import { FeatureLock } from '@/components/guards/FeatureLock';
 import VoiceDictation from '@/components/VoiceDictation';
-import { accountChatStyles } from '@/lib/utils/styles/accountChat.styles';
+import { accountChatStyles, markdownStyles } from '@/lib/utils/styles/accountChat.styles';
 import { useLocalSearchParams } from 'expo-router';
 import { SHARED_STYLE_COLORS } from '@/lib/constants/sharedStyles';
 
 export default function AccountChatScreen() {
   const { currentPlan, presentPaywall } = useRevenueCat();
-  const { analysis, isLoading, error, refreshAnalysis } = useAccountAnalysis();
+  const { analysis, isLoading, error } = useAnalysisContext();
+  
+  // Get conversation ID and title from route params FIRST
+  const params = useLocalSearchParams<{
+    conversationId?: string;
+    chatTitle?: string;
+  }>();
+  
+  const conversationId = params.conversationId;
+  const chatTitle = params.chatTitle;
+  
+  console.log('🔍 account-chat params:', params);
+  console.log('🔍 conversationId:', conversationId);
+  console.log('🔍 chatTitle:', chatTitle);
+  
+  // Now use the params in the hook
   const {
     messages,
     sendMessage,
     isLoading: isStreaming,
     error: chatError,
     clearError,
-  } = useTikTokChatSimple();
+  } = useTikTokChatSimple({
+    conversationId,
+    conversationTitle: chatTitle,
+  });
+  
   const [inputMessage, setInputMessage] = useState('');
   const [showLockScreen, setShowLockScreen] = useState(true);
   const scrollViewRef = useRef<ScrollView>(null);
-
-  // Get conversation ID and title from route params
-  const { conversationId, chatTitle } = useLocalSearchParams<{
-    conversationId?: string;
-    chatTitle?: string;
-  }>();
 
   // Get existing analysis for context
   const existingAnalysis = analysis;
@@ -75,9 +89,24 @@ export default function AccountChatScreen() {
             : accountChatStyles.assistantMessage,
         ]}
       >
-        <Text selectable style={accountChatStyles.messageText}>{message.content}</Text>
+        <View
+          style={[
+            accountChatStyles.messageBubble,
+            isUser
+              ? accountChatStyles.userBubble
+              : accountChatStyles.assistantBubble,
+          ]}
+        >
+          {isUser ? (
+            <Text selectable style={[accountChatStyles.messageText, accountChatStyles.userText]}>
+              {message.content}
+            </Text>
+          ) : (
+            <Markdown style={markdownStyles}>{message.content}</Markdown>
+          )}
+        </View>
         <Text selectable style={accountChatStyles.messageTime}>
-          {new Date(message.created_at).toLocaleTimeString('fr-FR', {
+          {new Date(message.timestamp).toLocaleTimeString('fr-FR', {
             hour: '2-digit',
             minute: '2-digit',
           })}
@@ -100,62 +129,61 @@ export default function AccountChatScreen() {
   };
 
   // Paywall for non-Pro users using FeatureLock
-  console.log('🔍 AccountChat Debug - currentPlan:', currentPlan);
 
-  if (currentPlan === 'free' && showLockScreen) {
-    console.log('🔍 Showing lock screen for free user');
-    return (
-      <SafeAreaView style={accountChatStyles.container} edges={['top']}>
-        <FeatureLock requiredPlan="creator" onLockPress={presentPaywall}>
-          <View style={accountChatStyles.lockContainer}>
-            <Lock size={48} color={SHARED_STYLE_COLORS.primary} />
-            <Text style={accountChatStyles.lockTitle}>Chat TikTok Pro</Text>
-            <Text style={accountChatStyles.lockDescription}>
-              Analysez votre compte TikTok et discutez avec notre IA experte
-              pour obtenir des conseils personnalisés et optimiser votre
-              stratégie de contenu.
-            </Text>
+  // if (currentPlan === 'free' && showLockScreen) {
+  //   console.log('🔍 Showing lock screen for free user');
+  //   return (
+  //     <SafeAreaView style={accountChatStyles.container} edges={['top']}>
+  //       <FeatureLock requiredPlan="creator" onLockPress={presentPaywall}>
+  //         <View style={accountChatStyles.lockContainer}>
+  //           <Lock size={48} color={SHARED_STYLE_COLORS.primary} />
+  //           <Text style={accountChatStyles.lockTitle}>Chat TikTok Pro</Text>
+  //           <Text style={accountChatStyles.lockDescription}>
+  //             Analysez votre compte TikTok et discutez avec notre IA experte
+  //             pour obtenir des conseils personnalisés et optimiser votre
+  //             stratégie de contenu.
+  //           </Text>
 
-            <View style={accountChatStyles.featuresPreview}>
-              <View style={accountChatStyles.featureItem}>
-                <MessageCircle size={20} color={SHARED_STYLE_COLORS.success} />
-                <Text style={accountChatStyles.featureText}>
-                  Chat intelligent avec votre expert IA
-                </Text>
-              </View>
-              <View style={accountChatStyles.featureItem}>
-                <Sparkles size={20} color={SHARED_STYLE_COLORS.secondary} />
-                <Text style={accountChatStyles.featureText}>
-                  Recommandations personnalisées en temps réel
-                </Text>
-              </View>
-              <View style={accountChatStyles.featureItem}>
-                <Zap size={20} color={SHARED_STYLE_COLORS.warning} />
-                <Text style={accountChatStyles.featureText}>
-                  Stratégies d&apos;engagement optimisées
-                </Text>
-              </View>
-              <View style={accountChatStyles.featureItem}>
-                <Users size={20} color={SHARED_STYLE_COLORS.accent} />
-                <Text style={accountChatStyles.featureText}>
-                  Analyse des tendances de votre niche
-                </Text>
-              </View>
-            </View>
+  //           <View style={accountChatStyles.featuresPreview}>
+  //             <View style={accountChatStyles.featureItem}>
+  //               <MessageCircle size={20} color={SHARED_STYLE_COLORS.success} />
+  //               <Text style={accountChatStyles.featureText}>
+  //                 Chat intelligent avec votre expert IA
+  //               </Text>
+  //             </View>
+  //             <View style={accountChatStyles.featureItem}>
+  //               <Sparkles size={20} color={SHARED_STYLE_COLORS.secondary} />
+  //               <Text style={accountChatStyles.featureText}>
+  //                 Recommandations personnalisées en temps réel
+  //               </Text>
+  //             </View>
+  //             <View style={accountChatStyles.featureItem}>
+  //               <Zap size={20} color={SHARED_STYLE_COLORS.warning} />
+  //               <Text style={accountChatStyles.featureText}>
+  //                 Stratégies d&apos;engagement optimisées
+  //               </Text>
+  //             </View>
+  //             <View style={accountChatStyles.featureItem}>
+  //               <Users size={20} color={SHARED_STYLE_COLORS.accent} />
+  //               <Text style={accountChatStyles.featureText}>
+  //                 Analyse des tendances de votre niche
+  //               </Text>
+  //             </View>
+  //           </View>
 
-            <TouchableOpacity
-              style={accountChatStyles.upgradeButton}
-              onPress={presentPaywall}
-            >
-              <Text style={accountChatStyles.upgradeButtonText}>
-                Débloquer avec le Plan Créateur
-              </Text>
-            </TouchableOpacity>
-          </View>
-        </FeatureLock>
-      </SafeAreaView>
-    );
-  }
+  //           <TouchableOpacity
+  //             style={accountChatStyles.upgradeButton}
+  //             onPress={presentPaywall}
+  //           >
+  //             <Text style={accountChatStyles.upgradeButtonText}>
+  //               Débloquer avec le Plan Créateur
+  //             </Text>
+  //           </TouchableOpacity>
+  //         </View>
+  //       </FeatureLock>
+  //     </SafeAreaView>
+  //   );
+  // }
 
   // Main chat interface (simplified like chat.tsx)
   return (
@@ -165,7 +193,6 @@ export default function AccountChatScreen() {
       keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
     >
       <SafeAreaView
-        key={conversationId || 'new'}
         style={accountChatStyles.container}
         edges={['top']}
       >
@@ -173,9 +200,13 @@ export default function AccountChatScreen() {
         <AnalysisHeader
           title={chatTitle || 'Nouveau Chat'}
           showBackButton={true}
-          onBack={() =>
-            router.push('/(drawer)/(analysis)/account-conversations')
-          }
+          onBack={() => {
+            if (router.canGoBack()) {
+              router.back();
+            } else {
+              router.push('/(drawer)/(analysis)/account-conversations');
+            }
+          }}
         />
 
         {/* Messages */}
@@ -196,11 +227,11 @@ export default function AccountChatScreen() {
             </View>
           )}
 
-          {isLoading && (
+          {/* {isLoading && (
             <View style={accountChatStyles.loadingMessagesContainer}>
               <ActivityIndicator size="small" color={SHARED_STYLE_COLORS.primary} />
             </View>
-          )}
+          )} */}
 
           {/* Error display */}
           {error && (

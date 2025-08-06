@@ -24,7 +24,7 @@ import {
 } from 'lucide-react-native';
 import { useAuth } from '@clerk/clerk-expo';
 import { API_ENDPOINTS } from '@/lib/config/api';
-import { useAccountAnalysis } from '@/components/hooks/useAccountAnalysis';
+import { useAnalysisContext } from '@/contexts/AnalysisContext';
 import AnalysisHeader from '@/components/analysis/AnalysisHeader';
 import { accountInsightsStyles } from '@/lib/utils/styles/accountInsights.styles';
 import { SHARED_STYLE_COLORS } from '@/lib/constants/sharedStyles';
@@ -79,13 +79,25 @@ interface ComprehensiveContext {
 }
 
 export default function AccountInsightsScreen() {
+  console.log('🚀 AccountInsightsScreen: Component rendered');
   const router = useRouter();
   const { getToken } = useAuth();
   const {
     analysis,
     isLoading: isAnalysisLoading,
     refreshAnalysis,
-  } = useAccountAnalysis();
+    hasAnalysis,
+    isInitialized,
+  } = useAnalysisContext();
+
+  console.log('🔍 AccountInsightsScreen state:', {
+    hasAnalysis,
+    analysisStatus: analysis?.status,
+    isAnalysisLoading,
+    isInitialized
+  });
+
+  // NO AUTOMATIC REDIRECTS - show appropriate message instead
 
   const [context, setContext] = useState<ComprehensiveContext | null>(null);
   const [loading, setLoading] = useState(true);
@@ -181,8 +193,44 @@ export default function AccountInsightsScreen() {
     );
   }
 
-  // This screen should now only render if context is available,
-  // because the guard handles the no-analysis case.
+  // Si pas d'analyse, afficher un message approprié avec bouton pour retourner
+  if (!hasAnalysis || !analysis || analysis.status !== 'completed') {
+    return (
+      <SafeAreaView style={accountInsightsStyles.container} edges={['top']}>
+        <AnalysisHeader title={'Insights'} onBack={() => router.back()} />
+        <ScrollView
+          contentContainerStyle={accountInsightsStyles.emptyStateContainer}
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
+          }
+        >
+          <BarChart3 size={64} color="#666" />
+          <Text style={accountInsightsStyles.emptyStateTitle}>
+            Analyse requise
+          </Text>
+          <Text style={accountInsightsStyles.emptyStateDescription}>
+            Vous devez d'abord lancer une analyse TikTok pour accéder aux insights.
+          </Text>
+          <TouchableOpacity
+            style={{
+              backgroundColor: '#FF0050',
+              paddingHorizontal: 24,
+              paddingVertical: 12,
+              borderRadius: 16,
+              marginTop: 20,
+            }}
+            onPress={() => router.push('/(drawer)/(analysis)/account-status')}
+          >
+            <Text style={{ color: '#FFFFFF', fontWeight: 'bold', fontSize: 16 }}>
+              Lancer une analyse
+            </Text>
+          </TouchableOpacity>
+        </ScrollView>
+      </SafeAreaView>
+    );
+  }
+
+  // Si pas de contexte chargé (mais analyse existe), afficher loading/erreur
   if (!context) {
     return (
       <SafeAreaView style={accountInsightsStyles.container} edges={['top']}>

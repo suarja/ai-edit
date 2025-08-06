@@ -1,11 +1,34 @@
 import { StyleSheet } from 'react-native';
-import { SHARED_STYLE_COLORS } from '@/lib/constants/sharedStyles';
+import { COLORS } from '@/lib/constants/colors';
 
-export 
-const accountChatStyles = StyleSheet.create({
+// Design System v2 - Utilisation des nouvelles couleurs Editia
+const DS_COLORS = {
+  background: {
+    primary: COLORS.background.primary, // #000000
+    secondary: COLORS.background.secondary, // #1a1a1a
+  },
+  text: {
+    primary: COLORS.text.primary, // #FFFFFF
+    secondary: COLORS.text.secondary, // #E0E0E0
+    tertiary: COLORS.text.tertiary, // #B0B0B0
+  },
+  interactive: {
+    primary: COLORS.interactive.primary, // #FF0050 (Rouge Editia!)
+    primaryBackground: COLORS.interactive.primaryBackground, // rgba(255, 0, 80, 0.12)
+    primaryBorder: COLORS.interactive.primaryBorder, // rgba(255, 0, 80, 0.3)
+  },
+  surface: {
+    border: COLORS.surface.border, // rgba(255, 255, 255, 0.2)
+  },
+  status: {
+    error: COLORS.status.error, // #FF3B30
+  }
+};
+
+export const accountChatStyles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: SHARED_STYLE_COLORS.background,
+    backgroundColor: DS_COLORS.background.primary,
   },
   centeredContainer: {
     flex: 1,
@@ -14,7 +37,7 @@ const accountChatStyles = StyleSheet.create({
     gap: 16,
   },
   centeredText: {
-    color: SHARED_STYLE_COLORS.textMuted,
+    color: DS_COLORS.text.tertiary,
     fontSize: 16,
     textAlign: 'center',
   },
@@ -30,16 +53,16 @@ const accountChatStyles = StyleSheet.create({
   welcomeMessage: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: SHARED_STYLE_COLORS.primaryOverlay,
+    backgroundColor: DS_COLORS.interactive.primaryBackground,
     padding: 16,
-    borderRadius: 12,
+    borderRadius: 16, // Design System v2 - border radius plus moderne
     borderWidth: 1,
-    borderColor: SHARED_STYLE_COLORS.primaryBorder,
+    borderColor: DS_COLORS.interactive.primaryBorder,
     marginBottom: 20,
     gap: 12,
   },
   welcomeText: {
-    color: SHARED_STYLE_COLORS.text,
+    color: DS_COLORS.text.primary,
     fontSize: 14,
     lineHeight: 20,
     flex: 1,
@@ -53,16 +76,16 @@ const accountChatStyles = StyleSheet.create({
   errorContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: SHARED_STYLE_COLORS.primaryOverlay,
+    backgroundColor: 'rgba(255, 59, 48, 0.12)', // Error background
     padding: 12,
-    borderRadius: 8,
+    borderRadius: 12, // Design System v2
     borderWidth: 1,
-    borderColor: SHARED_STYLE_COLORS.primaryBorder,
+    borderColor: 'rgba(255, 59, 48, 0.3)', // Error border
     marginBottom: 16,
     gap: 8,
   },
   errorText: {
-    color: SHARED_STYLE_COLORS.error,
+    color: DS_COLORS.status.error,
     fontSize: 14,
     flex: 1,
   },
@@ -70,7 +93,7 @@ const accountChatStyles = StyleSheet.create({
     padding: 4,
   },
   errorDismissText: {
-    color: SHARED_STYLE_COLORS.error,
+    color: DS_COLORS.status.error,
     fontSize: 12,
     fontWeight: '600',
   },
@@ -89,25 +112,25 @@ const accountChatStyles = StyleSheet.create({
     borderRadius: 16,
   },
   userBubble: {
-    backgroundColor: SHARED_STYLE_COLORS.primary,
+    backgroundColor: DS_COLORS.interactive.primary, // #FF0050 (Rouge Editia!)
     borderBottomRightRadius: 4,
   },
   assistantBubble: {
-    backgroundColor: SHARED_STYLE_COLORS.backgroundSecondary,
+    backgroundColor: DS_COLORS.background.secondary,
     borderBottomLeftRadius: 4,
     borderWidth: 1,
-    borderColor: SHARED_STYLE_COLORS.border,
+    borderColor: DS_COLORS.surface.border,
   },
   messageText: {
     fontSize: 16,
     lineHeight: 22,
-    color: SHARED_STYLE_COLORS.text,
+    color: DS_COLORS.text.primary,
   },
   userText: {
-    color: SHARED_STYLE_COLORS.text,
+    color: DS_COLORS.text.primary,
   },
   assistantText: {
-    color: SHARED_STYLE_COLORS.text,
+    color: DS_COLORS.text.primary,
   },
   messageFooter: {
     flexDirection: 'row',
@@ -117,7 +140,7 @@ const accountChatStyles = StyleSheet.create({
   },
   timestamp: {
     fontSize: 11,
-    color: SHARED_STYLE_COLORS.text,
+    color: DS_COLORS.text.tertiary,
   },
   typingContainer: {
     flexDirection: 'row',
@@ -126,7 +149,7 @@ const accountChatStyles = StyleSheet.create({
     gap: 8,
   },
   typingText: {
-    color: SHARED_STYLE_COLORS.textMuted,
+    color: DS_COLORS.text.tertiary,
     fontSize: 14,
     fontStyle: 'italic',
   },
@@ -143,28 +166,28 @@ const accountChatStyles = StyleSheet.create({
   },
   suggestionCard: {
     flex: 1,
-    backgroundColor: SHARED_STYLE_COLORS.backgroundSecondary,
-    borderRadius: 12,
+    backgroundColor: DS_COLORS.background.secondary,
+    borderRadius: 16, // Design System v2
     padding: 16,
     borderWidth: 1,
-    borderColor: SHARED_STYLE_COLORS.border,
+    borderColor: DS_COLORS.surface.border,
   },
   suggestionTitle: {
-    color: SHARED_STYLE_COLORS.text,
+    color: DS_COLORS.text.primary,
     fontSize: 14,
     fontWeight: '600',
     marginBottom: 4,
   },
   suggestionSubtitle: {
-    color: SHARED_STYLE_COLORS.textMuted,
+    color: DS_COLORS.text.tertiary,
     fontSize: 12,
     lineHeight: 16,
   },
   inputWrapper: {
-    backgroundColor: SHARED_STYLE_COLORS.backgroundSecondary,
+    backgroundColor: DS_COLORS.background.secondary,
     borderRadius: 25,
     borderWidth: 1,
-    borderColor: SHARED_STYLE_COLORS.border,
+    borderColor: DS_COLORS.surface.border,
     paddingLeft: 16,
     paddingRight: 8,
     paddingVertical: 4,
@@ -176,22 +199,29 @@ const accountChatStyles = StyleSheet.create({
     flex: 1,
     backgroundColor: 'transparent',
     paddingVertical: 8,
-    color: SHARED_STYLE_COLORS.text,
+    color: DS_COLORS.text.primary,
     fontSize: 16,
     maxHeight: 100,
     minHeight: 44, // Ensure minHeight for alignment
   },
   sendButton: {
-    backgroundColor: SHARED_STYLE_COLORS.primary,
+    backgroundColor: DS_COLORS.interactive.primary, // #FF0050
     borderRadius: 20,
     width: 36,
     height: 36,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 4,
+    shadowColor: DS_COLORS.interactive.primary,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 4,
   },
   sendButtonDisabled: {
-    backgroundColor: SHARED_STYLE_COLORS.backgroundTertiary,
+    backgroundColor: DS_COLORS.text.tertiary,
+    shadowOpacity: 0,
+    elevation: 0,
   },
 
   // Header Styles
@@ -202,7 +232,7 @@ const accountChatStyles = StyleSheet.create({
     gap: 16,
   },
   headerTitle: {
-    color: SHARED_STYLE_COLORS.text,
+    color: DS_COLORS.text.primary,
     fontSize: 18,
     fontWeight: 'bold',
     flex: 1,
@@ -213,7 +243,7 @@ const accountChatStyles = StyleSheet.create({
     gap: 8,
   },
   resetButtonText: {
-    color: SHARED_STYLE_COLORS.primary,
+    color: DS_COLORS.interactive.primary,
     fontSize: 14,
     fontWeight: '600',
   },
@@ -230,20 +260,26 @@ const accountChatStyles = StyleSheet.create({
     gap: 12,
   },
   featureText: {
-    color: SHARED_STYLE_COLORS.text,
+    color: DS_COLORS.text.primary,
     fontSize: 16,
   },
   upgradeButton: {
-    backgroundColor: SHARED_STYLE_COLORS.primary,
-    paddingVertical: 16,
+    backgroundColor: DS_COLORS.interactive.primary,
+    paddingVertical: 18, // Design System v2
     paddingHorizontal: 32,
-    borderRadius: 12,
+    borderRadius: 16, // Design System v2
     marginTop: 16,
+    minHeight: 56,
+    shadowColor: DS_COLORS.interactive.primary,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
   },
   upgradeButtonText: {
-    color: SHARED_STYLE_COLORS.text,
+    color: DS_COLORS.text.primary,
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: 'bold', // Design System v2
   },
 
   lockContainer: {
@@ -254,16 +290,16 @@ const accountChatStyles = StyleSheet.create({
     gap: 20,
   },
   lockTitle: {
-    fontSize: 24,
+    fontSize: 28, // Design System v2 - Display size
     fontWeight: 'bold',
-    color: SHARED_STYLE_COLORS.text,
+    color: DS_COLORS.text.primary,
     textAlign: 'center',
   },
   lockDescription: {
     fontSize: 16,
-    color: SHARED_STYLE_COLORS.textMuted,
+    color: DS_COLORS.text.secondary,
     textAlign: 'center',
-    lineHeight: 22,
+    lineHeight: 24, // Design System v2
   },
   featuresPreview: {
     gap: 12,
@@ -271,7 +307,7 @@ const accountChatStyles = StyleSheet.create({
   },
   messageTime: {
     fontSize: 12,
-    color: SHARED_STYLE_COLORS.textMuted,
+    color: DS_COLORS.text.tertiary,
     marginTop: 4,
     textAlign: 'right',
   },
@@ -279,24 +315,24 @@ const accountChatStyles = StyleSheet.create({
 
 export const markdownStyles = StyleSheet.create({
   body: {
-    color: SHARED_STYLE_COLORS.text,
+    color: DS_COLORS.text.primary,
     fontSize: 16,
-    lineHeight: 22,
+    lineHeight: 24, // Design System v2
   },
   heading1: {
-    fontSize: 24,
+    fontSize: 24, // Design System v2 title
     fontWeight: 'bold',
-    color: SHARED_STYLE_COLORS.text,
+    color: DS_COLORS.text.primary,
     marginTop: 16,
     marginBottom: 8,
     borderBottomWidth: 1,
-    borderColor: SHARED_STYLE_COLORS.border,
+    borderColor: DS_COLORS.surface.border,
     paddingBottom: 4,
   },
   heading2: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: SHARED_STYLE_COLORS.text,
+    fontSize: 18, // Design System v2 headline
+    fontWeight: '600',
+    color: DS_COLORS.text.primary,
     marginTop: 12,
     marginBottom: 6,
   },
@@ -306,16 +342,16 @@ export const markdownStyles = StyleSheet.create({
     marginVertical: 4,
   },
   bullet_list_icon: {
-    color: SHARED_STYLE_COLORS.primary,
+    color: DS_COLORS.interactive.primary, // Rouge Editia pour les bullets
     fontSize: 16,
-    lineHeight: 22,
+    lineHeight: 24,
     marginRight: 8,
     fontWeight: 'bold',
   },
   ordered_list_icon: {
-    color: SHARED_STYLE_COLORS.primary,
+    color: DS_COLORS.interactive.primary, // Rouge Editia pour les numéros
     fontSize: 16,
-    lineHeight: 22,
+    lineHeight: 24,
     marginRight: 8,
     fontWeight: 'bold',
   },
@@ -326,7 +362,7 @@ export const markdownStyles = StyleSheet.create({
     fontStyle: 'italic',
   },
   link: {
-    color: SHARED_STYLE_COLORS.primary,
+    color: DS_COLORS.interactive.primary, // Rouge Editia pour les liens
     textDecorationLine: 'underline',
   },
 });

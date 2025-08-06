@@ -1,17 +1,15 @@
 import React from 'react';
 import { Slot } from 'expo-router';
-import AccountAnalysisGuard from '@/components/guards/AccountAnalysisGuard';
+import { AnalysisProvider } from '@/contexts/AnalysisContext';
 
 /**
- * This layout wraps all screens in the (analysis) group with the AccountAnalysisGuard.
- * It ensures that a user has a completed analysis before accessing the insights, chat,
- * or conversations screens. If no analysis exists, it redirects them to the
- * start-analysis screen.
+ * Layout pour les routes d'analyse avec le contexte centralisé.
+ * Plus de guard global - chaque route gère ses propres requirements.
  */
 export default function AnalysisLayout() {
   return (
-    <AccountAnalysisGuard>
+    <AnalysisProvider>
       <Slot />
-    </AccountAnalysisGuard>
+    </AnalysisProvider>
   );
 }

@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@clerk/clerk-expo';
 import { useRevenueCat } from '@/contexts/providers/RevenueCat';
 import { API_ENDPOINTS } from '@/lib/config/api';
-import { useAccountAnalysis } from './useAccountAnalysis';
+import { useAnalysisContext } from '@/contexts/AnalysisContext';
 
 interface ChatMessage {
   id: string;
@@ -40,12 +40,18 @@ export function useTikTokChatSimple(
   props: UseTikTokChatProps = {}
 ): UseTikTokChatSimpleReturn {
   const { enableStreaming = false, conversationId, conversationTitle } = props;
+  console.log('🎯 useTikTokChatSimple props:', props);
+  console.log('🎯 conversationId received:', conversationId);
   const { getToken } = useAuth();
   const { currentPlan } = useRevenueCat();
 
-  // Use the centralized hook for analysis context
-  const { analysis: existingAnalysis, isLoading: isAnalysisLoading } =
-    useAccountAnalysis();
+  // Use the centralized analysis context
+  const { 
+    analysis: existingAnalysis, 
+    isLoading: isAnalysisLoading,
+    currentConversationId,
+    setCurrentConversation 
+  } = useAnalysisContext();
 
   // State
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -58,44 +64,51 @@ export function useTikTokChatSimple(
     conversationTitle || null
   );
 
+  // Utiliser conversationId depuis les props ou le contexte
+  const effectiveConversationId = conversationId || currentConversationId;
+  
   // Track the ID of the conversation that is actually loaded
   const [loadedConversationId, setLoadedConversationId] = useState<
     string | undefined
   >(undefined);
 
+  // Mettre à jour le contexte quand conversationId change
+  useEffect(() => {
+    if (conversationId) {
+      setCurrentConversation(conversationId);
+    }
+  }, [conversationId, setCurrentConversation]);
+
   // Handle conversation changes (existing or new)
   useEffect(() => {
     console.log('🔄 useEffect triggered:', {
-      currentPlan,
-      conversationId,
+      effectiveConversationId,
       loadedConversationId,
     });
 
-    if (currentPlan !== 'free') {
-      // Check if the conversationId from props is different from the one we have loaded
-      if (conversationId !== loadedConversationId) {
-        console.log('🔄 Conversation changed:', {
-          from: loadedConversationId,
-          to: conversationId,
-        });
+    // Check if the conversationId from props is different from the one we have loaded
+    if (effectiveConversationId !== loadedConversationId) {
+      console.log('🔄 Conversation changed:', {
+        from: loadedConversationId,
+        to: effectiveConversationId,
+      });
 
-        // Reset state for the new conversation
-        resetConversation();
+      // Reset state for the new conversation
+      setMessages([]);
+      setError(null);
 
-        if (conversationId) {
-          console.log('📂 Loading new conversation:', conversationId);
-          loadConversationMessages(conversationId);
-        } else {
-          // This is a new chat, no messages to load.
-          // Set the loaded ID to undefined to signify a new chat.
-          setLoadedConversationId(undefined);
-          console.log('🆕 Starting new conversation');
-        }
+      if (effectiveConversationId) {
+        console.log('📂 Loading new conversation:', effectiveConversationId);
+        loadConversationMessages(effectiveConversationId);
       } else {
-        console.log('📋 No conversation change detected');
+        // This is a new chat, no messages to load.
+        setLoadedConversationId(undefined);
+        console.log('🆕 Starting new conversation');
       }
+    } else {
+      console.log('📋 No conversation change detected');
     }
-  }, [currentPlan, conversationId, loadedConversationId]);
+  }, [effectiveConversationId, loadedConversationId]); // Remove loadConversationMessages to prevent infinite loop
 
   /**
    * Load conversation messages for existing conversation
@@ -187,7 +200,7 @@ export function useTikTokChatSimple(
       const payload = {
         message,
         streaming: false,
-        conversation_id: conversationId,
+        conversation_id: effectiveConversationId,
         analysisId: existingAnalysis?.id,
         tiktok_handle: existingAnalysis?.tiktok_handle,
       };
@@ -195,8 +208,8 @@ export function useTikTokChatSimple(
       console.log(
         'sendMessageRegular',
         payload,
-        'conversationId',
-        conversationId
+        'effectiveConversationId',
+        effectiveConversationId
       );
       const response = await fetch(API_ENDPOINTS.TIKTOK_ANALYSIS_CHAT(), {
         method: 'POST',

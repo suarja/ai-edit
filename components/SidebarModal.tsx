@@ -55,15 +55,21 @@ export default function SidebarModal({ visible, onClose }: SidebarModalProps) {
       isExpanded: false,
       items: [
         {
+          id: 'account-status',
+          name: 'Lancer analyse',
+          route: '/(drawer)/(analysis)/account-status',
+          description: 'Démarrer une nouvelle analyse TikTok',
+        },
+        {
           id: 'account-conversations',
           name: 'Chat TikTok',
-          route: '(analysis)/account-conversations',
+          route: '/(drawer)/(analysis)/account-conversations',
           description: "Conversations avec l'expert IA TikTok",
         },
         {
           id: 'account-insights',
           name: 'Mes analyses',
-          route: '(analysis)/account-insights',
+          route: '/(drawer)/(analysis)/account-insights',
           description: 'Historique de vos analyses',
         },
       ],

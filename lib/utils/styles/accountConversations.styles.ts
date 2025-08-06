@@ -1,18 +1,38 @@
 import { StyleSheet } from 'react-native';
-import { SHARED_STYLE_COLORS } from '@/lib/constants/sharedStyles';
+import { COLORS } from '@/lib/constants/colors';
+
+// Design System v2 - Utilisation des nouvelles couleurs Editia
+const DS_COLORS = {
+  background: {
+    primary: COLORS.background.primary, // #000000
+    secondary: COLORS.background.secondary, // #1a1a1a
+  },
+  text: {
+    primary: COLORS.text.primary, // #FFFFFF
+    secondary: COLORS.text.secondary, // #E0E0E0
+    tertiary: COLORS.text.tertiary, // #B0B0B0
+  },
+  interactive: {
+    primary: COLORS.interactive.primary, // #FF0050 (Rouge Editia!)
+    primaryBackground: COLORS.interactive.primaryBackground,
+    primaryBorder: COLORS.interactive.primaryBorder,
+  },
+  surface: {
+    border: COLORS.surface.border,
+  },
+};
 
 
 export const accountConversationsStyles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: SHARED_STYLE_COLORS.background,
+    backgroundColor: DS_COLORS.background.primary,
   },
   scrollView: {
     flex: 1,
   },
   content: {
     flex: 1,
-    padding: 20,
   },
 
   // Paywall Styles
@@ -27,16 +47,16 @@ export const accountConversationsStyles = StyleSheet.create({
     marginBottom: 20,
   },
   paywallTitle: {
-    fontSize: 24,
+    fontSize: 28, // Design System v2 - Display
     fontWeight: 'bold',
-    color: SHARED_STYLE_COLORS.text,
+    color: DS_COLORS.text.primary,
     marginTop: 12,
   },
   paywallDescription: {
-    color: SHARED_STYLE_COLORS.text,
+    color: DS_COLORS.text.secondary,
     fontSize: 16,
     marginBottom: 20,
-    lineHeight: 22,
+    lineHeight: 24, // Design System v2
     textAlign: 'center',
   },
   featuresList: {
@@ -51,31 +71,38 @@ export const accountConversationsStyles = StyleSheet.create({
   checkmark: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: SHARED_STYLE_COLORS.success,
+    color: '#00FF88', // Success green from Design System v2
     marginRight: 12,
   },
   featureText: {
-    color: SHARED_STYLE_COLORS.text,
+    color: DS_COLORS.text.primary,
     fontSize: 16,
   },
   upgradeButton: {
-    backgroundColor: SHARED_STYLE_COLORS.accent,
+    backgroundColor: '#FFD700', // Premium gold from Design System v2
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    padding: 16,
-    borderRadius: 12,
+    paddingVertical: 18, // Design System v2
+    paddingHorizontal: 28,
+    borderRadius: 16, // Design System v2
     gap: 8,
     marginBottom: 16,
     alignSelf: 'stretch',
+    minHeight: 56,
+    shadowColor: '#FFD700',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
   },
   upgradeButtonText: {
-    color: SHARED_STYLE_COLORS.background,
+    color: '#000000', // Black text on gold background
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: 'bold', // Design System v2
   },
   paywallFooter: {
-    color: SHARED_STYLE_COLORS.textMuted,
+    color: DS_COLORS.text.tertiary,
     fontSize: 14,
     textAlign: 'center',
     fontStyle: 'italic',
@@ -89,19 +116,19 @@ export const accountConversationsStyles = StyleSheet.create({
     gap: 16,
   },
   loadingText: {
-    color: SHARED_STYLE_COLORS.textMuted,
+    color: DS_COLORS.text.secondary,
     fontSize: 16,
   },
   errorContainer: {
-    backgroundColor: SHARED_STYLE_COLORS.primaryOverlay,
+    backgroundColor: 'rgba(255, 59, 48, 0.12)',
     borderWidth: 1,
-    borderColor: SHARED_STYLE_COLORS.primaryBorder,
-    borderRadius: 12,
+    borderColor: 'rgba(255, 59, 48, 0.3)',
+    borderRadius: 16, // Design System v2
     padding: 16,
     marginBottom: 16,
   },
   errorText: {
-    color: SHARED_STYLE_COLORS.error,
+    color: '#FF3B30', // Error color
     fontSize: 14,
     textAlign: 'center',
   },
@@ -114,43 +141,55 @@ export const accountConversationsStyles = StyleSheet.create({
     paddingVertical: 60,
   },
   emptyTitle: {
-    fontSize: 20,
-    fontWeight: '600',
-    color: SHARED_STYLE_COLORS.text,
+    fontSize: 24, // Design System v2 - Title
+    fontWeight: 'bold',
+    color: DS_COLORS.text.primary,
     marginTop: 16,
   },
   emptyDescription: {
     fontSize: 16,
-    color: SHARED_STYLE_COLORS.textMuted,
+    color: DS_COLORS.text.secondary,
     textAlign: 'center',
     marginTop: 8,
     marginBottom: 24,
+    lineHeight: 24, // Design System v2
   },
   emptyButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: SHARED_STYLE_COLORS.primaryOverlay,
+    backgroundColor: DS_COLORS.interactive.primaryBackground,
     borderWidth: 1,
-    borderColor: SHARED_STYLE_COLORS.primary,
-    borderRadius: 12,
-    paddingHorizontal: 20,
-    paddingVertical: 12,
+    borderColor: DS_COLORS.interactive.primary,
+    borderRadius: 16, // Design System v2
+    paddingHorizontal: 28,
+    paddingVertical: 14,
     gap: 8,
+    minHeight: 48,
   },
   emptyButtonText: {
-    color: SHARED_STYLE_COLORS.primary,
+    color: DS_COLORS.interactive.primary,
     fontSize: 16,
     fontWeight: '600',
   },
 
+  // Conversations List
+  conversationsList: {
+    paddingBottom: 50, // Space for floating button
+  },
+
   // Conversation Cards
   conversationCard: {
-    backgroundColor: SHARED_STYLE_COLORS.backgroundSecondary,
-    borderRadius: 16,
-    padding: 16,
+    backgroundColor: DS_COLORS.background.secondary,
+    borderRadius: 16, // Design System v2 - Déjà correct
+    padding: 20, // Design System v2 - Plus de padding
     borderWidth: 1,
-    borderColor: SHARED_STYLE_COLORS.border,
-    marginBottom: 12,
+    borderColor: DS_COLORS.surface.border,
+    marginBottom: 16, // Plus d'espace entre les cards
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 4,
   },
   conversationHeader: {
     flexDirection: 'row',
@@ -158,26 +197,29 @@ export const accountConversationsStyles = StyleSheet.create({
     marginBottom: 8,
   },
   conversationIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 10,
-    backgroundColor: SHARED_STYLE_COLORS.primaryOverlay,
+    width: 44, // Légèrement plus grand
+    height: 44,
+    borderRadius: 12, // Design System v2
+    backgroundColor: DS_COLORS.interactive.primaryBackground,
+    borderWidth: 1,
+    borderColor: DS_COLORS.interactive.primaryBorder,
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 12,
+    marginRight: 16, // Plus d'espace
   },
   conversationInfo: {
     flex: 1,
   },
   conversationTitle: {
-    fontSize: 16,
+    fontSize: 18, // Design System v2 - Headline
     fontWeight: '600',
-    color: SHARED_STYLE_COLORS.text,
-    marginBottom: 4,
+    color: DS_COLORS.text.primary,
+    marginBottom: 6, // Plus d'espace
+    lineHeight: 24,
   },
   conversationPreview: {
     fontSize: 14,
-    color: SHARED_STYLE_COLORS.textMuted,
+    color: DS_COLORS.text.tertiary,
     lineHeight: 20,
   },
   conversationMeta: {
@@ -186,46 +228,49 @@ export const accountConversationsStyles = StyleSheet.create({
   },
   conversationTime: {
     fontSize: 12,
-    color: SHARED_STYLE_COLORS.textMuted,
+    color: DS_COLORS.text.tertiary,
+    fontWeight: '500',
   },
   messageCount: {
     fontSize: 11,
-    color: SHARED_STYLE_COLORS.textMuted,
+    color: DS_COLORS.text.tertiary,
   },
   contextBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: SHARED_STYLE_COLORS.primaryOverlay,
-    borderRadius: 8,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
+    backgroundColor: DS_COLORS.interactive.primaryBackground,
+    borderRadius: 12, // Design System v2
+    paddingHorizontal: 12,
+    paddingVertical: 6,
     alignSelf: 'flex-start',
-    gap: 4,
+    gap: 6,
+    borderWidth: 1,
+    borderColor: DS_COLORS.interactive.primaryBorder,
   },
   contextText: {
     fontSize: 12,
-    color: SHARED_STYLE_COLORS.primary,
-    fontWeight: '500',
+    color: DS_COLORS.interactive.primary,
+    fontWeight: '600', // Plus bold
   },
 
   // Floating Button
   floatingButton: {
     position: 'absolute',
-    bottom: 30,
+    bottom: 32, // Design System v2 spacing
     right: 20,
-    backgroundColor: SHARED_STYLE_COLORS.primary,
-    width: 56,
+    backgroundColor: DS_COLORS.interactive.primary, // Rouge Editia
+    width: 56, // Touch target plus accessible
     height: 56,
     borderRadius: 28,
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: '#000',
+    shadowColor: DS_COLORS.interactive.primary, // Ombre colorée
     shadowOffset: {
       width: 0,
       height: 4,
     },
-    shadowOpacity: 0.3,
-    shadowRadius: 6,
-    elevation: 8,
+    shadowOpacity: 0.4,
+    shadowRadius: 8,
+    elevation: 12,
   },
 });
