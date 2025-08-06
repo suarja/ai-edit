@@ -23,6 +23,7 @@ import {
   BarChart3,
 } from 'lucide-react-native';
 import { SHARED_STYLE_COLORS } from '@/lib/constants/sharedStyles';
+import { useRevenueCat } from '@/contexts/providers/RevenueCat';
 
 interface SidebarModalProps {
   visible: boolean;
@@ -131,6 +132,10 @@ export default function SidebarModal({ visible, onClose }: SidebarModalProps) {
     // },
   ]);
 
+  const { scriptConversationsRemaining,  presentPaywall } = useRevenueCat();
+
+
+
   const [standaloneItems] = useState([]);
 
   const toggleFolder = (folderId: string) => {
@@ -148,6 +153,17 @@ export default function SidebarModal({ visible, onClose }: SidebarModalProps) {
   const navigateToRoute = (route: string) => {
     router.push(route as any);
     onClose();
+  };
+
+  const handleCreateNewScript = async () => {
+    if (!scriptConversationsRemaining) {
+      const result = await presentPaywall();
+      if (!result) {
+        return;
+      }
+    }
+    // Navigate to chat interface without scriptId (new script)
+    router.push('/chat?new=true');
   };
 
   const renderFolderHeader = (folder: DrawerFolder) => (
@@ -206,8 +222,7 @@ export default function SidebarModal({ visible, onClose }: SidebarModalProps) {
               router.push('/account-conversations');
               onClose();
             } else if (folder.id === 'scripts') {
-              // Force new chat with timestamp like in drawer layout
-              router.push(`/chat?new=${Date.now()}`);
+              handleCreateNewScript();
               onClose();
             } else if (folder.id === 'videos') {
               // Pour générer une vidéo, on va vers les scripts
