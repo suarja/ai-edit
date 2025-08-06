@@ -16,6 +16,8 @@ import { useGetUser } from '@/components/hooks/useGetUser';
 import { Paywall } from '@/components/Paywall';
 import { RevenueCatProps } from '@/lib/types/revenueCat';
 import { PlanIdentifier, UserUsage, SubscriptionPlan } from 'editia-core';
+import { revenueCatLogger } from '@/lib/services/revenueCatLoggingService';
+import { useUser } from '@clerk/clerk-expo';
 
 // Use keys from your RevenueCat API Keys
 const APIKeys = {
@@ -31,6 +33,7 @@ const RevenueCatContext = createContext<RevenueCatProps | null>(null);
 // Provide RevenueCat functions to our app
 export const RevenueCatProvider = ({ children }: any) => {
   const [isReady, setIsReady] = useState(false);
+  const [isRevenueCatReady, setIsRevenueCatReady] = useState(false);
   const [currentPlan, setCurrentPlan] = useState<PlanIdentifier>('free');
   const [userUsage, setUserUsage] = useState<UserUsage | null>(null);
   const [hasOfferingError, setHasOfferingError] = useState(false);
@@ -42,29 +45,72 @@ export const RevenueCatProvider = ({ children }: any) => {
   const [currentOffering, setCurrentOffering] =
     useState<PurchasesOffering | null>(null);
   const [allOfferings, setAllOfferings] = useState<any>(null);
-  const maxInitAttempts = 2;
+  const maxInitAttempts = 5; // Augmenté de 2 à 5
 
   const { client: supabase } = useClerkSupabaseClient();
   const { fetchUser } = useGetUser();
+  const { user: clerkUser, isLoaded: clerkLoaded } = useUser();
 
   useEffect(() => {
-    init();
-    loadSubscriptionPlans();
-  }, [initAttempts]);
-  const init = async () => {
+    // Attendre que Clerk soit chargé avant d'initialiser
+    if (clerkLoaded && clerkUser) {
+      revenueCatLogger.setSupabaseClient(supabase);
+      initWithSupabaseUserId();
+      loadSubscriptionPlans();
+    } else if (clerkLoaded && !clerkUser) {
+      // Utilisateur pas connecté, initialiser l'UI sans RevenueCat
+      setIsReady(true);
+      loadSubscriptionPlans();
+    }
+  }, [initAttempts, clerkLoaded, clerkUser]);
+
+  const initWithSupabaseUserId = async () => {
     try {
+      // Récupérer l'UUID Supabase de l'utilisateur
       const user = await fetchUser();
+      if (user) {
+        revenueCatLogger.setUserId(user.id);
+        init();
+      } else {
+        init(); // Continuer sans user ID pour les logs
+      }
+    } catch (error) {
+      init(); // Continuer sans user ID pour les logs
+    }
+  };
+  const init = async () => {
+    const timer = revenueCatLogger.createTimer();
+    const isFirstLaunch = initAttempts === 0;
+    
+    try {
+      await revenueCatLogger.logInitStart(isFirstLaunch);
+      
+      // Timeout pour fetchUser (10s)
+      const user = await Promise.race([
+        fetchUser(),
+        new Promise<null>((_, reject) => 
+          setTimeout(() => reject(new Error('fetchUser timeout')), 10000)
+        )
+      ]);
+      
       if (!user) {
         throw new Error('User not found');
       }
-      if (Platform.OS === 'android') {
-        await Purchases.configure({
-          apiKey: APIKeys.google,
-          appUserID: user.id,
-        });
-      } else {
-        await Purchases.configure({ apiKey: APIKeys.apple });
-      }
+
+      // Timeout pour Purchases.configure (15s)
+      const configPromise = Platform.OS === 'android' 
+        ? Purchases.configure({
+            apiKey: APIKeys.google,
+            appUserID: user.id,
+          })
+        : Purchases.configure({ apiKey: APIKeys.apple });
+        
+      await Promise.race([
+        configPromise,
+        new Promise<void>((_, reject) => 
+          setTimeout(() => reject(new Error('Purchases.configure timeout')), 15000)
+        )
+      ]);
 
       // Use more logging during debug if want!
       Purchases.setLogLevel(isDevelopment ? LOG_LEVEL.DEBUG : LOG_LEVEL.ERROR);
@@ -74,21 +120,36 @@ export const RevenueCatProvider = ({ children }: any) => {
         await updateCustomerInformation(info);
       });
 
-      // Load initial customer info and usage
-      await loadInitialData();
+      // Load initial customer info and usage avec retry
+      await loadInitialDataWithRetry();
 
+      setIsRevenueCatReady(true);
       setIsReady(true);
+      const duration = timer.stop();
+      await revenueCatLogger.logInitSuccess(duration);
+      
     } catch (error) {
+      const duration = timer.stop();
       console.error('🍎 RevenueCat initialization error:', error);
+      
+      if (error.message.includes('timeout')) {
+        await revenueCatLogger.logInitTimeout(duration, initAttempts + 1);
+      } else {
+        await revenueCatLogger.logInitFailed(error as Error, duration, initAttempts + 1);
+      }
 
       // If we've tried enough times, proceed with fallback
       if (initAttempts >= maxInitAttempts) {
         setHasOfferingError(true);
         setIsReady(true); // Still mark as ready so UI can render with fallbacks
         await loadUserUsage(); // Still load usage from database
+        await revenueCatLogger.logColdStartIssue(`Max init attempts reached (${maxInitAttempts})`);
       } else {
-        // Try again (but not too many times)
-        setInitAttempts((prev) => prev + 1);
+        // Retry with exponential backoff
+        const delay = Math.pow(2, initAttempts) * 1000; // 1s, 2s, 4s, 8s, 16s
+        setTimeout(() => {
+          setInitAttempts((prev) => prev + 1);
+        }, delay);
       }
     }
   };
@@ -113,15 +174,70 @@ export const RevenueCatProvider = ({ children }: any) => {
       console.error('Error loading subscription plans:', error);
     }
   };
-  // Load initial customer info and user usage
-  const loadInitialData = async () => {
+  // Load initial customer info and user usage avec retry
+  const loadInitialDataWithRetry = async () => {
+    // Charger les données en parallèle avec timeouts individuels
+    const results = await Promise.allSettled([
+      loadCustomerInfoWithTimeout(),
+      loadOfferingsWithTimeout(),
+      loadUserUsage()
+    ]);
+    
+    // Analyser les résultats
+    const [customerResult, offeringsResult, usageResult] = results;
+    
+    if (customerResult.status === 'rejected') {
+      console.error('Customer info failed:', customerResult.reason);
+    }
+    
+    if (offeringsResult.status === 'rejected') {
+      console.error('Offerings failed:', offeringsResult.reason);
+      setHasOfferingError(true);
+    }
+    
+    if (usageResult.status === 'rejected') {
+      console.error('Usage loading failed:', usageResult.reason);
+    }
+  };
+  
+  const loadCustomerInfoWithTimeout = async () => {
+    const timer = revenueCatLogger.createTimer();
     try {
-      // Get current customer info from RevenueCat
-      const customerInfo = await Purchases.getCustomerInfo();
+      await revenueCatLogger.logCustomerInfoLoadStart();
+      
+      const customerInfo = await Promise.race([
+        Purchases.getCustomerInfo(),
+        new Promise<CustomerInfo>((_, reject) => 
+          setTimeout(() => reject(new Error('getCustomerInfo timeout')), 10000)
+        )
+      ]);
+      
       await updateCustomerInformation(customerInfo);
-
-      // Get offerings
-      const offerings = await Purchases.getOfferings();
+      await revenueCatLogger.logCustomerInfoLoadSuccess(customerInfo, timer.stop());
+      return customerInfo;
+    } catch (error) {
+      const duration = timer.stop();
+      if (error.message.includes('timeout')) {
+        await revenueCatLogger.logCustomerInfoLoadTimeout(duration);
+      } else {
+        await revenueCatLogger.logCustomerInfoLoadFailed(error as Error, duration);
+      }
+      throw error;
+    }
+  };
+  
+  const loadOfferingsWithTimeout = async () => {
+    const timer = revenueCatLogger.createTimer();
+    try {
+      await revenueCatLogger.logOfferingsLoadStart();
+      
+      const offerings = await Promise.race([
+        Purchases.getOfferings(),
+        new Promise<any>((_, reject) => 
+          setTimeout(() => reject(new Error('getOfferings timeout')), 10000)
+        )
+      ]);
+      
       setAllOfferings(offerings);
       if (offerings.current) {
         setCurrentOffering(offerings.current);
@@ -129,14 +245,17 @@ export const RevenueCatProvider = ({ children }: any) => {
         console.log('No current offerings found.');
         setHasOfferingError(true);
       }
-
-      // Load user usage from database
-      await loadUserUsage();
+      
+      await revenueCatLogger.logOfferingsLoadSuccess(offerings, timer.stop());
+      return offerings;
     } catch (error) {
-      console.error('Error loading initial data:', error);
-      setHasOfferingError(true);
-      // Still load usage even if RevenueCat fails
-      await loadUserUsage();
+      const duration = timer.stop();
+      if (error.message.includes('timeout')) {
+        await revenueCatLogger.logOfferingsLoadTimeout(duration);
+      } else {
+        await revenueCatLogger.logOfferingsLoadFailed(error as Error, duration);
+      }
+      throw error;
     }
   };
 
@@ -161,8 +280,17 @@ export const RevenueCatProvider = ({ children }: any) => {
   // Load user usage from Supabase
   const loadUserUsage = async () => {
     try {
-      const user = await fetchUser();
-      if (!user) return;
+      const user = await Promise.race([
+        fetchUser(),
+        new Promise<null>((_, reject) => 
+          setTimeout(() => reject(new Error('fetchUser timeout in loadUserUsage')), 5000)
+        )
+      ]);
+      
+      if (!user) {
+        await revenueCatLogger.logUserFetchFailed(new Error('User not found in loadUserUsage'));
+        return;
+      }
 
       const { data: usage, error } = await supabase
         .from('user_usage')
@@ -188,6 +316,9 @@ export const RevenueCatProvider = ({ children }: any) => {
       setUserUsage(usage as unknown as UserUsage);
     } catch (error) {
       console.error('Error loading user usage:', error);
+      if (error.message.includes('timeout')) {
+        await revenueCatLogger.logUserFetchFailed(error as Error);
+      }
     }
   };
 

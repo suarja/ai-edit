@@ -6,6 +6,7 @@ import Purchases, {
 } from 'react-native-purchases';
 import { useRevenueCat } from '@/contexts/providers/RevenueCat';
 import { Plan, PlanIdentifier } from '@/lib/types/revenueCat';
+import { revenueCatLogger } from '@/lib/services/revenueCatLoggingService';
 
 type BillingPeriod = 'monthly' | 'annually';
 
@@ -43,12 +44,50 @@ export const usePaywall = ({
       loadOfferings();
     }
   }, [visible]);
+  
+  // Force stop loading after timeout pour éviter le chargement infini
+  useEffect(() => {
+    if (visible && loading) {
+      const timeout = setTimeout(() => {
+        console.log('Forcing paywall loading to stop after 5s timeout');
+        setLoading(false);
+      }, 5000);
+      
+      return () => clearTimeout(timeout);
+    }
+  }, [visible, loading]);
 
   const loadOfferings = async () => {
     try {
       setLoading(true);
-      // Les offerings sont déjà chargés via le contexte RevenueCat
+      
+      // Si on a déjà des offerings ou une erreur, pas besoin d'attendre
+      if (offerings || hasOfferingError) {
+        setLoading(false);
+        return;
+      }
+      
+      // Timeout de sécurité pour éviter le loading infini
+      const timeoutPromise = new Promise<void>((resolve) => {
+        setTimeout(() => {
+          console.log('Paywall loading timeout - proceeding with fallback');
+          setLoading(false);
+          resolve();
+        }, 3000);
+      });
+      
+      // Attendre soit que les offerings arrivent, soit le timeout
+      await Promise.race([
+        new Promise<void>((resolve) => {
+          if (offerings) {
+            resolve();
+          }
+        }),
+        timeoutPromise
+      ]);
+      
       setLoading(false);
+      
     } catch (error) {
       console.error('Failed to load offerings:', error);
       Alert.alert(
@@ -62,6 +101,11 @@ export const usePaywall = ({
   const handlePurchase = async (packageToPurchase: PurchasesPackage) => {
     try {
       setPurchasing(true);
+      
+      const productId = packageToPurchase.product.identifier;
+      const planId = productId.includes('creator') ? 'creator' : 'pro';
+      
+      await revenueCatLogger.logPurchaseStarted(productId, planId);
 
       const purchaseResult = await Purchases.purchasePackage(packageToPurchase);
 
@@ -69,6 +113,13 @@ export const usePaywall = ({
         purchaseResult.customerInfo.entitlements.active['Pro'] ||
         purchaseResult.customerInfo.entitlements.active['Creator']
       ) {
+        await revenueCatLogger.logPurchaseSuccess(
+          productId,
+          planId,
+          purchaseResult.transactionIdentifier || 'unknown',
+          purchaseResult.customerInfo
+        );
+        
         Alert.alert('Succès !', 'Votre abonnement a été activé ! 🎉');
         onPurchaseComplete?.(true);
         onClose();
@@ -76,9 +127,13 @@ export const usePaywall = ({
     } catch (error: any) {
       if (error.userCancelled) {
         console.log('Purchase was cancelled by user');
+        await revenueCatLogger.logEvent('purchase_cancelled', {
+          product_id: packageToPurchase.product.identifier
+        });
         onClose();
       } else {
         console.error('Purchase failed:', error);
+        await revenueCatLogger.logPurchaseFailed(error, packageToPurchase.product.identifier);
         Alert.alert(
           'Achat échoué',
           "Une erreur s'est produite. Veuillez réessayer."
@@ -93,12 +148,21 @@ export const usePaywall = ({
   const handleRestore = async () => {
     try {
       setPurchasing(true);
+      await revenueCatLogger.logEvent('restore_started');
+      
       const restoreResult = await Purchases.restorePurchases();
 
       if (
         restoreResult.entitlements.active['Pro'] ||
         restoreResult.entitlements.active['Creator']
       ) {
+        await revenueCatLogger.logEvent('restore_success', {
+          customer_info: {
+            originalAppUserId: restoreResult.originalAppUserId,
+            activeSubscriptions: Object.keys(restoreResult.activeSubscriptions)
+          }
+        });
+        
         Alert.alert('Restauré !', 'Votre abonnement a été restauré ! 🎉');
         onPurchaseComplete?.(true);
         onClose();
@@ -110,6 +174,9 @@ export const usePaywall = ({
       }
     } catch (error) {
       console.error('Restore failed:', error);
+      await revenueCatLogger.logEvent('restore_failed', {
+        error_message: (error as Error).message
+      });
       Alert.alert(
         'Restauration échouée',
         'Impossible de restaurer les achats. Veuillez réessayer.'
