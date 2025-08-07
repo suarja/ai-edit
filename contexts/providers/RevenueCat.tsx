@@ -132,7 +132,7 @@ export const RevenueCatProvider = ({ children }: any) => {
       const duration = timer.stop();
       console.error('🍎 RevenueCat initialization error:', error);
       
-      if (error.message.includes('timeout')) {
+      if (error instanceof Error && error.message.includes('timeout')) {
         await revenueCatLogger.logInitTimeout(duration, initAttempts + 1);
       } else {
         await revenueCatLogger.logInitFailed(error as Error, duration, initAttempts + 1);
@@ -217,7 +217,7 @@ export const RevenueCatProvider = ({ children }: any) => {
       return customerInfo;
     } catch (error) {
       const duration = timer.stop();
-      if (error.message.includes('timeout')) {
+      if (error instanceof Error && error.message.includes('timeout')) {
         await revenueCatLogger.logCustomerInfoLoadTimeout(duration);
       } else {
         await revenueCatLogger.logCustomerInfoLoadFailed(error as Error, duration);
@@ -250,7 +250,7 @@ export const RevenueCatProvider = ({ children }: any) => {
       return offerings;
     } catch (error) {
       const duration = timer.stop();
-      if (error.message.includes('timeout')) {
+      if (error instanceof Error && error.message.includes('timeout')) {
         await revenueCatLogger.logOfferingsLoadTimeout(duration);
       } else {
         await revenueCatLogger.logOfferingsLoadFailed(error as Error, duration);
@@ -316,7 +316,7 @@ export const RevenueCatProvider = ({ children }: any) => {
       setUserUsage(usage as unknown as UserUsage);
     } catch (error) {
       console.error('Error loading user usage:', error);
-      if (error.message.includes('timeout')) {
+      if (error instanceof Error && error.message.includes('timeout')) {
         await revenueCatLogger.logUserFetchFailed(error as Error);
       }
     }

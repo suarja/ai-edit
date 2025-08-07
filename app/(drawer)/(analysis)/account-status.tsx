@@ -16,6 +16,7 @@ import { TrendingUp, Sparkles, BarChart3 } from 'lucide-react-native';
 import { useAnalysisContext } from '@/contexts/AnalysisContext';
 import AnalysisHeader from '@/components/analysis/AnalysisHeader';
 import AnalysisInProgressScreen from '@/components/analysis/AnalysisInProgressScreen';
+import { JobType } from '@/components/hooks/useAccountAnalysis';
 
 // Design System v2 Colors
 const COLORS = {
@@ -102,7 +103,7 @@ export default function AccountStatusScreen() {
     return (
       <SafeAreaView style={styles.container}>
         <AnalysisInProgressScreen
-          initialJob={activeJob}
+          initialJob={activeJob as JobType}
           onAnalysisComplete={refreshAnalysis}
           onRetry={handleRetry}
         />
@@ -149,18 +150,7 @@ export default function AccountStatusScreen() {
               </Text>
             </TouchableOpacity>
 
-            <TouchableOpacity
-              style={[styles.secondaryButton, { marginTop: 12 }]}
-              onPress={() => {
-                setTiktokHandle('');
-                setSubmitError(null);
-                // Permettre une nouvelle analyse
-              }}
-            >
-              <Text style={styles.secondaryButtonText}>
-                Analyser un autre compte
-              </Text>
-            </TouchableOpacity>
+          
           </View>
         </View>
       </SafeAreaView>
