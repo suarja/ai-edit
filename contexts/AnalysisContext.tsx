@@ -85,6 +85,9 @@ export const AnalysisProvider: React.FC<{ children: ReactNode }> = ({ children }
   const [isConversationsLoading, setIsConversationsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isInitialized, setIsInitialized] = useState(false);
+  
+  // Add a ref to track if conversations are being loaded to prevent race conditions
+  const loadingConversationsRef = useRef(false);
 
   // Chargement initial de l'analyse (avec gestion améliorée des états)
   const fetchAnalysis = useCallback(async () => {
@@ -225,21 +228,42 @@ export const AnalysisProvider: React.FC<{ children: ReactNode }> = ({ children }
 
   // Charger les conversations
   const loadConversations = useCallback(async () => {
+    console.log('🔄 AnalysisContext: loadConversations called, currentlyLoading:', loadingConversationsRef.current);
+    
+    // Prevent multiple simultaneous calls using ref
+    if (loadingConversationsRef.current) {
+      console.log('⏸️ AnalysisContext: Already loading conversations, skipping');
+      return;
+    }
+
+    loadingConversationsRef.current = true;
     setIsConversationsLoading(true);
+    
     try {
       const token = await getToken();
+      if (!token) {
+        throw new Error('No authentication token available');
+      }
+
+      console.log('📡 AnalysisContext: Fetching conversations from API');
       const response = await fetch(API_ENDPOINTS.TIKTOK_CONVERSATIONS(), {
         headers: { Authorization: `Bearer ${token}` },
       });
 
       const data = await response.json();
+      console.log('📥 AnalysisContext: Conversations API response:', { success: data.success, count: data.data?.length });
+      
       if (data.success) {
         setConversations(data.data || []);
+      } else {
+        console.warn('❌ AnalysisContext: Conversations API returned error:', data.error);
       }
     } catch (err) {
-      console.error('Error loading conversations:', err);
+      console.error('❌ AnalysisContext: Error loading conversations:', err);
     } finally {
+      loadingConversationsRef.current = false;
       setIsConversationsLoading(false);
+      console.log('✅ AnalysisContext: loadConversations completed');
     }
   }, [getToken]);
 

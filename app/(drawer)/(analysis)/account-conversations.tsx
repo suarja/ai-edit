@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -53,18 +53,47 @@ export default function AccountConversationsScreen() {
   
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [hasLoadedOnce, setHasLoadedOnce] = useState(false);
+  
+  // Use ref to prevent infinite loops
+  const loadConversationsRef = useRef(loadConversations);
+  loadConversationsRef.current = loadConversations;
 
+  // Initial load - trigger once on mount
   useEffect(() => {
-    if (conversations.length === 0 && !isConversationsLoading) {
-      loadConversations();
-    }
-  }, [conversations.length, isConversationsLoading, loadConversations]);
+    let mounted = true;
+    
+    const initialLoad = async () => {
+      if (!hasLoadedOnce) {
+        console.log('🔄 AccountConversations: Triggering initial load');
+        try {
+          await loadConversationsRef.current();
+        } catch (error) {
+          console.error('❌ AccountConversations: Initial load failed:', error);
+        } finally {
+          if (mounted) {
+            setHasLoadedOnce(true);
+          }
+        }
+      }
+    };
+    
+    initialLoad();
+    
+    return () => {
+      mounted = false;
+    };
+  }, []); // Empty dependency array - only run once on mount
 
   const handleRefresh = async () => {
+    console.log('🔄 AccountConversations: Manual refresh triggered');
     setRefreshing(true);
+    setError(null); // Clear any previous errors
     try {
       await loadConversations();
+      console.log('✅ AccountConversations: Manual refresh completed');
     } catch (err) {
+      console.error('❌ AccountConversations: Manual refresh failed:', err);
       setError('Failed to refresh conversations');
     } finally {
       setRefreshing(false);
@@ -112,7 +141,19 @@ export default function AccountConversationsScreen() {
     );
   }
 
-  if (isConversationsLoading) {
+  // Debug logging
+  console.log('🔍 AccountConversations render state:', {
+    isConversationsLoading,
+    hasLoadedOnce,
+    conversationsLength: conversations.length,
+    refreshing,
+    currentPlan
+  });
+
+  // Show loading screen: 
+  // 1. When actively loading conversations OR
+  // 2. When we haven't loaded once and have no conversations
+  if (isConversationsLoading || (!hasLoadedOnce && conversations.length === 0)) {
     return (
       <SafeAreaView
         style={accountConversationsStyles.container}
@@ -149,7 +190,7 @@ export default function AccountConversationsScreen() {
         )}
 
         {/* Empty State */}
-        {!isConversationsLoading && conversations.length === 0 && (
+        {hasLoadedOnce && !isConversationsLoading && conversations.length === 0 && (
           <View style={accountConversationsStyles.emptyState}>
             <MessageCircle size={64} color="#666" />
             <Text style={accountConversationsStyles.emptyTitle}>
