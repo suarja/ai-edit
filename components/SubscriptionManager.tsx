@@ -57,8 +57,8 @@ export const SubscriptionManager: React.FC<SubscriptionManagerProps> = ({
       if (hasOfferingError) {
         Alert.alert(
           'Service temporairement indisponible',
-          'Notre service de paiement est actuellement en maintenance. Veuillez réessayer plus tard.',
-          [{ text: 'OK' }]
+          'Les forfaits d\'abonnement ne peuvent pas être chargés actuellement en raison d\'une maintenance. Veuillez réessayer dans quelques minutes.',
+          [{ text: 'Compris' }]
         );
         return;
       }
@@ -66,17 +66,17 @@ export const SubscriptionManager: React.FC<SubscriptionManagerProps> = ({
       const success = await presentPaywall();
       if (success) {
         Alert.alert(
-          'Félicitations! 🎉',
-          'Votre abonnement a été activé avec succès!',
-          [{ text: 'Parfait!' }]
+          'Abonnement activé',
+          'Votre abonnement premium a été activé avec succès. Vous avez maintenant accès à toutes les fonctionnalités premium.',
+          [{ text: 'Continuer' }]
         );
       }
     } catch (error) {
       console.error('Upgrade error:', error);
       Alert.alert(
-        'Erreur',
-        'Une erreur est survenue lors de la mise à niveau. Veuillez réessayer.',
-        [{ text: 'OK' }]
+        'Erreur d\'abonnement',
+        'L\'activation de votre abonnement a rencontré un problème. Aucun montant n\'a été débité. Veuillez vérifier votre connexion et réessayer.',
+        [{ text: 'Compris' }]
       );
     } finally {
       setIsUpgrading(false);
@@ -90,23 +90,23 @@ export const SubscriptionManager: React.FC<SubscriptionManagerProps> = ({
 
       if (success) {
         Alert.alert(
-          'Achats restaurés',
-          'Vos achats ont été restaurés avec succès!',
-          [{ text: 'Parfait!' }]
+          'Abonnements restaurés',
+          'Vos abonnements ont été restaurés avec succès. Toutes les fonctionnalités premium sont maintenant disponibles.',
+          [{ text: 'Continuer' }]
         );
       } else {
         Alert.alert(
-          'Aucun achat trouvé',
-          'Aucun achat premium trouvé pour ce compte.',
-          [{ text: 'OK' }]
+          'Aucun abonnement à restaurer',
+          'Aucun abonnement premium n\'a été trouvé pour cet identifiant Apple. Si vous avez effectué un achat, vérifiez que vous êtes connecté avec le bon compte Apple.',
+          [{ text: 'Compris' }]
         );
       }
     } catch (error) {
       console.error('Restore error:', error);
       Alert.alert(
-        'Erreur',
-        'Impossible de restaurer les achats. Veuillez réessayer.',
-        [{ text: 'OK' }]
+        'Erreur de restauration',
+        'Impossible de restaurer vos abonnements depuis l\'App Store. Vérifiez votre connexion internet et réessayez.',
+        [{ text: 'Compris' }]
       );
     } finally {
       setIsRestoring(false);

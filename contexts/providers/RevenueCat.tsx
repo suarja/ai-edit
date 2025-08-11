@@ -134,7 +134,10 @@ export const RevenueCatProvider = ({ children }: any) => {
             apiKey: APIKeys.google,
             appUserID: user.id,
           })
-        : Purchases.configure({ apiKey: APIKeys.apple });
+        : Purchases.configure({ 
+            apiKey: APIKeys.apple,
+            appUserID: user.id,  // 🔧 FIX: Add appUserID for iOS too!
+          });
         
       await Promise.race([
         configPromise,
@@ -154,13 +157,46 @@ export const RevenueCatProvider = ({ children }: any) => {
       // Load initial customer info and usage avec retry
       await loadInitialDataWithRetry();
 
-      // Log user ID verification after initialization
+      // Log user ID verification and handle anonymous user identification
       const currentUser = await fetchUser().catch(() => null);
       if (currentUser) {
         await revenueCatLogger.logUserIdVerification({
           supabaseUserId: currentUser.id,
           clerkUserId: clerkUser?.id,
         });
+
+        // Check if we need to identify anonymous user
+        const customerInfo = await Purchases.getCustomerInfo().catch(() => null);
+        if (customerInfo && customerInfo.originalAppUserId.startsWith('$RCAnonymousID:')) {
+          console.log('🔗 Linking anonymous RevenueCat user with app user ID...');
+          try {
+            const logInResult = await Purchases.logIn(currentUser.id);
+            console.log('✅ Successfully linked anonymous user', {
+              created: logInResult.created,
+              customerInfo: logInResult.customerInfo.originalAppUserId
+            });
+            
+            await revenueCatLogger.logEvent('anonymous_user_identified', {
+              old_id: customerInfo.originalAppUserId,
+              new_id: currentUser.id,
+              had_purchases: customerInfo.activeSubscriptions.length > 0,
+              message: `User ${currentUser.id} identified and linked to anonymous user ${customerInfo.originalAppUserId}. And created: ${logInResult.created}`,
+              anonymous_id: customerInfo.originalAppUserId,
+              
+            });
+            
+            // Re-run customer info update with potentially new subscription data
+            await updateCustomerInformation(logInResult.customerInfo);
+          } catch (identifyError) {
+            console.error('❌ Failed to link anonymous user:', identifyError);
+            await revenueCatLogger.logEvent('anonymous_user_identify_failed', {
+              error_message: (identifyError as Error).message,
+              anonymous_id: customerInfo.originalAppUserId,
+              app_user_id: currentUser.id,
+              message: 'Failed to link anonymous user'
+            });
+          }
+        }
       }
 
       setIsRevenueCatReady(true);
@@ -487,7 +523,7 @@ export const RevenueCatProvider = ({ children }: any) => {
 
         // In production with offering errors, show helpful message
         alert(
-          'Les forfaits ne sont pas disponibles actuellement. Veuillez réessayer plus tard.'
+          'Service temporairement indisponible. Les forfaits d\'abonnement ne peuvent pas être chargés. Veuillez réessayer dans quelques minutes.'
         );
         return false;
       }

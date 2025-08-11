@@ -91,8 +91,8 @@ export const usePaywall = ({
     } catch (error) {
       console.error('Failed to load offerings:', error);
       Alert.alert(
-        'Erreur',
-        'Impossible de charger les forfaits. Veuillez réessayer.'
+        'Forfaits indisponibles',
+        'Les forfaits d\'abonnement ne peuvent pas être chargés actuellement. Vérifiez votre connexion internet et réessayez.'
       );
       setLoading(false);
     }
@@ -150,7 +150,10 @@ export const usePaywall = ({
           refreshedInfo
         );
         
-        Alert.alert('Succès !', 'Votre abonnement a été activé ! 🎉');
+        Alert.alert(
+          'Abonnement activé',
+          'Votre abonnement premium a été activé avec succès. Vous pouvez maintenant accéder à toutes les fonctionnalités premium.'
+        );
         onPurchaseComplete?.(true);
         onClose();
       } else {
@@ -158,7 +161,10 @@ export const usePaywall = ({
           expected: ['Pro', 'Creator'],
           received: Object.keys(refreshedInfo.entitlements.active)
         });
-        Alert.alert('Problème', 'Achat effectué mais abonnement non activé. Essayez de restaurer vos achats.');
+        Alert.alert(
+          'Activation en cours',
+          'Votre achat a été effectué avec succès. L\'activation de votre abonnement peut prendre quelques instants. Si le problème persiste, utilisez "Restaurer les achats" dans les paramètres.'
+        );
         onPurchaseComplete?.(false);
       }
     } catch (error: any) {
@@ -172,8 +178,8 @@ export const usePaywall = ({
         console.error('Purchase failed:', error);
         await revenueCatLogger.logPurchaseFailed(error, packageToPurchase.product.identifier);
         Alert.alert(
-          'Achat échoué',
-          "Une erreur s'est produite. Veuillez réessayer."
+          'Achat non finalisé',
+          'L\'achat n\'a pas pu être finalisé. Aucun montant n\'a été débité. Vérifiez votre mode de paiement et réessayez.'
         );
         onPurchaseComplete?.(false);
       }
@@ -187,27 +193,56 @@ export const usePaywall = ({
       setPurchasing(true);
       await revenueCatLogger.logEvent('restore_started');
       
+      // Check current subscription status first
+      const currentHasPremium = currentPlan !== 'free';
+      
       const restoreResult = await Purchases.restorePurchases();
+      const hasActiveEntitlements = restoreResult.entitlements.active['Pro'] || restoreResult.entitlements.active['Creator'];
+      const hasActiveSubscriptions = restoreResult.activeSubscriptions.length > 0;
 
-      if (
-        restoreResult.entitlements.active['Pro'] ||
-        restoreResult.entitlements.active['Creator']
-      ) {
+      if (hasActiveEntitlements || hasActiveSubscriptions) {
         await revenueCatLogger.logEvent('restore_success', {
           customer_info: {
             originalAppUserId: restoreResult.originalAppUserId,
             activeSubscriptions: Object.keys(restoreResult.activeSubscriptions)
-          }
+          },
+          already_had_premium: currentHasPremium
         });
         
-        Alert.alert('Restauré !', 'Votre abonnement a été restauré ! 🎉');
+        if (currentHasPremium) {
+          // User already has premium, just confirming
+          Alert.alert(
+            'Synchronisation réussie',
+            'Vos achats ont été synchronisés avec succès. Votre abonnement premium est actif et toutes les fonctionnalités sont disponibles.'
+          );
+        } else {
+          // User didn't have premium, now restored
+          Alert.alert(
+            'Abonnement restauré',
+            'Votre abonnement premium a été restauré avec succès. Toutes les fonctionnalités premium sont maintenant disponibles.'
+          );
+        }
         onPurchaseComplete?.(true);
         onClose();
       } else {
-        Alert.alert(
-          'Aucun achat trouvé',
-          'Aucun abonnement actif à restaurer.'
-        );
+        if (currentHasPremium) {
+          // User has premium but restore found nothing - might be a different Apple ID
+          Alert.alert(
+            'Aucun achat à restaurer',
+            'Aucun abonnement premium n\'a été trouvé pour cet identifiant Apple. Votre abonnement actuel reste valide.\n\nSi vous avez effectué votre achat avec un autre identifiant Apple, veuillez vous connecter avec ce compte puis réessayer.'
+          );
+        } else {
+          // User doesn't have premium and restore found nothing
+          Alert.alert(
+            'Aucun achat à restaurer',
+            'Aucun abonnement premium n\'a été trouvé pour cet identifiant Apple.\n\nSi vous avez déjà effectué un achat, vérifiez que vous êtes connecté avec le bon identifiant Apple dans les Réglages de votre appareil.'
+          );
+        }
+        
+        await revenueCatLogger.logEvent('restore_no_purchases', {
+          already_had_premium: currentHasPremium,
+          user_id: restoreResult.originalAppUserId
+        });
       }
     } catch (error) {
       console.error('Restore failed:', error);
@@ -215,8 +250,8 @@ export const usePaywall = ({
         error_message: (error as Error).message
       });
       Alert.alert(
-        'Restauration échouée',
-        'Impossible de restaurer les achats. Veuillez réessayer.'
+        'Erreur de restauration',
+        'Impossible de restaurer vos achats depuis l\'App Store. Vérifiez votre connexion internet et réessayez. Si le problème persiste, redémarrez l\'application.'
       );
     } finally {
       setPurchasing(false);

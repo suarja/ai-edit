@@ -37,7 +37,9 @@ export type RevenueCatEventType =
   | 'plan_detection_logic'
   | 'subscription_state_comparison'
   | 'user_id_verification'
-  | 'startup_flow_summary';
+  | 'startup_flow_summary'
+  | 'anonymous_user_identified'
+  | 'anonymous_user_identify_failed';
 
 export interface RevenueCatLogMetadata {
   message?: string;
@@ -78,6 +80,12 @@ export interface RevenueCatLogMetadata {
   os_version?: string;
   app_version?: string;
   is_first_launch?: boolean;
+  // Anonymous user identification fields
+  old_id?: string;
+  new_id?: string;
+  had_purchases?: boolean;
+  anonymous_id?: string;
+  app_user_id?: string;
   retry_attempt?: number;
   network_status?: 'connected' | 'disconnected' | 'poor';
   session_id?: string;
