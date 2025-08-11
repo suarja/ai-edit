@@ -2,6 +2,7 @@ import { createClient } from '@supabase/supabase-js';
 import { PlanIdentifier, Database } from 'editia-core';
 import { CustomerInfo, PurchasesOfferings } from 'react-native-purchases';
 import { env } from '@/lib/config/env';
+import { Json } from '../types/supabase-types';
 
 export type RevenueCatEventType = 
   | 'init_start'
@@ -26,9 +27,15 @@ export type RevenueCatEventType =
   | 'entitlement_updated'
   | 'subscription_expired'
   | 'cold_start_issue'
-  | 'user_fetch_failed';
+  | 'user_fetch_failed'
+  | 'sync_user_limits_started'
+  | 'sync_user_limits_success'
+  | 'sync_user_limits_failed'
+  | 'user_usage_record_missing'
+  | 'user_usage_record_created';
 
 export interface RevenueCatLogMetadata {
+  message?: string;
   event_type: RevenueCatEventType;
   duration_ms?: number;
   product_id?: string;
@@ -113,7 +120,7 @@ class RevenueCatLoggingService {
         session_id: this.sessionId,
         timestamp: new Date().toISOString(),
         platform: 'mobile',
-      } as RevenueCatLogMetadata
+      } as unknown as Json // (RevenueCatLogMetadata as Json)
     };
 
     const { error } = await this.supabaseClient
@@ -192,7 +199,9 @@ class RevenueCatLoggingService {
       customer_info: {
         originalAppUserId: customerInfo.originalAppUserId,
         activeSubscriptions: Object.keys(customerInfo.activeSubscriptions),
-        entitlements: activeEntitlements
+        entitlements: {
+          ...customerInfo.entitlements,
+        }
       }
     });
   }
@@ -254,6 +263,44 @@ class RevenueCatLoggingService {
     return this.logEvent('user_fetch_failed', {
       error_message: error.message,
       error_stack: error.stack
+    });
+  }
+
+  async logSyncUserLimitsStarted(planId: PlanIdentifier, userId: string): Promise<void> {
+    return this.logEvent('sync_user_limits_started', {
+      plan_id: planId
+
+    });
+  }
+
+  async logSyncUserLimitsSuccess(planId: PlanIdentifier, userId: string, duration: number): Promise<void> {
+    return this.logEvent('sync_user_limits_success', {
+      plan_id: planId,
+      duration_ms: duration,
+      error_message: `Successfully synced user ${userId} to plan ${planId}`
+    });
+  }
+
+  async logSyncUserLimitsFailed(error: Error, planId: PlanIdentifier, userId: string, duration: number): Promise<void> {
+    return this.logEvent('sync_user_limits_failed', {
+      error_message: error.message,
+      error_stack: error.stack,
+      plan_id: planId,
+      duration_ms: duration,
+      error_code: `sync_failed_${userId}_${planId}`
+    });
+  }
+
+  async logUserUsageRecordMissing(userId: string): Promise<void> {
+    return this.logEvent('user_usage_record_missing', {
+      error_message: `No user_usage record found for user ${userId}`
+    });
+  }
+
+  async logUserUsageRecordCreated(userId: string, planId: PlanIdentifier): Promise<void> {
+    return this.logEvent('user_usage_record_created', {
+      plan_id: planId,
+      error_message: `Created user_usage record for user ${userId} with plan ${planId}`
     });
   }
 

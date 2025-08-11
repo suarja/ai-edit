@@ -108,21 +108,47 @@ export const usePaywall = ({
       await revenueCatLogger.logPurchaseStarted(productId, planId);
 
       const purchaseResult = await Purchases.purchasePackage(packageToPurchase);
+      
+      // Detailed logging of purchase result
+      console.log('🎯 Purchase result:', {
+        transactionId: purchaseResult.transactionIdentifier,
+        productId: purchaseResult.productIdentifier,
+        entitlements: Object.keys(purchaseResult.customerInfo.entitlements.active),
+        activeSubscriptions: purchaseResult.customerInfo.activeSubscriptions,
+        allEntitlements: purchaseResult.customerInfo.entitlements,
+        originalAppUserId: purchaseResult.customerInfo.originalAppUserId
+      });
+
+      // Force refresh customer info from RevenueCat servers
+      const refreshedInfo = await Purchases.getCustomerInfo();
+      console.log('🔄 Refreshed customer info after purchase:', {
+        entitlements: Object.keys(refreshedInfo.entitlements.active),
+        activeEntitlements: refreshedInfo.entitlements.active,
+        hasProEntitlement: refreshedInfo.entitlements.active['Pro'] !== undefined,
+        hasCreatorEntitlement: refreshedInfo.entitlements.active['Creator'] !== undefined
+      });
 
       if (
-        purchaseResult.customerInfo.entitlements.active['Pro'] ||
-        purchaseResult.customerInfo.entitlements.active['Creator']
+        refreshedInfo.entitlements.active['Pro'] ||
+        refreshedInfo.entitlements.active['Creator']
       ) {
         await revenueCatLogger.logPurchaseSuccess(
           productId,
           planId,
           purchaseResult.transactionIdentifier || 'unknown',
-          purchaseResult.customerInfo
+          refreshedInfo
         );
         
         Alert.alert('Succès !', 'Votre abonnement a été activé ! 🎉');
         onPurchaseComplete?.(true);
         onClose();
+      } else {
+        console.error('⚠️ Purchase completed but no entitlements found!', {
+          expected: ['Pro', 'Creator'],
+          received: Object.keys(refreshedInfo.entitlements.active)
+        });
+        Alert.alert('Problème', 'Achat effectué mais abonnement non activé. Essayez de restaurer vos achats.');
+        onPurchaseComplete?.(false);
       }
     } catch (error: any) {
       if (error.userCancelled) {

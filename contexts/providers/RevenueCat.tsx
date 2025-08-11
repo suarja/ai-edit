@@ -15,7 +15,7 @@ import { useClerkSupabaseClient } from '@/lib/config/supabase-clerk';
 import { useGetUser } from '@/components/hooks/useGetUser';
 import { Paywall } from '@/components/Paywall';
 import { RevenueCatProps } from '@/lib/types/revenueCat';
-import { PlanIdentifier, UserUsage, SubscriptionPlan } from 'editia-core';
+import { PlanIdentifier, UserUsage, SubscriptionPlan, UserUsageService, UsageField } from 'editia-core';
 import { revenueCatLogger } from '@/lib/services/revenueCatLoggingService';
 import { useUser } from '@clerk/clerk-expo';
 
@@ -50,6 +50,14 @@ export const RevenueCatProvider = ({ children }: any) => {
   const { client: supabase } = useClerkSupabaseClient();
   const { fetchUser } = useGetUser();
   const { user: clerkUser, isLoaded: clerkLoaded } = useUser();
+  
+  // Initialize UserUsageService
+  const userUsageService = useMemo(() => {
+    if (supabase) {
+      return UserUsageService.getInstance(supabase);
+    }
+    return null;
+  }, [supabase]);
 
   useEffect(() => {
     // Attendre que Clerk soit chargé avant d'initialiser
@@ -74,7 +82,7 @@ export const RevenueCatProvider = ({ children }: any) => {
       } else {
         init(); // Continuer sans user ID pour les logs
       }
-    } catch (error) {
+    } catch {
       init(); // Continuer sans user ID pour les logs
     }
   };
@@ -277,8 +285,13 @@ export const RevenueCatProvider = ({ children }: any) => {
     await syncUserLimitWithSubscription(plan);
   };
 
-  // Load user usage from Supabase
+  // Load user usage from Supabase using UserUsageService
   const loadUserUsage = async () => {
+    if (!userUsageService) {
+      console.error('UserUsageService not initialized');
+      return;
+    }
+    
     try {
       const user = await Promise.race([
         fetchUser(),
@@ -292,28 +305,13 @@ export const RevenueCatProvider = ({ children }: any) => {
         return;
       }
 
-      const { data: usage, error } = await supabase
-        .from('user_usage')
-        .select(
-          `
-         *
-        `
-        )
-        .eq('user_id', user.id)
-        .single();
-
-      if (error) {
-        if (error.code === 'PGRST116') {
-          // No usage record found, create one
-          console.log('No usage record found, creating one...');
-          await createUsageRecord(user.id);
-          return;
-        }
-        console.error('Failed to load user usage:', error);
-        return;
+      const usage = await userUsageService.getUserUsage(user.id);
+      
+      if (usage) {
+        setUserUsage(usage);
+      } else {
+        console.log('No usage record found or could not be created');
       }
-
-      setUserUsage(usage as unknown as UserUsage);
     } catch (error) {
       console.error('Error loading user usage:', error);
       if (error instanceof Error && error.message.includes('timeout')) {
@@ -322,98 +320,44 @@ export const RevenueCatProvider = ({ children }: any) => {
     }
   };
 
-  // Create initial usage record for new users
-  const createUsageRecord = async (userId: string) => {
-    try {
-      // Récupérer les limites du plan gratuit depuis la base de données
-      const { data: planData, error: planError } = await supabase
-        .from('subscription_plans')
-        .select('*')
-        .eq('id', 'free')
-        .single();
 
-      if (planError) {
-        console.error('Failed to fetch plan limits:', planError);
-        return;
-      }
-
-      const { data, error } = await supabase
-        .from('user_usage')
-        .insert([
-          {
-            user_id: userId,
-            videos_generated: 0,
-            videos_generated_limit: planData.videos_generated_limit,
-            source_videos_used: 0,
-            source_videos_limit: planData.source_videos_limit,
-            voice_clones_used: 0,
-            voice_clones_limit: planData.voice_clones_limit,
-            account_analysis_used: 0,
-            account_analysis_limit: planData.account_analysis_limit,
-            next_reset_date: new Date(
-              Date.now() + 30 * 24 * 60 * 60 * 1000
-            ).toISOString(), // 30 days from now
-          },
-        ])
-        .select(
-          `
-       *
-        `
-        )
-        .single();
-
-      if (error) {
-        console.error('Failed to create usage record:', error);
-        return;
-      }
-
-      setUserUsage(data as unknown as UserUsage);
-    } catch (error) {
-      console.error('Error creating usage record:', error);
-    }
-  };
-
-  // Sync user's limits with their subscription status
+  // Sync user's limits with their subscription status using UserUsageService
   const syncUserLimitWithSubscription = async (planId: PlanIdentifier) => {
+    if (!userUsageService) {
+      console.error('UserUsageService not initialized');
+      return;
+    }
+    
+    const timer = revenueCatLogger.createTimer();
+    
     try {
       const user = await fetchUser();
-      if (!user) return;
-
-      // Récupérer les limites du plan depuis la base de données
-      const { data: planData, error: planError } = await supabase
-        .from('subscription_plans')
-        .select('*')
-        .eq('id', planId)
-        .single();
-
-      if (planError) {
-        console.error('Failed to fetch plan limits:', planError);
+      if (!user) {
+        await revenueCatLogger.logUserFetchFailed(new Error('User not found in syncUserLimitWithSubscription'));
         return;
       }
 
-      // Mettre à jour les limites de l'utilisateur
-      const { error } = await supabase
-        .from('user_usage')
-        .update({
-          current_plan_id: planId,
-          videos_generated_limit: planData.videos_generated_limit,
-          source_videos_limit: planData.source_videos_limit,
-          voice_clones_limit: planData.voice_clones_limit,
-          account_analysis_limit: planData.account_analysis_limit,
-          updated_at: new Date().toISOString(),
-          script_conversations_limit: planData.script_conversations_limit,
-        })
-        .eq('user_id', user.id);
+      await revenueCatLogger.logSyncUserLimitsStarted(planId, user.id);
 
-      if (error) {
-        console.error('Failed to sync user limits:', error);
+      // Use UserUsageService to update the plan
+      const updatedUsage = await userUsageService.updateUserPlan(user.id, planId);
+      
+      if (updatedUsage) {
+        console.log('✅ User limits synced to', planId, 'plan. Updated data:', updatedUsage);
+        await revenueCatLogger.logSyncUserLimitsSuccess(planId, user.id, timer.stop());
+        setUserUsage(updatedUsage);
       } else {
-        console.log(`User limits synced to ${planId} plan`);
-        // Reload usage after update
-        await loadUserUsage();
+        console.error('❌ Failed to sync user limits');
+        await revenueCatLogger.logSyncUserLimitsFailed(
+          new Error('UserUsageService.updateUserPlan returned null'),
+          planId,
+          user.id,
+          timer.stop()
+        );
       }
     } catch (error) {
-      console.error('Error syncing user limits:', error);
+      console.error('❌ Error syncing user limits:', error);
+      await revenueCatLogger.logSyncUserLimitsFailed(error as Error, planId, 'unknown', timer.stop());
     }
   };
 
@@ -452,11 +396,26 @@ export const RevenueCatProvider = ({ children }: any) => {
   const handlePurchaseComplete = async (success: boolean) => {
     if (success) {
       try {
+        console.log('🎉 Purchase marked as successful, fetching updated customer info...');
+        
+        // Get updated customer info (purchase via purchasePackage should have already updated it)
         const customerInfo = await Purchases.getCustomerInfo();
+        
+        console.log('📱 Post-purchase customer info:', {
+          entitlements: Object.keys(customerInfo.entitlements.active),
+          hasProEntitlement: customerInfo.entitlements.active['Pro'] !== undefined,
+          hasCreatorEntitlement: customerInfo.entitlements.active['Creator'] !== undefined,
+          detectedPlan: customerInfo.entitlements.active['Pro'] ? 'pro' : 
+                        customerInfo.entitlements.active['Creator'] ? 'creator' : 'free',
+          activeSubscriptions: customerInfo.activeSubscriptions
+        });
+        
         await updateCustomerInformation(customerInfo);
       } catch (error) {
-        console.error('Error refreshing customer info after purchase:', error);
+        console.error('❌ Error getting customer info after purchase:', error);
       }
+    } else {
+      console.log('⚠️ Purchase not successful, no sync needed');
     }
   };
 
@@ -475,6 +434,83 @@ export const RevenueCatProvider = ({ children }: any) => {
   // Refresh usage data
   const refreshUsage = async () => {
     await loadUserUsage();
+  };
+
+  // Increment usage for a specific field using UserUsageService
+  const incrementUsage = async (field: UsageField, amount: number = 1): Promise<boolean> => {
+    if (!userUsageService) {
+      console.error('UserUsageService not initialized');
+      return false;
+    }
+    
+    try {
+      const user = await fetchUser();
+      if (!user) {
+        console.error('User not found for usage increment');
+        return false;
+      }
+
+      const success = await userUsageService.incrementUsage(user.id, field, amount);
+      
+      if (success) {
+        // Refresh usage data to reflect the change
+        await loadUserUsage();
+      }
+      
+      return success;
+    } catch (error) {
+      console.error('Error incrementing usage:', error);
+      return false;
+    }
+  };
+
+  // Check if user has reached usage limit for a specific field
+  const checkUsageLimit = async (field: UsageField): Promise<boolean> => {
+    if (!userUsageService) {
+      console.error('UserUsageService not initialized');
+      return true; // Assume limit reached if service unavailable
+    }
+    
+    try {
+      const user = await fetchUser();
+      if (!user) {
+        console.error('User not found for usage limit check');
+        return true; // Assume limit reached if user unavailable
+      }
+
+      return await userUsageService.checkUsageLimit(user.id, field);
+    } catch (error) {
+      console.error('Error checking usage limit:', error);
+      return true; // Assume limit reached on error
+    }
+  };
+
+  // Reset monthly usage counters
+  const resetMonthlyUsage = async (): Promise<boolean> => {
+    if (!userUsageService) {
+      console.error('UserUsageService not initialized');
+      return false;
+    }
+    
+    try {
+      const user = await fetchUser();
+      if (!user) {
+        console.error('User not found for usage reset');
+        return false;
+      }
+
+      const success = await userUsageService.resetMonthlyUsage(user.id);
+      
+      if (success) {
+        // Refresh usage data to reflect the reset
+        await loadUserUsage();
+      }
+      
+      return success;
+    } catch (error) {
+      console.error('Error resetting monthly usage:', error);
+      return false;
+    }
   };
   // Utility functions (local to avoid React Native compatibility issues)
   const calculateRemainingUsage = (used: number, limit: number): number => {
@@ -534,6 +570,9 @@ export const RevenueCatProvider = ({ children }: any) => {
     scriptConversationsRemaining,
     presentPaywall,
     refreshUsage,
+    incrementUsage,
+    checkUsageLimit,
+    resetMonthlyUsage,
     hasOfferingError,
     restorePurchases,
     currentPlan,
