@@ -86,31 +86,31 @@ export default function AccountConversationsScreen() {
 
 
   // Show paywall for non-pro users
-  // if (currentPlan === 'free') {
-  //   return (
-  //     <StandardFeatureLock
-  //       featureIcon={<MessageCircle color={SHARED_STYLE_COLORS.primary} />}
-  //       featureTitle="Conversations IA Premium"
-  //       featureDescription="Accédez à vos conversations IA personnalisées et obtenez des conseils stratégiques pour votre compte TikTok."
-  //       features={[
-  //         {
-  //           icon: <MessageCircle color={SHARED_STYLE_COLORS.primary} />,
-  //           text: "Conversations illimitées avec l'IA",
-  //         },
-  //         {
-  //           icon: <TrendingUp color={SHARED_STYLE_COLORS.success} />,
-  //           text: "Conseils stratégiques personnalisés",
-  //         },
-  //         {
-  //           icon: <Users color={SHARED_STYLE_COLORS.warning} />,
-  //           text: "Analyse approfondie de votre contenu",
-  //         },
-  //       ]}
-  //       requiredPlan="creator"
-  //       showCloseButton={true}
-  //     />
-  //   );
-  // }
+  if (currentPlan === 'free') {
+    return (
+      <StandardFeatureLock
+        featureIcon={<MessageCircle color={SHARED_STYLE_COLORS.primary} />}
+        featureTitle="Conversations IA Premium"
+        featureDescription="Accédez à vos conversations IA personnalisées et obtenez des conseils stratégiques pour votre compte TikTok."
+        features={[
+          {
+            icon: <MessageCircle color={SHARED_STYLE_COLORS.primary} />,
+            text: "Conversations illimitées avec l'IA",
+          },
+          {
+            icon: <TrendingUp color={SHARED_STYLE_COLORS.success} />,
+            text: "Conseils stratégiques personnalisés",
+          },
+          {
+            icon: <Users color={SHARED_STYLE_COLORS.warning} />,
+            text: "Analyse approfondie de votre contenu",
+          },
+        ]}
+        requiredPlan="creator"
+        showCloseButton={true}
+      />
+    );
+  }
 
   if (isConversationsLoading) {
     return (

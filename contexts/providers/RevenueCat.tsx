@@ -86,6 +86,29 @@ export const RevenueCatProvider = ({ children }: any) => {
       init(); // Continuer sans user ID pour les logs
     }
   };
+
+  // Log comprehensive startup summary
+  const logStartupSummary = async (revenueCatInitSuccess: boolean, totalDuration: number) => {
+    const user = await fetchUser().catch(() => null);
+    const discrepancies: string[] = [];
+    
+    // Check for various issues
+    if (!user) discrepancies.push('No user found');
+    if (!clerkLoaded) discrepancies.push('Clerk not loaded');
+    if (hasOfferingError) discrepancies.push('Offering errors detected');
+    if (!revenueCatInitSuccess) discrepancies.push('RevenueCat init failed');
+    
+    await revenueCatLogger.logStartupFlowSummary({
+      authStatus: clerkLoaded && clerkUser ? 'authenticated' : clerkLoaded ? 'not_authenticated' : 'loading',
+      revenueCatInitSuccess,
+      subscriptionDetected: currentPlan !== 'free',
+      finalPlan: currentPlan,
+      databaseUpdated: !!userUsage, // If we have user usage, database was updated
+      discrepancies,
+      totalDuration
+    });
+  };
+
   const init = async () => {
     const timer = revenueCatLogger.createTimer();
     const isFirstLaunch = initAttempts === 0;
@@ -131,10 +154,22 @@ export const RevenueCatProvider = ({ children }: any) => {
       // Load initial customer info and usage avec retry
       await loadInitialDataWithRetry();
 
+      // Log user ID verification after initialization
+      const currentUser = await fetchUser().catch(() => null);
+      if (currentUser) {
+        await revenueCatLogger.logUserIdVerification({
+          supabaseUserId: currentUser.id,
+          clerkUserId: clerkUser?.id,
+        });
+      }
+
       setIsRevenueCatReady(true);
       setIsReady(true);
       const duration = timer.stop();
       await revenueCatLogger.logInitSuccess(duration);
+
+      // Log comprehensive startup summary
+      await logStartupSummary(true, duration);
       
     } catch (error) {
       const duration = timer.stop();
@@ -152,6 +187,9 @@ export const RevenueCatProvider = ({ children }: any) => {
         setIsReady(true); // Still mark as ready so UI can render with fallbacks
         await loadUserUsage(); // Still load usage from database
         await revenueCatLogger.logColdStartIssue(`Max init attempts reached (${maxInitAttempts})`);
+        
+        // Log startup summary for failed case
+        await logStartupSummary(false, duration);
       } else {
         // Retry with exponential backoff
         const delay = Math.pow(2, initAttempts) * 1000; // 1s, 2s, 4s, 8s, 16s
@@ -220,6 +258,9 @@ export const RevenueCatProvider = ({ children }: any) => {
         )
       ]);
       
+      // Log detailed customer info for debugging
+      await revenueCatLogger.logStartupCustomerInfoDetailed(customerInfo);
+      
       await updateCustomerInformation(customerInfo);
       await revenueCatLogger.logCustomerInfoLoadSuccess(customerInfo, timer.stop());
       return customerInfo;
@@ -270,18 +311,87 @@ export const RevenueCatProvider = ({ children }: any) => {
   // Update user state based on previous purchases
   const updateCustomerInformation = async (customerInfo: CustomerInfo) => {
     const hasPro = customerInfo?.entitlements.active['Pro'] !== undefined;
-    const hasCreator =
-      customerInfo?.entitlements.active['Creator'] !== undefined;
-
+    const hasCreator = customerInfo?.entitlements.active['Creator'] !== undefined;
+    const entitlementsFound = Object.keys(customerInfo.entitlements.active);
+    const subscriptionsFound = customerInfo.activeSubscriptions || [];
+    
     let plan: PlanIdentifier = 'free';
+    let detectionMethod: 'entitlements' | 'subscription_inference' | 'fallback' = 'fallback';
+    let reasoning = 'No entitlements or subscriptions found, defaulting to free';
+    
+    // Primary: Check entitlements (proper way)
     if (hasPro) {
       plan = 'pro';
+      detectionMethod = 'entitlements';
+      reasoning = 'Pro entitlement found';
     } else if (hasCreator) {
       plan = 'creator';
+      detectionMethod = 'entitlements';
+      reasoning = 'Creator entitlement found';
+    } 
+    // Fallback: Check active subscriptions and infer plan from product IDs
+    else if (subscriptionsFound.length > 0) {
+      detectionMethod = 'subscription_inference';
+      
+      // Check if any active subscription contains creator or pro identifiers
+      const hasCreatorProduct = subscriptionsFound.some(productId => 
+        productId.toLowerCase().includes('creator')
+      );
+      const hasProProduct = subscriptionsFound.some(productId => 
+        productId.toLowerCase().includes('pro')
+      );
+      
+      if (hasCreatorProduct) {
+        plan = 'creator';
+        reasoning = `Inferred creator plan from subscription: ${subscriptionsFound.join(', ')}`;
+      } else if (hasProProduct) {
+        plan = 'pro';
+        reasoning = `Inferred pro plan from subscription: ${subscriptionsFound.join(', ')}`;
+      } else {
+        // If we can't infer, but there are active subscriptions, default to creator
+        plan = 'creator';
+        reasoning = `Active subscriptions found but couldn't infer type, defaulting to creator: ${subscriptionsFound.join(', ')}`;
+      }
     }
 
+    // Log the detailed plan detection logic
+    await revenueCatLogger.logPlanDetectionLogic({
+      entitlementsFound,
+      subscriptionsFound,
+      detectionMethod,
+      finalPlan: plan,
+      reasoning
+    });
+
+    // Log user ID verification with RevenueCat data
+    const user = await fetchUser().catch(() => null);
+    await revenueCatLogger.logUserIdVerification({
+      supabaseUserId: user?.id,
+      clerkUserId: clerkUser?.id,
+      revenueCatOriginal: customerInfo.originalAppUserId,
+    });
+
+    // Get current database plan for comparison
+    const currentDatabasePlan = currentPlan;
+    const hasDiscrepancy = currentDatabasePlan !== plan;
+    
+    // Log state comparison
+    await revenueCatLogger.logSubscriptionStateComparison({
+      databasePlan: currentDatabasePlan,
+      revenueCatPlan: plan,
+      hasDiscrepancy,
+      action: hasDiscrepancy ? `Will update database from ${currentDatabasePlan} to ${plan}` : 'No action needed'
+    });
+
     setCurrentPlan(plan);
-    console.log('Customer info updated. Current plan:', plan);
+    console.log('✅ Customer info updated. Current plan:', plan, {
+      hasEntitlements: hasPro || hasCreator,
+      activeSubscriptions: subscriptionsFound.length,
+      inferredFromSubscriptions: plan !== 'free' && !hasPro && !hasCreator,
+      detectionMethod,
+      reasoning
+    });
+    
     await syncUserLimitWithSubscription(plan);
   };
 

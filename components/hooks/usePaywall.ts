@@ -124,14 +124,25 @@ export const usePaywall = ({
       console.log('🔄 Refreshed customer info after purchase:', {
         entitlements: Object.keys(refreshedInfo.entitlements.active),
         activeEntitlements: refreshedInfo.entitlements.active,
+        allEntitlements: refreshedInfo.entitlements,
+        activeSubscriptions: refreshedInfo.activeSubscriptions,
+        nonSubscriptionTransactions: refreshedInfo.nonSubscriptionTransactions,
         hasProEntitlement: refreshedInfo.entitlements.active['Pro'] !== undefined,
-        hasCreatorEntitlement: refreshedInfo.entitlements.active['Creator'] !== undefined
+        hasCreatorEntitlement: refreshedInfo.entitlements.active['Creator'] !== undefined,
+        originalAppUserId: refreshedInfo.originalAppUserId
       });
 
-      if (
-        refreshedInfo.entitlements.active['Pro'] ||
-        refreshedInfo.entitlements.active['Creator']
-      ) {
+      // Check for entitlements OR active subscriptions (fallback)
+      const hasActiveSubscription = refreshedInfo.activeSubscriptions.length > 0;
+      const hasEntitlements = refreshedInfo.entitlements.active['Pro'] || refreshedInfo.entitlements.active['Creator'];
+      
+      console.log('🔍 Purchase validation:', {
+        hasEntitlements,
+        hasActiveSubscription,
+        willProceedAsSuccess: hasEntitlements || hasActiveSubscription
+      });
+      
+      if (hasEntitlements || hasActiveSubscription) {
         await revenueCatLogger.logPurchaseSuccess(
           productId,
           planId,

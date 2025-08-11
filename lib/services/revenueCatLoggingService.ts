@@ -32,7 +32,12 @@ export type RevenueCatEventType =
   | 'sync_user_limits_success'
   | 'sync_user_limits_failed'
   | 'user_usage_record_missing'
-  | 'user_usage_record_created';
+  | 'user_usage_record_created'
+  | 'startup_customer_info_detailed'
+  | 'plan_detection_logic'
+  | 'subscription_state_comparison'
+  | 'user_id_verification'
+  | 'startup_flow_summary';
 
 export interface RevenueCatLogMetadata {
   message?: string;
@@ -48,6 +53,27 @@ export interface RevenueCatLogMetadata {
   error_stack?: string;
   customer_info?: Partial<CustomerInfo>;
   offerings_count?: number;
+  // Enhanced startup debugging fields
+  full_customer_info?: any;
+  entitlements_found?: string[];
+  subscriptions_found?: string[];
+  detection_method?: 'entitlements' | 'subscription_inference' | 'fallback';
+  plan_detection_steps?: any[];
+  database_plan?: PlanIdentifier;
+  revenuecat_plan?: PlanIdentifier;
+  user_ids?: {
+    clerk?: string;
+    supabase?: string;
+    revenuecat_original?: string;
+    revenuecat_current?: string;
+  };
+  startup_summary?: {
+    auth_status?: string;
+    revenuecat_init_success?: boolean;
+    subscription_detected?: boolean;
+    database_updated?: boolean;
+    discrepancies?: string[];
+  };
   device_type?: 'iPhone' | 'iPad' | 'simulator';
   os_version?: string;
   app_version?: string;
@@ -193,7 +219,6 @@ class RevenueCatLoggingService {
   }
 
   async logCustomerInfoLoadSuccess(customerInfo: CustomerInfo, duration: number): Promise<void> {
-    const activeEntitlements = Object.keys(customerInfo.entitlements.active);
     return this.logEvent('customer_info_load_success', {
       duration_ms: duration,
       customer_info: {
@@ -301,6 +326,104 @@ class RevenueCatLoggingService {
     return this.logEvent('user_usage_record_created', {
       plan_id: planId,
       error_message: `Created user_usage record for user ${userId} with plan ${planId}`
+    });
+  }
+
+  // ============================================================================
+  // ENHANCED STARTUP DEBUGGING METHODS
+  // ============================================================================
+
+  async logStartupCustomerInfoDetailed(customerInfo: CustomerInfo): Promise<void> {
+    return this.logEvent('startup_customer_info_detailed', {
+      full_customer_info: {
+        originalAppUserId: customerInfo.originalAppUserId,
+        activeSubscriptions: customerInfo.activeSubscriptions,
+        allEntitlements: customerInfo.entitlements,
+        nonSubscriptionTransactions: customerInfo.nonSubscriptionTransactions,
+        requestDate: customerInfo.requestDate,
+        firstSeen: customerInfo.firstSeen,
+        originalApplicationVersion: customerInfo.originalApplicationVersion,
+        originalPurchaseDate: customerInfo.originalPurchaseDate,
+        managementURL: customerInfo.managementURL,
+      },
+      entitlements_found: Object.keys(customerInfo.entitlements.active),
+      subscriptions_found: customerInfo.activeSubscriptions,
+    });
+  }
+
+  async logPlanDetectionLogic(steps: {
+    entitlementsFound: string[];
+    subscriptionsFound: string[];
+    detectionMethod: 'entitlements' | 'subscription_inference' | 'fallback';
+    finalPlan: PlanIdentifier;
+    reasoning: string;
+  }): Promise<void> {
+    return this.logEvent('plan_detection_logic', {
+      entitlements_found: steps.entitlementsFound,
+      subscriptions_found: steps.subscriptionsFound,
+      detection_method: steps.detectionMethod,
+      plan_id: steps.finalPlan,
+      message: steps.reasoning,
+      plan_detection_steps: [
+        { step: 'check_entitlements', found: steps.entitlementsFound },
+        { step: 'check_subscriptions', found: steps.subscriptionsFound },
+        { step: 'apply_logic', method: steps.detectionMethod },
+        { step: 'final_decision', plan: steps.finalPlan, reasoning: steps.reasoning }
+      ]
+    });
+  }
+
+  async logSubscriptionStateComparison(data: {
+    databasePlan: PlanIdentifier;
+    revenueCatPlan: PlanIdentifier;
+    hasDiscrepancy: boolean;
+    action: string;
+  }): Promise<void> {
+    return this.logEvent('subscription_state_comparison', {
+      database_plan: data.databasePlan,
+      revenuecat_plan: data.revenueCatPlan,
+      message: `Database: ${data.databasePlan}, RevenueCat: ${data.revenueCatPlan}, Action: ${data.action}`,
+      error_message: data.hasDiscrepancy ? `Discrepancy detected between database (${data.databasePlan}) and RevenueCat (${data.revenueCatPlan})` : undefined
+    });
+  }
+
+  async logUserIdVerification(userIds: {
+    clerkUserId?: string;
+    supabaseUserId?: string;
+    revenueCatOriginal?: string;
+    revenueCatCurrent?: string;
+  }): Promise<void> {
+    return this.logEvent('user_id_verification', {
+      user_ids: {
+        clerk: userIds.clerkUserId,
+        supabase: userIds.supabaseUserId,
+        revenuecat_original: userIds.revenueCatOriginal,
+        revenuecat_current: userIds.revenueCatCurrent
+      },
+      message: `Clerk: ${userIds.clerkUserId}, Supabase: ${userIds.supabaseUserId}, RC Original: ${userIds.revenueCatOriginal}, RC Current: ${userIds.revenueCatCurrent}`
+    });
+  }
+
+  async logStartupFlowSummary(summary: {
+    authStatus: string;
+    revenueCatInitSuccess: boolean;
+    subscriptionDetected: boolean;
+    finalPlan: PlanIdentifier;
+    databaseUpdated: boolean;
+    discrepancies: string[];
+    totalDuration: number;
+  }): Promise<void> {
+    return this.logEvent('startup_flow_summary', {
+      startup_summary: {
+        auth_status: summary.authStatus,
+        revenuecat_init_success: summary.revenueCatInitSuccess,
+        subscription_detected: summary.subscriptionDetected,
+        database_updated: summary.databaseUpdated,
+        discrepancies: summary.discrepancies
+      },
+      plan_id: summary.finalPlan,
+      duration_ms: summary.totalDuration,
+      message: `Startup completed: Auth=${summary.authStatus}, RC=${summary.revenueCatInitSuccess}, Subscription=${summary.subscriptionDetected}, Plan=${summary.finalPlan}, DB Updated=${summary.databaseUpdated}${summary.discrepancies.length > 0 ? `, Issues: ${summary.discrepancies.join(', ')}` : ''}`
     });
   }
 
