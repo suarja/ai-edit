@@ -1,4 +1,4 @@
-import { Audio } from 'expo-av';
+// Types for audio recording using expo-audio
 
 export type VoiceClone = {
   id: string;
@@ -88,7 +88,7 @@ export interface VoiceRecordingState {
   isCompleted: boolean;
 
   // Audio data
-  recording: Audio.Recording | null;
+  recording: null; // Not needed with expo-audio hooks
   recordingUri: string | null;
   recordingDuration: number;
 
@@ -123,10 +123,10 @@ export interface VoiceRecordingStatus {
 
 // Resource tracker for cleanup
 export interface VoiceRecordingResources {
-  recording: Audio.Recording | null;
+  recording: null; // Not needed with expo-audio hooks
   timers: number[];
   intervals: number[];
-  sounds: Audio.Sound[];
+  sounds: never[]; // Not needed with expo-audio hooks
 }
 
 // Hook return type

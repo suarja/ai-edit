@@ -2,19 +2,24 @@ import 'react-native-gesture-handler/jestSetup';
 import { cleanup } from '@testing-library/react-native';
 
 // Mock Expo modules that aren't compatible with Jest
-jest.mock('expo-av', () => ({
-  Audio: {
-    Recording: {
-      createAsync: jest.fn().mockResolvedValue({
-        recording: {
-          getURI: jest.fn().mockReturnValue('file://mock-recording.m4a'),
-          getStatusAsync: jest.fn().mockResolvedValue({ isDoneRecording: true }),
-          stopAndUnloadAsync: jest.fn(),
-        },
-      }),
-      requestPermissionsAsync: jest.fn().mockResolvedValue({ granted: true }),
-      setAudioModeAsync: jest.fn(),
-    },
+jest.mock('expo-audio', () => ({
+  useAudioRecorder: () => ({
+    isRecording: false,
+    record: jest.fn().mockResolvedValue(undefined),
+    stop: jest.fn().mockResolvedValue('file://mock-recording.m4a'),
+    requestPermissions: jest.fn().mockResolvedValue({ granted: true }),
+    addListener: jest.fn().mockReturnValue({ remove: jest.fn() }),
+  }),
+  useAudioPlayer: () => ({
+    playing: false,
+    replace: jest.fn(),
+    play: jest.fn(),
+    pause: jest.fn(),
+    stop: jest.fn(),
+    addListener: jest.fn().mockReturnValue({ remove: jest.fn() }),
+  }),
+  AudioModule: {
+    setAudioMode: jest.fn(),
   },
 }));
 

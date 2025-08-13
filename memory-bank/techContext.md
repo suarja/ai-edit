@@ -48,7 +48,7 @@ app/
 
 - `@supabase/supabase-js`: Database and auth client
 - `openai`: GPT-4 integration
-- `expo-av`: Video playback
+- `expo-audio`: Audio recording and playback
 - `expo-camera`: Video recording
 - `expo-document-picker`: File uploads
 - `react-native-reanimated`: Animations

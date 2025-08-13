@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 
 import * as DocumentPicker from 'expo-document-picker';
-import { Audio } from 'expo-av';
+import { useAudioPlayer } from 'expo-audio';
 
 import {
   VoiceRecordingResult,
@@ -22,7 +22,6 @@ export type UseVoicesReturn = {
     loadingSamples: boolean;
     name: string;
     recordings: { uri: string; name: string }[];
-    sound: Audio.Sound | null;
     playingIndex: number | null;
     isSubmitting: boolean;
     error: string | null;
@@ -61,7 +60,7 @@ export const useVoices = ({
   const [recordings, setRecordings] = useState<{ uri: string; name: string }[]>(
     []
   );
-  const [sound, setSound] = useState<Audio.Sound | null>(null);
+  const player = useAudioPlayer();
   const [playingIndex, setPlayingIndex] = useState<number | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -75,12 +74,11 @@ export const useVoices = ({
     fetchExistingVoice();
     return () => {
       // Comprehensive cleanup on unmount
-      if (sound) {
-        sound.stopAsync().catch(console.error);
-        sound.unloadAsync().catch(console.error);
+      if (player.playing) {
+        player.pause();
       }
     };
-  }, []);
+  }, [player]);
 
   const fetchExistingVoice = async () => {
     try {
@@ -136,8 +134,9 @@ export const useVoices = ({
 
   const playVoiceSample = async (sampleId: string, index: number) => {
     try {
-      if (sound) {
-        await sound.unloadAsync();
+      // Stop current playback
+      if (player.playing) {
+        player.pause();
       }
 
       if (!existingVoices) return;
@@ -148,6 +147,7 @@ export const useVoices = ({
         router.push('/(auth)/sign-in');
         return;
       }
+      
       // Obtenir l'URL de l'échantillon depuis notre serveur
       const audioUrl = await VoiceService.getVoiceSampleAudioUrl(
         existingVoices[0].voiceId,
@@ -155,20 +155,20 @@ export const useVoices = ({
         { token }
       );
 
-      const { sound: newSound } = await Audio.Sound.createAsync(
-        { uri: audioUrl },
-        { shouldPlay: true },
-        (status) => {
-          if (!status.isLoaded) return;
-          if (status.didJustFinish) {
-            setPlayingIndex(null);
-          }
-        }
-      );
-
-      setSound(newSound);
+      // Load and play the audio
+      player.replace(audioUrl);
+      player.play();
+      
       setPlayingIndex(index);
       setError(null);
+      
+      // Set up event listener for when playback finishes
+      const subscription = player.addListener('playbackStatusUpdate', (status) => {
+        if (status.isLoaded && status.didJustFinish) {
+          setPlayingIndex(null);
+          subscription?.remove();
+        }
+      });
     } catch (err) {
       console.error('Failed to play voice sample', err);
       setPlayingIndex(null);
@@ -178,38 +178,25 @@ export const useVoices = ({
 
   const playSound = async (uri: string, index: number) => {
     try {
-      // Properly stop and unload any existing sound
-      if (sound) {
-        try {
-          await sound.stopAsync();
-        } catch (e) {
-          console.log('Sound stop failed, continuing:', e);
-        }
-        try {
-          await sound.unloadAsync();
-        } catch (e) {
-          console.log('Sound unload failed, continuing:', e);
-        }
-        setSound(null);
+      // Stop current playback
+      if (player.playing) {
+        player.pause();
       }
 
-      const { sound: newSound } = await Audio.Sound.createAsync(
-        { uri },
-        { shouldPlay: true },
-        (status) => {
-          if (!status.isLoaded) return;
-          if (status.didJustFinish) {
-            setPlayingIndex(null);
-            // Clean up sound after it finishes
-            newSound.unloadAsync().catch(console.error);
-            setSound(null);
-          }
-        }
-      );
-
-      setSound(newSound);
+      // Load and play the audio
+      player.replace(uri);
+      player.play();
+      
       setPlayingIndex(index);
       setError(null);
+      
+      // Set up event listener for when playback finishes
+      const subscription = player.addListener('playbackStatusUpdate', (status) => {
+        if (status.isLoaded && status.didJustFinish) {
+          setPlayingIndex(null);
+          subscription?.remove();
+        }
+      });
     } catch (err) {
       console.error('Failed to play sound', err);
       setPlayingIndex(null);
@@ -218,24 +205,17 @@ export const useVoices = ({
   };
 
   const stopSound = async () => {
-    if (sound) {
+    if (player.playing) {
       try {
-        await sound.stopAsync();
+        player.pause();
       } catch (err) {
-        console.log('Stop failed, continuing with unload:', err);
+        console.log('Stop failed:', err);
       }
-
-      try {
-        await sound.unloadAsync();
-      } catch (err) {
-        console.log('Unload failed:', err);
-      }
-
-      // Always reset state even if stop/unload failed
-      setSound(null);
-      setPlayingIndex(null);
-      setError(null);
     }
+    
+    // Always reset state
+    setPlayingIndex(null);
+    setError(null);
   };
 
   const pickAudio = async () => {
@@ -261,8 +241,8 @@ export const useVoices = ({
 
   const deleteRecording = async (index: number) => {
     try {
-      if (playingIndex === index && sound) {
-        await sound.unloadAsync();
+      if (playingIndex === index && player.playing) {
+        player.pause();
         setPlayingIndex(null);
       }
       setRecordings((prev) => prev.filter((_, i) => i !== index));
@@ -372,7 +352,6 @@ export const useVoices = ({
       loadingSamples,
       name,
       recordings,
-      sound,
       playingIndex,
       isSubmitting,
       error,

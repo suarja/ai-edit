@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { Audio } from 'expo-av';
+import { useAudioRecorder } from 'expo-audio';
 import {
   VoiceRecordingConfig,
   VoiceRecordingState,
@@ -9,7 +9,6 @@ import {
   VoiceRecordingError,
   VoiceRecordingProgress,
   VoiceRecordingResult,
-  VoiceRecordingResources,
   RecordingState,
   UIState,
   VOICE_RECORDING_ERROR_CODES,
@@ -31,7 +30,25 @@ export const useVoiceRecording = (
   const [isCompleted, setIsCompleted] = useState(false);
 
   // Audio data
-  const [recording, setRecording] = useState<Audio.Recording | null>(null);
+  const recorder = useAudioRecorder({
+    android: {
+      extension: '.m4a',
+      outputFormat: 'mpeg4',
+      audioEncoder: 'aac',
+      sampleRate: 44100,
+      numberOfChannels: 1,
+      bitRate: 128000,
+    },
+    ios: {
+      extension: '.m4a',
+      audioQuality: 'high',
+      sampleRate: 44100,
+      numberOfChannels: 1,
+      bitRate: 128000,
+    },
+    web: {},
+  });
+  
   const [recordingUri, setRecordingUri] = useState<string | null>(null);
   const [recordingDuration, setRecordingDuration] = useState(0);
 
@@ -43,11 +60,12 @@ export const useVoiceRecording = (
   const [progress, setProgress] = useState<VoiceRecordingProgress | null>(null);
 
   // Resource tracking for guaranteed cleanup
-  const resourceTracker = useRef<VoiceRecordingResources>({
-    recording: null,
+  const resourceTracker = useRef<{
+    timers: number[];
+    intervals: number[];
+  }>({
     timers: [],
     intervals: [],
-    sounds: [],
   });
 
   // Duration tracking
@@ -100,14 +118,13 @@ export const useVoiceRecording = (
   // Resource cleanup
   const cleanupResources = useCallback(async () => {
     try {
-      // Stop and cleanup recording
-      if (resourceTracker.current.recording) {
+      // Stop recording if active
+      if (recorder.isRecording) {
         try {
-          await resourceTracker.current.recording.stopAndUnloadAsync();
+          await recorder.stop();
         } catch (err) {
-          console.warn('Error cleaning up recording:', err);
+          console.warn('Error stopping recording:', err);
         }
-        resourceTracker.current.recording = null;
       }
 
       // Clear all timers and intervals
@@ -127,20 +144,10 @@ export const useVoiceRecording = (
         durationTracker.current.interval = null;
       }
       durationTracker.current.startTime = null;
-
-      // Cleanup sounds
-      for (const sound of resourceTracker.current.sounds) {
-        try {
-          await sound.unloadAsync();
-        } catch (err) {
-          console.warn('Error cleaning up sound:', err);
-        }
-      }
-      resourceTracker.current.sounds = [];
     } catch (err) {
       console.error('Error during resource cleanup:', err);
     }
-  }, []);
+  }, [recorder]);
 
   // Duration tracking
   const startDurationTracking = useCallback(() => {
@@ -177,8 +184,8 @@ export const useVoiceRecording = (
   }, [recordingState, uiState, isRecording]);
 
   const canStopRecording = useCallback(() => {
-    return recordingState === 'recording' && isRecording;
-  }, [recordingState, isRecording]);
+    return recordingState === 'recording' && recorder.isRecording;
+  }, [recordingState, recorder.isRecording]);
 
   const canRetry = useCallback(() => {
     return error?.recoverable === true || recordingState === 'error';
@@ -204,55 +211,15 @@ export const useVoiceRecording = (
       updateProgress('preparing', "Préparation de l'enregistrement...", 0);
 
       // Request permissions
-      const { granted } = await Audio.requestPermissionsAsync();
+      const { granted } = await recorder.requestPermissions();
       if (!granted) {
         throw createError(VOICE_RECORDING_ERROR_CODES.PERMISSION_DENIED);
       }
 
-      // Set audio mode for recording only
-      await Audio.setAudioModeAsync({
-        allowsRecordingIOS: true,
-        playsInSilentModeIOS: false,
-        staysActiveInBackground: false,
-      });
-
-      // Configure recording options
-      const recordingOptions = {
-        android: {
-          extension: '.m4a',
-          outputFormat: Audio.AndroidOutputFormat.MPEG_4,
-          audioEncoder: Audio.AndroidAudioEncoder.AAC,
-          sampleRate: 44100,
-          numberOfChannels: 1,
-          bitRate: 128000,
-        },
-        ios: {
-          extension: '.m4a',
-          outputFormat: Audio.IOSOutputFormat.MPEG4AAC,
-          audioQuality: Audio.IOSAudioQuality.HIGH,
-          sampleRate: 44100,
-          numberOfChannels: 1,
-          bitRate: 128000,
-          linearPCMBitDepth: 16,
-          linearPCMIsBigEndian: false,
-          linearPCMIsFloat: false,
-        },
-        web: {},
-      };
-
-      const { recording: newRecording } = await Audio.Recording.createAsync(
-        recordingOptions,
-        (status) => {
-          if (status.isRecording) {
-            // Recording status updates can be handled here if needed
-          }
-        },
-        100
-      );
+      // Start recording
+      await recorder.record();
 
       // Update state
-      setRecording(newRecording);
-      resourceTracker.current.recording = newRecording;
       setRecordingState('recording');
       setUiState('ready');
       setIsRecording(true);
@@ -286,10 +253,11 @@ export const useVoiceRecording = (
     updateProgress,
     config,
     startDurationTracking,
+    recorder,
   ]);
 
   const stopRecording = useCallback(async () => {
-    if (!canStopRecording() || !recording) {
+    if (!canStopRecording()) {
       console.warn('Cannot stop recording in current state');
       return;
     }
@@ -304,13 +272,7 @@ export const useVoiceRecording = (
 
       // Validate minimum duration
       if (recordingDuration < fullConfig.minDuration) {
-        await recording.stopAndUnloadAsync();
-        // Reset audio mode to default
-        await Audio.setAudioModeAsync({
-          allowsRecordingIOS: false,
-          playsInSilentModeIOS: false,
-          staysActiveInBackground: false,
-        });
+        await recorder.stop();
         throw createError(
           VOICE_RECORDING_ERROR_CODES.RECORDING_TOO_SHORT,
           `L'enregistrement est trop court. Minimum ${
@@ -319,16 +281,8 @@ export const useVoiceRecording = (
         );
       }
 
-      // Stop and get URI
-      await recording.stopAndUnloadAsync();
-      const uri = recording.getURI();
-      
-      // Reset audio mode to default after recording
-      await Audio.setAudioModeAsync({
-        allowsRecordingIOS: false,
-        playsInSilentModeIOS: false,
-        staysActiveInBackground: false,
-      });
+      // Stop recording and get URI
+      const uri = await recorder.stop();
 
       if (!uri) {
         throw createError(
@@ -363,8 +317,6 @@ export const useVoiceRecording = (
 
       // Update state
       setRecordingUri(uri);
-      setRecording(null);
-      resourceTracker.current.recording = null;
       setRecordingState('completed');
       setUiState('success');
       setIsRecording(false);
@@ -396,26 +348,17 @@ export const useVoiceRecording = (
       config.onError?.(error);
 
       // Cleanup recording on error
-      if (recording) {
+      if (recorder.isRecording) {
         try {
-          await recording.stopAndUnloadAsync();
+          await recorder.stop();
         } catch (cleanupErr) {
           console.warn('Error during recording cleanup:', cleanupErr);
         }
-        setRecording(null);
-        resourceTracker.current.recording = null;
       }
-      
-      // Reset audio mode on error
-      await Audio.setAudioModeAsync({
-        allowsRecordingIOS: false,
-        playsInSilentModeIOS: false,
-        staysActiveInBackground: false,
-      }).catch(console.error);
     }
   }, [
     canStopRecording,
-    recording,
+    recorder,
     recordingDuration,
     fullConfig,
     updateProgress,
@@ -434,13 +377,6 @@ export const useVoiceRecording = (
     setProgress(null);
     stopDurationTracking();
     await cleanupResources();
-    
-    // Reset audio mode when canceling
-    await Audio.setAudioModeAsync({
-      allowsRecordingIOS: false,
-      playsInSilentModeIOS: false,
-      staysActiveInBackground: false,
-    }).catch(console.error);
   }, [stopDurationTracking, cleanupResources]);
 
   const clearError = useCallback(() => {
@@ -478,13 +414,6 @@ export const useVoiceRecording = (
     setProgress(null);
     stopDurationTracking();
     await cleanupResources();
-    
-    // Reset audio mode on reset
-    await Audio.setAudioModeAsync({
-      allowsRecordingIOS: false,
-      playsInSilentModeIOS: false,
-      staysActiveInBackground: false,
-    }).catch(console.error);
   }, [stopDurationTracking, cleanupResources]);
 
   const submitRecording = useCallback(async () => {
@@ -542,10 +471,10 @@ export const useVoiceRecording = (
   const state: VoiceRecordingState = {
     recordingState,
     uiState,
-    isRecording,
+    isRecording: recorder.isRecording,
     isProcessing,
     isCompleted,
-    recording,
+    recording: null, // Not needed with expo-audio
     recordingUri,
     recordingDuration,
     error,

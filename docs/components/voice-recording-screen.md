@@ -17,7 +17,7 @@ The `VoiceRecordingScreen` component is located at `app/(onboarding)/voice-recor
 ### Key Dependencies
 
 ```typescript
-import { Audio } from 'expo-av';
+import { useAudioRecorder } from 'expo-audio';
 import { supabase } from '@/lib/supabase';
 import { useOnboarding } from '@/components/providers/OnboardingProvider';
 import { ProgressBar } from '@/components/onboarding/ProgressBar';
