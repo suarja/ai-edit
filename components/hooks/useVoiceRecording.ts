@@ -209,10 +209,11 @@ export const useVoiceRecording = (
         throw createError(VOICE_RECORDING_ERROR_CODES.PERMISSION_DENIED);
       }
 
-      // Set audio mode
+      // Set audio mode for recording only
       await Audio.setAudioModeAsync({
         allowsRecordingIOS: true,
-        playsInSilentModeIOS: true,
+        playsInSilentModeIOS: false,
+        staysActiveInBackground: false,
       });
 
       // Configure recording options
@@ -304,6 +305,12 @@ export const useVoiceRecording = (
       // Validate minimum duration
       if (recordingDuration < fullConfig.minDuration) {
         await recording.stopAndUnloadAsync();
+        // Reset audio mode to default
+        await Audio.setAudioModeAsync({
+          allowsRecordingIOS: false,
+          playsInSilentModeIOS: false,
+          staysActiveInBackground: false,
+        });
         throw createError(
           VOICE_RECORDING_ERROR_CODES.RECORDING_TOO_SHORT,
           `L'enregistrement est trop court. Minimum ${
@@ -315,6 +322,13 @@ export const useVoiceRecording = (
       // Stop and get URI
       await recording.stopAndUnloadAsync();
       const uri = recording.getURI();
+      
+      // Reset audio mode to default after recording
+      await Audio.setAudioModeAsync({
+        allowsRecordingIOS: false,
+        playsInSilentModeIOS: false,
+        staysActiveInBackground: false,
+      });
 
       if (!uri) {
         throw createError(
@@ -391,6 +405,13 @@ export const useVoiceRecording = (
         setRecording(null);
         resourceTracker.current.recording = null;
       }
+      
+      // Reset audio mode on error
+      await Audio.setAudioModeAsync({
+        allowsRecordingIOS: false,
+        playsInSilentModeIOS: false,
+        staysActiveInBackground: false,
+      }).catch(console.error);
     }
   }, [
     canStopRecording,
@@ -403,7 +424,7 @@ export const useVoiceRecording = (
     createError,
   ]);
 
-  const cancelRecording = useCallback(() => {
+  const cancelRecording = useCallback(async () => {
     setRecordingState('idle');
     setUiState('ready');
     setIsRecording(false);
@@ -412,7 +433,14 @@ export const useVoiceRecording = (
     setRecordingDuration(0);
     setProgress(null);
     stopDurationTracking();
-    cleanupResources();
+    await cleanupResources();
+    
+    // Reset audio mode when canceling
+    await Audio.setAudioModeAsync({
+      allowsRecordingIOS: false,
+      playsInSilentModeIOS: false,
+      staysActiveInBackground: false,
+    }).catch(console.error);
   }, [stopDurationTracking, cleanupResources]);
 
   const clearError = useCallback(() => {
@@ -438,7 +466,7 @@ export const useVoiceRecording = (
     }
   }, [canRetry, clearError, cleanupResources, lastError, startRecording]);
 
-  const reset = useCallback(() => {
+  const reset = useCallback(async () => {
     setRecordingState('idle');
     setUiState('ready');
     setIsRecording(false);
@@ -449,7 +477,14 @@ export const useVoiceRecording = (
     setError(null);
     setProgress(null);
     stopDurationTracking();
-    cleanupResources();
+    await cleanupResources();
+    
+    // Reset audio mode on reset
+    await Audio.setAudioModeAsync({
+      allowsRecordingIOS: false,
+      playsInSilentModeIOS: false,
+      staysActiveInBackground: false,
+    }).catch(console.error);
   }, [stopDurationTracking, cleanupResources]);
 
   const submitRecording = useCallback(async () => {

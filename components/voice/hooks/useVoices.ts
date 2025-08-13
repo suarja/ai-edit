@@ -74,8 +74,10 @@ export const useVoices = ({
   useEffect(() => {
     fetchExistingVoice();
     return () => {
+      // Comprehensive cleanup on unmount
       if (sound) {
-        sound.unloadAsync();
+        sound.stopAsync().catch(console.error);
+        sound.unloadAsync().catch(console.error);
       }
     };
   }, []);
@@ -176,8 +178,19 @@ export const useVoices = ({
 
   const playSound = async (uri: string, index: number) => {
     try {
+      // Properly stop and unload any existing sound
       if (sound) {
-        await sound.unloadAsync();
+        try {
+          await sound.stopAsync();
+        } catch (e) {
+          console.log('Sound stop failed, continuing:', e);
+        }
+        try {
+          await sound.unloadAsync();
+        } catch (e) {
+          console.log('Sound unload failed, continuing:', e);
+        }
+        setSound(null);
       }
 
       const { sound: newSound } = await Audio.Sound.createAsync(
@@ -187,6 +200,9 @@ export const useVoices = ({
           if (!status.isLoaded) return;
           if (status.didJustFinish) {
             setPlayingIndex(null);
+            // Clean up sound after it finishes
+            newSound.unloadAsync().catch(console.error);
+            setSound(null);
           }
         }
       );
