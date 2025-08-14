@@ -18,7 +18,6 @@
       "bundleIdentifier": "com.swarecito.aiedit",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false,
-        "UIBackgroundModes": [],
         "NSAppTransportSecurity": {
           "NSAllowsArbitraryLoads": true,
           "NSAllowsLocalNetworking": true,
@@ -74,7 +73,7 @@
         "expo-video",
         {
           "supportsBackgroundPlayback": false,
-          "supportsPictureInPicture": true,
+          "supportsPictureInPicture": false,
           "supportsFullscreen": true
         }
       ],
@@ -85,8 +84,7 @@
           "microphonePermission": "Allow $(PRODUCT_NAME) to access your microphone for voice dictation.",
           "speechRecognitionPermission": "Allow $(PRODUCT_NAME) to use speech recognition for voice dictation."
         }
-      ],
-      "./plugins/withRemoveUIBackgroundModes.js"
+      ]
     ],
     "experiments": {
       "typedRoutes": true
